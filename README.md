@@ -12,11 +12,11 @@
   </p>
 
   <p align="center">
+    <a href="https://SMA-UII-Yogyakarta.github.io/aksesekolah"><img src="https://img.shields.io/badge/🌐_docs-GitHub_Pages-2ea44f?style=flat-square" /></a>
     <a href="#setup-lingkungan">Setup</a> •
     <a href="#fitur">Fitur</a> •
     <a href="#arsitektur">Arsitektur</a> •
-    <a href="#api-endpoints">API</a> •
-    <a href="#contributing">Kontribusi</a>
+    <a href="#api-endpoints">API</a>
   </p>
 </div>
 
@@ -197,14 +197,17 @@ Pastikan test tetap hijau dan kode sesuai standar PSR-12.
 
 ## Lisensi
 
-Proyek ini dikembangkan untuk **SMA UII Yogyakarta** di bawah lisensi MIT.
+Proyek ini dikembangkan oleh **PT Koneksi Jaringan Indonesia** (*Software House — Agency Koneksi Digital*) sebagai mitra resmi pengembangan teknologi informasi **SMA UII Yogyakarta** dan dilisensikan di bawah lisensi MIT.
+
+> **Hak Cipta** — Source code © 2025–2026 PT Koneksi Jaringan Indonesia. Hak cipta dilindungi undang-undang. Source code disediakan untuk keperluan operasional SMA UII Yogyakarta. **DILARANG** memperjualbelikan, mendistribusikan ulang, atau menggunakan di luar lingkungan SMA UII Yogyakarta tanpa izin tertulis dari PT Koneksi Jaringan Indonesia dan SMA UII Yogyakarta. Kredit tetap milik PT Koneksi Jaringan Indonesia untuk menjaga otentisitas dan mencegah perjualbelian ilegal pihak ketiga di luar kesepakatan.
 
 ---
 
 <div align="center">
   <p>
     <a href="https://github.com/SMA-UII-Yogyakarta/aksesekolah">📚 Monorepo</a> •
-    <a href="https://github.com/SMA-UII-Yogyakarta">🏫 Organization</a>
+    <a href="https://github.com/SMA-UII-Yogyakarta">🏫 Organization</a> •
+    <a href="https://SMA-UII-Yogyakarta.github.io/aksesekolah">🌐 Dokumentasi Online</a>
   </p>
-  <p><sub>Dikembangkan oleh Tim Pengembang SMA UII Yogyakarta</sub></p>
+  <p><sub>PT Koneksi Jaringan Indonesia — Software House Agency Koneksi Digital</sub></p>
 </div>
