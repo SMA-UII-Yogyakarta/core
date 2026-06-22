@@ -1,0 +1,11 @@
+daysUntilStale: 60
+daysUntilClose: 14
+exemptLabels:
+  - pinned
+  - security
+staleLabel: stale
+markComment: >
+  Isu ini telah berusia 60 hari tanpa aktivitas. Jika tidak ada tanggapan
+  dalam 14 hari, isu ini akan otomatis ditutup.
+closeComment: >
+  Isu ini ditutup secara otomatis karena tidak ada aktivitas.
