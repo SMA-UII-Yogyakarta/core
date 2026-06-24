@@ -1,0 +1,43 @@
+# Cursor Rules — SMAUII Core (Backend Laravel)
+
+## Project Context
+- Stack: Laravel 13, PHP 8.5.7, MySQL 8, Sanctum
+- Architecture: Monorepo submodule core.git
+- Frontend: Livewire 3, Blade, Tailwind CSS 4, Alpine.js
+
+## Code Style
+- PHP: PSR-12 (Laravel Pint)
+- Follow Laravel conventions strictly
+- Use Eloquent ORM for all database queries
+- No raw SQL unless absolutely necessary
+
+## AI Behavior
+- Laravel best practices: Form Request for validation, Policy for authorization, Eloquent for queries
+- Security: validate inputs, escape outputs, use CSRF
+- Performance: eager loading (with()), no N+1, index database columns
+- Testing: write PHPUnit tests for all features
+- Self-review checklist before PR
+
+## Conventions
+- Routes: web.php for Livewire/Blade, api.php for Sanctum API
+- Controllers: __invoke for single action, resource controller for CRUD
+- Database: migrations up/down, seeders with factories
+- Validation: Form Request classes with authorize() method
+- Authorization: Laravel Policies, not Gates
+
+## Important Rules
+- Never commit .env, keys, tokens, or passwords
+- Never use dd() or var_dump() in committed code
+- Never skip validation — always validate user input
+- Never query inside Blade loops (N+1!)
+
+## Commands
+- php artisan test — PHPUnit tests
+- ./vendor/bin/pint — Laravel Pint (code style check)
+- php artisan migrate — Run migrations
+- php artisan migrate:fresh --seed — Reset + seed database
+
+## References
+- ../aksesekolah/docs/* — Documentation
+- ../smauii-playbook/* — SOPs, workflows, templates
+- .opencode/SHARED/* — AI agent config

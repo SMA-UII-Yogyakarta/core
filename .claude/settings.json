@@ -1,0 +1,44 @@
+{
+  "projectName": "SMART Absen SMA UII — Backend Core",
+  "instructions": "Baca file .opencode/SHARED/project-context.md dan .opencode/SHARED/agent-rules.md untuk konteks project. Untuk role-specific instructions, lihat ~/.openkb/ROLES/<role>.md.",
+  "references": [
+    "../smauii-playbook",
+    "../kaede-powerup",
+    "../aksesekolah"
+  ],
+  "customSlashCommands": [
+    {
+      "name": "test",
+      "description": "Jalankan PHPUnit test",
+      "command": "php artisan test"
+    },
+    {
+      "name": "lint",
+      "description": "Cek coding style dengan Laravel Pint",
+      "command": "./vendor/bin/pint --test"
+    },
+    {
+      "name": "fix",
+      "description": "Perbaiki coding style",
+      "command": "./vendor/bin/pint"
+    },
+    {
+      "name": "migrate",
+      "description": "Jalankan migrasi database",
+      "command": "php artisan migrate"
+    },
+    {
+      "name": "fresh",
+      "description": "Migrate fresh + seed",
+      "command": "php artisan migrate:fresh --seed"
+    }
+  ],
+  "ignorePatterns": [
+    ".env",
+    ".env.*",
+    "vendor/",
+    "node_modules/",
+    "storage/",
+    ".openkb/PERSONAL/"
+  ]
+}
