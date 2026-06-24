@@ -27,3 +27,6 @@ Homestead.yaml
 Thumbs.db
 # Personal knowledge base — tidak di-track
 .openkb/PERSONAL/
+
+# Environment variables (API keys, tokens)
+secrets.env
