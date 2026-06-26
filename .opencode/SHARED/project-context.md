@@ -5,7 +5,7 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 
 ## Tech Stack
 - **Framework**: Laravel 13
-- **PHP**: 8.5.7 NTS (VS17 x64)
+- **PHP**: 8.4.22 NTS (VS17 x64) — rekomendasi terbaik untuk Laravel 13
 - **Database**: MySQL 8.0.30 (dev) / SQLite (testing)
 - **Cache & Queue**: Redis / Database driver
 - **Object Storage**: S3-compatible (Wasabi / MinIO)
