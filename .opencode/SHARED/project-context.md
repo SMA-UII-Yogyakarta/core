@@ -25,6 +25,15 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 5. `.env`, key, token tidak boleh di-commit
 6. Kredit milik PT Koneksi Jaringan Indonesia
 
+## Instalasi KAEDE (untuk anggota tim)
+KAEDE bukan bagian dari project ini — ia alat global yang diinstal terpisah:
+1. Clone `git@github.com:konxc/kaede-powerup.git`
+2. `node scripts/kaede.mjs install` — salin ke `~/.kaede/`, daftarkan MCP global
+3. `node scripts/kaede.mjs setup` — isi Trello API Key & Token (tersimpan di `~/.config/kaede/secrets.env`)
+4. Verifikasi: `kaede status --mcp`
+
+Jangan simpan `secrets.env` di folder project. Gunakan global config `~/.config/kaede/secrets.env`.
+
 ## KAEDE Workflow (AI Agent)
 Dua MCP server terdaftar global di `~/.config/opencode/opencode.json`:
 
