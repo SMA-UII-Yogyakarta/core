@@ -5,7 +5,7 @@
 
   <p align="center">
     <img src="https://img.shields.io/badge/laravel-13-F9322C?style=flat-square&logo=laravel" />
-    <img src="https://img.shields.io/badge/php-8.5-777BB4?style=flat-square&logo=php" />
+    <img src="https://img.shields.io/badge/php-8.4-777BB4?style=flat-square&logo=php" />
     <img src="https://img.shields.io/badge/mysql-8.0-4479A1?style=flat-square&logo=mysql" />
     <img src="https://img.shields.io/badge/redis-7-FF4438?style=flat-square&logo=redis" />
     <img src="https://img.shields.io/badge/license-MIT-d63031?style=flat-square" />
@@ -50,7 +50,7 @@ Repositori ini adalah **backend utama** dari sistem **SMART Absen SMA UII** — 
 | Tool | Versi | Keterangan |
 |---|---|---|
 | [Laragon](https://laragon.org) | 6.0+ | Development environment (wajib) |
-| PHP | 8.3+ (8.5.7 recommended) | Sudah termasuk Laragon |
+| PHP | 8.3+ (8.4.22 recommended) | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
 | MySQL | 8.0+ | Sudah termasuk Laragon |
 | Composer | latest | Portable di `C:\laragon\bin\composer` |
 | Node.js | 22+ | Sudah termasuk Laragon |
@@ -118,7 +118,7 @@ Developer cukup melakukan clone `core.git` langsung ke Laragon untuk development
 | Layer | Teknologi |
 |---|---|
 | **Framework** | Laravel 13 |
-| **PHP** | 8.5.7 NTS (VS17 x64) |
+| **PHP** | 8.4.22 NTS (VS17 x64) |
 | **Database** | MySQL 8.0.30 |
 | **Cache & Queue** | Redis / Database driver |
 | **Object Storage** | S3-compatible (Wasabi / MinIO) |

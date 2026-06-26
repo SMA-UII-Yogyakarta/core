@@ -1,7 +1,7 @@
 # Cursor Rules — SMAUII Core (Backend Laravel)
 
 ## Project Context
-- Stack: Laravel 13, PHP 8.5.7, MySQL 8, Sanctum
+- Stack: Laravel 13, PHP 8.4, MySQL 8, Sanctum
 - Architecture: Monorepo submodule core.git
 - Frontend: Livewire 3, Blade, Tailwind CSS 4, Alpine.js
 

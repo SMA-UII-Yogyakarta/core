@@ -25,6 +25,12 @@ test:      Penambahan test
 - Eloquent: eager loading (cegah N+1)
 - Testing: PHPUnit
 
+## KAEDE Workflow Rules
+- **WAJIB** panggil `mcp.kaede.generate_plan` sebelum eksekusi Trello — jangan panggil Trello tools langsung tanpa plan
+- **WAJIB** resolve nama → ID via `mcp.trello.get_*` tools sebelum eksekusi (plan cuma punya nama)
+- Jika `generate_plan` return error/unknown intent, tanya user dulu, jangan tebak
+- CLI `kaede run` = quick bypass (tanpa generate_plan), gunakan hanya jika user minta langsung
+
 ## Keamanan
 - Jangan commit `.env`, key, token, password
 - Input user divalidasi & di-sanitize
