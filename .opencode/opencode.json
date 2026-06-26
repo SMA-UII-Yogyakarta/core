@@ -21,7 +21,7 @@
     },
     "kaede": {
       "path": "../../kaede-powerup",
-      "description": "KAEDE — Trello MCP, CLI tools & AI Agent ecosystem. Install: cd kaede-powerup && node scripts/kaede.mjs install"
+      "description": "KAEDE — Two global MCP servers: mcp.kaede (4 context/plan tools) + mcp.trello (24 execute tools). Install: cd kaede-powerup && node scripts/kaede.mjs install"
     }
   },
   "agent": {
@@ -70,13 +70,9 @@
       "description": "Cek status koneksi KAEDE & Trello",
       "template": "kaede status --mcp"
     },
-    "kaede-run": {
-      "description": "Eksekusi intent ke Trello (butuh --playbook & board)",
-      "template": "kaede run --playbook '../smauii-playbook' --board $ARGUMENTS"
-    },
-    "kaede-orchestrate": {
-      "description": "Muat konteks playbook",
-      "template": "kaede orchestrate --playbook '../smauii-playbook' $ARGUMENTS"
+    "kaede-generate-plan": {
+      "description": "Generate action plan dari intent (alternatif cepat statt mcp.kaede.generate_plan)",
+      "template": "node scripts/kaede.mjs run --dry-run --playbook '../smauii-playbook' $ARGUMENTS"
     }
   }
 }
