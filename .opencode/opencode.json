@@ -8,20 +8,20 @@
   ],
   "references": {
     "docs": {
-      "path": "../aksesekolah/docs",
+      "path": "../../smauii-aksesekolah/docs",
       "description": "Dokumentasi teknis SMART Absen — arsitektur, ERD, deployment"
     },
     "monorepo": {
-      "path": "../aksesekolah",
+      "path": "../../smauii-aksesekolah",
       "description": "Monorepo entrypoint — brief, docs, .opencode, .openkb"
     },
     "playbook": {
-      "path": "../smauii-playbook",
+      "path": "../../smauii-playbook",
       "description": "SOP, workflow, template, ADR, role definitions, AI workflows"
     },
     "kaede": {
-      "path": "../kaede-powerup",
-      "description": "KAEDE Power-Up — integrasi Trello MCP & ekosistem AI Agent"
+      "path": "../../kaede-powerup",
+      "description": "KAEDE — Trello MCP, CLI tools & AI Agent ecosystem. Install: cd kaede-powerup && node scripts/kaede.mjs install"
     }
   },
   "agent": {
@@ -61,18 +61,22 @@
     "fresh": {
       "description": "Migrate fresh + seed",
       "template": "php artisan migrate:fresh --seed"
-    }
-  },
-  "mcp": {
-    "trello": {
-      "type": "local",
-      "command": "bunx",
-      "args": ["@delorenj/mcp-server-trello"],
-      "env": {
-        "TRELLO_API_KEY": "${TRELLO_API_KEY}",
-        "TRELLO_TOKEN": "${TRELLO_TOKEN}"
-      },
-      "enabled": true
+    },
+    "kaede-today": {
+      "description": "Tampilkan task Trello hari ini",
+      "template": "kaede today"
+    },
+    "kaede-status": {
+      "description": "Cek status koneksi KAEDE & Trello",
+      "template": "kaede status --mcp"
+    },
+    "kaede-run": {
+      "description": "Eksekusi intent ke Trello (butuh --playbook & board)",
+      "template": "kaede run --playbook '../smauii-playbook' --board $ARGUMENTS"
+    },
+    "kaede-orchestrate": {
+      "description": "Muat konteks playbook",
+      "template": "kaede orchestrate --playbook '../smauii-playbook' $ARGUMENTS"
     }
   }
 }
