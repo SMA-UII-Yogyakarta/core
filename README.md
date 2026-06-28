@@ -56,7 +56,7 @@ Repositori ini adalah **backend utama** dari sistem **SMART Absen SMA UII** — 
 | PHP | 8.3+ (8.4.22 recommended) | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
 | MySQL | 8.0+ | Sudah termasuk Laragon |
 | Composer | latest | Portable di `C:\laragon\bin\composer` |
-| [Bun](https://bun.sh) | 1.3+ | Package manager & runtime JS — `npm install -g bun` |
+| [Bun](https://bun.sh) | 1.3+ | Package manager & runtime JS — `powershell -c "irm bun.sh/install.ps1 | iex"` (Win) / `curl -fsSL https://bun.sh/install | bash` (Mac/Linux) |
 
 ### Instalasi
 
