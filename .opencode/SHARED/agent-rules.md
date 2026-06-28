@@ -18,12 +18,23 @@ test:      Penambahan test
 ```
 
 ## Laravel Conventions
-- Route: web.php (Blade), api.php (API Sanctum)
+- Route: web.php (Inertia pages), api.php (API Sanctum)
 - Controller: single action → __invoke untuk simple cases
+- View: Inertia::render di controller → React component di resources/js/Pages/
 - Validation: Form Request
 - Database: migration + seeder
 - Eloquent: eager loading (cegah N+1)
 - Testing: PHPUnit
+
+## Frontend Conventions (Inertia + React + TypeScript)
+- Gunakan TypeScript untuk semua file frontend (.tsx / .ts)
+- Pages: resources/js/Pages/{NamaPage}.tsx — satu file per route
+- Components: resources/js/Components/{Nama}.tsx — reusable
+- Layouts: resources/js/Layouts/{Nama}.tsx — layout wrapper
+- Types: resources/js/types/*.ts — tipe data bersama
+- Gunakan bun untuk package management (bukan npm)
+- Jalankan Vite dev server: `bun run dev`
+- Build production: `bun run build`
 
 ## KAEDE Workflow Rules
 - **WAJIB** panggil `mcp.kaede.generate_plan` sebelum eksekusi Trello — jangan panggil Trello tools langsung tanpa plan

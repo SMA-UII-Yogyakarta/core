@@ -9,7 +9,8 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 - **Database**: MySQL 8.0.30 (dev) / SQLite (testing)
 - **Cache & Queue**: Redis / Database driver
 - **Object Storage**: S3-compatible (Wasabi / MinIO)
-- **Frontend**: Blade + Tailwind CSS 4 + Vite
+- **Frontend**: InertiaJS 2 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
+- **Package Manager**: Bun
 - **Auth**: Laravel Sanctum (SSO / Identity Provider)
 
 ## Database (10 tabel)
@@ -20,10 +21,11 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 ## Aturan Penting
 1. Semua perubahan `main` harus via PR dengan minimal 1 review
 2. Commit menggunakan Conventional Commits
-3. Coding style: PSR-12 (Laravel Pint)
+3. Coding style: PSR-12 (Laravel Pint) untuk PHP
 4. Test harus hijau sebelum merge
 5. `.env`, key, token tidak boleh di-commit
 6. Kredit milik PT Koneksi Jaringan Indonesia
+7. Gunakan **bun** (bukan npm) untuk package management frontend
 
 ## Instalasi KAEDE (untuk anggota tim)
 KAEDE bukan bagian dari project ini — ia alat global yang diinstal terpisah:

@@ -3,24 +3,29 @@
 ## Project Context
 - Stack: Laravel 13, PHP 8.4, MySQL 8, Sanctum
 - Architecture: Monorepo submodule core.git
-- Frontend: Livewire 3, Blade, Tailwind CSS 4, Alpine.js
+- Frontend: InertiaJS 2 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
 
 ## Code Style
 - PHP: PSR-12 (Laravel Pint)
+- TypeScript/React: ESLint + Prettier
 - Follow Laravel conventions strictly
 - Use Eloquent ORM for all database queries
 - No raw SQL unless absolutely necessary
 
 ## AI Behavior
 - Laravel best practices: Form Request for validation, Policy for authorization, Eloquent for queries
+- Inertia best practices: use Inertia::render for pages, share data via middleware, use React components for UI
 - Security: validate inputs, escape outputs, use CSRF
 - Performance: eager loading (with()), no N+1, index database columns
-- Testing: write PHPUnit tests for all features
-- Self-review checklist before PR
+- Testing: PHPUnit for backend, Vitest/React Testing Library for frontend
 
 ## Conventions
-- Routes: web.php for Livewire/Blade, api.php for Sanctum API
+- Routes: web.php for Inertia pages, api.php for Sanctum API
 - Controllers: __invoke for single action, resource controller for CRUD
+- Pages: resources/js/Pages/*.tsx — one file per route
+- Components: resources/js/Components/*.tsx — reusable UI
+- Layouts: resources/js/Layouts/*.tsx — page layouts
+- Types: resources/js/types/*.ts — TypeScript definitions
 - Database: migrations up/down, seeders with factories
 - Validation: Form Request classes with authorize() method
 - Authorization: Laravel Policies, not Gates
@@ -29,11 +34,15 @@
 - Never commit .env, keys, tokens, or passwords
 - Never use dd() or var_dump() in committed code
 - Never skip validation — always validate user input
-- Never query inside Blade loops (N+1!)
+- Never query inside loops (N+1!)
+- Use TypeScript for all frontend code (.tsx/.ts)
+- Use bun instead of npm for package management
 
 ## Commands
 - php artisan test — PHPUnit tests
 - ./vendor/bin/pint — Laravel Pint (code style check)
+- bun run build — Build frontend assets
+- bun run dev — Start Vite dev server
 - php artisan migrate — Run migrations
 - php artisan migrate:fresh --seed — Reset + seed database
 

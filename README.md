@@ -1,11 +1,14 @@
 <div align="center">
   <h1>⚡ SMAUII Core</h1>
   <p><strong>Backend API — SMART Absen SMA UII</strong></p>
-  <p><em>Sistem Presensi Digital Terintegrasi dengan Geolokasi, Biometrik Kamera & SSO</em></p>
+  <p><em>Sistem Presensi Digital Terintegrasi dengan Geolokasi, Biometrik Kamera &amp; SSO</em></p>
 
   <p align="center">
     <img src="https://img.shields.io/badge/laravel-13-F9322C?style=flat-square&logo=laravel" />
     <img src="https://img.shields.io/badge/php-8.4-777BB4?style=flat-square&logo=php" />
+    <img src="https://img.shields.io/badge/inertia-2-6F4E9E?style=flat-square&logo=inertia" />
+    <img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react" />
+    <img src="https://img.shields.io/badge/typescript-5-3178C6?style=flat-square&logo=typescript" />
     <img src="https://img.shields.io/badge/mysql-8.0-4479A1?style=flat-square&logo=mysql" />
     <img src="https://img.shields.io/badge/redis-7-FF4438?style=flat-square&logo=redis" />
     <img src="https://img.shields.io/badge/license-MIT-d63031?style=flat-square" />
@@ -53,7 +56,7 @@ Repositori ini adalah **backend utama** dari sistem **SMART Absen SMA UII** — 
 | PHP | 8.3+ (8.4.22 recommended) | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
 | MySQL | 8.0+ | Sudah termasuk Laragon |
 | Composer | latest | Portable di `C:\laragon\bin\composer` |
-| Node.js | 22+ | Sudah termasuk Laragon |
+| [Bun](https://bun.sh) | 1.3+ | Package manager & runtime JS — `npm install -g bun` |
 
 ### Instalasi
 
@@ -71,6 +74,12 @@ cp .env.example .env
 
 # Generate app key
 php artisan key:generate
+
+# Install frontend dependencies (gunakan bun, bukan npm)
+bun install
+
+# Build frontend assets
+bun run build
 
 # Jalankan migrasi + seeder
 php artisan migrate --seed
@@ -123,8 +132,30 @@ Developer cukup melakukan clone `core.git` langsung ke Laragon untuk development
 | **Cache & Queue** | Redis / Database driver |
 | **Object Storage** | S3-compatible (Wasabi / MinIO) |
 | **Web Server** | Apache 2.4 (dev) / Nginx (prod) |
-| **Frontend** | Blade + Tailwind CSS 4 + Vite |
+| **Frontend** | InertiaJS 2 + React 19 + TypeScript + Tailwind CSS 4 + Vite 8 |
+| **Package Manager** | [Bun](https://bun.sh) |
 | **Auth** | Laravel Sanctum (SSO / IdP) |
+
+### Struktur Frontend
+
+```
+resources/
+├── js/
+│   ├── app.tsx                 # Entry point Inertia + React
+│   ├── Pages/                  # Halaman (satu file per route)
+│   │   └── Welcome.tsx
+│   ├── Components/             # Komponen reusable
+│   ├── Layouts/                # Layout wrappers
+│   │   └── AppLayout.tsx
+│   └── types/                  # TypeScript definitions
+│       ├── index.ts
+│       ├── global.d.ts
+│       └── inertia.d.ts
+├── css/
+│   └── app.css                 # Tailwind CSS 4
+└── views/
+    └── app.blade.php           # Root template Inertia
+```
 
 ### Struktur Database (10 Tabel)
 
@@ -158,6 +189,22 @@ Detail ERD selengkapnya: [docs/04-erd-database.md](https://github.com/SMA-UII-Yo
 ---
 
 ## Pengembangan
+
+### Dev Server (Hot Reload)
+
+```bash
+# Terminal 1 — Laravel server
+php artisan serve
+
+# Terminal 2 — Vite dev (dengan hot reload)
+bun run dev
+```
+
+Atau jalankan semua (server + queue + logs + vite) sekali jalan:
+
+```bash
+composer run dev
+```
 
 ### Menambahkan Fitur Baru
 

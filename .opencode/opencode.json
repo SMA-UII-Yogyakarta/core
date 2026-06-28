@@ -1,78 +1,86 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "username": "sandikodev",
-  "default_agent": "build",
-  "instructions": [
-    ".opencode/SHARED/project-context.md",
-    ".opencode/SHARED/agent-rules.md"
-  ],
-  "references": {
-    "docs": {
-      "path": "../../smauii-aksesekolah/docs",
-      "description": "Dokumentasi teknis SMART Absen — arsitektur, ERD, deployment"
+    "$schema": "https://opencode.ai/config.json",
+    "username": "sandikodev",
+    "default_agent": "build",
+    "instructions": [
+        ".opencode/SHARED/project-context.md",
+        ".opencode/SHARED/agent-rules.md"
+    ],
+    "references": {
+        "docs": {
+            "path": "../../smauii-aksesekolah/docs",
+            "description": "Dokumentasi teknis SMART Absen — arsitektur, ERD, deployment"
+        },
+        "monorepo": {
+            "path": "../../smauii-aksesekolah",
+            "description": "Monorepo entrypoint — brief, docs, .opencode, .openkb"
+        },
+        "playbook": {
+            "path": "../../smauii-playbook",
+            "description": "SOP, workflow, template, ADR, role definitions, AI workflows"
+        },
+        "kaede": {
+            "path": "../../kaede-powerup",
+            "description": "KAEDE — Two global MCP servers: mcp.kaede (4 context/plan tools) + mcp.trello (24 execute tools). Install: cd kaede-powerup && node scripts/kaede.mjs install"
+        }
     },
-    "monorepo": {
-      "path": "../../smauii-aksesekolah",
-      "description": "Monorepo entrypoint — brief, docs, .opencode, .openkb"
+    "agent": {
+        "build": {
+            "description": "Agent utama — coding Laravel, debugging, testing",
+            "mode": "primary",
+            "permission": {
+                "edit": "allow",
+                "bash": "ask"
+            }
+        },
+        "plan": {
+            "description": "Agent perencanaan — analisis sebelum coding",
+            "mode": "primary",
+            "permission": {
+                "edit": "deny"
+            }
+        }
     },
-    "playbook": {
-      "path": "../../smauii-playbook",
-      "description": "SOP, workflow, template, ADR, role definitions, AI workflows"
-    },
-    "kaede": {
-      "path": "../../kaede-powerup",
-      "description": "KAEDE — Two global MCP servers: mcp.kaede (4 context/plan tools) + mcp.trello (24 execute tools). Install: cd kaede-powerup && node scripts/kaede.mjs install"
+    "command": {
+        "test": {
+            "description": "Jalankan PHPUnit test",
+            "template": "php artisan test $ARGUMENTS"
+        },
+        "lint": {
+            "description": "Cek coding style dengan Laravel Pint",
+            "template": "./vendor/bin/pint --test"
+        },
+        "fix": {
+            "description": "Perbaiki coding style otomatis",
+            "template": "./vendor/bin/pint"
+        },
+        "dev": {
+            "description": "Start Vite dev server (hot reload)",
+            "template": "bun run dev"
+        },
+        "build": {
+            "description": "Build frontend assets",
+            "template": "bun run build"
+        },
+        "migrate": {
+            "description": "Jalankan migrasi database",
+            "template": "php artisan migrate $ARGUMENTS"
+        },
+        "fresh": {
+            "description": "Migrate fresh + seed",
+            "template": "php artisan migrate:fresh --seed"
+        },
+        "kaede-today": {
+            "description": "Tampilkan task Trello hari ini",
+            "template": "kaede today"
+        },
+        "kaede-status": {
+            "description": "Cek status koneksi KAEDE & Trello",
+            "template": "kaede status --mcp"
+        },
+        "kaede-generate-plan": {
+            "description": "Generate action plan dari intent (alternatif cepat statt mcp.kaede.generate_plan)",
+            "template": "node scripts/kaede.mjs run --dry-run --playbook '../smauii-playbook' $ARGUMENTS"
+        }
     }
-  },
-  "agent": {
-    "build": {
-      "description": "Agent utama — coding Laravel, debugging, testing",
-      "mode": "primary",
-      "permission": {
-        "edit": "allow",
-        "bash": "ask"
-      }
-    },
-    "plan": {
-      "description": "Agent perencanaan — analisis sebelum coding",
-      "mode": "primary",
-      "permission": {
-        "edit": "deny"
-      }
-    }
-  },
-  "command": {
-    "test": {
-      "description": "Jalankan PHPUnit test",
-      "template": "php artisan test $ARGUMENTS"
-    },
-    "lint": {
-      "description": "Cek coding style dengan Laravel Pint",
-      "template": "./vendor/bin/pint --test"
-    },
-    "fix": {
-      "description": "Perbaiki coding style otomatis",
-      "template": "./vendor/bin/pint"
-    },
-    "migrate": {
-      "description": "Jalankan migrasi database",
-      "template": "php artisan migrate $ARGUMENTS"
-    },
-    "fresh": {
-      "description": "Migrate fresh + seed",
-      "template": "php artisan migrate:fresh --seed"
-    },
-    "kaede-today": {
-      "description": "Tampilkan task Trello hari ini",
-      "template": "kaede today"
-    },
-    "kaede-status": {
-      "description": "Cek status koneksi KAEDE & Trello",
-      "template": "kaede status --mcp"
-    },
-    "kaede-generate-plan": {
-      "description": "Generate action plan dari intent (alternatif cepat statt mcp.kaede.generate_plan)",
-      "template": "node scripts/kaede.mjs run --dry-run --playbook '../smauii-playbook' $ARGUMENTS"
-    }
-  }
 }
