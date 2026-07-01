@@ -30,3 +30,7 @@ Thumbs.db
 
 # Environment variables (API keys, tokens)
 secrets.env
+
+# Editor / temp
+.obsidian/
+publish.txt

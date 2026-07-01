@@ -6,10 +6,10 @@
   <p align="center">
     <img src="https://img.shields.io/badge/laravel-13-F9322C?style=flat-square&logo=laravel" />
     <img src="https://img.shields.io/badge/php-8.4-777BB4?style=flat-square&logo=php" />
-    <img src="https://img.shields.io/badge/inertia-2-6F4E9E?style=flat-square&logo=inertia" />
+    <img src="https://img.shields.io/badge/inertia-3-6F4E9E?style=flat-square&logo=inertia" />
     <img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react" />
     <img src="https://img.shields.io/badge/typescript-5-3178C6?style=flat-square&logo=typescript" />
-    <img src="https://img.shields.io/badge/mysql-8.0-4479A1?style=flat-square&logo=mysql" />
+    <img src="https://img.shields.io/badge/postgresql-16-4169E1?style=flat-square&logo=postgresql" />
     <img src="https://img.shields.io/badge/redis-7-FF4438?style=flat-square&logo=redis" />
     <img src="https://img.shields.io/badge/license-MIT-d63031?style=flat-square" />
   </p>
@@ -53,8 +53,8 @@ Repositori ini adalah **backend utama** dari sistem **SMART Absen SMA UII** — 
 | Tool | Versi | Keterangan |
 |---|---|---|
 | [Laragon](https://laragon.org) | 6.0+ | Development environment (wajib) |
-| PHP | 8.3+ (8.4.22 recommended) | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
-| MySQL | 8.0+ | Sudah termasuk Laragon |
+| PHP | 8.4+ | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
+| PostgreSQL | 16+ | Via NeonDB atau Laragon add-on |
 | Composer | latest | Portable di `C:\laragon\bin\composer` |
 | [Bun](https://bun.sh) | 1.3+ | Package manager & runtime JS — `powershell -c "irm bun.sh/install.ps1 | iex"` (Win) / `curl -fsSL https://bun.sh/install | bash` (Mac/Linux) |
 
@@ -93,11 +93,11 @@ APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://smauii-core.test
 
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=smauii-core
-DB_USERNAME=root
+DB_PORT=5432
+DB_DATABASE=smauii_core
+DB_USERNAME=postgres
 DB_PASSWORD=
 
 SESSION_DRIVER=database
@@ -128,11 +128,11 @@ Developer cukup melakukan clone `core.git` langsung ke Laragon untuk development
 |---|---|
 | **Framework** | Laravel 13 |
 | **PHP** | 8.4.22 NTS (VS17 x64) |
-| **Database** | MySQL 8.0.30 |
+| **Database** | PostgreSQL 16 (NeonDB) |
 | **Cache & Queue** | Redis / Database driver |
 | **Object Storage** | S3-compatible (Wasabi / MinIO) |
 | **Web Server** | Apache 2.4 (dev) / Nginx (prod) |
-| **Frontend** | InertiaJS 2 + React 19 + TypeScript + Tailwind CSS 4 + Vite 8 |
+| **Frontend** | InertiaJS 3 + React 19 + TypeScript + Tailwind CSS 4 + Vite 8 |
 | **Package Manager** | [Bun](https://bun.sh) |
 | **Auth** | Laravel Sanctum (SSO / IdP) |
 
