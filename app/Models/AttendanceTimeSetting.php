@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Guru extends Model
+class AttendanceTimeSetting extends Model
 {
     use HasFactory;
 
-    protected $table = 'guru';
-    protected $primaryKey = 'id_guru';
+    protected $table = 'attendance_time_settings';
 }

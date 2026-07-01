@@ -2,22 +2,22 @@
 
 namespace Database\Factories;
 
-use App\Models\Siswa;
+use App\Models\Student;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class SiswaFactory extends Factory
+class StudentFactory extends Factory
 {
-    protected $model = Siswa::class;
+    protected $model = Student::class;
 
     public function definition(): array
     {
         return [
             'nis' => fake()->unique()->numerify('##########'),
             'nisn' => fake()->unique()->numerify('##############'),
-            'nama' => fake()->name(),
-            'tanggal_lahir' => fake()->date(max: '2010-01-01'),
-            'tahun_angkatan' => 2025,
-            'status' => 'Aktif',
+            'name' => fake()->name(),
+            'birth_date' => fake()->date(max: '2010-01-01'),
+            'enrollment_year' => 2025,
+            'status' => 'Active',
         ];
     }
 }

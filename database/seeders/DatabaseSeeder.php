@@ -20,12 +20,12 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Roles
-        $roles = ['admin', 'siswa', 'guru', 'walimurid'];
+        $roles = ['admin', 'student', 'teacher', 'guardian'];
         foreach ($roles as $role) {
             Role::create(['name' => $role]);
         }
 
-        // Default jam presensi
-        \App\Models\PengaturanJamPresensi::factory()->create();
+        // Default attendance time settings
+        \App\Models\AttendanceTimeSetting::factory()->create();
     }
 }

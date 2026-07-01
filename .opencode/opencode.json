@@ -9,7 +9,7 @@
     "references": {
         "docs": {
             "path": "../../smauii-aksesekolah/docs",
-            "description": "Dokumentasi teknis SMART Absen — arsitektur, ERD, deployment"
+            "description": "Technical documentation for SMART Absen — architecture, ERD, deployment"
         },
         "monorepo": {
             "path": "../../smauii-aksesekolah",
@@ -26,7 +26,7 @@
     },
     "agent": {
         "build": {
-            "description": "Agent utama — coding Laravel, debugging, testing",
+            "description": "Primary agent — Laravel coding, debugging, testing",
             "mode": "primary",
             "permission": {
                 "edit": "allow",
@@ -34,7 +34,7 @@
             }
         },
         "plan": {
-            "description": "Agent perencanaan — analisis sebelum coding",
+            "description": "Planning agent — analysis before coding",
             "mode": "primary",
             "permission": {
                 "edit": "deny"
@@ -43,15 +43,15 @@
     },
     "command": {
         "test": {
-            "description": "Jalankan PHPUnit test",
+            "description": "Run PHPUnit tests",
             "template": "php artisan test $ARGUMENTS"
         },
         "lint": {
-            "description": "Cek coding style dengan Laravel Pint",
+            "description": "Check coding style with Laravel Pint",
             "template": "./vendor/bin/pint --test"
         },
         "fix": {
-            "description": "Perbaiki coding style otomatis",
+            "description": "Fix coding style automatically",
             "template": "./vendor/bin/pint"
         },
         "dev": {
@@ -63,7 +63,7 @@
             "template": "bun run build"
         },
         "migrate": {
-            "description": "Jalankan migrasi database",
+            "description": "Run database migrations",
             "template": "php artisan migrate $ARGUMENTS"
         },
         "fresh": {
@@ -71,15 +71,15 @@
             "template": "php artisan migrate:fresh --seed"
         },
         "kaede-today": {
-            "description": "Tampilkan task Trello hari ini",
+            "description": "Show today's Trello tasks",
             "template": "kaede today"
         },
         "kaede-status": {
-            "description": "Cek status koneksi KAEDE & Trello",
+            "description": "Check KAEDE & Trello connection status",
             "template": "kaede status --mcp"
         },
         "kaede-generate-plan": {
-            "description": "Generate action plan dari intent (alternatif cepat statt mcp.kaede.generate_plan)",
+            "description": "Generate action plan from intent (quick alternative to mcp.kaede.generate_plan)",
             "template": "node scripts/kaede.mjs run --dry-run --playbook '../smauii-playbook' $ARGUMENTS"
         }
     }

@@ -13,8 +13,8 @@ export default function Welcome() {
                             Let&apos;s get started
                         </h1>
                         <p className="mb-2 text-[#706f6c] dark:text-[#A1A09A]">
-                            Sistem Presensi Digital Terintegrasi dengan
-                            Geolokasi, Biometrik Kamera &amp; SSO
+                            Integrated Digital Attendance System with
+                            Geolocation, Camera Biometrics &amp; SSO
                         </p>
                     </div>
 

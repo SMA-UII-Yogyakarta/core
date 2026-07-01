@@ -8,16 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('kelas', function (Blueprint $table) {
-            $table->id('id_kelas');
-            $table->foreignId('id_guru')->constrained('guru', 'id_guru')->nullOnDelete();
-            $table->string('nama_kelas', 50);
+        Schema::create('academic_calendars', function (Blueprint $table) {
+            $table->id();
+            $table->date('holiday_date');
+            $table->string('description', 200)->nullable();
+            $table->boolean('is_holiday');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('kelas');
+        Schema::dropIfExists('academic_calendars');
     }
 };

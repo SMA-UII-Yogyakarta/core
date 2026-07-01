@@ -25,7 +25,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-# Personal knowledge base — tidak di-track
+# Personal knowledge base — not tracked
 .openkb/PERSONAL/
 
 # Environment variables (API keys, tokens)

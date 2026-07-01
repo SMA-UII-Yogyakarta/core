@@ -1,7 +1,7 @@
 <div align="center">
   <h1>⚡ SMAUII Core</h1>
   <p><strong>Backend API — SMART Absen SMA UII</strong></p>
-  <p><em>Sistem Presensi Digital Terintegrasi dengan Geolokasi, Biometrik Kamera &amp; SSO</em></p>
+  <p><em>Integrated Digital Attendance System with Geolocation, Camera Biometrics &amp; SSO</em></p>
 
   <p align="center">
     <img src="https://img.shields.io/badge/laravel-13-F9322C?style=flat-square&logo=laravel" />
@@ -16,52 +16,52 @@
 
   <p align="center">
     <a href="https://SMA-UII-Yogyakarta.github.io/aksesekolah"><img src="https://img.shields.io/badge/🌐_docs-GitHub_Pages-2ea44f?style=flat-square" /></a>
-    <a href="#setup-lingkungan">Setup</a> •
-    <a href="#fitur">Fitur</a> •
-    <a href="#arsitektur">Arsitektur</a> •
+    <a href="#environment-setup">Setup</a> •
+    <a href="#features">Features</a> •
+    <a href="#architecture">Architecture</a> •
     <a href="#api-endpoints">API</a>
   </p>
 </div>
 
 ---
 
-Repositori ini adalah **backend utama** dari sistem **SMART Absen SMA UII** — aplikasi presensi digital yang memungkinkan siswa melakukan absensi melalui swafoto dan geolokasi, wali murid mengajukan izin secara digital, serta guru memonitor kehadiran secara real-time.
+This repository is the **main backend** of the **SMART Absen SMA UII** system — a digital attendance application that enables students to check in via selfie and geolocation, guardians to submit leave requests digitally, and teachers to monitor attendance in real-time.
 
-> Repositori ini adalah **git submodule** dari [`SMA-UII-Yogyakarta/aksesekolah`](https://github.com/SMA-UII-Yogyakarta/aksesekolah) di `apps/backend/`.
+> This repository is a **git submodule** of [`SMA-UII-Yogyakarta/aksesekolah`](https://github.com/SMA-UII-Yogyakarta/aksesekolah) at `apps/backend/`.
 
 ---
 
-## Fitur
+## Features
 
-- **SSO Identity Provider** — Single sign-on untuk seluruh ekosistem SMA UII (Laravel Sanctum)
-- **Presensi Live** — Selfie + geolokasi dengan kompresi gambar client-side (≤20 KB)
-- **Triple-Layer Validation** — Cek kalender akademik + hari aktif + rentang jam
-- **Role-Based Access Control** — Admin, Siswa, Wali Murid, Wali Kelas, Guru Piket
-- **Manajemen Data Master** — CRUD Siswa/Guru/Kelas + import/export Excel
-- **Pengajuan & Verifikasi Izin** — Digital permission dengan upload dokumen
-- **Monitoring Real-Time** — Dashboard Guru Piket dengan filter kelas
-- **Laporan Export** — PDF & Excel (harian/bulanan/semester)
-- **Object Storage** — File media disimpan di S3-compatible storage, bukan database
+- **SSO Identity Provider** — Single sign-on for the entire SMA UII ecosystem (Laravel Sanctum)
+- **Live Attendance** — Selfie + geolocation with client-side image compression (≤20 KB)
+- **Triple-Layer Validation** — Academic calendar + active day + time range checks
+- **Role-Based Access Control** — Admin, Student, Guardian, Homeroom Teacher, Duty Teacher
+- **Master Data Management** — CRUD Student/Teacher/Class + Excel import/export
+- **Leave Submission & Verification** — Digital permission with document upload
+- **Real-Time Monitoring** — Duty Teacher dashboard with class filter
+- **Export Reports** — PDF & Excel (daily/monthly/semester)
+- **Object Storage** — Media files stored in S3-compatible storage, not in the database
 - **100% Mobile Responsive** — Tailwind CSS 4 + Vite
 
 ---
 
-## Setup Lingkungan
+## Environment Setup
 
-### Prasyarat
+### Prerequisites
 
-| Tool | Versi | Keterangan |
+| Tool | Version | Description |
 |---|---|---|
-| [Laragon](https://laragon.org) | 6.0+ | Development environment (wajib) |
-| PHP | 8.4+ | Sudah termasuk Laragon — pilih PHP 8.4 di menu Laragon |
-| PostgreSQL | 16+ | Via NeonDB atau Laragon add-on |
-| Composer | latest | Portable di `C:\laragon\bin\composer` |
-| [Bun](https://bun.sh) | 1.3+ | Package manager & runtime JS — `powershell -c "irm bun.sh/install.ps1 | iex"` (Win) / `curl -fsSL https://bun.sh/install | bash` (Mac/Linux) |
+| [Laragon](https://laragon.org) | 6.0+ | Development environment (required) |
+| PHP | 8.4+ | Included with Laragon — select PHP 8.4 from Laragon menu |
+| PostgreSQL | 16+ | Via NeonDB or Laragon add-on |
+| Composer | latest | Portable at `C:\laragon\bin\composer` |
+| [Bun](https://bun.sh) | 1.3+ | JS package manager & runtime — `powershell -c "irm bun.sh/install.ps1 | iex"` (Win) / `curl -fsSL https://bun.sh/install | bash` (Mac/Linux) |
 
-### Instalasi
+### Installation
 
 ```bash
-# Clone ke Laragon document root
+# Clone to Laragon document root
 cd C:\laragon\www
 git clone git@github.com:SMA-UII-Yogyakarta/core.git smauii-core
 
@@ -70,22 +70,22 @@ composer install
 
 # Setup environment
 cp .env.example .env
-# — edit .env, sesuaikan kredensial database —
+# — edit .env, adjust database credentials —
 
 # Generate app key
 php artisan key:generate
 
-# Install frontend dependencies (gunakan bun, bukan npm)
+# Install frontend dependencies (use bun, not npm)
 bun install
 
 # Build frontend assets
 bun run build
 
-# Jalankan migrasi + seeder
+# Run migration + seeder
 php artisan migrate --seed
 ```
 
-### Konfigurasi .env
+### .env Configuration
 
 ```env
 APP_NAME="SMAUII Core"
@@ -105,26 +105,26 @@ QUEUE_CONNECTION=database
 CACHE_STORE=database
 ```
 
-### Akses Aplikasi
+### Access Application
 
-Buka `http://smauii-core.test` di browser.
+Open `http://smauii-core.test` in your browser.
 
 ---
 
-## Arsitektur
+## Architecture
 
-### Relasi dengan Monorepo
+### Monorepo Relationship
 
 ```
 aksesekolah.git (monorepo entrypoint)
-└── apps/backend/ → submodule → core.git (repositori ini)
+└── apps/backend/ → submodule → core.git (this repository)
 ```
 
-Developer cukup melakukan clone `core.git` langsung ke Laragon untuk development harian. Maintainer monorepo yang mengelola sinkronisasi submodule.
+Developers can clone `core.git` directly into Laragon for daily development. Monorepo maintainers handle submodule synchronization.
 
-### Stack Teknologi
+### Tech Stack
 
-| Layer | Teknologi |
+| Layer | Technology |
 |---|---|
 | **Framework** | Laravel 13 |
 | **PHP** | 8.4.22 NTS (VS17 x64) |
@@ -136,15 +136,15 @@ Developer cukup melakukan clone `core.git` langsung ke Laragon untuk development
 | **Package Manager** | [Bun](https://bun.sh) |
 | **Auth** | Laravel Sanctum (SSO / IdP) |
 
-### Struktur Frontend
+### Frontend Structure
 
 ```
 resources/
 ├── js/
-│   ├── app.tsx                 # Entry point Inertia + React
-│   ├── Pages/                  # Halaman (satu file per route)
+│   ├── app.tsx                 # Inertia + React entry point
+│   ├── Pages/                  # Pages (one file per route)
 │   │   └── Welcome.tsx
-│   ├── Components/             # Komponen reusable
+│   ├── Components/             # Reusable components
 │   ├── Layouts/                # Layout wrappers
 │   │   └── AppLayout.tsx
 │   └── types/                  # TypeScript definitions
@@ -154,41 +154,41 @@ resources/
 ├── css/
 │   └── app.css                 # Tailwind CSS 4
 └── views/
-    └── app.blade.php           # Root template Inertia
+    └── app.blade.php           # Inertia root template
 ```
 
-### Struktur Database (10 Tabel)
+### Database Structure (10 Tables)
 
 ```
-Core:     users → siswa, guru, wali_murid, kelas
-Transaksi: presensi, pengajuan_izin, jadwal_piket
-Konfig:   pengaturan_jam_presensi, kalender_akademik
+Core:     users → students, teachers, guardians, school_classes
+Transactions: attendances, leave_requests, duty_schedules
+Config:   attendance_time_settings, academic_calendars
 ```
 
-Detail ERD selengkapnya: [docs/04-erd-database.md](https://github.com/SMA-UII-Yogyakarta/aksesekolah/blob/main/docs/04-erd-database.md)
+Full ERD details: [docs/04-erd-database.md](https://github.com/SMA-UII-Yogyakarta/aksesekolah/blob/main/docs/04-erd-database.md)
 
 ---
 
 ## API Endpoints
 
-> Dokumentasi API lengkap akan menyusul (OpenAPI/Swagger).
+> Full API documentation coming soon (OpenAPI/Swagger).
 
-| Method | Endpoint | Deskripsi |
+| Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/api/login` | SSO Authentication |
 | `POST` | `/api/logout` | Logout + revoke token |
-| `GET` | `/api/user` | Profil pengguna saat ini |
-| `POST` | `/api/presensi` | Submit presensi (foto + GPS) |
-| `GET` | `/api/presensi/riwayat` | Riwayat presensi siswa |
-| `POST` | `/api/izin` | Ajukan izin (wali murid) |
-| `GET` | `/api/izin/pending` | Daftar izin pending (wali kelas) |
-| `PATCH` | `/api/izin/{id}/verifikasi` | Approve/reject izin |
-| `GET` | `/api/monitoring?kelas=` | Monitoring real-time (guru piket) |
+| `GET` | `/api/user` | Current user profile |
+| `POST` | `/api/presensi` | Submit attendance (photo + GPS) |
+| `GET` | `/api/presensi/riwayat` | Student attendance history |
+| `POST` | `/api/izin` | Submit leave request (guardian) |
+| `GET` | `/api/izin/pending` | Pending leave requests (homeroom teacher) |
+| `PATCH` | `/api/izin/{id}/verifikasi` | Approve/reject leave request |
+| `GET` | `/api/monitoring?kelas=` | Real-time monitoring (duty teacher) |
 | `GET` | `/api/laporan?format=` | Export PDF/Excel |
 
 ---
 
-## Pengembangan
+## Development
 
 ### Dev Server (Hot Reload)
 
@@ -196,27 +196,27 @@ Detail ERD selengkapnya: [docs/04-erd-database.md](https://github.com/SMA-UII-Yo
 # Terminal 1 — Laravel server
 php artisan serve
 
-# Terminal 2 — Vite dev (dengan hot reload)
+# Terminal 2 — Vite dev (with hot reload)
 bun run dev
 ```
 
-Atau jalankan semua (server + queue + logs + vite) sekali jalan:
+Or run all (server + queue + logs + vite) at once:
 
 ```bash
 composer run dev
 ```
 
-### Menambahkan Fitur Baru
+### Adding New Features
 
 ```bash
 git checkout develop
 git checkout -b feature/nama-fitur
 # ... coding ...
 git push origin feature/nama-fitur
-# Buat Pull Request ke branch develop
+# Create Pull Request to develop branch
 ```
 
-### Menjalankan Test
+### Running Tests
 
 ```bash
 php artisan test
@@ -232,21 +232,21 @@ php artisan test
 
 ## Contributing
 
-1. Fork repositori ini
-2. Buat branch fitur: `git checkout -b feature/awesome-feature`
-3. Commit perubahan: `git commit -m 'feat: tambah fitur awesome'`
-4. Push ke branch: `git push origin feature/awesome-feature`
-5. Buat Pull Request
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feature/awesome-feature`
+3. Commit changes: `git commit -m 'feat: add awesome feature'`
+4. Push to branch: `git push origin feature/awesome-feature`
+5. Create a Pull Request
 
-Pastikan test tetap hijau dan kode sesuai standar PSR-12.
+Make sure tests stay green and code follows PSR-12 standards.
 
 ---
 
-## Lisensi
+## License
 
-Proyek ini dikembangkan oleh **PT Koneksi Jaringan Indonesia** (*Software House — Agency Koneksi Digital*) sebagai mitra resmi pengembangan teknologi informasi **SMA UII Yogyakarta** dan dilisensikan di bawah lisensi MIT.
+This project is developed by **PT Koneksi Jaringan Indonesia** (*Software House — Agency Koneksi Digital*) as the official technology development partner of **SMA UII Yogyakarta** and is licensed under the MIT license.
 
-> **Hak Cipta** — Source code © 2025–2026 PT Koneksi Jaringan Indonesia. Hak cipta dilindungi undang-undang. Source code disediakan untuk keperluan operasional SMA UII Yogyakarta. **DILARANG** memperjualbelikan, mendistribusikan ulang, atau menggunakan di luar lingkungan SMA UII Yogyakarta tanpa izin tertulis dari PT Koneksi Jaringan Indonesia dan SMA UII Yogyakarta. Kredit tetap milik PT Koneksi Jaringan Indonesia untuk menjaga otentisitas dan mencegah perjualbelian ilegal pihak ketiga di luar kesepakatan.
+> **Copyright** — Source code © 2025–2026 PT Koneksi Jaringan Indonesia. All rights reserved. The source code is provided for the operational purposes of SMA UII Yogyakarta. **IT IS PROHIBITED** to sell, redistribute, or use outside the SMA UII Yogyakarta environment without written permission from PT Koneksi Jaringan Indonesia and SMA UII Yogyakarta. Credit remains with PT Koneksi Jaringan Indonesia to maintain authenticity and prevent illegal third-party resale outside the agreement.
 
 ---
 
@@ -254,7 +254,7 @@ Proyek ini dikembangkan oleh **PT Koneksi Jaringan Indonesia** (*Software House 
   <p>
     <a href="https://github.com/SMA-UII-Yogyakarta/aksesekolah">📚 Monorepo</a> •
     <a href="https://github.com/SMA-UII-Yogyakarta">🏫 Organization</a> •
-    <a href="https://SMA-UII-Yogyakarta.github.io/aksesekolah">🌐 Dokumentasi Online</a>
+    <a href="https://SMA-UII-Yogyakarta.github.io/aksesekolah">🌐 Online Documentation</a>
   </p>
   <p><sub>PT Koneksi Jaringan Indonesia — Software House Agency Koneksi Digital</sub></p>
 </div>
