@@ -210,7 +210,7 @@ composer run dev
 
 ```bash
 git checkout develop
-git checkout -b feature/nama-fitur
+git checkout -b feature/feature-name
 # ... coding ...
 git push origin feature/nama-fitur
 # Create Pull Request to develop branch

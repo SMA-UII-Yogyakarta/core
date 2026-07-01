@@ -6,7 +6,7 @@
     "keywords": [
         "laravel",
         "smauii",
-        "presensi"
+        "attendance"
     ],
     "license": "MIT",
     "require": {
