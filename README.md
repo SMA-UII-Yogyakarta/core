@@ -258,4 +258,3 @@ Proyek ini dikembangkan oleh **PT Koneksi Jaringan Indonesia** (*Software House 
   </p>
   <p><sub>PT Koneksi Jaringan Indonesia — Software House Agency Koneksi Digital</sub></p>
 </div>
-.
