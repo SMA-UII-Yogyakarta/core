@@ -1,9 +1,9 @@
 # Cursor Rules — SMAUII Core (Backend Laravel)
 
 ## Project Context
-- Stack: Laravel 13, PHP 8.4, MySQL 8, Sanctum
+- Stack: Laravel 13, PHP 8.4, PostgreSQL 16 (NeonDB), Sanctum
 - Architecture: Monorepo submodule core.git
-- Frontend: InertiaJS 2 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
+- Frontend: InertiaJS 3 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
 
 ## Code Style
 - PHP: PSR-12 (Laravel Pint)

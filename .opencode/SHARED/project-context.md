@@ -6,10 +6,10 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 ## Tech Stack
 - **Framework**: Laravel 13
 - **PHP**: 8.4.22 NTS (VS17 x64) — rekomendasi terbaik untuk Laravel 13
-- **Database**: MySQL 8.0.30 (dev) / SQLite (testing)
+- **Database**: PostgreSQL 16 (NeonDB production) / SQLite (testing)
 - **Cache & Queue**: Redis / Database driver
 - **Object Storage**: S3-compatible (Wasabi / MinIO)
-- **Frontend**: InertiaJS 2 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
+- **Frontend**: InertiaJS 3 + React 19 + TypeScript, Tailwind CSS 4, Vite 8
 - **Package Manager**: Bun
 - **Auth**: Laravel Sanctum (SSO / Identity Provider)
 
@@ -17,6 +17,16 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 - **Master**: users, siswa, guru, wali_murid, kelas
 - **Transaksi**: presensi, pengajuan_izin, jadwal_piket
 - **Konfigurasi**: pengaturan_jam_presensi, kalender_akademik
+
+## Konvensi
+- Route: web.php (Inertia pages), api.php (API Sanctum)
+- Controller: single action → __invoke untuk simple cases; dual controller (Web + API)
+- Service Layer: logic di `app/Services/`, controller tipis
+- View: Inertia::render di controller → React component di resources/js/Pages/
+- Validation: Form Request
+- Database: migration + seeder
+- Eloquent: eager loading (cegah N+1)
+- Testing: PHPUnit
 
 ## Aturan Penting
 1. Semua perubahan `main` harus via PR dengan minimal 1 review
@@ -26,6 +36,9 @@ Backend API untuk SMART Absen SMA UII — sistem presensi digital dengan geoloka
 5. `.env`, key, token tidak boleh di-commit
 6. Kredit milik PT Koneksi Jaringan Indonesia
 7. Gunakan **bun** (bukan npm) untuk package management frontend
+8. Service Layer pattern — jangan taruh logic di controller
+9. Dual controller — Web (Inertia session) + API (Sanctum token)
+10. Database PostgreSQL — jangan pakai syntax MySQL-specific
 
 ## Instalasi KAEDE (untuk anggota tim)
 KAEDE bukan bagian dari project ini — ia alat global yang diinstal terpisah:
@@ -58,5 +71,6 @@ Catatan: CLI `kaede run` masih tersedia untuk eksekusi cepat langsung tanpa chai
 | Person | Role |
 |---|---|
 | sandikodev | Project Manager & Lead Developer |
-| Fathan Mubina | Junior Developer |
-| Ihsan | Junior Developer |
+| Fathan Mubina | Junior Frontend Developer (Inertia/React/TS) |
+| Ihsan | Junior Backend Developer (Laravel/PostgreSQL) |
+| Azis | Learning Mentor |
