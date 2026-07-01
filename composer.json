@@ -1,18 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "smauii/core",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Backend API — SMART Absen SMA UII",
     "keywords": [
         "laravel",
-        "framework"
+        "smauii",
+        "presensi"
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "inertiajs/inertia-laravel": "^3.1",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/sanctum": "*",
+        "laravel/tinker": "^3.0",
+        "spatie/laravel-permission": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
