@@ -6,6 +6,9 @@
 
         <title inertia>{{ config('app.name', 'SMAUII Core') }}</title>
 
+        {{-- Font Awesome 5 Free — via CDN untuk icon di Layouts, Sidebar, Navbar, dan ActionButton --}}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
         @fonts
 
         @viteReactRefresh
