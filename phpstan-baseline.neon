@@ -1,0 +1,73 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property App\\Console\\Commands\\LogTailCommand\:\:\$formatTimestamp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/LogTailCommand.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: app/Console/Commands/LogTailCommand.php
+
+		-
+			message: '#^Offset 1 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: app/Console/Commands/LogTailCommand.php
+
+		-
+			message: '#^Unknown parameter \$expiry in call to method App\\Models\\User\:\:createToken\(\)\.$#'
+			identifier: argument.unknown
+			count: 1
+			path: app/Http/Controllers/Api/AuthController.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\StudentService\:\:assignToClass\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Web/EnrolmentKelasController.php
+
+		-
+			message: '#^Call to static method createReaderFromFile\(\) on an unknown class OpenSpout\\Reader\\Common\\Creator\\ReaderEntityFactory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Imports/StudentsImport.php
+
+		-
+			message: '#^Call to static method createReaderFromFile\(\) on an unknown class OpenSpout\\Reader\\Common\\Creator\\ReaderEntityFactory\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Imports/TeachersImport.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>status" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/AttendanceService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:syncWithoutDetaching\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/GuardianService.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/Services/AttendanceServiceTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertNotNull\(\) with Illuminate\\Support\\Carbon will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Feature/Services/AttendanceServiceTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/ExampleTest.php

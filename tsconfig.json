@@ -13,9 +13,9 @@
         "noEmit": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["resources/js/*"]
-        }
+            "@/*": ["resources/js/*"],
+        },
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"],
-    "exclude": ["node_modules", "vendor", "public"]
+    "exclude": ["node_modules", "vendor", "public"],
 }

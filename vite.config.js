@@ -3,6 +3,7 @@ import laravel from "laravel-vite-plugin";
 import { bunny } from "laravel-vite-plugin/fonts";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import checker from "vite-plugin-checker";
 
 export default defineConfig({
     plugins: [
@@ -17,6 +18,20 @@ export default defineConfig({
         }),
         react(),
         tailwindcss(),
+        checker({
+            typescript: {
+                tsconfigPath: "./tsconfig.json",
+            },
+            eslint: {
+                lintCommand: 'eslint "./resources/js/**/*.{ts,tsx}"',
+            },
+            overlay: {
+                initialIsOpen: "error",
+                position: "br",
+            },
+            terminal: true,
+            enableBuild: true,
+        }),
     ],
     server: {
         watch: {

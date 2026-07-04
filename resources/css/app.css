@@ -4,6 +4,53 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    /* Fonts */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-brand: 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+
+    /* Brand colors */
+    --color-primary: #2E3391;
+    --color-primary-light: #E0E7FF;
+    --color-accent: #FAE62A;
+    --color-accent-light: #FDE68A;
+
+    /* Surface & Background */
+    --color-surface: #FFFFFF;
+    --color-background: #F1F5F9;
+    --color-muted: #F8FAFC;
+
+    /* Text */
+    --color-text-primary: #1E293B;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748B;
+    --color-text-placeholder: #757575;
+    --color-text-inactive: #94A3B8;
+
+    /* Borders */
+    --color-border: #E2E8F0;
+    --color-border-input: #CBD5E1;
+
+    /* Semantic */
+    --color-success: #10B981;
+    --color-success-light: #DCFCE7;
+    --color-success-bg: #ECFDF5;
+    --color-danger: #EF4444;
+    --color-danger-light: #FECACA;
+    --color-danger-bg: #FEF2F2;
+    --color-warning: #F59E0B;
+    --color-warning-light: #FDE68A;
+    --color-warning-bg: #FFFBEB;
+
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
+    --radius-2xl: 12px;
+
+    /* Shadows */
+    --shadow-card: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    --shadow-modal: 0px 20px 40px rgba(0, 0, 0, 0.2);
+    --shadow-dropdown: 0px 4px 12px rgba(0, 0, 0, 0.02);
 }

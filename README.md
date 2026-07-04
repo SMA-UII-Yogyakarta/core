@@ -206,13 +206,17 @@ Or run all (server + queue + logs + vite) at once:
 composer run dev
 ```
 
+### Platform Notes
+
+> **Development is optimized for Linux.** Windows (Laragon) is supported for local setup, but all team members are strongly encouraged to use Linux (WSL2, Ubuntu, or similar) for a more professional, reliable, and robust development experience. Some tools (e.g. `pcntl` for `php artisan pail`) are Unix-only; a Windows-compatible `php artisan log:tail` fallback is provided.
+
 ### Adding New Features
 
 ```bash
 git checkout develop
 git checkout -b feature/feature-name
 # ... coding ...
-git push origin feature/nama-fitur
+git push origin feature/feature-name
 # Create Pull Request to develop branch
 ```
 
