@@ -14,7 +14,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @var string
      */
-    protected $rootView = 'app';
+    protected $rootView = "app";
 
     /**
      * Determines the current asset version.
@@ -37,10 +37,16 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            'auth' => [
-                'user' => $request->user()
-                    ? $request->user()->only('id', 'name', 'email')
+            "auth" => [
+                "user" => $request->user()
+                    ? $request->user()->only("id", "name", "email")
                     : null,
+            ],
+            // ── Flash Messages untuk Toast component ──
+            "flash" => [
+                "success" => fn() => $request->session()->get("success"),
+                "error" => fn() => $request->session()->get("error"),
+                "warning" => fn() => $request->session()->get("warning"),
             ],
         ];
     }
