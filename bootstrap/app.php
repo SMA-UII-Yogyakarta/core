@@ -25,6 +25,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Web middleware group
         $middleware->web(append: [HandleInertiaRequests::class]);
+
+        // Alias middleware untuk route role guard
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

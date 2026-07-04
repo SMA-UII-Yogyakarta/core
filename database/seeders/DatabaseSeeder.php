@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             Role::firstOrCreate(['name' => $role]);
         }
 
+        $this->call([RolePermissionSeeder::class]);
+
         // ─── 2. Admin User ───
         $admin = User::factory()->create([
             'username' => 'admin',
