@@ -67,10 +67,44 @@ Two MCP servers registered globally in `~/.config/opencode/opencode.json`:
 
 Note: CLI `kaede run` is still available for quick direct execution without the chain.
 
+---
+
+## 📘 Master Plan Referensi
+
+Buka **`.opencode/SHARED/master-plan.md`** untuk dokumentasi lengkap:
+
+| Section | Isi |
+|---|---|
+| **Functional Requirements** | 14 fitur (F-01 s/d F-14) detail per modul |
+| **Non-Functional Requirements** | 12 requirement kualitas (NF-01 s/d NF-12) |
+| **Gap Analysis** | Status ✅/⚠️/❌ implementasi vs requirement |
+| **Phased Plan** | 4 fase bertahap (Phase 1 → 4) dengan task detail |
+| **Triple-Layer Validation** | Diagram + implementasi wajib (anti-hardcode) |
+| **Role & Permission Matrix** | 5 role, 5 permission, 16 fitur |
+| **13 Interface** | P0 (10 wajib) / P1 (3 prioritas kedua) |
+| **Semua Endpoint** | Web (40+) + API (30+) |
+| **Skema Database** | 10 tabel domain + relasi ERD |
+| **Teknologi & Infrastruktur** | Stack lengkap + konfigurasi |
+
+Gunakan master plan ini sebagai acuan utama untuk semua pekerjaan.
+
+---
+
+## 📚 Dokumen Tim
+
+| File | Untuk Siapa | Isi |
+|---|---|---|
+| **`team-playbook.md`** | **Semua anggota tim** | Filosofi tim, peta belajar (level system), misi-misi kecil (quest), cara komunikasi, standar kode, troubleshooting mental block, inisiatif segar |
+| **`starter-guide.md`** | **Ihsan, Fathan, Hanif, Azis** | Langkah konkret pertama per role, perintah penting, quest pertama yang harus dikerjakan |
+| **`master-plan.md`** | **Semua** | Technical reference lengkap: requirements, gap analysis, phased plan, database schema, endpoints |
+
+Baca `team-playbook.md` dulu untuk paham budaya dan ekspektasi tim.
+
 ## Tim
 | Person | Role |
 |---|---|
 | sandikodev | Project Manager & Lead Developer |
 | Fathan Mubina | Junior Frontend Developer (Inertia/React/TS) |
 | Ihsan | Junior Backend Developer (Laravel/PostgreSQL) |
+| Hanif | UI/UX & Documentation |
 | Azis | Learning Mentor |
