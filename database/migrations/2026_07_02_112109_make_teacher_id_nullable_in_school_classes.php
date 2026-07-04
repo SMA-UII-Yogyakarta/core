@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class () extends Migration {
     public function up(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->renameColumn('tanggal', 'attendance_date');
+        Schema::table('school_classes', function (Blueprint $table) {
+            $table->foreignId('teacher_id')->nullable()->change();
         });
     }
 
     public function down(): void
     {
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->renameColumn('attendance_date', 'tanggal');
+        Schema::table('school_classes', function (Blueprint $table) {
+            $table->foreignId('teacher_id')->nullable(false)->change();
         });
     }
 };
