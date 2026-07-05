@@ -3,10 +3,14 @@
 namespace Tests\Feature\Services;
 
 use App\Models\AcademicCalendar;
+use App\Models\AttendanceTimeSetting;
+use App\Models\Guardian;
+use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\AttendanceService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +23,38 @@ class AttendanceServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Carbon::setTestNow(Carbon::parse('2026-07-06 08:00:00'));
         $this->service = app(AttendanceService::class);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
+
+    private function createClassWithStudent(): array
+    {
+        $class = SchoolClass::create(['name' => 'X-' . str()->random(4)]);
+        $guardianUser = User::factory()->create();
+        $guardian = Guardian::create([
+            'user_id' => $guardianUser->id,
+            'name' => 'Guardian Test',
+        ]);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Student',
+            'nis' => str()->random(5),
+            'nisn' => str()->random(10),
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+            'guardian_id' => $guardian->id,
+        ]);
+
+        return ['class' => $class, 'student' => $student, 'guardian' => $guardian];
     }
 
     public function test_check_in_creates_attendance(): void
@@ -87,8 +122,13 @@ class AttendanceServiceTest extends TestCase
 
     public function test_check_in_marks_as_late(): void
     {
-        // Create attendance time setting for today's day
-        $dayName = now()->format('l');
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
         AcademicCalendar::create([
             'holiday_date' => now()->toDateString(),
             'is_holiday' => false,
@@ -107,15 +147,49 @@ class AttendanceServiceTest extends TestCase
             'status' => 'Active',
         ]);
 
-        // Note: This test depends on current time being after late_threshold
-        // In a real scenario, we would mock the time or set appropriate settings
         $attendance = $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
             'longitude' => '110.3695',
         ]);
 
-        // Status depends on current time vs settings
-        $this->assertInArray($attendance->status, ['Present', 'Late']);
+        $this->assertEquals('Late', $attendance->status);
+    }
+
+    public function test_check_in_marks_as_present(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-06 06:30:00'));
+
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $attendance = $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+        ]);
+
+        $this->assertEquals('Present', $attendance->status);
     }
 
     public function test_history_returns_attendances(): void
@@ -168,10 +242,5 @@ class AttendanceServiceTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $stats['present'] + $stats['late']);
         // At least 2 students are absent (or 1 if one checked in)
         $this->assertGreaterThanOrEqual(0, $stats['absent']);
-    }
-
-    private function assertInArray($value, array $array): void
-    {
-        $this->assertTrue(in_array($value, $array), "Expected {$value} to be in array");
     }
 }
