@@ -6,6 +6,7 @@ use App\Events\AttendanceCreated;
 use App\Models\AcademicCalendar;
 use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
+use App\Models\LeaveRequest;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -120,12 +121,19 @@ class AttendanceService
             ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
             ->get();
 
+        $sickCount = LeaveRequest::where('approval_status', 'Approved')
+            ->where('category', 'Sick')
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
+            ->count();
+
         return [
             'total' => $students,
             'present' => $attendances->where('status', 'Present')->count(),
             'late' => $attendances->where('status', 'Late')->count(),
             'absent' => $students - $attendances->count(),
-            'sick_permission' => 0, // via leave_requests
+            'sick_permission' => $sickCount,
         ];
     }
 

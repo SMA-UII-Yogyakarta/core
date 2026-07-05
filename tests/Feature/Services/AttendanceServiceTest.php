@@ -3,6 +3,8 @@
 namespace Tests\Feature\Services;
 
 use App\Models\AcademicCalendar;
+use App\Models\Guardian;
+use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\User;
@@ -20,6 +22,30 @@ class AttendanceServiceTest extends TestCase
     {
         parent::setUp();
         $this->service = app(AttendanceService::class);
+    }
+
+    private function createClassWithStudent(): array
+    {
+        $class = SchoolClass::create(['name' => 'X-' . str()->random(4)]);
+        $guardianUser = User::factory()->create();
+        $guardian = Guardian::create([
+            'user_id' => $guardianUser->id,
+            'name' => 'Guardian Test',
+        ]);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Student',
+            'nis' => str()->random(5),
+            'nisn' => str()->random(10),
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+            'guardian_id' => $guardian->id,
+        ]);
+
+        return ['class' => $class, 'student' => $student, 'guardian' => $guardian];
     }
 
     public function test_check_in_creates_attendance(): void
@@ -168,6 +194,116 @@ class AttendanceServiceTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $stats['present'] + $stats['late']);
         // At least 2 students are absent (or 1 if one checked in)
         $this->assertGreaterThanOrEqual(0, $stats['absent']);
+        $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_counts_valid_leave(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+            'approval_status' => 'Approved',
+        ]);
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(1, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_excludes_event_category(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+            'approval_status' => 'Approved',
+        ]);
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_excludes_pending_status(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+            'approval_status' => 'Pending',
+        ]);
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_excludes_past_date_range(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => now()->subDays(10)->toDateString(),
+            'end_date' => now()->subDays(5)->toDateString(),
+            'approval_status' => 'Approved',
+        ]);
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_excludes_future_date_range(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => now()->addDays(1)->toDateString(),
+            'end_date' => now()->addDays(5)->toDateString(),
+            'approval_status' => 'Approved',
+        ]);
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_sick_stats_excludes_other_class(): void
+    {
+        $data = $this->createClassWithStudent();
+        $otherClass = SchoolClass::create(['name' => 'XI-A']);
+
+        LeaveRequest::create([
+            'student_id' => $data['student']->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => now()->subDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+            'approval_status' => 'Approved',
+        ]);
+
+        $stats = $this->service->stats($otherClass->id);
+
+        $this->assertEquals(0, $stats['sick_permission']);
     }
 
     private function assertInArray($value, array $array): void
