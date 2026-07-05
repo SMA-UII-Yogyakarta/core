@@ -13,6 +13,7 @@
         "@types/react": "^19.0",
         "@types/react-dom": "^19.0",
         "@vitejs/plugin-react": "^4.0",
+        "axios": "^1.7",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^3.1",
         "react": "^19.0",
@@ -20,5 +21,8 @@
         "tailwindcss": "^4.0.0",
         "typescript": "^5.7",
         "vite": "^8.0.0"
+    },
+    "dependencies": {
+        "react-icons": "^5.7.0"
     }
 }
