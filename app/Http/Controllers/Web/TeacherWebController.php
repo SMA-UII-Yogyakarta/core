@@ -47,7 +47,7 @@ class TeacherWebController extends Controller
             ];
         }
 
-        return Inertia::render('Guru/DashboardPiket', [
+        return Inertia::render('Teacher/DutyDashboard', [
             'teacher' => [
                 'id' => $teacher->id,
                 'name' => $teacher->name,
@@ -69,7 +69,7 @@ class TeacherWebController extends Controller
         $schoolClass = $teacher->schoolClasses()->first();
 
         if (! $schoolClass) {
-            return Inertia::render('Guru/DashboardWaliKelas', [
+            return Inertia::render('Teacher/HomeroomDashboard', [
                 'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
                 'class' => null,
                 'students' => [],
@@ -95,7 +95,7 @@ class TeacherWebController extends Controller
 
         $stats = $this->attendanceService->stats($schoolClass->id);
 
-        return Inertia::render('Guru/DashboardWaliKelas', [
+        return Inertia::render('Teacher/HomeroomDashboard', [
             'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
             'class' => ['id' => $schoolClass->id, 'name' => $schoolClass->name],
             'students' => $students,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\WaliMurid;
+namespace App\Http\Controllers\Web\Guardian;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guardian;
@@ -26,7 +26,7 @@ class PengajuanIzinController extends Controller
             ->latest()
             ->paginate(10);
 
-        return Inertia::render('WaliMurid/PengajuanIzin', [
+        return Inertia::render('Guardian/LeaveApplication', [
             'guardian' => $guardian,
             'students' => $guardian->students,
             'leaveRequests' => $leaveRequests,

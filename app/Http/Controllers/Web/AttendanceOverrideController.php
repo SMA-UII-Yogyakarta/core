@@ -28,7 +28,7 @@ class AttendanceOverrideController extends Controller
         $students = $this->overrideService->findByDate($classId, $date);
         $classes = SchoolClass::orderBy('name')->get();
 
-        return Inertia::render('Attendance/KoreksiAbsensi', [
+        return Inertia::render('Attendance/AttendanceCorrection', [
             'students' => $students,
             'classes' => $classes,
             'filters' => [

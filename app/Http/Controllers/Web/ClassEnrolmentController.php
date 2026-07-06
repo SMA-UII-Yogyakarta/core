@@ -30,7 +30,7 @@ class ClassEnrolmentController extends Controller
 
         $unassignedStudents = $this->studentService->findUnassigned();
 
-        return Inertia::render('Admin/EnrolmentKelas', [
+        return Inertia::render('Admin/ClassEnrolment', [
             'classes' => $classes,
             'selectedClassId' => $classId,
             'selectedClass' => $selectedClass,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\Siswa;
+namespace App\Http\Controllers\Web\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
@@ -24,7 +24,7 @@ class SiswaDashboardController extends Controller
         $recentHistory = $this->attendanceService->history($student->id, 30);
         $stats = $this->getStudentStats($student->id);
 
-        return Inertia::render('Siswa/Dashboard', [
+        return Inertia::render('Student/Dashboard', [
             'student' => $student,
             'todayAttendance' => $todayAttendance[0] ?? null,
             'recentHistory' => $recentHistory,

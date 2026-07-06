@@ -23,7 +23,7 @@ class AttendanceSettingController extends Controller
             request()->only(['year', 'month']),
         );
 
-        return Inertia::render('Admin/AturWaktuLibur', [
+        return Inertia::render('Admin/HolidaySettings', [
             'timeSettings' => $timeSettings,
             'holidays' => $holidays,
             'filters' => request()->only(['year', 'month']),

@@ -26,7 +26,7 @@ class StudentController extends Controller
 
         $classes = $this->schoolClassService->findAll();
 
-        return Inertia::render('Admin/DataMaster', [
+        return Inertia::render('Admin/MasterData', [
             'activeTab' => 'siswa',
             'students' => $students,
             'classes' => $classes,

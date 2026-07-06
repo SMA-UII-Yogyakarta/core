@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\Guru;
+namespace App\Http\Controllers\Web\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
@@ -53,7 +53,7 @@ class GuruDashboardController extends Controller
             ];
         }
 
-        return Inertia::render('Guru/DashboardPiket', [
+        return Inertia::render('Teacher/DutyDashboard', [
             'teacher' => $teacher,
             'isScheduled' => $isScheduled,
             'today' => $today,
@@ -68,7 +68,7 @@ class GuruDashboardController extends Controller
         $class = $teacher->schoolClasses->first();
 
         if (! $class) {
-            return Inertia::render('Guru/DashboardWaliKelas', [
+            return Inertia::render('Teacher/HomeroomDashboard', [
                 'teacher' => $teacher,
                 'class' => null,
                 'students' => [],
@@ -88,7 +88,7 @@ class GuruDashboardController extends Controller
             'alpa' => $students->filter(fn ($s) => $s->attendances->isEmpty())->count(),
         ];
 
-        return Inertia::render('Guru/DashboardWaliKelas', [
+        return Inertia::render('Teacher/HomeroomDashboard', [
             'teacher' => $teacher,
             'class' => $class,
             'students' => $students,

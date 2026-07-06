@@ -31,7 +31,7 @@ class DailyRecapController extends Controller
 
         $parsedDate = $date;
 
-        return Inertia::render('Admin/RekapHarian', [
+        return Inertia::render('Admin/DailyRecap', [
             'classes' => $classes,
             'selectedClassId' => $classId,
             'tanggal' => $parsedDate,

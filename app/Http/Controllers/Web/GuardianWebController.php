@@ -78,7 +78,7 @@ class GuardianWebController extends Controller
             ->get()
             ->toArray();
 
-        return Inertia::render('WaliMurid/Dashboard', [
+        return Inertia::render('Guardian/Dashboard', [
             'guardian' => ['id' => $guardian->id, 'name' => $guardian->name],
             'students' => $students,
             'stats' => $allStats,
@@ -106,7 +106,7 @@ class GuardianWebController extends Controller
 
         $leaveRequests = $this->leaveRequestService->paginate(['guardian_id' => $guardian->id]);
 
-        return Inertia::render('WaliMurid/PengajuanIzin', [
+        return Inertia::render('Guardian/LeaveApplication', [
             'guardian' => [
                 'id' => $guardian->id,
                 'name' => $guardian->name,

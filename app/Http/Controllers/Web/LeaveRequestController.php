@@ -19,7 +19,7 @@ class LeaveRequestController extends Controller
             request()->only(['status', 'category']),
         );
 
-        return Inertia::render('Admin/VerifikasiIzin', [
+        return Inertia::render('Admin/LeaveVerification', [
             'leaveRequests' => $leaves,
             'filters' => request()->only(['status', 'category']),
         ]);

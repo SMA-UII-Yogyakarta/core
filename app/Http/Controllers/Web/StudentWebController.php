@@ -29,7 +29,7 @@ class StudentWebController extends Controller
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
         $stats = $this->attendanceService->getStudentStats($student->id);
 
-        return Inertia::render('Siswa/Dashboard', [
+        return Inertia::render('Student/Dashboard', [
             'student' => [
                 'id' => $student->id,
                 'nis' => $student->nis,
@@ -57,7 +57,7 @@ class StudentWebController extends Controller
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
 
-        return Inertia::render('Siswa/LivePresensi', [
+        return Inertia::render('Student/LiveAttendance', [
             'student' => [
                 'id' => $student->id,
                 'nis' => $student->nis,
@@ -104,7 +104,7 @@ class StudentWebController extends Controller
         $stats = $this->attendanceService->getStudentStats($student->id);
         $monthlyTrend = $this->analyticsService->studentMonthlyTrend($student->id);
 
-        return Inertia::render('Siswa/RiwayatKehadiran', [
+        return Inertia::render('Student/AttendanceHistory', [
             'student' => [
                 'id' => $student->id,
                 'nis' => $student->nis,

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\Siswa;
+namespace App\Http\Controllers\Web\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
@@ -37,7 +37,7 @@ class RiwayatController extends Controller
         $present = $attendances->where('status', 'Present')->count();
         $late = $attendances->where('status', 'Late')->count();
 
-        return Inertia::render('Siswa/RiwayatKehadiran', [
+        return Inertia::render('Student/AttendanceHistory', [
             'student' => $student,
             'attendances' => $attendances,
             'leaveRequests' => $leaveRequests,

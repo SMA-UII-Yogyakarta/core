@@ -21,7 +21,7 @@ class TeacherController extends Controller
             request()->only(['search']),
         );
 
-        return Inertia::render('Admin/DataMaster', [
+        return Inertia::render('Admin/MasterData', [
             'activeTab' => 'guru',
             'teachers' => $teachers,
             'filters' => request()->only(['search']),

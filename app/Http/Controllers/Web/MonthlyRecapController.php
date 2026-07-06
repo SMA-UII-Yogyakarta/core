@@ -28,7 +28,7 @@ class MonthlyRecapController extends Controller
             $dailyData = $this->attendanceService->getMonthlyDaily($classId, $month, $year);
         }
 
-        return Inertia::render('Admin/RekapBulanan', [
+        return Inertia::render('Admin/MonthlyRecap', [
             'classes' => $classes,
             'selectedClassId' => $classId,
             'bulan' => (int) $month,

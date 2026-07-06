@@ -21,7 +21,7 @@ class SchoolClassController extends Controller
             request()->only(['search']),
         );
 
-        return Inertia::render('Admin/DataMaster', [
+        return Inertia::render('Admin/MasterData', [
             'activeTab' => 'kelas',
             'schoolClasses' => $classes,
             'filters' => request()->only(['search']),
@@ -42,7 +42,7 @@ class SchoolClassController extends Controller
             ->orderBy('name')
             ->get();
 
-        return Inertia::render('Admin/MasterKelas', [
+        return Inertia::render('Admin/MasterClasses', [
             'schoolClasses' => $classes,
             'teachers' => $teachers,
             'filters' => request()->only(['search']),

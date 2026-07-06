@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web\Siswa;
+namespace App\Http\Controllers\Web\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
@@ -26,7 +26,7 @@ class LivePresensiController extends Controller
             ->where('attendance_date', $today)
             ->first();
 
-        return Inertia::render('Siswa/LivePresensi', [
+        return Inertia::render('Student/LiveAttendance', [
             'student' => $student,
             'todayAttendance' => $todayAttendance,
         ]);

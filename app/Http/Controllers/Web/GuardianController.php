@@ -21,7 +21,7 @@ class GuardianController extends Controller
             request()->only(['search']),
         );
 
-        return Inertia::render('Admin/DataMaster', [
+        return Inertia::render('Admin/MasterData', [
             'activeTab' => 'wali',
             'guardians' => $guardians,
             'filters' => request()->only(['search']),

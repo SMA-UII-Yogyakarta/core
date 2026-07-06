@@ -21,7 +21,7 @@ class LeaveRequestViewController extends Controller
         $leaveRequests = $this->leaveRequestService->paginate($filters, 15);
         $classes = $this->schoolClassService->findAll();
 
-        return Inertia::render('Admin/PengajuanIzin', [
+        return Inertia::render('Admin/LeaveRequests', [
             'leaveRequests' => $leaveRequests,
             'classes' => $classes,
             'filters' => $filters,
