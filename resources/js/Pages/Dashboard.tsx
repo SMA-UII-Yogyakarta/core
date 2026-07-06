@@ -1,4 +1,4 @@
-import { Link, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { DashboardStats, StatCard, Table, StatusBadge } from "@/Components";
 import AttendanceChart from "@/Components/AttendanceChart";
