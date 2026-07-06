@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Exports\RekapBulananExport;
-use App\Exports\RekapHarianExport;
+use App\Exports\DailyRecapExport;
+use App\Exports\MonthlyRecapExport;
 use App\Exports\StudentsExport;
 use App\Exports\TeachersExport;
 use App\Models\SchoolClass;
@@ -30,14 +30,14 @@ class ExportService
     public function rekapHarianXlsx(string $date, ?int $classId = null): string
     {
         $path = storage_path('app/exports/rekap-harian_' . $date . '_' . now()->timestamp . '.xlsx');
-        (new RekapHarianExport())->export($path, $date, $classId);
+        (new DailyRecapExport())->export($path, $date, $classId);
         return $path;
     }
 
     public function rekapBulananXlsx(int $month, int $year, ?int $classId = null): string
     {
         $path = storage_path('app/exports/rekap-bulanan_' . $month . '-' . $year . '_' . now()->timestamp . '.xlsx');
-        (new RekapBulananExport())->export($path, $month, $year, $classId);
+        (new MonthlyRecapExport())->export($path, $month, $year, $classId);
         return $path;
     }
 

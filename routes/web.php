@@ -3,22 +3,22 @@
 use App\Http\Controllers\Web\AttendanceController;
 use App\Http\Controllers\Web\AttendanceSettingController;
 use App\Http\Controllers\Web\AuthController;
+use App\Http\Controllers\Web\ClassEnrolmentController;
+use App\Http\Controllers\Web\DailyRecapController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DutyScheduleController;
-use App\Http\Controllers\Web\EnrolmentKelasController;
 use App\Http\Controllers\Web\AttendanceOverrideController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
-use App\Http\Controllers\Web\GuruController;
+use App\Http\Controllers\Web\GuardianWebController;
 use App\Http\Controllers\Web\LeaveRequestController;
 use App\Http\Controllers\Web\LeaveRequestViewController;
-use App\Http\Controllers\Web\RekapBulananController;
-use App\Http\Controllers\Web\RekapHarianController;
+use App\Http\Controllers\Web\MonthlyRecapController;
 use App\Http\Controllers\Web\SchoolClassController;
-use App\Http\Controllers\Web\SiswaController;
 use App\Http\Controllers\Web\StudentController;
+use App\Http\Controllers\Web\StudentWebController;
 use App\Http\Controllers\Web\TeacherController;
-use App\Http\Controllers\Web\WaliMuridController;
+use App\Http\Controllers\Web\TeacherWebController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -154,27 +154,27 @@ Route::middleware(['auth'])->group(function () {
 
     // Monthly Recap
     Route::get('/admin/monthly-recap', [
-        RekapBulananController::class,
+        MonthlyRecapController::class,
         'index',
     ])->name('admin.monthly-recap');
 
     // Daily Recap
     Route::get('/admin/daily-recap', [
-        RekapHarianController::class,
+        DailyRecapController::class,
         'index',
     ])->name('admin.daily-recap');
 
     // Class Enrolment
     Route::prefix('/admin/class-enrolment')->group(function () {
-        Route::get('/', [EnrolmentKelasController::class, 'index'])->name(
+        Route::get('/', [ClassEnrolmentController::class, 'index'])->name(
             'admin.class-enrolment',
         );
         Route::post('/assign', [
-            EnrolmentKelasController::class,
+            ClassEnrolmentController::class,
             'assignStudent',
         ])->name('admin.class-enrolment.assign');
         Route::delete('/remove/{student}', [
-            EnrolmentKelasController::class,
+            ClassEnrolmentController::class,
             'removeStudent',
         ])->name('admin.class-enrolment.remove');
     });
@@ -259,45 +259,45 @@ Route::middleware(['auth'])->group(function () {
 
     // Student
     Route::middleware('role:student')->prefix('/student')->group(function () {
-        Route::get('/dashboard', [SiswaController::class, 'dashboard'])->name(
+        Route::get('/dashboard', [StudentWebController::class, 'dashboard'])->name(
             'student.dashboard',
         );
         Route::get('/live-attendance', [
-            SiswaController::class,
-            'livePresensi',
+            StudentWebController::class,
+            'liveAttendance',
         ])->name('student.live-attendance');
         Route::post('/live-attendance/checkin', [
-            SiswaController::class,
+            StudentWebController::class,
             'checkIn',
         ])->name('student.live-attendance.checkin')
         ->middleware('throttle:attendance-checkin');
-        Route::get('/history', [SiswaController::class, 'riwayat'])->name(
+        Route::get('/history', [StudentWebController::class, 'history'])->name(
             'student.history',
         );
     });
 
     // Teacher
     Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
-        Route::get('/duty', [GuruController::class, 'piket'])->name(
+        Route::get('/duty', [TeacherWebController::class, 'dutyDashboard'])->name(
             'teacher.duty',
         );
-        Route::get('/homeroom', [GuruController::class, 'waliKelas'])->name(
+        Route::get('/homeroom', [TeacherWebController::class, 'homeroomDashboard'])->name(
             'teacher.homeroom',
         );
     });
 
     // Guardian
     Route::middleware('role:guardian')->prefix('/guardian')->group(function () {
-        Route::get('/', [WaliMuridController::class, 'dashboard'])->name(
+        Route::get('/', [GuardianWebController::class, 'dashboard'])->name(
             'guardian.dashboard',
         );
         Route::get('/leave-application', [
-            WaliMuridController::class,
-            'pengajuanIzin',
+            GuardianWebController::class,
+            'leaveApplication',
         ])->name('guardian.leave-application');
         Route::post('/leave-application/store', [
-            WaliMuridController::class,
-            'storePengajuanIzin',
+            GuardianWebController::class,
+            'storeLeaveApplication',
         ])->name('guardian.leave-application.store');
     });
 });

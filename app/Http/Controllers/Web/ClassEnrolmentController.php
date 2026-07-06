@@ -7,7 +7,7 @@ use App\Services\SchoolClassService;
 use App\Services\StudentService;
 use Inertia\Inertia;
 
-class EnrolmentKelasController extends Controller
+class ClassEnrolmentController extends Controller
 {
     public function __construct(
         protected SchoolClassService $schoolClassService,

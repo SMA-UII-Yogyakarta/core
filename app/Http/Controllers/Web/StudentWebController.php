@@ -9,7 +9,7 @@ use App\Services\StudentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class SiswaController extends Controller
+class StudentWebController extends Controller
 {
     public function __construct(
         protected StudentService $studentService,
@@ -47,7 +47,7 @@ class SiswaController extends Controller
         ]);
     }
 
-    public function livePresensi()
+    public function liveAttendance()
     {
         $student = $this->studentService->findByUserId(auth()->id());
 
@@ -83,13 +83,13 @@ class SiswaController extends Controller
 
         try {
             $this->attendanceService->checkIn($student->id, $request->all());
-            return redirect()->route('siswa.dashboard')->with('success', 'Presensi berhasil.');
+            return redirect()->route('student.dashboard')->with('success', 'Presensi berhasil.');
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function riwayat()
+    public function history()
     {
         $student = $this->studentService->findByUserId(auth()->id());
 

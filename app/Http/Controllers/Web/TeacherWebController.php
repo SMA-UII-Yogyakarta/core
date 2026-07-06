@@ -10,7 +10,7 @@ use App\Services\DutyScheduleService;
 use App\Services\TeacherService;
 use Inertia\Inertia;
 
-class GuruController extends Controller
+class TeacherWebController extends Controller
 {
     public function __construct(
         protected TeacherService $teacherService,
@@ -19,7 +19,7 @@ class GuruController extends Controller
     ) {
     }
 
-    public function piket()
+    public function dutyDashboard()
     {
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
@@ -58,7 +58,7 @@ class GuruController extends Controller
         ]);
     }
 
-    public function waliKelas()
+    public function homeroomDashboard()
     {
         $teacher = $this->teacherService->findByUserId(auth()->id());
 

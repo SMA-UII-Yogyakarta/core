@@ -6,7 +6,7 @@ use App\Models\Attendance;
 use App\Models\Student;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 
-class RekapBulananExport
+class MonthlyRecapExport
 {
     public function export(string $filePath, int $month, int $year, ?int $classId = null): void
     {

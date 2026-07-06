@@ -6,7 +6,7 @@ use App\Models\Attendance;
 use App\Models\Student;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 
-class RekapHarianExport
+class DailyRecapExport
 {
     public function export(string $filePath, string $date, ?int $classId = null): void
     {

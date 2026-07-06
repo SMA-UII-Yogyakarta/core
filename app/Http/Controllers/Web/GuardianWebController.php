@@ -12,7 +12,7 @@ use App\Services\StorageService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class WaliMuridController extends Controller
+class GuardianWebController extends Controller
 {
     public function __construct(
         protected GuardianService $guardianService,
@@ -91,7 +91,7 @@ class WaliMuridController extends Controller
         ]);
     }
 
-    public function pengajuanIzin()
+    public function leaveApplication()
     {
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
@@ -117,7 +117,7 @@ class WaliMuridController extends Controller
         ]);
     }
 
-    public function storePengajuanIzin(Request $request)
+    public function storeLeaveApplication(Request $request)
     {
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
@@ -151,7 +151,7 @@ class WaliMuridController extends Controller
             'document_url' => $documentUrl,
         ]);
 
-        return redirect()->route('wali-murid.pengajuan-izin')
+        return redirect()->route('guardian.leave-application')
             ->with('success', 'Pengajuan izin berhasil dikirim.');
     }
 }

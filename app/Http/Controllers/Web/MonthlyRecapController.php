@@ -7,7 +7,7 @@ use App\Services\AttendanceService;
 use App\Services\SchoolClassService;
 use Inertia\Inertia;
 
-class RekapBulananController extends Controller
+class MonthlyRecapController extends Controller
 {
     public function __construct(
         protected AttendanceService $attendanceService,

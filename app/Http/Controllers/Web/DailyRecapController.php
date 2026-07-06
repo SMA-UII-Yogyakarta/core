@@ -7,7 +7,7 @@ use App\Services\AttendanceService;
 use App\Services\SchoolClassService;
 use Inertia\Inertia;
 
-class RekapHarianController extends Controller
+class DailyRecapController extends Controller
 {
     public function __construct(
         protected AttendanceService $attendanceService,
