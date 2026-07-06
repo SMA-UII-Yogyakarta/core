@@ -24,6 +24,11 @@ class GuardianService
         return Guardian::with(['user', 'students'])->find($id);
     }
 
+    public function findByUserId(int $userId): ?Guardian
+    {
+        return Guardian::with(['user', 'students.class'])->where('user_id', $userId)->first();
+    }
+
     public function create(array $data): Guardian
     {
         return DB::transaction(function () use ($data) {

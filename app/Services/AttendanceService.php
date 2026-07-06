@@ -57,17 +57,8 @@ class AttendanceService
         $today = now()->toDateString();
         $now = now();
 
-        // Check if already checked in today
-        $existing = Attendance::where('student_id', $studentId)
-            ->whereDate('attendance_date', $today)
-            ->first();
-
-        if ($existing) {
-            throw new \RuntimeException('Sudah melakukan presensi hari ini.');
-        }
-
-        // Check academic calendar
-        $holiday = AcademicCalendar::where('holiday_date', $today)
+        // ─── Layer 1: Academic Calendar Check ───
+        $holiday = AcademicCalendar::whereDate('holiday_date', $today)
             ->where('is_holiday', true)
             ->first();
 
@@ -75,13 +66,40 @@ class AttendanceService
             throw new \RuntimeException('Hari ini adalah hari libur: ' . $holiday->description);
         }
 
-        // Check attendance time settings
+        // ─── Layer 2: Active Day Check ───
         $dayName = now()->format('l');
         $setting = AttendanceTimeSetting::where('day', $dayName)->first();
 
+        if (! $setting) {
+            throw new \RuntimeException('Tidak ada jadwal absensi untuk hari ' . $dayName);
+        }
+
+        // ─── Layer 3: Time Range Check ───
+        $currentTime = $now->format('H:i:s');
+        $openTime = $setting->check_in_open->format('H:i:s');
+        $lateTime = $setting->late_threshold->format('H:i:s');
+        $closeTime = $setting->check_in_close->format('H:i:s');
+
+        if ($currentTime < $openTime) {
+            throw new \RuntimeException('Belum waktu absen. Absen dibuka pukul ' . $openTime);
+        }
+
         $status = 'Present';
-        if ($setting && $now->gt(Carbon::parse($setting->late_threshold))) {
+        if ($currentTime > $lateTime) {
             $status = 'Late';
+        }
+
+        if ($currentTime > $closeTime) {
+            throw new \RuntimeException('Absen sudah ditutup pukul ' . $closeTime);
+        }
+
+        // Check if already checked in today
+        $existing = Attendance::where('student_id', $studentId)
+            ->whereDate('attendance_date', $today)
+            ->first();
+
+        if ($existing) {
+            throw new \RuntimeException('Sudah melakukan presensi hari ini.');
         }
 
         $attendance = Attendance::create([
@@ -100,13 +118,32 @@ class AttendanceService
         return $attendance;
     }
 
-    public function history(int $studentId, int $limit = 30): array
+    public function todayByStudent(int $studentId): ?Attendance
+    {
+        return Attendance::where('student_id', $studentId)
+            ->whereDate('attendance_date', now()->toDateString())
+            ->first();
+    }
+
+    public function getStudentStats(int $studentId): array
+    {
+        $total = Attendance::where('student_id', $studentId)->count();
+        $present = Attendance::where('student_id', $studentId)->where('status', 'Present')->count();
+        $late = Attendance::where('student_id', $studentId)->where('status', 'Late')->count();
+
+        return [
+            'total_hari' => $total,
+            'hadir' => $present,
+            'terlambat' => $late,
+            'alpa' => max(0, $total - $present - $late),
+        ];
+    }
+
+    public function history(int $studentId, int $perPage = 20): LengthAwarePaginator
     {
         return Attendance::where('student_id', $studentId)
             ->latest('attendance_date')
-            ->take($limit)
-            ->get()
-            ->toArray();
+            ->paginate($perPage);
     }
 
     public function stats(int $classId, ?string $date = null): array

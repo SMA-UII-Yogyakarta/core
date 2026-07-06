@@ -26,6 +26,11 @@ class StudentService
         return Student::with(['user', 'class', 'guardian', 'attendances', 'leaveRequests'])->find($id);
     }
 
+    public function findByUserId(int $userId): ?Student
+    {
+        return Student::with(['user', 'class'])->where('user_id', $userId)->first();
+    }
+
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {

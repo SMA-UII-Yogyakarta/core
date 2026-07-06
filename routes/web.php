@@ -7,13 +7,16 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DutyScheduleController;
 use App\Http\Controllers\Web\EnrolmentKelasController;
 use App\Http\Controllers\Web\GuardianController;
+use App\Http\Controllers\Web\GuruController;
 use App\Http\Controllers\Web\LeaveRequestController;
 use App\Http\Controllers\Web\LeaveRequestViewController;
 use App\Http\Controllers\Web\RekapBulananController;
 use App\Http\Controllers\Web\RekapHarianController;
 use App\Http\Controllers\Web\SchoolClassController;
+use App\Http\Controllers\Web\SiswaController;
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\TeacherController;
+use App\Http\Controllers\Web\WaliMuridController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -208,5 +211,50 @@ Route::middleware(['auth'])->group(function () {
             AttendanceSettingController::class,
             'deleteHoliday',
         ])->name('admin.pengaturan.holidays.delete');
+    });
+
+    // ─── Role-based Pages ───
+
+    // Siswa
+    Route::middleware('role:student')->prefix('/siswa')->group(function () {
+        Route::get('/dashboard', [SiswaController::class, 'dashboard'])->name(
+            'siswa.dashboard',
+        );
+        Route::get('/live-presensi', [
+            SiswaController::class,
+            'livePresensi',
+        ])->name('siswa.live-presensi');
+        Route::post('/live-presensi/checkin', [
+            SiswaController::class,
+            'checkIn',
+        ])->name('siswa.live-presensi.checkin');
+        Route::get('/riwayat', [SiswaController::class, 'riwayat'])->name(
+            'siswa.riwayat',
+        );
+    });
+
+    // Guru
+    Route::middleware('role:teacher')->prefix('/guru')->group(function () {
+        Route::get('/piket', [GuruController::class, 'piket'])->name(
+            'guru.piket',
+        );
+        Route::get('/wali-kelas', [GuruController::class, 'waliKelas'])->name(
+            'guru.wali-kelas',
+        );
+    });
+
+    // Wali Murid
+    Route::middleware('role:guardian')->prefix('/wali-murid')->group(function () {
+        Route::get('/', [WaliMuridController::class, 'dashboard'])->name(
+            'wali-murid.dashboard',
+        );
+        Route::get('/pengajuan-izin', [
+            WaliMuridController::class,
+            'pengajuanIzin',
+        ])->name('wali-murid.pengajuan-izin');
+        Route::post('/pengajuan-izin/store', [
+            WaliMuridController::class,
+            'storePengajuanIzin',
+        ])->name('wali-murid.pengajuan-izin.store');
     });
 });

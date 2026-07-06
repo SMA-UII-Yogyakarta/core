@@ -25,6 +25,11 @@ class TeacherService
         return Teacher::with(['user', 'schoolClasses', 'dutySchedules'])->find($id);
     }
 
+    public function findByUserId(int $userId): ?Teacher
+    {
+        return Teacher::with(['user', 'schoolClasses'])->where('user_id', $userId)->first();
+    }
+
     public function create(array $data): Teacher
     {
         return DB::transaction(function () use ($data) {

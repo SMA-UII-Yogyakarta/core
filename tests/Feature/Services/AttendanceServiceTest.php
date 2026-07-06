@@ -59,6 +59,18 @@ class AttendanceServiceTest extends TestCase
 
     public function test_check_in_creates_attendance(): void
     {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
         $class = SchoolClass::create(['name' => 'X-A']);
         $user = User::factory()->create();
         $student = Student::create([
@@ -79,12 +91,19 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         $this->assertEquals($student->id, $attendance->student_id);
-        $this->assertEquals('Present', $attendance->status);
+        $this->assertEquals('Late', $attendance->status);
         $this->assertNotNull($attendance->check_in_time);
     }
 
     public function test_check_in_prevents_duplicate(): void
     {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
         $class = SchoolClass::create(['name' => 'X-A']);
         $user = User::factory()->create();
         $student = Student::create([
@@ -194,6 +213,13 @@ class AttendanceServiceTest extends TestCase
 
     public function test_history_returns_attendances(): void
     {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
         $class = SchoolClass::create(['name' => 'X-A']);
         $user = User::factory()->create();
         $student = Student::create([
@@ -208,19 +234,167 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         // Create some attendances
-        AcademicCalendar::create(['holiday_date' => now()->subDays(2)->toDateString(), 'is_holiday' => false]);
-        AcademicCalendar::create(['holiday_date' => now()->subDays(1)->toDateString(), 'is_holiday' => false]);
+        AcademicCalendar::create(['holiday_date' => now()->toDateString(), 'is_holiday' => false]);
 
         $this->service->checkIn($student->id, ['latitude' => '-7.7959', 'longitude' => '110.3695']);
 
         $history = $this->service->history($student->id, 10);
 
-        $this->assertIsArray($history);
-        $this->assertGreaterThan(0, count($history));
+        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $history);
+        $this->assertGreaterThan(0, $history->total());
+    }
+
+    public function test_check_in_rejects_no_schedule(): void
+    {
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Tidak ada jadwal absensi');
+
+        $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+        ]);
+    }
+
+    public function test_check_in_rejects_too_early(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-06 05:30:00'));
+
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Belum waktu absen');
+
+        $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+        ]);
+    }
+
+    public function test_check_in_rejects_after_close(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-06 10:30:00'));
+
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Absen sudah ditutup');
+
+        $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+        ]);
+    }
+
+    public function test_check_in_rejects_holiday(): void
+    {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => true,
+            'description' => 'Hari Libur Nasional',
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Hari ini adalah hari libur');
+
+        $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+        ]);
     }
 
     public function test_stats_returns_correct_counts(): void
     {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
         $class = SchoolClass::create(['name' => 'X-A']);
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
