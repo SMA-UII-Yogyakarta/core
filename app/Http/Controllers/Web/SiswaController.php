@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Services\AnalyticsService;
 use App\Services\AttendanceService;
 use App\Services\StudentService;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class SiswaController extends Controller
     public function __construct(
         protected StudentService $studentService,
         protected AttendanceService $attendanceService,
+        protected AnalyticsService $analyticsService,
     ) {
     }
 
@@ -100,6 +102,7 @@ class SiswaController extends Controller
 
         $attendances = $this->attendanceService->history($student->id);
         $stats = $this->attendanceService->getStudentStats($student->id);
+        $monthlyTrend = $this->analyticsService->studentMonthlyTrend($student->id);
 
         return Inertia::render('Siswa/RiwayatKehadiran', [
             'student' => [
@@ -113,6 +116,7 @@ class SiswaController extends Controller
             'bulan' => $bulan,
             'tahun' => $tahun,
             'stats' => $stats,
+            'monthlyTrend' => $monthlyTrend,
         ]);
     }
 }

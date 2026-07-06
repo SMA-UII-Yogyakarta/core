@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
+import AttendanceChart from "@/Components/AttendanceChart";
 import { StatCard, StatusBadge, FilterBar, Button } from "@/Components";
 import SiswaLayout from "@/Layouts/SiswaLayout";
 
@@ -25,6 +26,12 @@ interface LeaveRequest {
     approval_status: string;
 }
 
+interface MonthlyTrend {
+    label: string;
+    hadir: number;
+    terlambat: number;
+}
+
 interface Stats {
     total_hari: number;
     hadir: number;
@@ -40,6 +47,7 @@ interface PageProps {
     tahun: number;
     stats: Stats;
     bulanName: string;
+    monthlyTrend: MonthlyTrend[];
 }
 
 export default function RiwayatKehadiran({
@@ -50,6 +58,7 @@ export default function RiwayatKehadiran({
     tahun,
     stats,
     bulanName,
+    monthlyTrend,
 }: PageProps) {
     const [bulanVal, setBulanVal] = useState(bulan.toString());
     const [tahunVal, setTahunVal] = useState(tahun.toString());
@@ -116,6 +125,16 @@ export default function RiwayatKehadiran({
                 />
                 <StatCard label="Alpa" value={stats.alpa} color="red" />
             </section>
+
+            {/* Monthly Trend Chart */}
+            {monthlyTrend.length > 0 && (
+                <section className="bg-surface border border-border rounded-xl p-5 mb-6">
+                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
+                        Tren Kehadiran Bulanan
+                    </h2>
+                    <AttendanceChart data={monthlyTrend} title="" />
+                </section>
+            )}
 
             {/* Filter */}
             <FilterBar className="mb-6">

@@ -47,33 +47,36 @@ export default function WaliPengajuanIzin({
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [description, setDescription] = useState("");
+    const [document, setDocument] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const { errors } = usePage().props as { errors?: Record<string, string> };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        router.post(
-            "/wali/pengajuan-izin",
-            {
-                student_id: studentId,
-                category,
-                start_date: startDate,
-                end_date: endDate,
-                description,
-            },
-            {
+            const formData = new FormData();
+            formData.append("student_id", studentId);
+            formData.append("category", category);
+            formData.append("start_date", startDate);
+            formData.append("end_date", endDate);
+            formData.append("description", description);
+            if (document) {
+                formData.append("document", document);
+            }
+
+            router.post("/wali-murid/pengajuan-izin/store", formData, {
                 preserveState: true,
+                headers: { "Content-Type": "multipart/form-data" },
                 onSuccess: () => {
                     setShowForm(false);
                     setStartDate("");
                     setEndDate("");
                     setDescription("");
+                    setDocument(null);
                     setLoading(false);
                 },
                 onError: () => setLoading(false),
-            },
-        );
+            });
     };
 
     return (
@@ -217,6 +220,24 @@ export default function WaliPengajuanIzin({
                                     className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none min-h-20"
                                     rows={3}
                                 />
+                            </div>
+                            <div>
+                                <label className="block text-[13px] text-text-muted font-inter mb-1">
+                                    Lampiran (opsional)
+                                </label>
+                                <input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.pdf"
+                                    onChange={(e) =>
+                                        setDocument(e.target.files?.[0] ?? null)
+                                    }
+                                    className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-3 file:py-1 file:px-3 file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:text-[13px] file:rounded-md"
+                                />
+                                {errors?.document && (
+                                    <p className="text-[11px] text-danger mt-1">
+                                        {errors.document}
+                                    </p>
+                                )}
                             </div>
                             <div className="flex justify-end gap-3 pt-2">
                                 <Button

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\LeaveRequest;
+use App\Services\AnalyticsService;
 use App\Services\GuardianService;
 use App\Services\LeaveRequestService;
+use App\Services\StorageService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,10 +17,12 @@ class WaliMuridController extends Controller
     public function __construct(
         protected GuardianService $guardianService,
         protected LeaveRequestService $leaveRequestService,
+        protected AnalyticsService $analyticsService,
+        protected StorageService $storageService,
     ) {
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
@@ -32,14 +37,31 @@ class WaliMuridController extends Controller
             'nis' => $s->nis,
         ]);
 
-        $stats = null;
+        $selectedStudentId = $request->integer('student_id');
+        $selectedStudent = null;
+        $studentStats = null;
+        $monthlyTrend = null;
+        $recentHistory = [];
+
+        if ($selectedStudentId && $guardian->students()->where('id', $selectedStudentId)->exists()) {
+            $selectedStudent = $students->firstWhere('id', $selectedStudentId);
+            $studentStats = $this->analyticsService->studentDetail($selectedStudentId);
+            $monthlyTrend = $this->analyticsService->studentMonthlyTrend($selectedStudentId);
+            $recentHistory = Attendance::where('student_id', $selectedStudentId)
+                ->latest('attendance_date')
+                ->take(10)
+                ->get()
+                ->toArray();
+        }
+
+        $allStats = null;
         if ($students->isNotEmpty()) {
             $studentIds = $students->pluck('id');
-            $totalDays = \App\Models\Attendance::whereIn('student_id', $studentIds)->count();
-            $present = \App\Models\Attendance::whereIn('student_id', $studentIds)->where('status', 'Present')->count();
-            $late = \App\Models\Attendance::whereIn('student_id', $studentIds)->where('status', 'Late')->count();
+            $totalDays = Attendance::whereIn('student_id', $studentIds)->count();
+            $present = Attendance::whereIn('student_id', $studentIds)->where('status', 'Present')->count();
+            $late = Attendance::whereIn('student_id', $studentIds)->where('status', 'Late')->count();
 
-            $stats = [
+            $allStats = [
                 'total_hari' => $totalDays,
                 'hadir' => $present,
                 'terlambat' => $late,
@@ -59,8 +81,13 @@ class WaliMuridController extends Controller
         return Inertia::render('WaliMurid/Dashboard', [
             'guardian' => ['id' => $guardian->id, 'name' => $guardian->name],
             'students' => $students,
-            'stats' => $stats,
+            'stats' => $allStats,
             'recentLeaves' => $recentLeaves,
+            'selectedStudentId' => $selectedStudentId,
+            'selectedStudent' => $selectedStudent,
+            'studentStats' => $studentStats,
+            'monthlyTrend' => $monthlyTrend,
+            'recentHistory' => $recentHistory,
         ]);
     }
 
@@ -104,7 +131,16 @@ class WaliMuridController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:500',
+            'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
+
+        $documentUrl = null;
+        if ($request->hasFile('document')) {
+            $documentUrl = $this->storageService->uploadDocument(
+                $request->file('document'),
+                'leave-documents',
+            );
+        }
 
         $this->leaveRequestService->create([
             'student_id' => $validated['student_id'],
@@ -112,7 +148,7 @@ class WaliMuridController extends Controller
             'category' => $validated['category'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'document_url' => null,
+            'document_url' => $documentUrl,
         ]);
 
         return redirect()->route('wali-murid.pengajuan-izin')

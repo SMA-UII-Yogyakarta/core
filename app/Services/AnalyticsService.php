@@ -128,11 +128,52 @@ class AnalyticsService
     public function monthlyTrend(?int $year = null): array
     {
         $year = $year ?? now()->year;
+        return [
+            'year' => $year,
+            'months' => $this->buildMonthlyTrend($year),
+        ];
+    }
+
+    public function studentMonthlyTrend(int $studentId, ?int $year = null): array
+    {
+        $year = $year ?? now()->year;
         $months = [];
 
         for ($m = 1; $m <= 12; $m++) {
             $start = now()->setDate($year, $m, 1)->startOfMonth();
-            $end = $start->copy()->endOfMonth();
+
+            $total = Attendance::where('student_id', $studentId)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $m)
+                ->count();
+
+            $present = Attendance::where('student_id', $studentId)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $m)
+                ->where('status', 'Present')
+                ->count();
+
+            $late = Attendance::where('student_id', $studentId)
+                ->whereYear('attendance_date', $year)
+                ->whereMonth('attendance_date', $m)
+                ->where('status', 'Late')
+                ->count();
+
+            $months[] = [
+                'label' => $start->translatedFormat('M'),
+                'hadir' => $present,
+                'terlambat' => $late,
+            ];
+        }
+
+        return $months;
+    }
+
+    private function buildMonthlyTrend(int $year): array
+    {
+        $months = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $start = now()->setDate($year, $m, 1)->startOfMonth();
 
             $total = Attendance::whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $m)
@@ -149,14 +190,12 @@ class AnalyticsService
                 ->count();
 
             $months[] = [
-                'bulan' => $start->translatedFormat('M'),
-                'total' => $total,
+                'label' => $start->translatedFormat('M'),
                 'hadir' => $present,
                 'terlambat' => $late,
             ];
         }
-
-        return ['year' => $year, 'months' => $months];
+        return $months;
     }
 
     public function weeklyTrend(?int $weeks = 4): array

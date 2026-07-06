@@ -32,6 +32,13 @@ class StorageService
         return Storage::disk($this->disk)->url($filename);
     }
 
+    public function uploadDocument(UploadedFile $file, string $prefix = 'documents'): string
+    {
+        $path = $file->store($prefix . '/' . now()->toDateString(), ['disk' => $this->disk]);
+
+        return Storage::disk($this->disk)->url($path);
+    }
+
     public function compress(UploadedFile $file): string
     {
         $maxWidth = 320;
