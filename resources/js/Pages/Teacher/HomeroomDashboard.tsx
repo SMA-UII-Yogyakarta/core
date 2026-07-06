@@ -20,8 +20,8 @@ interface Student {
 
 interface Stats {
     total: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
     alpa: number;
 }
 
@@ -73,12 +73,12 @@ export default function DashboardWaliKelas({
                             />
                             <StatCard
                                 label="Hadir"
-                                value={stats.hadir}
+                                value={stats.present}
                                 color="green"
                             />
                             <StatCard
                                 label="Terlambat"
-                                value={stats.terlambat}
+                                value={stats.late}
                                 color="amber"
                             />
                             <StatCard

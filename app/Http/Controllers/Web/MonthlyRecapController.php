@@ -17,8 +17,8 @@ class MonthlyRecapController extends Controller
 
     public function index()
     {
-        $month = request('bulan', now()->month);
-        $year = request('tahun', now()->year);
+        $month = request('month', now()->month);
+        $year = request('year', now()->year);
         $classId = request('class_id');
 
         $classes = $this->schoolClassService->findAll();
@@ -31,8 +31,8 @@ class MonthlyRecapController extends Controller
         return Inertia::render('Admin/MonthlyRecap', [
             'classes' => $classes,
             'selectedClassId' => $classId,
-            'bulan' => (int) $month,
-            'tahun' => (int) $year,
+            'month' => (int) $month,
+            'year' => (int) $year,
             'dailyData' => $dailyData,
         ]);
     }

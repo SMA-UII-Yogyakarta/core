@@ -58,7 +58,7 @@ export default function EnrolmentKelas({
 
     const confirmRemove = () => {
         if (removeConfirmId === null) return;
-        router.delete(`/admin/enrolment-kelas/remove/${removeConfirmId}`, {
+        router.delete(`/admin/class-enrolment/remove/${removeConfirmId}`, {
             preserveState: true,
             onSuccess: () => setRemoveConfirmId(null),
         });
@@ -66,7 +66,7 @@ export default function EnrolmentKelas({
 
     const handleAssign = (studentId: number) => {
         router.post(
-            "/admin/enrolment-kelas/assign",
+            "/admin/class-enrolment/assign",
             {
                 student_id: studentId,
                 class_id: classId,

@@ -57,7 +57,7 @@ export function useClasses() {
         options?: UseClassesOptions,
     ) => {
         const { id, ...rest } = data;
-        router.put(`/admin/data-master/kelas/${id}`, rest, {
+        router.put(`/admin/master-data/classes/${id}`, rest, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -65,7 +65,7 @@ export function useClasses() {
     };
 
     const deleteClass = (id: number, options?: UseClassesOptions) => {
-        router.delete(`/admin/data-master/kelas/${id}`, {
+        router.delete(`/admin/master-data/classes/${id}`, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -81,7 +81,7 @@ export function useClasses() {
     };
 
     const assignStudent = (data: EnrolParams, options?: UseClassesOptions) => {
-        router.post("/admin/enrolment-kelas/assign", data, {
+        router.post("/admin/class-enrolment/assign", data, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -89,7 +89,7 @@ export function useClasses() {
     };
 
     const removeStudent = (studentId: number, options?: UseClassesOptions) => {
-        router.delete(`/admin/enrolment-kelas/remove/${studentId}`, {
+        router.delete(`/admin/class-enrolment/remove/${studentId}`, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

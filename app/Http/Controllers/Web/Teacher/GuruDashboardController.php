@@ -83,8 +83,8 @@ class GuruDashboardController extends Controller
 
         $stats = [
             'total' => $students->count(),
-            'hadir' => $students->filter(fn ($s) => $s->attendances->where('status', 'Present')->isNotEmpty())->count(),
-            'terlambat' => $students->filter(fn ($s) => $s->attendances->where('status', 'Late')->isNotEmpty())->count(),
+            'present' => $students->filter(fn ($s) => $s->attendances->where('status', 'Present')->isNotEmpty())->count(),
+            'late' => $students->filter(fn ($s) => $s->attendances->where('status', 'Late')->isNotEmpty())->count(),
             'alpa' => $students->filter(fn ($s) => $s->attendances->isEmpty())->count(),
         ];
 

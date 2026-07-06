@@ -41,7 +41,7 @@ interface AttendanceStudent {
 interface PageProps {
     classes: SchoolClass[];
     selectedClassId: number | null;
-    tanggal: string;
+    date: string;
     stats: Stats | null;
     students: AttendanceStudent[];
 }
@@ -65,19 +65,19 @@ const statusLabels: Record<string, string> = {
 export default function RekapHarian({
     classes,
     selectedClassId,
-    tanggal,
+    date,
     stats,
     students,
 }: PageProps) {
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
-    const [tanggalVal, setTanggalVal] = useState(tanggal);
+    const [dateVal, setDateVal] = useState(date);
 
     const handleFilter = () => {
         router.get(
             "/admin/daily-recap",
             {
                 class_id: classId || undefined,
-                tanggal: tanggalVal || undefined,
+                date: dateVal || undefined,
             },
             { preserveState: true },
         );
@@ -135,8 +135,8 @@ export default function RekapHarian({
                 />
                 <FilterBar.Date
                     label="Tanggal"
-                    value={tanggalVal}
-                    onChange={setTanggalVal}
+                    value={dateVal}
+                    onChange={setDateVal}
                 />
                 <button
                     onClick={handleFilter}
@@ -180,7 +180,7 @@ export default function RekapHarian({
             {selectedClassId && (
                 <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
                     <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                        Daftar Kehadiran — {tanggal}
+                        Daftar Kehadiran — {date}
                     </h2>
                     <Table
                         columns={columns}

@@ -28,14 +28,14 @@ interface LeaveRequest {
 
 interface MonthlyTrend {
     label: string;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
 }
 
 interface Stats {
     total_hari: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
     alpa: number;
 }
 
@@ -43,8 +43,8 @@ interface PageProps {
     student: Student;
     attendances: AttendanceRecord[];
     leaveRequests: LeaveRequest[];
-    bulan: number;
-    tahun: number;
+    month: number;
+    year: number;
     stats: Stats;
     bulanName: string;
     monthlyTrend: MonthlyTrend[];
@@ -54,19 +54,19 @@ export default function RiwayatKehadiran({
     student,
     attendances,
     leaveRequests,
-    bulan,
-    tahun,
+    month,
+    year,
     stats,
     bulanName,
     monthlyTrend,
 }: PageProps) {
-    const [bulanVal, setBulanVal] = useState(bulan.toString());
-    const [tahunVal, setTahunVal] = useState(tahun.toString());
+    const [monthVal, setMonthVal] = useState(month.toString());
+    const [yearVal, setYearVal] = useState(year.toString());
 
     const handleFilter = () => {
         router.get(
             "/student/history",
-            { bulan: bulanVal, tahun: tahunVal },
+            { month: monthVal, year: yearVal },
             { preserveState: true },
         );
     };
@@ -117,10 +117,10 @@ export default function RiwayatKehadiran({
                     value={stats.total_hari}
                     color="grey"
                 />
-                <StatCard label="Hadir" value={stats.hadir} color="green" />
+                <StatCard label="Hadir" value={stats.present} color="green" />
                 <StatCard
                     label="Terlambat"
-                    value={stats.terlambat}
+                    value={stats.late}
                     color="amber"
                 />
                 <StatCard label="Alpa" value={stats.alpa} color="red" />
@@ -144,8 +144,8 @@ export default function RiwayatKehadiran({
                         value: (i + 1).toString(),
                         label: name,
                     }))}
-                    value={bulanVal}
-                    onChange={(e) => setBulanVal(e.target.value)}
+                    value={monthVal}
+                    onChange={(e) => setMonthVal(e.target.value)}
                 />
                 <FilterBar.Select
                     label="Tahun"
@@ -153,8 +153,8 @@ export default function RiwayatKehadiran({
                         value: t,
                         label: t,
                     }))}
-                    value={tahunVal}
-                    onChange={(e) => setTahunVal(e.target.value)}
+                    value={yearVal}
+                    onChange={(e) => setYearVal(e.target.value)}
                 />
                 <Button variant="primary" onClick={handleFilter}>
                     Tampilkan
@@ -164,7 +164,7 @@ export default function RiwayatKehadiran({
             {/* Attendance Table */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
                 <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                    Detail Kehadiran — {bulanName} {tahun}
+                    Detail Kehadiran — {bulanName} {year}
                 </h2>
                 {attendances.length === 0 ? (
                     <p className="text-text-muted text-[13px] text-center py-8">

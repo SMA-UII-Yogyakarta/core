@@ -8,7 +8,7 @@ import type { StatusVariant } from "@/types/component";
 interface Stats {
     total_students: number;
     hadir_terdata: number;
-    terlambat: number;
+    late: number;
     sakit_izin: number;
     alpa: number;
 }
@@ -25,10 +25,10 @@ interface AttendanceRow {
 }
 
 interface MonthlyStats {
-    bulan: string;
+    month: string;
     total_siswa: number;
     hari_efektif: number;
-    total_hadir: number;
+    total_present: number;
     total_terlambat: number;
     rata_hadir_per_hari: number;
 }
@@ -42,8 +42,8 @@ interface ClassStat {
     id: number;
     name: string;
     total: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
 }
 
 interface StudentRow {
@@ -56,8 +56,8 @@ interface StudentRow {
 
 interface StudentDetailStats {
     total_hari: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
     alpa: number;
     persentase_kehadiran: number;
 }
@@ -71,17 +71,17 @@ interface StudentDetailData {
 }
 
 interface TrendMonth {
-    bulan: string;
+    month: string;
     total: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
 }
 
 interface TrendWeek {
     label: string;
     total: number;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
 }
 
 interface DashboardProps {
@@ -163,7 +163,7 @@ export default function Dashboard({
             <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
                 <StatCard label="Total Siswa" value={stats.total_students} color="grey" />
                 <StatCard label="Hadir Terdata" value={stats.hadir_terdata} color="green" />
-                <StatCard label="Terlambat" value={stats.terlambat} color="amber" />
+                <StatCard label="Terlambat" value={stats.late} color="amber" />
                 <StatCard label="Sakit / Izin" value={stats.sakit_izin} color="blue" />
                 <StatCard label="Alpa (Kosong)" value={stats.alpa} color="red" />
             </section>
@@ -216,11 +216,11 @@ export default function Dashboard({
                                 <div className="font-semibold text-text-primary text-[14px] mb-2">{k.name}</div>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                     <div>
-                                        <div className="text-[18px] font-bold text-success">{k.hadir}</div>
+                                        <div className="text-[18px] font-bold text-success">{k.present}</div>
                                         <div className="text-[11px] text-text-muted">Hadir</div>
                                     </div>
                                     <div>
-                                        <div className="text-[18px] font-bold text-warning">{k.terlambat}</div>
+                                        <div className="text-[18px] font-bold text-warning">{k.late}</div>
                                         <div className="text-[11px] text-text-muted">Terlambat</div>
                                     </div>
                                     <div>
@@ -289,11 +289,11 @@ export default function Dashboard({
                             <div className="text-[11px] text-text-muted">Total</div>
                         </div>
                         <div className="bg-background rounded-lg p-3 text-center">
-                            <div className="text-[20px] font-bold text-success">{studentDetail.stats.hadir}</div>
+                            <div className="text-[20px] font-bold text-success">{studentDetail.stats.present}</div>
                             <div className="text-[11px] text-text-muted">Hadir</div>
                         </div>
                         <div className="bg-background rounded-lg p-3 text-center">
-                            <div className="text-[20px] font-bold text-warning">{studentDetail.stats.terlambat}</div>
+                            <div className="text-[20px] font-bold text-warning">{studentDetail.stats.late}</div>
                             <div className="text-[11px] text-text-muted">Terlambat</div>
                         </div>
                         <div className="bg-background rounded-lg p-3 text-center">
@@ -332,13 +332,13 @@ export default function Dashboard({
             <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
                     <AttendanceChart
-                        data={monthlyTrend.months.map((m) => ({ label: m.bulan, hadir: m.hadir, terlambat: m.terlambat }))}
+                        data={monthlyTrend.months.map((m) => ({ label: m.month, present: m.present, late: m.late }))}
                         title={`Tren Bulanan ${monthlyTrend.year}`}
                     />
                 </div>
                 <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
                     <AttendanceChart
-                        data={weeklyTrend.map((w) => ({ label: w.label, hadir: w.hadir, terlambat: w.terlambat }))}
+                        data={weeklyTrend.map((w) => ({ label: w.label, present: w.present, late: w.late }))}
                         title="Tren Mingguan"
                     />
                 </div>
@@ -366,7 +366,7 @@ export default function Dashboard({
             {/* Monthly Stats */}
             <section className="bg-surface border border-border rounded-lg p-4 lg:p-6 mb-6">
                 <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                    Statistik Bulanan — {monthlyStats.bulan}
+                    Statistik Bulanan — {monthlyStats.month}
                 </h2>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-background rounded-lg p-4 text-center">
@@ -374,7 +374,7 @@ export default function Dashboard({
                         <div className="text-[12px] text-text-muted mt-1">Hari Efektif</div>
                     </div>
                     <div className="bg-background rounded-lg p-4 text-center">
-                        <div className="text-[24px] font-bold text-success">{monthlyStats.total_hadir}</div>
+                        <div className="text-[24px] font-bold text-success">{monthlyStats.total_present}</div>
                         <div className="text-[12px] text-text-muted mt-1">Total Hadir</div>
                     </div>
                     <div className="bg-background rounded-lg p-4 text-center">

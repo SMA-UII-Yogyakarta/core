@@ -63,10 +63,10 @@ interface PageProps {
 }
 
 const tabs = [
-    { key: "siswa", label: "Siswa", icon: "fa-user-graduate" },
-    { key: "guru", label: "Guru", icon: "fa-chalkboard-teacher" },
-    { key: "kelas", label: "Kelas", icon: "fa-school" },
-    { key: "wali", label: "Wali Murid", icon: "fa-user-friends" },
+    { key: "students", label: "Siswa", icon: "fa-user-graduate" },
+    { key: "teachers", label: "Guru", icon: "fa-chalkboard-teacher" },
+    { key: "class", label: "Kelas", icon: "fa-school" },
+    { key: "guardians", label: "Wali Murid", icon: "fa-user-friends" },
 ];
 
 export default function DataMaster({
@@ -76,7 +76,7 @@ export default function DataMaster({
     guardians,
     filters,
 }: PageProps) {
-    const [currentTab, setCurrentTab] = useState(filters.tab ?? "siswa");
+    const [currentTab, setCurrentTab] = useState(filters.tab ?? "students");
     const [search, setSearch] = useState(filters.search ?? "");
     const [, setSelectedIds] = useState<number[]>([]); // value not needed, only setter for reset
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -99,7 +99,7 @@ export default function DataMaster({
 
     const handleDelete = (entity: string, id: number) => {
         if (!confirm("Hapus data ini?")) return;
-        router.delete(`/admin/data-master/${entity}/${id}`, {
+        router.delete(`/admin/master-data/${entity}/${id}`, {
             preserveState: true,
         });
     };
@@ -144,7 +144,7 @@ export default function DataMaster({
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
-                        onClick={() => handleDelete("siswa", s.id)}
+                        onClick={() => handleDelete("students", s.id)}
                     />
                 </div>
             ),
@@ -181,7 +181,7 @@ export default function DataMaster({
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
-                        onClick={() => handleDelete("guru", t.id)}
+                        onClick={() => handleDelete("teachers", t.id)}
                     />
                 </div>
             ),
@@ -216,7 +216,7 @@ export default function DataMaster({
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
-                        onClick={() => handleDelete("kelas", c.id)}
+                        onClick={() => handleDelete("class", c.id)}
                     />
                 </div>
             ),
@@ -256,7 +256,7 @@ export default function DataMaster({
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
-                        onClick={() => handleDelete("wali", w.id)}
+                        onClick={() => handleDelete("guardians", w.id)}
                     />
                 </div>
             ),
@@ -297,7 +297,7 @@ export default function DataMaster({
                         </div>
 
                         {/* ── Siswa Tab ── */}
-                        {currentTab === "siswa" && students && (
+                        {currentTab === "students" && students && (
                             <div>
                                 <Toolbar
                                     search={search}
@@ -320,7 +320,7 @@ export default function DataMaster({
                                                 router.get(
                                                     "/admin/master-data",
                                                     {
-                                                        tab: "siswa",
+                                                        tab: "students",
                                                         page,
                                                     },
                                                     { preserveState: true },
@@ -333,7 +333,7 @@ export default function DataMaster({
                         )}
 
                         {/* ── Guru Tab ── */}
-                        {currentTab === "guru" && teachers && (
+                        {currentTab === "teachers" && teachers && (
                             <div>
                                 <Toolbar
                                     search={search}
@@ -356,7 +356,7 @@ export default function DataMaster({
                                                 router.get(
                                                     "/admin/master-data",
                                                     {
-                                                        tab: "guru",
+                                                        tab: "teachers",
                                                         page,
                                                     },
                                                     { preserveState: true },
@@ -369,7 +369,7 @@ export default function DataMaster({
                         )}
 
                         {/* ── Kelas Tab ── */}
-                        {currentTab === "kelas" && schoolClasses && (
+                        {currentTab === "class" && schoolClasses && (
                             <div>
                                 <Toolbar
                                     search={search}
@@ -393,7 +393,7 @@ export default function DataMaster({
                                                 router.get(
                                                     "/admin/master-data",
                                                     {
-                                                        tab: "kelas",
+                                                        tab: "class",
                                                         page,
                                                     },
                                                     { preserveState: true },
@@ -406,7 +406,7 @@ export default function DataMaster({
                         )}
 
                         {/* ── Wali Tab ── */}
-                        {currentTab === "wali" && guardians && (
+                        {currentTab === "guardians" && guardians && (
                             <div>
                                 <Toolbar
                                     search={search}
@@ -428,7 +428,7 @@ export default function DataMaster({
                                                 router.get(
                                                     "/admin/master-data",
                                                     {
-                                                        tab: "wali",
+                                                        tab: "guardians",
                                                         page,
                                                     },
                                                     { preserveState: true },

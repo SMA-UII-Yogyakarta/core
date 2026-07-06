@@ -13,8 +13,8 @@ Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, L
 
 interface ChartData {
     label: string;
-    hadir: number;
-    terlambat: number;
+    present: number;
+    late: number;
 }
 
 interface Props {
@@ -40,13 +40,13 @@ export default function AttendanceChart({ data, title }: Props) {
                 datasets: [
                     {
                         label: "Hadir",
-                        data: data.map((d) => d.hadir),
+                        data: data.map((d) => d.present),
                         backgroundColor: "#22c55e",
                         borderRadius: 4,
                     },
                     {
                         label: "Terlambat",
-                        data: data.map((d) => d.terlambat),
+                        data: data.map((d) => d.late),
                         backgroundColor: "#f59e0b",
                         borderRadius: 4,
                     },

@@ -97,8 +97,8 @@ class StudentWebController extends Controller
             return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan.');
         }
 
-        $bulan = (int) request('bulan', date('m'));
-        $tahun = (int) request('tahun', date('Y'));
+        $bulan = (int) request('month', date('m'));
+        $tahun = (int) request('year', date('Y'));
 
         $attendances = $this->attendanceService->history($student->id);
         $stats = $this->attendanceService->getStudentStats($student->id);
@@ -113,8 +113,8 @@ class StudentWebController extends Controller
             ],
             'attendances' => $attendances->items(),
             'leaveRequests' => $student->leaveRequests()->latest()->get()->toArray(),
-            'bulan' => $bulan,
-            'tahun' => $tahun,
+            'month' => $bulan,
+            'year' => $tahun,
             'stats' => $stats,
             'monthlyTrend' => $monthlyTrend,
         ]);

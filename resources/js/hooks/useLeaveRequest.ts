@@ -46,7 +46,7 @@ export function useLeaveRequest() {
         data: CreateLeaveData,
         options?: UseLeaveRequestOptions,
     ) => {
-        router.post("/wali/pengajuan-izin", data, {
+        router.post("/guardian/leave-application", data, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

@@ -11,9 +11,9 @@ interface SchoolClass {
 }
 
 interface DailyEntry {
-    tanggal: string;
-    hadir: number;
-    terlambat: number;
+    date: string;
+    present: number;
+    late: number;
     alpa: number;
 }
 
@@ -21,7 +21,7 @@ interface DailyData {
     days: DailyEntry[];
     summary: {
         total_siswa: number;
-        total_hadir: number;
+        total_present: number;
         total_terlambat: number;
         total_alpa: number;
         jumlah_hari: number;
@@ -31,29 +31,29 @@ interface DailyData {
 interface PageProps {
     classes: SchoolClass[];
     selectedClassId: number | null;
-    bulan: number;
-    tahun: number;
+    month: number;
+    year: number;
     dailyData: DailyData | null;
 }
 
 export default function RekapBulanan({
     classes,
     selectedClassId,
-    bulan,
-    tahun,
+    month,
+    year,
     dailyData,
 }: PageProps) {
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
-    const [bulanVal, setBulanVal] = useState(bulan.toString());
-    const [tahunVal, setTahunVal] = useState(tahun.toString());
+    const [monthVal, setMonthVal] = useState(month.toString());
+    const [yearVal, setYearVal] = useState(year.toString());
 
     const handleFilter = () => {
         router.get(
             "/admin/monthly-recap",
             {
                 class_id: classId || undefined,
-                bulan: bulanVal || undefined,
-                tahun: tahunVal || undefined,
+                month: monthVal || undefined,
+                year: yearVal || undefined,
             },
             { preserveState: true },
         );
@@ -75,9 +75,9 @@ export default function RekapBulanan({
     ];
 
     const columns: Column<DailyEntry>[] = [
-        { key: "tanggal", header: "Tanggal" },
-        { key: "hadir", header: "Hadir" },
-        { key: "terlambat", header: "Terlambat" },
+        { key: "date", header: "Tanggal" },
+        { key: "present", header: "Hadir" },
+        { key: "late", header: "Terlambat" },
         { key: "alpa", header: "Alpa" },
     ];
 
@@ -106,8 +106,8 @@ export default function RekapBulanan({
                         value: (i + 1).toString(),
                         label: name,
                     }))}
-                    value={bulanVal}
-                    onChange={(e) => setBulanVal(e.target.value)}
+                    value={monthVal}
+                    onChange={(e) => setMonthVal(e.target.value)}
                 />
                 <FilterBar.Select
                     label="Tahun"
@@ -115,8 +115,8 @@ export default function RekapBulanan({
                         value: t,
                         label: t,
                     }))}
-                    value={tahunVal}
-                    onChange={(e) => setTahunVal(e.target.value)}
+                    value={yearVal}
+                    onChange={(e) => setYearVal(e.target.value)}
                 />
                 <button
                     onClick={handleFilter}
@@ -137,7 +137,7 @@ export default function RekapBulanan({
                         />
                         <StatCard
                             label="Total Hadir"
-                            value={dailyData.summary.total_hadir}
+                            value={dailyData.summary.total_present}
                             color="green"
                         />
                         <StatCard
@@ -159,12 +159,12 @@ export default function RekapBulanan({
 
                     <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
                         <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                            Detail Harian — {monthNames[bulan - 1]} {tahun}
+                            Detail Harian — {monthNames[month - 1]} {year}
                         </h2>
                         <Table
                             columns={columns}
                             data={dailyData.days}
-                            keyExtractor={(d) => d.tanggal}
+                            keyExtractor={(d) => d.date}
                             emptyMessage="Belum ada data untuk bulan ini."
                         />
                     </section>

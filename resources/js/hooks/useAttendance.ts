@@ -1,8 +1,8 @@
 import { router } from "@inertiajs/react";
 
 interface FetchAttendanceParams {
-    bulan?: string;
-    tahun?: string;
+    month?: string;
+    year?: string;
     page?: number;
     [key: string]: string | number | undefined;
 }

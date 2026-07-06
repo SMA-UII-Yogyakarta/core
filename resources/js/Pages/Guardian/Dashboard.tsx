@@ -12,10 +12,10 @@ interface Student {
 
 interface Stats {
   total_hari: number;
-  hadir: number;
-  terlambat: number;
+  present: number;
+  late: number;
   alpa: number;
-  izin_pending: number;
+  pending_leave: number;
 }
 
 interface LeaveRequest {
@@ -69,21 +69,21 @@ export default function WaliMuridDashboard({
   recentHistory,
 }: PageProps) {
   function selectStudent(id: number) {
-    router.get("/wali-murid", { student_id: id }, { preserveState: true });
+    router.get("/guardian", { student_id: id }, { preserveState: true });
   }
 
   function resetSelection() {
-    router.get("/wali-murid", {}, { preserveState: true });
+    router.get("/guardian", {}, { preserveState: true });
   }
 
   function statusCount(records: MonthlyTrend[]) {
     return records.reduce(
       (acc, r) => ({
-        hadir: acc.hadir + r.present,
-        terlambat: acc.terlambat + r.late,
+        present: acc.present + r.present,
+        late: acc.late + r.late,
         alpa: acc.alpa + r.absent,
       }),
-      { hadir: 0, terlambat: 0, alpa: 0 },
+      { present: 0, late: 0, alpa: 0 },
     );
   }
 
@@ -175,10 +175,10 @@ export default function WaliMuridDashboard({
                 Tren Bulanan
               </h2>
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <StatCard label="Hadir" value={trendStats?.hadir ?? 0} color="green" />
+                <StatCard label="Hadir" value={trendStats?.present ?? 0} color="green" />
                 <StatCard
                   label="Terlambat"
-                  value={trendStats?.terlambat ?? 0}
+                  value={trendStats?.late ?? 0}
                   color="amber"
                 />
                 <StatCard label="Alpa" value={trendStats?.alpa ?? 0} color="red" />
@@ -186,8 +186,8 @@ export default function WaliMuridDashboard({
               <AttendanceChart
                 data={monthlyTrend.map((m) => ({
                   label: m.month,
-                  hadir: m.present,
-                  terlambat: m.late,
+                  present: m.present,
+                  late: m.late,
                 }))}
                 title="Kehadiran Bulanan"
               />
@@ -236,9 +236,9 @@ export default function WaliMuridDashboard({
           {stats && (
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
               <StatCard label="Hari Tercatat" value={stats.total_hari} color="grey" />
-              <StatCard label="Hadir" value={stats.hadir} color="green" />
-              <StatCard label="Terlambat" value={stats.terlambat} color="amber" />
-              <StatCard label="Izin Pending" value={stats.izin_pending} color="blue" />
+              <StatCard label="Hadir" value={stats.present} color="green" />
+              <StatCard label="Terlambat" value={stats.late} color="amber" />
+              <StatCard label="Izin Pending" value={stats.pending_leave} color="blue" />
             </section>
           )}
 
@@ -321,7 +321,7 @@ export default function WaliMuridDashboard({
 
       <section className="flex gap-3">
         <a
-          href="/wali-murid/pengajuan-izin"
+          href="/guardian/leave-application"
           className="flex-1 px-5 py-4 bg-primary text-white rounded-xl text-center font-semibold text-[14px] hover:bg-primary/90 transition-colors"
         >
           + Ajukan Izin

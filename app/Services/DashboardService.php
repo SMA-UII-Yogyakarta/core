@@ -35,7 +35,7 @@ class DashboardService
         return [
             'total_students' => $totalStudents,
             'hadir_terdata' => $hadirTerdata,
-            'terlambat' => $late,
+            'late' => $late,
             'sakit_izin' => $sickPermissionToday,
             'alpa' => $absent,
         ];
@@ -74,10 +74,10 @@ class DashboardService
         $totalLate = $attendances->where('status', 'Late')->count();
 
         return [
-            'bulan' => Carbon::create($year, $month)->locale('id')->monthName,
+            'month' => Carbon::create($year, $month)->locale('id')->monthName,
             'total_siswa' => $totalStudents,
             'hari_efektif' => $workingDays,
-            'total_hadir' => $totalPresent,
+            'total_present' => $totalPresent,
             'total_terlambat' => $totalLate,
             'rata_hadir_per_hari' => $workingDays > 0 ? round(($totalPresent + $totalLate) / $workingDays, 1) : 0,
         ];

@@ -100,7 +100,7 @@ export default function MasterKelas({
         };
 
         if (editId) {
-            router.put(`/admin/master-kelas/${editId}`, payload, {
+            router.put(`/admin/master-data/classes/${editId}`, payload, {
                 preserveState: true,
                 onSuccess: () => {
                     setShowModal(false);
@@ -109,7 +109,7 @@ export default function MasterKelas({
                 onError: () => setLoading(false),
             });
         } else {
-            router.post("/admin/classes", payload, {
+            router.post("/admin/master-data/classes", payload, {
                 preserveState: true,
                 onSuccess: () => {
                     setShowModal(false);
@@ -127,7 +127,7 @@ export default function MasterKelas({
 
     const handleDelete = () => {
         if (deleteId === null) return;
-        router.delete(`/admin/master-kelas/${deleteId}`, {
+        router.delete(`/admin/master-data/classes/${deleteId}`, {
             preserveState: true,
             onSuccess: () => {
                 setShowDeleteModal(false);

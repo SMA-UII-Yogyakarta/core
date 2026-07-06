@@ -63,10 +63,10 @@ class GuardianWebController extends Controller
 
             $allStats = [
                 'total_hari' => $totalDays,
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
                 'alpa' => max(0, $totalDays - $present - $late),
-                'izin_pending' => LeaveRequest::whereIn('student_id', $studentIds)
+                'pending_leave' => LeaveRequest::whereIn('student_id', $studentIds)
                     ->where('approval_status', 'Pending')->count(),
             ];
         }

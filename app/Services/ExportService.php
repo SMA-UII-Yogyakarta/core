@@ -98,8 +98,8 @@ class ExportService
                 'nis' => $s->nis,
                 'name' => $s->name,
                 'class' => $s->class?->name ?? '-',
-                'hadir' => $hadir,
-                'terlambat' => $terlambat,
+                'present' => $hadir,
+                'late' => $terlambat,
                 'alpa' => $alpa,
                 'persentase' => $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%',
             ];

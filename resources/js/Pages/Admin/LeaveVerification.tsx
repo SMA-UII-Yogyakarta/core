@@ -97,7 +97,7 @@ export default function VerifikasiIzin({
 
     const handleApprove = (id: number) => {
         if (confirm("Setujui izin ini?")) {
-            router.patch(`/admin/verifikasi-izin/${id}/approve`, undefined, {
+            router.patch(`/admin/leave-verification/${id}/approve`, undefined, {
                 preserveState: true,
             });
         }
@@ -105,7 +105,7 @@ export default function VerifikasiIzin({
 
     const handleReject = (id: number) => {
         if (confirm("Tolak izin ini?")) {
-            router.patch(`/admin/verifikasi-izin/${id}/reject`, undefined, {
+            router.patch(`/admin/leave-verification/${id}/reject`, undefined, {
                 preserveState: true,
             });
         }

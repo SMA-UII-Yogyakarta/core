@@ -36,8 +36,8 @@ class AnalyticsService
             'id' => $c->id,
             'name' => $c->name,
             'total' => Student::where('class_id', $c->id)->where('status', 'Active')->count(),
-            'hadir' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
-            'terlambat' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
+            'present' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
+            'late' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
         ]);
 
         return [
@@ -116,8 +116,8 @@ class AnalyticsService
             'year' => $year,
             'stats' => [
                 'total_hari' => $total,
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
                 'alpa' => max(0, $total - $present - $late),
                 'persentase_kehadiran' => $total > 0 ? round(($present / $total) * 100, 1) : 0,
             ],
@@ -161,8 +161,8 @@ class AnalyticsService
 
             $months[] = [
                 'label' => $start->translatedFormat('M'),
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
             ];
         }
 
@@ -191,8 +191,8 @@ class AnalyticsService
 
             $months[] = [
                 'label' => $start->translatedFormat('M'),
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
             ];
         }
         return $months;
@@ -212,8 +212,8 @@ class AnalyticsService
             $weeks[] = [
                 'label' => 'Minggu ' . now()->subWeeks($weeks - 1 - $i)->weekOfYear,
                 'total' => $total,
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
             ];
         }
 
@@ -229,11 +229,11 @@ class AnalyticsService
             'id' => $c->id,
             'name' => $c->name,
             'total' => Student::where('class_id', $c->id)->where('status', 'Active')->count(),
-            'hadir' => Attendance::whereDate('attendance_date', $date)
+            'present' => Attendance::whereDate('attendance_date', $date)
                 ->where('status', 'Present')
                 ->whereHas('student', fn ($q) => $q->where('class_id', $c->id))
                 ->count(),
-            'terlambat' => Attendance::whereDate('attendance_date', $date)
+            'late' => Attendance::whereDate('attendance_date', $date)
                 ->where('status', 'Late')
                 ->whereHas('student', fn ($q) => $q->where('class_id', $c->id))
                 ->count(),

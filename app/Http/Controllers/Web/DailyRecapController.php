@@ -17,7 +17,7 @@ class DailyRecapController extends Controller
 
     public function index()
     {
-        $date = request('tanggal', now()->toDateString());
+        $date = request('date', now()->toDateString());
         $classId = request('class_id');
 
         $classes = $this->schoolClassService->findAll();
@@ -34,7 +34,7 @@ class DailyRecapController extends Controller
         return Inertia::render('Admin/DailyRecap', [
             'classes' => $classes,
             'selectedClassId' => $classId,
-            'tanggal' => $parsedDate,
+            'date' => $parsedDate,
             'stats' => $stats,
             'students' => $students,
         ]);

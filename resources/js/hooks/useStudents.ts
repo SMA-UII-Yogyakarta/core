@@ -48,7 +48,7 @@ export function useStudents() {
         data: CreateStudentData,
         options?: UseStudentsOptions,
     ) => {
-        router.post("/admin/data-master/siswa", data, {
+        router.post("/admin/master-data/students", data, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

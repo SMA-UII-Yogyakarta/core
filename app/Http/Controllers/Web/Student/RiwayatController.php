@@ -16,8 +16,8 @@ class RiwayatController extends Controller
         $user = Auth::user();
         $student = Student::with(['class'])->where('user_id', $user->id)->firstOrFail();
 
-        $month = request('bulan', now()->month);
-        $year = request('tahun', now()->year);
+        $month = request('month', now()->month);
+        $year = request('year', now()->year);
 
         $attendances = Attendance::where('student_id', $student->id)
             ->whereYear('attendance_date', $year)
@@ -41,12 +41,12 @@ class RiwayatController extends Controller
             'student' => $student,
             'attendances' => $attendances,
             'leaveRequests' => $leaveRequests,
-            'bulan' => (int) $month,
-            'tahun' => (int) $year,
+            'month' => (int) $month,
+            'year' => (int) $year,
             'stats' => [
                 'total_hari' => $attendances->count(),
-                'hadir' => $present,
-                'terlambat' => $late,
+                'present' => $present,
+                'late' => $late,
                 'alpa' => max(0, now()->daysInMonth - $attendances->count()),
             ],
             'bulanName' => $monthNames[$month - 1],

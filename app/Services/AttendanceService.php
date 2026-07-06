@@ -152,8 +152,8 @@ class AttendanceService
 
         return [
             'total_hari' => $total,
-            'hadir' => $present,
-            'terlambat' => $late,
+            'present' => $present,
+            'late' => $late,
             'alpa' => max(0, $total - $present - $late),
         ];
     }
@@ -216,9 +216,9 @@ class AttendanceService
             $absent = $students - $items->count();
 
             $days[] = [
-                'tanggal' => $date,
-                'hadir' => $present,
-                'terlambat' => $late,
+                'date' => $date,
+                'present' => $present,
+                'late' => $late,
                 'alpa' => max(0, $absent),
             ];
 
@@ -231,7 +231,7 @@ class AttendanceService
             'days' => $days,
             'summary' => [
                 'total_siswa' => $students,
-                'total_hadir' => $totalPresent,
+                'total_present' => $totalPresent,
                 'total_terlambat' => $totalLate,
                 'total_alpa' => $totalAbsent,
                 'jumlah_hari' => count($days),
