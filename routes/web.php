@@ -6,6 +6,8 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DutyScheduleController;
 use App\Http\Controllers\Web\EnrolmentKelasController;
+use App\Http\Controllers\Web\AttendanceOverrideController;
+use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuruController;
 use App\Http\Controllers\Web\LeaveRequestController;
@@ -211,6 +213,46 @@ Route::middleware(['auth'])->group(function () {
             AttendanceSettingController::class,
             'deleteHoliday',
         ])->name('admin.pengaturan.holidays.delete');
+    });
+
+    // ─── Export Routes ───
+    Route::prefix('/admin/export')->group(function () {
+        Route::get('/siswa', [ExportController::class, 'students'])->name(
+            'admin.export.siswa',
+        );
+        Route::get('/guru', [ExportController::class, 'teachers'])->name(
+            'admin.export.guru',
+        );
+        Route::get('/rekap-harian', [
+            ExportController::class,
+            'rekapHarian',
+        ])->name('admin.export.rekap-harian');
+        Route::get('/rekap-bulanan', [
+            ExportController::class,
+            'rekapBulanan',
+        ])->name('admin.export.rekap-bulanan');
+        Route::get('/rekap-harian/pdf', [
+            ExportController::class,
+            'rekapHarianPdf',
+        ])->name('admin.export.rekap-harian-pdf');
+        Route::get('/rekap-bulanan/pdf', [
+            ExportController::class,
+            'rekapBulananPdf',
+        ])->name('admin.export.rekap-bulanan-pdf');
+    });
+
+    Route::prefix('/admin/koreksi-absensi')->group(function () {
+        Route::get('/', [AttendanceOverrideController::class, 'index'])->name(
+            'admin.attendance.override',
+        );
+        Route::post(
+            '/',
+            [AttendanceOverrideController::class, 'store'],
+        )->name('admin.attendance.override.store');
+        Route::delete(
+            '/{id}',
+            [AttendanceOverrideController::class, 'destroy'],
+        )->name('admin.attendance.override.destroy');
     });
 
     // ─── Role-based Pages ───
