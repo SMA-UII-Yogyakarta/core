@@ -43,70 +43,70 @@ Route::middleware(['auth'])->group(function () {
     );
 
     // Master Data
-    Route::prefix('/admin/data-master')->group(function () {
+    Route::prefix('/admin/master-data')->group(function () {
         Route::get('/', [StudentController::class, 'index'])->name(
-            'admin.data-master',
+            'admin.master-data',
         );
-        Route::post('/siswa', [StudentController::class, 'store'])->name(
-            'admin.data-master.siswa.store',
+        Route::post('/students', [StudentController::class, 'store'])->name(
+            'admin.master-data.students.store',
         );
-        Route::patch('/siswa/{student}', [
+        Route::patch('/students/{student}', [
             StudentController::class,
             'update',
-        ])->name('admin.data-master.siswa.update');
-        Route::delete('/siswa/{student}', [
+        ])->name('admin.master-data.students.update');
+        Route::delete('/students/{student}', [
             StudentController::class,
             'destroy',
-        ])->name('admin.data-master.siswa.destroy');
-        Route::patch('/siswa/{student}/toggle-status', [
+        ])->name('admin.master-data.students.destroy');
+        Route::patch('/students/{student}/toggle-status', [
             StudentController::class,
             'toggleStatus',
-        ])->name('admin.data-master.siswa.toggle');
+        ])->name('admin.master-data.students.toggle');
 
-        Route::get('/guru', [TeacherController::class, 'index'])->name(
-            'admin.data-master.guru',
+        Route::get('/teachers', [TeacherController::class, 'index'])->name(
+            'admin.master-data.teachers',
         );
-        Route::post('/guru', [TeacherController::class, 'store'])->name(
-            'admin.data-master.guru.store',
+        Route::post('/teachers', [TeacherController::class, 'store'])->name(
+            'admin.master-data.teachers.store',
         );
-        Route::patch('/guru/{teacher}', [
+        Route::patch('/teachers/{teacher}', [
             TeacherController::class,
             'update',
-        ])->name('admin.data-master.guru.update');
-        Route::delete('/guru/{teacher}', [
+        ])->name('admin.master-data.teachers.update');
+        Route::delete('/teachers/{teacher}', [
             TeacherController::class,
             'destroy',
-        ])->name('admin.data-master.guru.destroy');
+        ])->name('admin.master-data.teachers.destroy');
 
-        Route::get('/kelas', [SchoolClassController::class, 'index'])->name(
-            'admin.data-master.kelas',
+        Route::get('/classes', [SchoolClassController::class, 'index'])->name(
+            'admin.master-data.classes',
         );
-        Route::post('/kelas', [SchoolClassController::class, 'store'])->name(
-            'admin.data-master.kelas.store',
+        Route::post('/classes', [SchoolClassController::class, 'store'])->name(
+            'admin.master-data.classes.store',
         );
-        Route::patch('/kelas/{schoolClass}', [
+        Route::patch('/classes/{schoolClass}', [
             SchoolClassController::class,
             'update',
-        ])->name('admin.data-master.kelas.update');
-        Route::delete('/kelas/{schoolClass}', [
+        ])->name('admin.master-data.classes.update');
+        Route::delete('/classes/{schoolClass}', [
             SchoolClassController::class,
             'destroy',
-        ])->name('admin.data-master.kelas.destroy');
+        ])->name('admin.master-data.classes.destroy');
 
-        Route::get('/wali', [GuardianController::class, 'index'])->name(
-            'admin.data-master.wali',
+        Route::get('/guardians', [GuardianController::class, 'index'])->name(
+            'admin.master-data.guardians',
         );
-        Route::post('/wali', [GuardianController::class, 'store'])->name(
-            'admin.data-master.wali.store',
+        Route::post('/guardians', [GuardianController::class, 'store'])->name(
+            'admin.master-data.guardians.store',
         );
-        Route::patch('/wali/{guardian}', [
+        Route::patch('/guardians/{guardian}', [
             GuardianController::class,
             'update',
-        ])->name('admin.data-master.wali.update');
-        Route::delete('/wali/{guardian}', [
+        ])->name('admin.master-data.guardians.update');
+        Route::delete('/guardians/{guardian}', [
             GuardianController::class,
             'destroy',
-        ])->name('admin.data-master.wali.destroy');
+        ])->name('admin.master-data.guardians.destroy');
     });
 
     // Live Monitoring
@@ -116,129 +116,129 @@ Route::middleware(['auth'])->group(function () {
     ])->name('admin.monitoring');
 
     // Leave Verification
-    Route::prefix('/admin/verifikasi-izin')->group(function () {
+    Route::prefix('/admin/leave-verification')->group(function () {
         Route::get('/', [LeaveRequestController::class, 'verification'])->name(
-            'admin.verifikasi-izin',
+            'admin.leave-verification',
         );
         Route::patch('/{id}/approve', [
             LeaveRequestController::class,
             'approve',
-        ])->name('admin.verifikasi-izin.approve');
+        ])->name('admin.leave-verification.approve');
         Route::patch('/{id}/reject', [
             LeaveRequestController::class,
             'reject',
-        ])->name('admin.verifikasi-izin.reject');
+        ])->name('admin.leave-verification.reject');
     });
 
-    // Pengajuan Izin (Admin View)
-    Route::get('/admin/pengajuan-izin', [
+    // Leave Requests (Admin View)
+    Route::get('/admin/leave-requests', [
         LeaveRequestViewController::class,
         'index',
-    ])->name('admin.pengajuan-izin');
+    ])->name('admin.leave-requests');
 
-    // Manajemen Master Kelas (Standalone)
-    Route::prefix('/admin/master-kelas')->group(function () {
+    // Classes Management (Standalone)
+    Route::prefix('/admin/classes')->group(function () {
         Route::get('/', [SchoolClassController::class, 'masterIndex'])->name(
-            'admin.master-kelas',
+            'admin.classes',
         );
         Route::post('/', [SchoolClassController::class, 'store'])->name(
-            'admin.master-kelas.store',
+            'admin.classes.store',
         );
         Route::put('/{id}', [SchoolClassController::class, 'update'])->name(
-            'admin.master-kelas.update',
+            'admin.classes.update',
         );
         Route::delete('/{id}', [SchoolClassController::class, 'destroy'])->name(
-            'admin.master-kelas.destroy',
+            'admin.classes.destroy',
         );
     });
 
-    // Rekap Bulanan
-    Route::get('/admin/rekap-bulanan', [
+    // Monthly Recap
+    Route::get('/admin/monthly-recap', [
         RekapBulananController::class,
         'index',
-    ])->name('admin.rekap-bulanan');
+    ])->name('admin.monthly-recap');
 
-    // Rekap Harian
-    Route::get('/admin/rekap-harian', [
+    // Daily Recap
+    Route::get('/admin/daily-recap', [
         RekapHarianController::class,
         'index',
-    ])->name('admin.rekap-harian');
+    ])->name('admin.daily-recap');
 
-    // Enrolment Kelas
-    Route::prefix('/admin/enrolment-kelas')->group(function () {
+    // Class Enrolment
+    Route::prefix('/admin/class-enrolment')->group(function () {
         Route::get('/', [EnrolmentKelasController::class, 'index'])->name(
-            'admin.enrolment-kelas',
+            'admin.class-enrolment',
         );
         Route::post('/assign', [
             EnrolmentKelasController::class,
             'assignStudent',
-        ])->name('admin.enrolment-kelas.assign');
+        ])->name('admin.class-enrolment.assign');
         Route::delete('/remove/{student}', [
             EnrolmentKelasController::class,
             'removeStudent',
-        ])->name('admin.enrolment-kelas.remove');
+        ])->name('admin.class-enrolment.remove');
     });
 
-    // Duty Schedule
-    Route::prefix('/admin/jadwal-piket')->group(function () {
+    // Duty Schedules
+    Route::prefix('/admin/duty-schedules')->group(function () {
         Route::get('/', [DutyScheduleController::class, 'index'])->name(
-            'admin.jadwal-piket',
+            'admin.duty-schedules',
         );
         Route::post('/', [DutyScheduleController::class, 'store'])->name(
-            'admin.jadwal-piket.store',
+            'admin.duty-schedules.store',
         );
         Route::patch('/{id}', [DutyScheduleController::class, 'update'])->name(
-            'admin.jadwal-piket.update',
+            'admin.duty-schedules.update',
         );
         Route::delete('/{id}', [
             DutyScheduleController::class,
             'destroy',
-        ])->name('admin.jadwal-piket.destroy');
+        ])->name('admin.duty-schedules.destroy');
     });
 
     // Attendance Settings + Academic Calendar
-    Route::prefix('/admin/pengaturan')->group(function () {
+    Route::prefix('/admin/settings')->group(function () {
         Route::get('/', [AttendanceSettingController::class, 'index'])->name(
-            'admin.pengaturan',
+            'admin.settings',
         );
         Route::post('/time-settings', [
             AttendanceSettingController::class,
             'updateTimeSettings',
-        ])->name('admin.pengaturan.time-settings');
+        ])->name('admin.settings.time-settings');
         Route::post('/holidays', [
             AttendanceSettingController::class,
             'storeHoliday',
-        ])->name('admin.pengaturan.holidays.store');
+        ])->name('admin.settings.holidays.store');
         Route::delete('/holidays/{id}', [
             AttendanceSettingController::class,
             'deleteHoliday',
-        ])->name('admin.pengaturan.holidays.delete');
+        ])->name('admin.settings.holidays.delete');
     });
 
     // ─── Export Routes ───
     Route::prefix('/admin/export')->group(function () {
-        Route::get('/siswa', [ExportController::class, 'students'])->name(
-            'admin.export.siswa',
+        Route::get('/students', [ExportController::class, 'students'])->name(
+            'admin.export.students',
         );
-        Route::get('/guru', [ExportController::class, 'teachers'])->name(
-            'admin.export.guru',
+        Route::get('/teachers', [ExportController::class, 'teachers'])->name(
+            'admin.export.teachers',
         );
-        Route::get('/rekap-harian', [
+        Route::get('/daily-recap', [
             ExportController::class,
             'rekapHarian',
-        ])->name('admin.export.rekap-harian');
-        Route::get('/rekap-bulanan', [
+        ])->name('admin.export.daily-recap');
+        Route::get('/monthly-recap', [
             ExportController::class,
             'rekapBulanan',
-        ])->name('admin.export.rekap-bulanan');
-        Route::get('/rekap-harian/pdf', [
+        ])->name('admin.export.monthly-recap');
+        Route::get('/daily-recap/pdf', [
             ExportController::class,
             'rekapHarianPdf',
-        ])->name('admin.export.rekap-harian-pdf');
-        Route::get('/rekap-bulanan/pdf', [
+        ])->name('admin.export.daily-recap-pdf');
+        Route::get('/monthly-recap/pdf', [
             ExportController::class,
             'rekapBulananPdf',
-        ])->name('admin.export.rekap-bulanan-pdf');
+        ])->name('admin.export.monthly-recap-pdf');
     });
 
     Route::prefix('/admin/koreksi-absensi')->group(function () {
@@ -257,47 +257,47 @@ Route::middleware(['auth'])->group(function () {
 
     // ─── Role-based Pages ───
 
-    // Siswa
-    Route::middleware('role:student')->prefix('/siswa')->group(function () {
+    // Student
+    Route::middleware('role:student')->prefix('/student')->group(function () {
         Route::get('/dashboard', [SiswaController::class, 'dashboard'])->name(
-            'siswa.dashboard',
+            'student.dashboard',
         );
-        Route::get('/live-presensi', [
+        Route::get('/live-attendance', [
             SiswaController::class,
             'livePresensi',
-        ])->name('siswa.live-presensi');
-        Route::post('/live-presensi/checkin', [
+        ])->name('student.live-attendance');
+        Route::post('/live-attendance/checkin', [
             SiswaController::class,
             'checkIn',
-        ])->name('siswa.live-presensi.checkin')
+        ])->name('student.live-attendance.checkin')
         ->middleware('throttle:attendance-checkin');
-        Route::get('/riwayat', [SiswaController::class, 'riwayat'])->name(
-            'siswa.riwayat',
+        Route::get('/history', [SiswaController::class, 'riwayat'])->name(
+            'student.history',
         );
     });
 
-    // Guru
-    Route::middleware('role:teacher')->prefix('/guru')->group(function () {
-        Route::get('/piket', [GuruController::class, 'piket'])->name(
-            'guru.piket',
+    // Teacher
+    Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
+        Route::get('/duty', [GuruController::class, 'piket'])->name(
+            'teacher.duty',
         );
-        Route::get('/wali-kelas', [GuruController::class, 'waliKelas'])->name(
-            'guru.wali-kelas',
+        Route::get('/homeroom', [GuruController::class, 'waliKelas'])->name(
+            'teacher.homeroom',
         );
     });
 
-    // Wali Murid
-    Route::middleware('role:guardian')->prefix('/wali-murid')->group(function () {
+    // Guardian
+    Route::middleware('role:guardian')->prefix('/guardian')->group(function () {
         Route::get('/', [WaliMuridController::class, 'dashboard'])->name(
-            'wali-murid.dashboard',
+            'guardian.dashboard',
         );
-        Route::get('/pengajuan-izin', [
+        Route::get('/leave-application', [
             WaliMuridController::class,
             'pengajuanIzin',
-        ])->name('wali-murid.pengajuan-izin');
-        Route::post('/pengajuan-izin/store', [
+        ])->name('guardian.leave-application');
+        Route::post('/leave-application/store', [
             WaliMuridController::class,
             'storePengajuanIzin',
-        ])->name('wali-murid.pengajuan-izin.store');
+        ])->name('guardian.leave-application.store');
     });
 });

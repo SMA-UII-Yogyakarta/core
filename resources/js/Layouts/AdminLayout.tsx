@@ -16,9 +16,9 @@ interface AdminLayoutProps {
 
 const bottomNavItems = [
     { label: "Dashboard", icon: "fa-th-large", href: "/dashboard" },
-    { label: "Data", icon: "fa-database", href: "/admin/data-master" },
+    { label: "Data", icon: "fa-database", href: "/admin/master-data" },
     { label: "Presensi", icon: "fa-video", href: "/admin/monitoring" },
-    { label: "Izin", icon: "fa-file-signature", href: "/admin/pengajuan-izin" },
+    { label: "Izin", icon: "fa-file-signature", href: "/admin/leave-requests" },
 ];
 
 export default function AdminLayout({

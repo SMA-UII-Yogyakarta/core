@@ -89,7 +89,7 @@ export default function VerifikasiIzin({
         const s = status ?? statusFilter;
         const c = category ?? categoryFilter;
         router.get(
-            "/admin/verifikasi-izin",
+            "/admin/leave-verification",
             { status: s || undefined, category: c || undefined },
             { preserveState: true },
         );
@@ -250,7 +250,7 @@ export default function VerifikasiIzin({
                     perPage={leaveRequests.per_page}
                     onPageChange={(page) => {
                         router.get(
-                            "/admin/verifikasi-izin",
+                            "/admin/leave-verification",
                             {
                                 page,
                                 status: statusFilter || undefined,

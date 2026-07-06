@@ -16,19 +16,19 @@ const menuItems = [
     {
         key: "piket",
         label: "Dashboard Piket",
-        href: "/guru/piket",
+        href: "/teacher/duty",
         icon: "fa-clipboard-list",
     },
     {
         key: "walas",
         label: "Wali Kelas",
-        href: "/guru/wali-kelas",
+        href: "/teacher/homeroom",
         icon: "fa-chalkboard-teacher",
     },
     {
         key: "verifikasi",
         label: "Verifikasi Izin",
-        href: "/admin/verifikasi-izin",
+        href: "/admin/leave-verification",
         icon: "fa-check-circle",
     },
 ];

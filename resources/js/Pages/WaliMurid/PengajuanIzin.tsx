@@ -64,7 +64,7 @@ export default function WaliPengajuanIzin({
                 formData.append("document", document);
             }
 
-            router.post("/wali-murid/pengajuan-izin/store", formData, {
+            router.post("/guardian/leave-application/store", formData, {
                 preserveState: true,
                 headers: { "Content-Type": "multipart/form-data" },
                 onSuccess: () => {

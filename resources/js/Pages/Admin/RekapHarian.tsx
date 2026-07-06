@@ -74,7 +74,7 @@ export default function RekapHarian({
 
     const handleFilter = () => {
         router.get(
-            "/admin/rekap-harian",
+            "/admin/daily-recap",
             {
                 class_id: classId || undefined,
                 tanggal: tanggalVal || undefined,

@@ -337,7 +337,7 @@ export default function AturWaktuLibur({
                         value={filters.year ?? currentYear.toString()}
                         onChange={(e) =>
                             router.get(
-                                "/admin/pengaturan",
+                                "/admin/settings",
                                 { year: e.target.value, month: filters.month },
                                 { preserveState: true },
                             )
@@ -357,7 +357,7 @@ export default function AturWaktuLibur({
                         value={filters.month ?? ""}
                         onChange={(e) =>
                             router.get(
-                                "/admin/pengaturan",
+                                "/admin/settings",
                                 { year: filters.year, month: e.target.value },
                                 { preserveState: true },
                             )
@@ -387,7 +387,7 @@ export default function AturWaktuLibur({
                     perPage={holidays.per_page}
                     onPageChange={(page) =>
                         router.get(
-                            "/admin/pengaturan",
+                            "/admin/settings",
                             { page, year: filters.year, month: filters.month },
                             { preserveState: true },
                         )

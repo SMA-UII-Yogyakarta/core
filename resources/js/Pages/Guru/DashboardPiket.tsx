@@ -196,7 +196,7 @@ export default function DashboardPiket({
                     Monitoring Presensi
                 </a>
                 <a
-                    href="/admin/verifikasi-izin"
+                    href="/admin/leave-verification"
                     className="flex-1 px-4 py-3 bg-surface border border-border text-text-primary rounded-xl text-center text-[13px] font-semibold hover:bg-background transition-colors"
                 >
                     Verifikasi Izin

@@ -46,7 +46,7 @@ export default function EnrolmentKelas({
 
     const handleFilter = () => {
         router.get(
-            "/admin/enrolment-kelas",
+            "/admin/class-enrolment",
             { class_id: classId || undefined },
             { preserveState: true },
         );

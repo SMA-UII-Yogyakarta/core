@@ -30,7 +30,7 @@ export default function Welcome() {
                                 Dashboard Admin
                             </Link>
                             <Link
-                                href="/admin/data-master"
+                                href="/admin/master-data"
                                 className="inline-block px-5 py-2 bg-slate-500 text-white rounded-lg text-center font-semibold hover:bg-slate-600 transition-colors"
                             >
                                 Data Master

@@ -276,7 +276,7 @@ export default function WaliMuridDashboard({
             Pengajuan Izin Terbaru
           </h2>
           <a
-            href="/wali-murid/pengajuan-izin"
+            href="/guardian/leave-application"
             className="text-[13px] text-primary font-semibold hover:underline"
           >
             Lihat Semua

@@ -67,7 +67,7 @@ export default function MasterKelas({
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         router.get(
-            "/admin/master-kelas",
+            "/admin/classes",
             { search: search || undefined },
             { preserveState: true },
         );
@@ -109,7 +109,7 @@ export default function MasterKelas({
                 onError: () => setLoading(false),
             });
         } else {
-            router.post("/admin/master-kelas", payload, {
+            router.post("/admin/classes", payload, {
                 preserveState: true,
                 onSuccess: () => {
                     setShowModal(false);
@@ -235,7 +235,7 @@ export default function MasterKelas({
                     perPage={schoolClasses.per_page}
                     onPageChange={(page) =>
                         router.get(
-                            "/admin/master-kelas",
+                            "/admin/classes",
                             { page, search: search || undefined },
                             { preserveState: true },
                         )

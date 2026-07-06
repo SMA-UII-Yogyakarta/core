@@ -108,7 +108,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                     formData.append("longitude", position.coords.longitude.toString());
                     formData.append("photo_blob", photoBlob.split(",")[1] || "");
 
-                    router.post("/siswa/live-presensi/checkin", formData, {
+                    router.post("/student/live-attendance/checkin", formData, {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
@@ -132,7 +132,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                     formData.append("longitude", "0");
                     formData.append("photo_blob", photoBlob.split(",")[1] || "");
 
-                    router.post("/siswa/live-presensi/checkin", formData, {
+                    router.post("/student/live-attendance/checkin", formData, {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
@@ -160,7 +160,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
             title="Live Presensi"
             userInitial={student.name.charAt(0)}
             showBack
-            backHref="/siswa/dashboard"
+            backHref="/student/dashboard"
         >
             <main className="flex-1 flex flex-col items-center justify-center p-6">
                 {/* Time Display */}
@@ -231,7 +231,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
 
                 {/* Back */}
                 <a
-                    href="/siswa/dashboard"
+                    href="/student/dashboard"
                     className="mt-8 text-[13px] text-primary hover:underline"
                 >
                     &larr; Kembali ke Dashboard

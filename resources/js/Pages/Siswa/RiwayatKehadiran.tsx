@@ -65,7 +65,7 @@ export default function RiwayatKehadiran({
 
     const handleFilter = () => {
         router.get(
-            "/siswa/riwayat",
+            "/student/history",
             { bulan: bulanVal, tahun: tahunVal },
             { preserveState: true },
         );
@@ -91,7 +91,7 @@ export default function RiwayatKehadiran({
             title="Riwayat Kehadiran"
             userInitial={student.name.charAt(0)}
             showBack
-            backHref="/siswa/dashboard"
+            backHref="/student/dashboard"
         >
             {/* Profile */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">

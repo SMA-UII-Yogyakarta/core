@@ -49,7 +49,7 @@ export default function RekapBulanan({
 
     const handleFilter = () => {
         router.get(
-            "/admin/rekap-bulanan",
+            "/admin/monthly-recap",
             {
                 class_id: classId || undefined,
                 bulan: bulanVal || undefined,

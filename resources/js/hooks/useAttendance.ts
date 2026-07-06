@@ -25,7 +25,7 @@ export function useAttendance() {
         params: FetchAttendanceParams = {},
         options?: UseAttendanceOptions,
     ) => {
-        router.get("/siswa/riwayat", params, {
+        router.get("/student/history", params, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -33,7 +33,7 @@ export function useAttendance() {
     };
 
     const checkIn = (data: CheckInData, options?: UseAttendanceOptions) => {
-        router.post("/siswa/live-presensi/checkin", data, {
+        router.post("/student/live-attendance/checkin", data, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

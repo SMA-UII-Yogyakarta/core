@@ -35,7 +35,7 @@ export function useLeaveRequest() {
         params: FetchLeaveParams = {},
         options?: UseLeaveRequestOptions,
     ) => {
-        router.get("/admin/pengajuan-izin", params, {
+        router.get("/admin/leave-requests", params, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -59,7 +59,7 @@ export function useLeaveRequest() {
         options?: UseLeaveRequestOptions,
     ) => {
         router.patch(
-            `/admin/verifikasi-izin/${id}`,
+            `/admin/leave-verification/${id}`,
             data ?? { status: "approved" },
             {
                 preserveState: options?.preserveState ?? true,
@@ -75,7 +75,7 @@ export function useLeaveRequest() {
         options?: UseLeaveRequestOptions,
     ) => {
         router.patch(
-            `/admin/verifikasi-izin/${id}`,
+            `/admin/leave-verification/${id}`,
             data ?? { status: "rejected" },
             {
                 preserveState: options?.preserveState ?? true,

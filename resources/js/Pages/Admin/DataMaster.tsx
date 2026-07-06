@@ -85,13 +85,13 @@ export default function DataMaster({
     const switchTab = (tab: string) => {
         setCurrentTab(tab);
         setSelectedIds([]);
-        router.get("/admin/data-master", { tab }, { preserveState: true });
+        router.get("/admin/master-data", { tab }, { preserveState: true });
     };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         router.get(
-            "/admin/data-master",
+            "/admin/master-data",
             { tab: currentTab, search: search || undefined },
             { preserveState: true },
         );
@@ -318,7 +318,7 @@ export default function DataMaster({
                                             totalItems={students.total}
                                             onPageChange={(page) =>
                                                 router.get(
-                                                    "/admin/data-master",
+                                                    "/admin/master-data",
                                                     {
                                                         tab: "siswa",
                                                         page,
@@ -354,7 +354,7 @@ export default function DataMaster({
                                             totalItems={teachers.total}
                                             onPageChange={(page) =>
                                                 router.get(
-                                                    "/admin/data-master",
+                                                    "/admin/master-data",
                                                     {
                                                         tab: "guru",
                                                         page,
@@ -391,7 +391,7 @@ export default function DataMaster({
                                             totalItems={schoolClasses.total}
                                             onPageChange={(page) =>
                                                 router.get(
-                                                    "/admin/data-master",
+                                                    "/admin/master-data",
                                                     {
                                                         tab: "kelas",
                                                         page,
@@ -426,7 +426,7 @@ export default function DataMaster({
                                             totalItems={guardians.total}
                                             onPageChange={(page) =>
                                                 router.get(
-                                                    "/admin/data-master",
+                                                    "/admin/master-data",
                                                     {
                                                         tab: "wali",
                                                         page,

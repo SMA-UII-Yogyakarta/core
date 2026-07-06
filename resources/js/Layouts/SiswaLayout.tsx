@@ -14,9 +14,9 @@ interface SiswaLayoutProps {
 }
 
 const bottomNavItems = [
-    { label: "Beranda", icon: "fa-home", href: "/siswa/dashboard" },
-    { label: "Presensi", icon: "fa-clock", href: "/siswa/live-presensi" },
-    { label: "Riwayat", icon: "fa-history", href: "/siswa/riwayat" },
+    { label: "Beranda", icon: "fa-home", href: "/student/dashboard" },
+    { label: "Presensi", icon: "fa-clock", href: "/student/live-attendance" },
+    { label: "Riwayat", icon: "fa-history", href: "/student/history" },
 ];
 
 export default function SiswaLayout({
@@ -25,7 +25,7 @@ export default function SiswaLayout({
     username,
     userInitial,
     showBack,
-    backHref = "/siswa/dashboard",
+    backHref = "/student/dashboard",
     backLabel = "Kembali",
 }: SiswaLayoutProps) {
     const { url } = usePage();

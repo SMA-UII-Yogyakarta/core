@@ -34,7 +34,7 @@ export function useClasses() {
         params: FetchClassesParams = {},
         options?: UseClassesOptions,
     ) => {
-        router.get("/admin/data-master", params, {
+        router.get("/admin/master-data", params, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -45,7 +45,7 @@ export function useClasses() {
         data: CreateClassData,
         options?: UseClassesOptions,
     ) => {
-        router.post("/admin/data-master/kelas", data, {
+        router.post("/admin/master-data/classes", data, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -74,7 +74,7 @@ export function useClasses() {
 
     const fetchEnrolment = (classId?: string, options?: UseClassesOptions) => {
         router.get(
-            "/admin/enrolment-kelas",
+            "/admin/class-enrolment",
             { class_id: classId || undefined },
             { preserveState: true, ...options },
         );

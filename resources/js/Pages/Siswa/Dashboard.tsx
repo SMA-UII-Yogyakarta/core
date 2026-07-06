@@ -101,13 +101,13 @@ export default function SiswaDashboard({
             {/* Quick Actions */}
             <section className="flex gap-3 mb-6">
                 <a
-                    href="/siswa/live-presensi"
+                    href="/student/live-attendance"
                     className="flex-1 px-5 py-4 bg-primary text-white rounded-xl text-center font-semibold text-[14px] hover:bg-primary/90 transition-colors"
                 >
                     Presensi Sekarang
                 </a>
                 <a
-                    href="/siswa/riwayat"
+                    href="/student/history"
                     className="flex-1 px-5 py-4 bg-surface border border-border text-text-primary rounded-xl text-center font-semibold text-[14px] hover:bg-background transition-colors"
                 >
                     Riwayat Kehadiran

@@ -71,7 +71,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
 
     const handleFilter = (extra?: Record<string, string | undefined>) => {
         router.get(
-            "/admin/pengajuan-izin",
+            "/admin/leave-requests",
             {
                 status: statusTab || undefined,
                 category: categoryFilter || undefined,
@@ -197,7 +197,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                     perPage={leaveRequests.per_page}
                     onPageChange={(page) =>
                         router.get(
-                            "/admin/pengajuan-izin",
+                            "/admin/leave-requests",
                             {
                                 page,
                                 status: statusTab || undefined,
