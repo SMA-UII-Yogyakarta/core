@@ -25,7 +25,7 @@ class ExportController extends Controller
         return response()->download($path)->deleteFileAfterSend();
     }
 
-    public function rekapHarian(Request $request)
+    public function dailyRecap(Request $request)
     {
         $request->validate([
             'date' => 'nullable|date',
@@ -35,11 +35,11 @@ class ExportController extends Controller
         $date = $request->input('date', now()->toDateString());
         $classId = $request->integer('class_id') ?: null;
 
-        $path = $this->exportService->rekapHarianXlsx($date, $classId);
+        $path = $this->exportService->dailyRecapXlsx($date, $classId);
         return response()->download($path)->deleteFileAfterSend();
     }
 
-    public function rekapBulanan(Request $request)
+    public function monthlyRecap(Request $request)
     {
         $request->validate([
             'month' => 'nullable|integer|between:1,12',
@@ -51,11 +51,11 @@ class ExportController extends Controller
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
 
-        $path = $this->exportService->rekapBulananXlsx($month, $year, $classId);
+        $path = $this->exportService->monthlyRecapXlsx($month, $year, $classId);
         return response()->download($path)->deleteFileAfterSend();
     }
 
-    public function rekapHarianPdf(Request $request)
+    public function dailyRecapPdf(Request $request)
     {
         $request->validate([
             'date' => 'nullable|date',
@@ -65,11 +65,11 @@ class ExportController extends Controller
         $date = $request->input('date', now()->toDateString());
         $classId = $request->integer('class_id') ?: null;
 
-        $path = $this->exportService->rekapHarianPdf($date, $classId);
-        return response()->download($path, 'rekap-harian-' . $date . '.pdf')->deleteFileAfterSend();
+        $path = $this->exportService->dailyRecapPdf($date, $classId);
+        return response()->download($path, 'daily-recap-' . $date . '.pdf')->deleteFileAfterSend();
     }
 
-    public function rekapBulananPdf(Request $request)
+    public function monthlyRecapPdf(Request $request)
     {
         $request->validate([
             'month' => 'nullable|integer|between:1,12',
@@ -81,7 +81,7 @@ class ExportController extends Controller
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
 
-        $path = $this->exportService->rekapBulananPdf($month, $year, $classId);
-        return response()->download($path, 'rekap-bulanan-' . $month . '-' . $year . '.pdf')->deleteFileAfterSend();
+        $path = $this->exportService->monthlyRecapPdf($month, $year, $classId);
+        return response()->download($path, 'monthly-recap-' . $month . '-' . $year . '.pdf')->deleteFileAfterSend();
     }
 }

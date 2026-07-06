@@ -225,34 +225,34 @@ Route::middleware(['auth'])->group(function () {
         );
         Route::get('/daily-recap', [
             ExportController::class,
-            'rekapHarian',
+            'dailyRecap',
         ])->name('admin.export.daily-recap');
         Route::get('/monthly-recap', [
             ExportController::class,
-            'rekapBulanan',
+            'monthlyRecap',
         ])->name('admin.export.monthly-recap');
         Route::get('/daily-recap/pdf', [
             ExportController::class,
-            'rekapHarianPdf',
+            'dailyRecapPdf',
         ])->name('admin.export.daily-recap-pdf');
         Route::get('/monthly-recap/pdf', [
             ExportController::class,
-            'rekapBulananPdf',
+            'monthlyRecapPdf',
         ])->name('admin.export.monthly-recap-pdf');
     });
 
-    Route::prefix('/admin/koreksi-absensi')->group(function () {
+    Route::prefix('/admin/attendance-correction')->group(function () {
         Route::get('/', [AttendanceOverrideController::class, 'index'])->name(
-            'admin.attendance.override',
+            'admin.attendance.correction',
         );
         Route::post(
             '/',
             [AttendanceOverrideController::class, 'store'],
-        )->name('admin.attendance.override.store');
+        )->name('admin.attendance.correction.store');
         Route::delete(
             '/{id}',
             [AttendanceOverrideController::class, 'destroy'],
-        )->name('admin.attendance.override.destroy');
+        )->name('admin.attendance.correction.destroy');
     });
 
     // ─── Role-based Pages ───

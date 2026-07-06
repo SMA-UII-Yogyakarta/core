@@ -15,33 +15,33 @@ class ExportService
 {
     public function studentsXlsx(): string
     {
-        $path = storage_path('app/exports/siswa_' . now()->timestamp . '.xlsx');
+        $path = storage_path('app/exports/students_' . now()->timestamp . '.xlsx');
         (new StudentsExport())->export($path);
         return $path;
     }
 
     public function teachersXlsx(): string
     {
-        $path = storage_path('app/exports/guru_' . now()->timestamp . '.xlsx');
+        $path = storage_path('app/exports/teachers_' . now()->timestamp . '.xlsx');
         (new TeachersExport())->export($path);
         return $path;
     }
 
-    public function rekapHarianXlsx(string $date, ?int $classId = null): string
+    public function dailyRecapXlsx(string $date, ?int $classId = null): string
     {
-        $path = storage_path('app/exports/rekap-harian_' . $date . '_' . now()->timestamp . '.xlsx');
+        $path = storage_path('app/exports/daily-recap_' . $date . '_' . now()->timestamp . '.xlsx');
         (new DailyRecapExport())->export($path, $date, $classId);
         return $path;
     }
 
-    public function rekapBulananXlsx(int $month, int $year, ?int $classId = null): string
+    public function monthlyRecapXlsx(int $month, int $year, ?int $classId = null): string
     {
-        $path = storage_path('app/exports/rekap-bulanan_' . $month . '-' . $year . '_' . now()->timestamp . '.xlsx');
+        $path = storage_path('app/exports/monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.xlsx');
         (new MonthlyRecapExport())->export($path, $month, $year, $classId);
         return $path;
     }
 
-    public function rekapHarianPdf(string $date, ?int $classId = null): string
+    public function dailyRecapPdf(string $date, ?int $classId = null): string
     {
         $query = Student::with('class')->where('status', 'Active');
         if ($classId) {
@@ -62,18 +62,18 @@ class ExportService
 
         $class = $classId ? SchoolClass::find($classId) : null;
 
-        $pdf = Pdf::loadView('exports.rekap-harian', [
+        $pdf = Pdf::loadView('exports.daily-recap', [
             'date' => Carbon::parse($date)->translatedFormat('l, d F Y'),
             'students' => $students,
             'class' => $class,
         ]);
 
-        $path = storage_path('app/exports/rekap-harian_' . $date . '_' . now()->timestamp . '.pdf');
+        $path = storage_path('app/exports/daily-recap_' . $date . '_' . now()->timestamp . '.pdf');
         file_put_contents($path, $pdf->output());
         return $path;
     }
 
-    public function rekapBulananPdf(int $month, int $year, ?int $classId = null): string
+    public function monthlyRecapPdf(int $month, int $year, ?int $classId = null): string
     {
         $query = Student::with('class')->where('status', 'Active');
         if ($classId) {
@@ -84,38 +84,38 @@ class ExportService
             $total = \App\Models\Attendance::where('student_id', $s->id)
                 ->whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $month)->count();
-            $hadir = \App\Models\Attendance::where('student_id', $s->id)
+            $present = \App\Models\Attendance::where('student_id', $s->id)
                 ->whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $month)
                 ->where('status', 'Present')->count();
-            $terlambat = \App\Models\Attendance::where('student_id', $s->id)
+            $late = \App\Models\Attendance::where('student_id', $s->id)
                 ->whereYear('attendance_date', $year)
                 ->whereMonth('attendance_date', $month)
                 ->where('status', 'Late')->count();
-            $alpa = max(0, $total - $hadir - $terlambat);
+            $absent = max(0, $total - $present - $late);
 
             return [
                 'nis' => $s->nis,
                 'name' => $s->name,
                 'class' => $s->class?->name ?? '-',
-                'present' => $hadir,
-                'late' => $terlambat,
-                'alpa' => $alpa,
-                'persentase' => $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%',
+                'present' => $present,
+                'late' => $late,
+                'alpa' => $absent,
+                'persentase' => $total > 0 ? round(($present / $total) * 100, 1) . '%' : '0%',
             ];
         });
 
         $class = $classId ? SchoolClass::find($classId) : null;
         $monthName = Carbon::create($year, $month)->translatedFormat('F');
 
-        $pdf = Pdf::loadView('exports.rekap-bulanan', [
+        $pdf = Pdf::loadView('exports.monthly-recap', [
             'monthName' => $monthName,
             'year' => $year,
             'students' => $students,
             'class' => $class,
         ]);
 
-        $path = storage_path('app/exports/rekap-bulanan_' . $month . '-' . $year . '_' . now()->timestamp . '.pdf');
+        $path = storage_path('app/exports/monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.pdf');
         file_put_contents($path, $pdf->output());
         return $path;
     }
