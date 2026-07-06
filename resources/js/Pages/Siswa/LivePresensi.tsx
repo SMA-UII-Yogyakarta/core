@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import Button from "@/Components/ui/Button";
 import SiswaLayout from "@/Layouts/SiswaLayout";
@@ -26,6 +26,10 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [cameraReady, setCameraReady] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const { errors } = usePage().props as { errors?: Record<string, string> };
 
     const now = new Date();
@@ -40,64 +44,115 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
         day: "numeric",
     });
 
-    const handleCheckIn = () => {
+    useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach((t) => t.stop());
+            }
+        };
+    }, [stream]);
+
+    const startCamera = async () => {
+        try {
+            const mediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user", width: 320, height: 240 },
+                audio: false,
+            });
+            setStream(mediaStream);
+            if (videoRef.current) {
+                videoRef.current.srcObject = mediaStream;
+            }
+            setCameraReady(true);
+        } catch {
+            setError("Kamera tidak tersedia. Silakan izinkan akses kamera.");
+        }
+    };
+
+    const capturePhoto = (): string => {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas) return "";
+
+        canvas.width = 320;
+        canvas.height = 240;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return "";
+
+        ctx.drawImage(video, 0, 0, 320, 240);
+        return canvas.toDataURL("image/jpeg", 0.9);
+    };
+
+    const handleCheckIn = async () => {
         setLoading(true);
         setError(null);
         setSuccess(null);
 
-        // Get location
         if (!navigator.geolocation) {
             setError("Geolocation tidak didukung di browser ini.");
             setLoading(false);
             return;
         }
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                router.post(
-                    "/siswa/live-presensi/checkin",
-                    {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        photo_url: "",
-                    },
-                    {
+        if (!cameraReady) {
+            await startCamera();
+        }
+
+        // Small delay to ensure camera is ready
+        setTimeout(() => {
+            const photoBlob = capturePhoto();
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const formData = new FormData();
+                    formData.append("latitude", position.coords.latitude.toString());
+                    formData.append("longitude", position.coords.longitude.toString());
+                    formData.append("photo_blob", photoBlob.split(",")[1] || "");
+
+                    router.post("/siswa/live-presensi/checkin", formData, {
                         preserveState: true,
+                        headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
                             setSuccess("Presensi berhasil!");
                             setLoading(false);
+                            if (stream) {
+                                stream.getTracks().forEach((t) => t.stop());
+                                setStream(null);
+                            }
                         },
                         onError: (err) => {
-                            setError(Object.values(err).join(", "));
+                            const msg = typeof err === "string" ? err : Object.values(err).join(", ");
+                            setError(msg || "Terjadi kesalahan.");
                             setLoading(false);
                         },
-                    },
-                );
-            },
-            () => {
-                // Fallback: submit without location
-                router.post(
-                    "/siswa/live-presensi/checkin",
-                    {
-                        latitude: 0,
-                        longitude: 0,
-                        photo_url: "",
-                    },
-                    {
+                    });
+                },
+                () => {
+                    const formData = new FormData();
+                    formData.append("latitude", "0");
+                    formData.append("longitude", "0");
+                    formData.append("photo_blob", photoBlob.split(",")[1] || "");
+
+                    router.post("/siswa/live-presensi/checkin", formData, {
                         preserveState: true,
+                        headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
                             setSuccess("Presensi berhasil!");
                             setLoading(false);
+                            if (stream) {
+                                stream.getTracks().forEach((t) => t.stop());
+                                setStream(null);
+                            }
                         },
                         onError: (err) => {
-                            setError(Object.values(err).join(", "));
+                            const msg = typeof err === "string" ? err : Object.values(err).join(", ");
+                            setError(msg || "Terjadi kesalahan.");
                             setLoading(false);
                         },
-                    },
-                );
-            },
-            { timeout: 10000 },
-        );
+                    });
+                },
+                { timeout: 10000 },
+            );
+        }, 500);
     };
 
     return (
@@ -118,13 +173,25 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                     </div>
                 </div>
 
-                {/* Camera Placeholder */}
-                <div className="w-full max-w-xs aspect-square bg-surface border-2 border-dashed border-border rounded-2xl flex items-center justify-center mb-8">
-                    <div className="text-center text-text-muted">
-                        <div className="text-[40px] mb-2">📷</div>
-                        <div className="text-[13px]">Kamera</div>
-                    </div>
+                {/* Camera / Video */}
+                <div className="w-full max-w-xs aspect-square bg-surface border-2 border-dashed border-border rounded-2xl flex items-center justify-center mb-8 overflow-hidden">
+                    {cameraReady ? (
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="text-center text-text-muted">
+                            <div className="text-[40px] mb-2">📷</div>
+                            <div className="text-[13px]">Kamera</div>
+                        </div>
+                    )}
                 </div>
+
+                <canvas ref={canvasRef} className="hidden" />
 
                 {/* Status */}
                 {todayAttendance ? (

@@ -16,6 +16,7 @@ class StoreAttendanceRequest extends FormRequest
         return [
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'photo_url' => 'nullable|string',
         ];
     }

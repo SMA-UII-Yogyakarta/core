@@ -8,11 +8,18 @@ use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
 use App\Models\LeaveRequest;
 use App\Models\Student;
+use App\Services\StorageService;
 use Carbon\Carbon;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendanceService
 {
+    public function __construct(
+        protected StorageService $storageService,
+    ) {
+    }
+
     public function paginate(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return Attendance::query()
@@ -102,13 +109,24 @@ class AttendanceService
             throw new \RuntimeException('Sudah melakukan presensi hari ini.');
         }
 
+        $photoUrl = $data['photo_url'] ?? '';
+
+        if (isset($data['photo']) && $data['photo'] instanceof UploadedFile) {
+            $photoUrl = $this->storageService->uploadAttendancePhoto($data['photo'], $studentId);
+        } elseif (empty($photoUrl) && isset($data['photo_blob'])) {
+            $tempPath = tempnam(sys_get_temp_dir(), 'attendance_') . '.jpg';
+            file_put_contents($tempPath, base64_decode($data['photo_blob']));
+            $uploadedFile = new UploadedFile($tempPath, 'photo.jpg', 'image/jpeg', null, true);
+            $photoUrl = $this->storageService->uploadAttendancePhoto($uploadedFile, $studentId);
+        }
+
         $attendance = Attendance::create([
             'student_id' => $studentId,
             'attendance_date' => $today,
             'check_in_time' => $now->format('H:i:s'),
             'latitude' => $data['latitude'],
             'longitude' => $data['longitude'],
-            'photo_url' => $data['photo_url'] ?? '',
+            'photo_url' => $photoUrl,
             'status' => $status,
         ]);
 

@@ -80,7 +80,7 @@ class SiswaController extends Controller
         }
 
         try {
-            $this->attendanceService->checkIn($student->id, $request->only(['latitude', 'longitude', 'photo_url']));
+            $this->attendanceService->checkIn($student->id, $request->all());
             return redirect()->route('siswa.dashboard')->with('success', 'Presensi berhasil.');
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());

@@ -55,7 +55,11 @@ class AttendanceApiController extends Controller
         }
 
         try {
-            $attendance = $this->attendanceService->checkIn($student->id, $request->validated());
+            $data = $request->validated();
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $request->file('photo');
+            }
+            $attendance = $this->attendanceService->checkIn($student->id, $data);
             return response()->json($attendance, 201);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
