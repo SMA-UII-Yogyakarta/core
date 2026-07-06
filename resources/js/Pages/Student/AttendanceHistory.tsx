@@ -46,7 +46,7 @@ interface PageProps {
     month: number;
     year: number;
     stats: Stats;
-    bulanName: string;
+    monthName: string;
     monthlyTrend: MonthlyTrend[];
 }
 
@@ -57,7 +57,7 @@ export default function RiwayatKehadiran({
     month,
     year,
     stats,
-    bulanName,
+    monthName,
     monthlyTrend,
 }: PageProps) {
     const [monthVal, setMonthVal] = useState(month.toString());
@@ -164,7 +164,7 @@ export default function RiwayatKehadiran({
             {/* Attendance Table */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
                 <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                    Detail Kehadiran — {bulanName} {year}
+                    Detail Kehadiran — {monthName} {year}
                 </h2>
                 {attendances.length === 0 ? (
                     <p className="text-text-muted text-[13px] text-center py-8">

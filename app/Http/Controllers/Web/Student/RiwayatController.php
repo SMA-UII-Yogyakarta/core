@@ -49,7 +49,7 @@ class RiwayatController extends Controller
                 'late' => $late,
                 'alpa' => max(0, now()->daysInMonth - $attendances->count()),
             ],
-            'bulanName' => $monthNames[$month - 1],
+            'monthName' => $monthNames[$month - 1],
         ]);
     }
 }
