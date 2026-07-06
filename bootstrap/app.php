@@ -2,13 +2,15 @@
 
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LogContextMiddleware;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -80,6 +82,50 @@ return Application::configure(basePath: dirname(__DIR__))
         ) {
             if ($request->inertia()) {
                 return redirect()->route("login");
+            }
+
+            if ($request->is("api/*")) {
+                return response()->json(["message" => "Unauthenticated."], 401);
+            }
+        });
+
+        // 429 — Rate Limited
+        $exceptions->renderable(function (
+            ThrottleRequestsException $e,
+            Request $request,
+        ) {
+            if ($request->inertia()) {
+                return redirect()
+                    ->back()
+                    ->with("error", "Terlalu banyak permintaan. Silakan tunggu beberapa saat.");
+            }
+
+            if ($request->is("api/*")) {
+                return response()->json([
+                    "message" => "Terlalu banyak permintaan. Silakan tunggu beberapa saat.",
+                ], 429);
+            }
+        });
+
+        // 500 — Server Error
+        $exceptions->renderable(function (
+            HttpException $e,
+            Request $request,
+        ) {
+            if ($e->getStatusCode() !== 500) {
+                return;
+            }
+
+            if ($request->inertia()) {
+                return redirect()
+                    ->back()
+                    ->with("error", "Terjadi kesalahan server. Silakan coba lagi.");
+            }
+
+            if ($request->is("api/*")) {
+                return response()->json([
+                    "message" => "Terjadi kesalahan server.",
+                ], 500);
             }
         });
     })

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import GuruLayout from "@/Layouts/GuruLayout";
 
 interface Teacher {
@@ -14,6 +15,12 @@ interface ClassStat {
     pending_leaves: number;
 }
 
+interface AttendanceEvent {
+    student_name: string;
+    status: string;
+    class_name: string;
+}
+
 interface PageProps {
     teacher: Teacher;
     isScheduled: boolean;
@@ -25,8 +32,44 @@ export default function DashboardPiket({
     teacher,
     isScheduled,
     today,
-    classStats,
+    classStats: initialClassStats,
 }: PageProps) {
+    const [classStats, setClassStats] = useState(initialClassStats);
+    const [realtimeLog, setRealtimeLog] = useState<AttendanceEvent[]>([]);
+
+    useEffect(() => {
+        if (!window.Echo) return;
+
+        const channel = window.Echo.private("attendance-monitoring");
+
+        channel.listen(".AttendanceMarked", (e: AttendanceEvent) => {
+            setRealtimeLog((prev) => [e, ...prev].slice(0, 20));
+
+            setClassStats((prev) =>
+                prev.map((cs) => {
+                    if (cs.class !== e.class_name) return cs;
+                    return {
+                        ...cs,
+                        present:
+                            e.status === "Present"
+                                ? cs.present + 1
+                                : cs.present,
+                        late:
+                            e.status === "Late" ? cs.late + 1 : cs.late,
+                        absent:
+                            e.status !== "Present" && e.status !== "Late"
+                                ? cs.absent + 1
+                                : cs.absent,
+                    };
+                }),
+            );
+        });
+
+        return () => {
+            channel.stopListening(".AttendanceMarked");
+        };
+    }, []);
+
     return (
         <GuruLayout
             title="Dashboard Guru Piket"
@@ -109,6 +152,41 @@ export default function DashboardPiket({
                     </div>
                 )}
             </section>
+
+            {/* Real-time Log */}
+            {realtimeLog.length > 0 && (
+                <section className="bg-surface border border-border rounded-xl p-5 mb-6">
+                    <h2 className="text-[15px] font-bold text-text-primary mb-3">
+                        Presensi Real-time
+                    </h2>
+                    <div className="space-y-2">
+                        {realtimeLog.map((ev, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center justify-between py-1.5 border-b border-border last:border-b-0 text-[13px]"
+                            >
+                                <span className="text-text-primary">
+                                    {ev.student_name}
+                                </span>
+                                <span className="text-text-muted">
+                                    {ev.class_name}
+                                </span>
+                                <span
+                                    className={`font-semibold ${
+                                        ev.status === "Present"
+                                            ? "text-success"
+                                            : "text-warning"
+                                    }`}
+                                >
+                                    {ev.status === "Present"
+                                        ? "Hadir"
+                                        : "Terlambat"}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             <div className="flex gap-3">
                 <a

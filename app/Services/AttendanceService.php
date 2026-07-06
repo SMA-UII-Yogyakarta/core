@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\AttendanceCreated;
+use App\Events\AttendanceMarked;
 use App\Models\AcademicCalendar;
 use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
@@ -130,8 +131,8 @@ class AttendanceService
             'status' => $status,
         ]);
 
-        // Broadcast event for real-time monitoring
         AttendanceCreated::dispatch($attendance);
+        AttendanceMarked::dispatch($attendance);
 
         return $attendance;
     }

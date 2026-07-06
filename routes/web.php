@@ -269,7 +269,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/live-presensi/checkin', [
             SiswaController::class,
             'checkIn',
-        ])->name('siswa.live-presensi.checkin');
+        ])->name('siswa.live-presensi.checkin')
+        ->middleware('throttle:attendance-checkin');
         Route::get('/riwayat', [SiswaController::class, 'riwayat'])->name(
             'siswa.riwayat',
         );

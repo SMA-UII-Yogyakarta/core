@@ -46,7 +46,8 @@ Route::middleware("auth:sanctum")->group(function () {
         Route::post("/check-in", [
             AttendanceApiController::class,
             "checkIn",
-        ])->name("api.attendances.check-in");
+        ])->name("api.attendances.check-in")
+        ->middleware('throttle:api-attendance-checkin');
         Route::get("/history", [
             AttendanceApiController::class,
             "history",

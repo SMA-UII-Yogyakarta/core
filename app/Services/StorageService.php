@@ -32,6 +32,18 @@ class StorageService
         return Storage::disk($this->disk)->url($filename);
     }
 
+    public function temporaryUrl(string $path, int $expirationMinutes = 60): string
+    {
+        try {
+            return Storage::disk($this->disk)->temporaryUrl(
+                $path,
+                now()->addMinutes($expirationMinutes),
+            );
+        } catch (\RuntimeException) {
+            return Storage::disk($this->disk)->url($path);
+        }
+    }
+
     public function uploadDocument(UploadedFile $file, string $prefix = 'documents'): string
     {
         $path = $file->store($prefix . '/' . now()->toDateString(), ['disk' => $this->disk]);

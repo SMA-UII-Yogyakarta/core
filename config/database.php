@@ -97,6 +97,12 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Production pool config (NeonDB serverless)
+            'pool' => [
+                'max_connections' => env('DB_MAX_CONNECTIONS', 20),
+                'min_connections' => env('DB_MIN_CONNECTIONS', 2),
+                'max_lifetime' => env('DB_MAX_LIFETIME', 3600),
+            ],
         ],
 
         'sqlsrv' => [

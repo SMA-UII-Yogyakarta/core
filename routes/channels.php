@@ -3,8 +3,11 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
+Broadcast::channel('attendance-monitoring', function (User $user) {
+    return $user->hasRole(['admin', 'teacher']);
+});
+
 Broadcast::channel('monitoring.{classId}', function (User $user, int $classId) {
-    // Allow if user has role admin or teacher
     return $user->hasRole(['admin', 'teacher']);
 });
 
