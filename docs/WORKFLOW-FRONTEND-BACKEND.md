@@ -114,6 +114,37 @@ Web pakai Inertia, mobile/eksternal pakai API.
 | Laporan export PDF/Excel | **API** atau console command |
 | Third-party integration | **API** |
 
+### Future Architecture — Full API Separation
+
+Saat ini kita pakai InertiaJS (monolith). Ke depan, arsitektur target:
+
+```
+┌──────────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   smauii-web         │     │  smauii-mobile    │     │  Third-Party     │
+│   (Next.js)          │     │  (Flutter/RN)     │     │  (SSO, dll)      │
+│   axios → API        │     │  http → API       │     │  API → JSON      │
+└─────────┬────────────┘     └────────┬─────────┘     └────────┬─────────┘
+          │                           │                        │
+          └───────────────────────────┼────────────────────────┘
+                                      ▼
+                          ┌──────────────────────┐
+                          │   smauii-core         │
+                          │   (Laravel API only)  │
+                          │   Sanctum Auth        │
+                          └──────────────────────┘
+```
+
+**Yang harus mulai dilakukan:**
+
+| # | Tindakan | Status | Prioritas |
+|---|----------|--------|-----------|
+| 1 | Dual Controller pattern (Web + API) | ✅ Sudah | — |
+| 2 | Service Layer sebagai satu-satunya logic | ✅ Sudah | — |
+| 3 | Standard API response format | ✅ Sudah | — |
+| 4 | Hindari `usePage().props` di Components (hanya di Pages) | ⚠️ Sebagian | 🔴 Tinggi |
+| 5 | Export TypeScript interfaces ke package terpisah | ❌ Belum | 🟡 Sedang |
+| 6 | Custom hooks untuk data fetching (bisa diganti axios) | ❌ Belum | 🟡 Sedang |
+
 ---
 
 ## 3. Alur Data End-to-End
@@ -520,7 +551,7 @@ export default function TambahSiswaForm({ classes }: { classes: SchoolClass[] })
                     value={data.nis}
                     onChange={(e) => setData('nis', e.target.value)}
                 />
-                {errors.nis && <p className="text-red-500 text-sm">{errors.nis}</p>}
+                {errors.nis && <p className="text-danger text-sm">{errors.nis}</p>}
             </div>
 
             {/* Kelas */}
@@ -533,7 +564,7 @@ export default function TambahSiswaForm({ classes }: { classes: SchoolClass[] })
                     <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
             </select>
-            {errors.class_id && <p className="text-red-500 text-sm">{errors.class_id}</p>}
+            {errors.class_id && <p className="text-danger text-sm">{errors.class_id}</p>}
 
             {/* Submit */}
             <button type="submit" disabled={processing}>
@@ -793,6 +824,47 @@ interface DataMasterPageProps extends PageProps {
 }
 ```
 
+### 7.6 Export Types untuk Future Package
+
+Ke depan, types bisa dipisah ke package NPM `@smauii/types` untuk dipakai bersama
+oleh smauii-core (web), smauii-next (frontend Next.js), dan smauii-mobile (Flutter/RN).
+
+```bash
+smauii-types/
+├── package.json
+├── tsconfig.json
+├── src/
+│   ├── index.ts
+│   ├── models/        ← Student, Teacher, User, dll
+│   ├── api/           ← Request/Response shapes
+│   └── components/    ← Props interfaces (framework-agnostic)
+```
+
+**Panduan untuk Fathan mulai sekarang:**
+
+1. Setiap interface di `resources/js/types/` harus bisa di-export
+   ```tsx
+   // ✅ BAIK — pure interface, tanpa dependency Inertia
+   export interface Student {
+       id: number;
+       name: string;
+       // ...
+   }
+   ```
+
+2. Jangan import dari Inertia di interface murni
+   ```tsx
+   // ❌ JANGAN — mengikat interface ke Inertia
+   import { PageProps } from '@inertiajs/react';
+   interface Props extends PageProps { ... }
+
+   // ✅ BOLEH — extend di level Page, bukan di types/
+   // types/index.ts → pure interfaces
+   // Pages/Admin/X.tsx → extends PageProps
+   ```
+
+3. Gunakan `interface` (bukan `type`) untuk object shapes — lebih extensible (declaration merging)
+
 ---
 
 ## 8. Service Layer
@@ -963,8 +1035,8 @@ Backend kirim data kosong → Frontend tampilkan empty state.
 // Di Page
 {students.total === 0 ? (
     <div className="text-center py-10">
-        <i className="fas fa-users text-4xl text-slate-gray mb-4" />
-        <p className="text-sm text-slate-gray">Belum ada data siswa.</p>
+        <i className="fas fa-users text-4xl text-text-muted mb-4" />
+        <p className="text-sm text-text-muted">Belum ada data siswa.</p>
         <Button variant="primary" className="mt-4">Tambah Siswa Baru</Button>
     </div>
 ) : (
@@ -998,7 +1070,7 @@ function FlashMessage() {
 
     return (
         <div className={`p-4 rounded-lg mb-4 ${
-            flash.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            flash.success ? 'bg-success-light text-success' : 'bg-danger-light text-danger'
         }`}>
             {flash.success || flash.error}
         </div>
@@ -1082,7 +1154,10 @@ main
 ☐ Loading state (processing) di button submit
 ☐ Empty state untuk data kosong
 ☐ Flash message untuk success/error
-☐ Responsive (cek desktop + mobile)
+☐ Responsive (cek desktop + mobile) — ✅ WAJIB responsive mobile
+☐ Tidak ada import @inertiajs/react di Components (hanya di Pages/Layouts)
+☐ Custom hooks untuk data fetching (siap diganti ke axios nanti)
+☐ Types siap di-export ke package terpisah (@smauii/types)
 ☐ bun run build — tidak ada TypeScript error
 ```
 
@@ -1096,6 +1171,7 @@ main
 ☐ Error handling sesuai standar
 ☐ Hardcoded string tidak ada (pake design tokens)
 ☐ Nama route konsisten
+☐ Tidak ada import @inertiajs/react di Components (hanya di Pages)
 ```
 
 ### 10.5 Timeline Feature Baru
@@ -1147,7 +1223,8 @@ Buat copy checklist ini di card Trello setiap kali mulai fitur baru:
 - [ ] Inertia form (useForm)
 - [ ] Error handling (validation, empty, error)
 - [ ] Flash messages (success)
-- [ ] Responsive
+- [ ] Responsive (mobile-first via Tailwind breakpoints)
+- [ ] Tidak ada import Inertia di Components (hanya di Pages)
 
 ### Integration
 - [ ] Backend test (php artisan test)
@@ -1341,6 +1418,8 @@ bun run build           # Cek TypeScript error
 | **Vite** | Build tool (dev server HMR) |
 | **PHPUnit** | Testing framework PHP |
 | **Trello** | Project management (card per fitur) |
+| **Decoupling** | Memisahkan komponen dari framework tertentu |
+| **@smauii/types** | Package NPM untuk shared interfaces (future) |
 
 ---
 

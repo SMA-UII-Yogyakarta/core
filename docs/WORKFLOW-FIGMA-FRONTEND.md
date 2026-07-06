@@ -47,6 +47,22 @@ Ada **tiga metode** untuk memindahkan desain Figma ke kode:
 Dokumen ini akan membahas **ketiganya** secara detail, plus alur kolaborasi yang
 paling efektif untuk tim kita.
 
+### Clarifikasi: Mobile CSS Bukan Halaman Terpisah
+
+File `mobile.css` (27KB) di `resources/draft-figma/` adalah **design spec untuk viewport 340px** — bukan daftar 17 halaman React yang harus dibuat. Strategi kita adalah **responsive-first**: setiap halaman desktop yang sudah ada harus responsif ke mobile via Tailwind breakpoints (`sm:`, `md:`, `lg:`).
+
+**Yang sudah dilakukan:**
+- ✅ Layout mobile (header, bottom nav, sidebar slide-out) — semua layout sudah
+- ✅ Form/input full-width di mobile — `w-full sm:w-auto`
+- ✅ Filter bar stack vertikal di mobile — `flex-col sm:flex-row`
+- ✅ Stat card 2 kolom di mobile — `grid-cols-2 lg:grid-cols-5`
+- ✅ Ikon FA5 untuk semua layout (SVG → FA5)
+
+**Yang TIDAK perlu dilakukan:**
+- ❌ Membuat file `Pages/Mobile/DashboardAdmin.tsx` terpisah
+- ❌ Routing terpisah untuk mobile (`/mobile/dashboard`)
+- ❌ Duplikasi komponen untuk mobile
+
 ---
 
 ## 2. Figma Copy as CSS
@@ -121,14 +137,14 @@ border-radius: 8px;
    ============================================ */
 
 /* 1. AMBIL nilai-nilai ini */
-background: #2E3391;           /* warna → bg-bay-of-many */
+background: #2E3391;           /* warna → bg-primary */
 border-radius: 6px;            /* radius → rounded-md */
-font-family: 'Inter';          /* font   → font-primary */
+font-family: 'Inter';          /* font   → font-sans */
 font-weight: 700;              /* weight → font-bold */
 font-size: 13.3px;             /* size   → text-xs */
 color: #FFFFFF;                /* color  → text-white */
 padding: 12px 117.9px;         /* pad    → px-[117px] py-3 */
-border: 1px solid #CBD5E1;    /* border → border border-geyser */
+border: 1px solid #CBD5E1;    /* border → border border-border-input */
 gap: 12px;                     /* gap    → gap-3 */
 
 /* 2. ABUIKAN properti ini */
@@ -434,7 +450,8 @@ DESAIN SELESAI
 │  1. Extract design tokens via Figma MCP                 │
 │  2. Generate komponen via Figma MCP                     │
 │  3. Fine-tune + integrasi Inertia                       │
-│  4. Demo ke Hanif                                       │
+│  4. Responsive (mobile-first via Tailwind breakpoints)  │
+│  5. Demo ke Hanif                                       │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -516,7 +533,8 @@ DESAIN SELESAI
 3. Generate komponen dasar via Figma MCP
 4. Generate layout halaman via Figma MCP
 5. Fine-tune + integrasi
-6. Demo ke Hanif
+6. **Implementasi responsive: mobile-first via Tailwind breakpoints** (baru)
+7. Demo ke Hanif
 
 #### Fase 4: Review
 
@@ -524,7 +542,7 @@ DESAIN SELESAI
 - [ ] Warna sesuai (cecokin pake eyedropper atau Figma)
 - [ ] Spacing, padding, margin sesuai
 - [ ] Typography sesuai
-- [ ] Layout responsive (coba resize browser)
+- [ ] Layout responsive (coba resize browser, cek mobile + tablet + desktop)
 - [ ] Komponen punya hover/active/focus state
 
 **Format review:**
@@ -536,6 +554,7 @@ DESAIN SELESAI
 ⚠️ Stat Cards — padding kurang 4px (Figma: 12px, code: 8px)
 ❌ Tabel — font size masih 14px harusnya 13px
 ❌ Mobile — sidebar belum collapse
+❌ Mobile — filter bar belum vertical stack
 ```
 
 ### 5.3 Timeline yang Ideal
@@ -544,6 +563,7 @@ DESAIN SELESAI
 Day 1: Hanif selesai desain → share ke Fathan
 Day 1: Fathan extract tokens + generate komponen dasar
 Day 2: Fathan selesai implementasi halaman
+Day 2: Fathan implement responsive (mobile-first)
 Day 3: Hanif review → Fathan fix
 Day 4: Selesai 🎉
 ```
@@ -690,10 +710,10 @@ Apa fungsi halaman ini? Siapa usernya?
 - Validasi: username min 3 karakter
 - Redirect ke dashboard setelah login berhasil
 
-### Responsive Breakpoints
-- Desktop: layout dual panel
-- Tablet (≤768px): layout stacked
-- Mobile (≤480px): fullscreen form
+### Responsive Breakpoints (WAJIB DIISI)
+- Desktop (≥1024px): layout dual panel, sidebar visible
+- Tablet (640-1023px): sidebar collapse, bottom nav muncul
+- Mobile (<640px): single column, full-width form, stacked
 
 ### Referensi
 - Google Sign In page (pattern login dual panel)
@@ -724,8 +744,9 @@ Apa fungsi halaman ini? Siapa usernya?
 ☐ 4. Generate komponen — jalankan Figma MCP
 ☐ 5. Generate halaman — jalankan Figma MCP
 ☐ 6. Fine-tune — tambah interaksi, responsive, Inertia
-☐ 7. Tes — jalanin `bun run dev`, cek presisi
-☐ 8. Minta review Hanif — kirim link hasil
+☐ 7. Responsive — implementasikan mobile-first (Tailwind breakpoints)
+☐ 8. Tes — jalanin `bun run dev`, cek presisi + responsive
+☐ 9. Minta review Hanif — kirim link hasil
 ```
 
 ### 7.2 Cara Baca File Figma
@@ -808,7 +829,7 @@ Tanggal: 2 Juli 2026
 ❌ Issue #2 — Warna tombol MASUK
   Figma: #2E3391
   Code:  #1A237E (salah pake warna lama)
-  ✋ Tanya: Confirm apakah pakai Bay of Many?
+  ✋ Tanya: Confirm apakah pakai Bay of Many (primary)?
 
 ⚠️ Issue #3 — Font Size Tabel
   Figma: 13px
@@ -829,25 +850,37 @@ token ini — BUKAN hardcode nilai langsung.
 
 ### 8.2 Token Kita (Hasil Ekstraksi dari Figma)
 
+> **PENTING:** `app.css` real sudah menggunakan **semantic names** seperti `primary`, `accent`,
+> `background` — BUKAN Figma names seperti `bay-of-many`, `candlelight`.  
+> Contoh: `bg-primary` (bukan `bg-bay-of-many`), `text-accent` (bukan `text-candlelight`).
+
 #### Warna
 
-| Figma Name | Hex | Tailwind Variable | Fungsi |
-|------------|-----|-------------------|--------|
-| Bay of Many | `#2E3391` | `bg-bay-of-many` | Primary, header, sidebar, button |
-| Candlelight | `#FAE62A` | `bg-candlelight` | Accent, active menu, logo, tab active |
-| Flamingo | `#EF4444` | `text-flamingo` | Danger, badge notifikasi, alpa |
-| Mountain Meadow | `#10B981` | `text-mountain-meadow` | Success, ijin count |
-| Catskill White | `#F1F5F9` | `bg-catskill-white` | Background halaman |
-| Mystic | `#E2E8F0` | `border-mystic` | Border default card/divider |
-| Geyser | `#CBD5E1` | `border-geyser` | Border input field |
-| Slate Gray | `#64748B` | `text-slate-gray` | Muted/secondary text |
-| Fiord | `#475569` | `text-fiord` | Label, strong text |
-| Gull Gray | `#94A3B8` | `text-gull-gray` | Inactive tab text |
-| Boulder | `#757575` | `placeholder-boulder` | Placeholder text |
-| White | `#FFFFFF` | `text-white` / `bg-white` | Background card putih |
-| Alto | `#DDDDDD` | `border-alto` | Border card login |
-| Mirage | `#1E293B` | (border mockup mobile) | Frame HP mobile mockup |
-| Black | `#000000` | `text-black` | Text username/email di card |
+| Figma Name | Hex | Semantic Token | CSS Variable | Contoh Pakai |
+|------------|-----|----------------|--------------|--------------|
+| Bay of Many | `#2E3391` | `primary` | `--color-primary` | `bg-primary`, `text-primary` |
+| Candlelight | `#FAE62A` | `accent` | `--color-accent` | `bg-accent`, `text-accent` |
+| Flamingo | `#EF4444` | `danger` | `--color-danger` | `bg-danger`, `text-danger` |
+| Mountain Meadow | `#10B981` | `success` | `--color-success` | `bg-success`, `text-success` |
+| Amber | `#F59E0B` | `warning` | `--color-warning` | `bg-warning`, `text-warning` |
+| Catskill White | `#F1F5F9` | `background` | `--color-background` | `bg-background` |
+| Catskill White (var) | `#F8FAFC` | `muted` | `--color-muted` | `bg-muted` |
+| White | `#FFFFFF` | `surface` | `--color-surface` | `bg-surface` |
+| Mystic | `#E2E8F0` | `border` | `--color-border` | `border-border` |
+| Geyser | `#CBD5E1` | `border-input` | `--color-border-input` | `border-border-input` |
+| Mirage | `#1E293B` | `text-primary` | `--color-text-primary` | `text-text-primary` |
+| Fiord | `#475569` | `text-secondary` | `--color-text-secondary` | `text-text-secondary` |
+| Slate Gray | `#64748B` | `text-muted` | `--color-text-muted` | `text-text-muted` |
+| Gull Gray | `#94A3B8` | `text-inactive` | `--color-text-inactive` | `text-text-inactive` |
+| Boulder | `#757575` | `text-placeholder` | `--color-text-placeholder` | `placeholder:text-text-placeholder` |
+| Zumthor | `#E0E7FF` | `primary-light` | `--color-primary-light` | `bg-primary-light` |
+| Bright Sun | `#FDE68A` | `accent-light` | `--color-accent-light` | `bg-accent-light` |
+| Granny Apple | `#DCFCE7` | `success-light` | `--color-success-light` | `bg-success-light`, `border-success-light` |
+| Polar | `#ECFDF5` | `success-bg` | `--color-success-bg` | `bg-success-bg` |
+| Cinderella | `#FEE2E2` | `danger-light` | `--color-danger-light` | `bg-danger-light` |
+| — | `#FEF2F2` | `danger-bg` | `--color-danger-bg` | `bg-danger-bg` |
+| Bright Sun (var) | `#FDE68A` | `warning-light` | `--color-warning-light` | `bg-warning-light`, `border-warning-light` |
+| — | `#FFFBEB` | `warning-bg` | `--color-warning-bg` | `bg-warning-bg` |
 
 #### Typography
 
@@ -892,34 +925,61 @@ token ini — BUKAN hardcode nilai langsung.
 
 | Name | Figma | Tailwind |
 |------|-------|----------|
-| `shadow-card` | `0px 4px 10px rgba(0,0,0,0.05)` | `shadow-sm` |
+| `shadow-card` | `0px 4px 10px rgba(0,0,0,0.05)` | `shadow-card` |
 | `shadow-card-hover` | `0px 4px 10px rgba(0,0,0,0.02)` | `shadow-sm` |
-| `shadow-modal` | `0px 20px 40px rgba(0,0,0,0.2)` | `shadow-2xl` |
+| `shadow-modal` | `0px 20px 40px rgba(0,0,0,0.2)` | `shadow-modal` |
+| `shadow-dropdown` | `0px 4px 12px rgba(0,0,0,0.02)` | `shadow-dropdown` |
 | `shadow-mobile` | `0px 10px 30px rgba(0,0,0,0.1)` | `shadow-lg` |
 
+#### Icon System: Font Awesome 5
+
+Figma pakai Font Awesome 5 Free untuk semua icon. Implementasi di codebase:
+
+| Lokasi | Approach | Contoh |
+|--------|----------|--------|
+| **Layouts, Sidebar, Navbar** | FA5 CDN via `<i className="fas fa-*" />` | `<i className="fas fa-home" />` |
+| **Components** | `react-icons/fa` (tree-shaking) | `import { FaHome } from 'react-icons/fa'` |
+
+**Tidak perlu** install `@fortawesome/react-fontawesome` — kita pakai CDN + `react-icons/fa`.
+CDN sudah di-load di `resources/views/app.blade.php` (sebelum `@vite`).
+
 ### 8.3 Cara Registrasi di app.css
+
+Ini adalah isi `resources/css/app.css` yang real:
 
 ```css
 @import "tailwindcss";
 
 @theme {
   /* ── Colors ── */
-  --color-bay-of-many: #2E3391;
-  --color-candlelight: #FAE62A;
-  --color-flamingo: #EF4444;
-  --color-mountain-meadow: #10B981;
-  --color-catskill-white: #F1F5F9;
-  --color-mystic: #E2E8F0;
-  --color-geyser: #CBD5E1;
-  --color-slate-gray: #64748B;
-  --color-fiord: #475569;
-  --color-gull-gray: #94A3B8;
-  --color-boulder: #757575;
-  --color-alto: #DDDDDD;
+  --color-primary: #2E3391;           /* Bay of Many */
+  --color-primary-light: #E0E7FF;     /* Zumthor */
+  --color-accent: #FAE62A;            /* Candlelight */
+  --color-surface: #FFFFFF;           /* White */
+  --color-background: #F1F5F9;        /* Catskill White */
+  --color-muted: #F8FAFC;             /* Catskill White variant */
+  --color-text-primary: #1E293B;      /* Mirage */
+  --color-text-secondary: #475569;    /* Fiord */
+  --color-text-muted: #64748B;        /* Slate Gray */
+  --color-text-placeholder: #757575;  /* Boulder */
+  --color-text-inactive: #94A3B8;     /* Gull Gray */
+  --color-border: #E2E8F0;            /* Mystic */
+  --color-border-input: #CBD5E1;      /* Geyser */
+  --color-success: #10B981;           /* Mountain Meadow */
+  --color-danger: #EF4444;            /* Flamingo */
+  --color-warning: #F59E0B;
+  --color-success-light: #DCFCE7;
+  --color-danger-light: #FECACA;
+  --color-warning-light: #FDE68A;
 
   /* ── Fonts ── */
-  --font-primary: 'Inter', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-brand: 'Urbanist', sans-serif;
+
+  /* ── Shadows ── */
+  --shadow-card: 0px 4px 10px rgba(0, 0, 0, 0.05);
+  --shadow-modal: 0px 20px 40px rgba(0, 0, 0, 0.2);
+  --shadow-dropdown: 0px 4px 12px rgba(0, 0, 0, 0.02);
 }
 ```
 
@@ -966,6 +1026,9 @@ token ini — BUKAN hardcode nilai langsung.
 | **Bun** | Package manager & runtime JavaScript |
 | **Vite** | Build tool untuk frontend |
 | **Bottleneck** | Titik tersendat dalam alur kerja tim |
+| **Mobile-first** | Strategi desain: mulai dari viewport terkecil, lalu scale up |
+| **Breakpoint** | Titik dimana layout berubah (sm: 640px, lg: 1024px) |
+| **FA5 CDN** | Font Awesome 5 via Content Delivery Network |
 
 ---
 
@@ -1004,6 +1067,34 @@ token ini — BUKAN hardcode nilai langsung.
 
 ---
 
+## 🔮 Future: Pemisahan Frontend dari Backend
+
+### Target Arsitektur
+
+```
+smauii-core (Laravel) → REST API + Sanctum
+smauii-web (Next.js) → Frontend web
+smauii-mobile (Flutter/RN) → Mobile app
+```
+
+### Yang Perlu Disiapkan Hanif (Figma)
+
+1. **Desain dengan component-based thinking** — komponen Figma = komponen React
+2. **Dokumentasi states** untuk setiap komponen (loading, empty, error, success)
+3. **Spesifikasi responsive breakpoints** untuk setiap halaman
+4. **Gunakan Auto Layout** — Figma flexbox = Tailwind flexbox
+5. **Export asset SVG** untuk icon — persiapan Flutter/RN yang tidak support FA5
+
+### Yang Perlu Disiapkan Fathan (Frontend)
+
+1. **Pisahkan business logic dari presentation components**
+   - Buat custom hooks untuk data fetching (mudah diganti dari Inertia ke axios)
+2. **Jangan import `@inertiajs/react` di Components** — hanya di Pages/Layouts
+3. **Export types ke file terpisah** (`types/*.ts`) — siap dipindah ke package `@smauii/types`
+4. **Gunakan FA5 via CDN** — konsisten dan mudah dipisah ke standalone React nanti
+
+---
+
 ## Lampiran
 
 ### A. Template Cover Note untuk Hanif
@@ -1034,9 +1125,10 @@ Copy template ini setiap kali mau share desain ke Fathan:
 ### Behavior
 -
 
-### Responsive
-- Desktop:
-- Mobile:
+### Responsive (WAJIB DIISI)
+- Desktop (≥1024px):
+- Tablet (640-1023px):
+- Mobile (<640px):
 
 ### Referensi
 -

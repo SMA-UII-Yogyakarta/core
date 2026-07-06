@@ -15,7 +15,7 @@ resources/draft-figma/
 └── component.css   (5 KB — 5.076 baris)
 ```
 
-File-file ini adalah **hasil ekspor mentah dari Figma** — bukan CSS untuk dipakai langsung. Setiap blok CSS mewakili satu _layer_ desain dengan posisi absolut (`position: absolute`) dan ukuran pixel tetap. Ini _design spec_, bukan production code.
+File-file ini adalah **hasil ekspor mentah dari Figma** — bukan CSS untuk dipakai langsung. Setiap blok CSS mewakili satu layer desain dengan posisi absolut (`position: absolute`) dan ukuran pixel tetap. Ini _design spec_, bukan production code.
 
 ---
 
@@ -70,27 +70,41 @@ border-radius: 6px;
 
 ### Warna (via `@theme` di `app.css`)
 
-| Figma Name | Hex | Fungsi |
-|------------|-----|--------|
-| Bay of Many | `#2E3391` | Primary (header, sidebar, button) |
-| Candlelight | `#FAE62A` | Accent (active menu, logo, tab) |
-| Flamingo | `#EF4444` | Danger / badge |
-| Mountain Meadow | `#10B981` | Success (ijin) |
-| Catskill White | `#F1F5F9` / `#F8FAFC` | Background halaman |
-| Mystic | `#E2E8F0` | Border default |
-| Geyser | `#CBD5E1` | Border input |
-| Slate Gray | `#64748B` | Muted text |
-| Fiord | `#475569` | Label/strong text |
-| Gull Gray | `#94A3B8` | Inactive tab |
-| Boulder | `#757575` | Placeholder text |
+| Figma Name | Hex | Semantic Token | CSS Variable | Contoh Pakai |
+|------------|-----|----------------|--------------|--------------|
+| Bay of Many | `#2E3391` | `primary` | `--color-primary` | `bg-primary`, `text-primary` |
+| Candlelight | `#FAE62A` | `accent` | `--color-accent` | `bg-accent`, `text-accent` |
+| Flamingo | `#EF4444` | `danger` | `--color-danger` | `bg-danger`, `text-danger` |
+| Mountain Meadow | `#10B981` | `success` | `--color-success` | `bg-success`, `text-success` |
+| Amber | `#F59E0B` | `warning` | `--color-warning` | `bg-warning`, `text-warning` |
+| Catskill White | `#F1F5F9` | `background` | `--color-background` | `bg-background` |
+| Catskill White (variant) | `#F8FAFC` | `muted` | `--color-muted` | `bg-muted` |
+| White | `#FFFFFF` | `surface` | `--color-surface` | `bg-surface` |
+| Mystic | `#E2E8F0` | `border` | `--color-border` | `border-border` |
+| Geyser | `#CBD5E1` | `border-input` | `--color-border-input` | `border-border-input` |
+| Mirage | `#1E293B` | `text-primary` | `--color-text-primary` | `text-text-primary` |
+| Fiord | `#475569` | `text-secondary` | `--color-text-secondary` | `text-text-secondary` |
+| Slate Gray | `#64748B` | `text-muted` | `--color-text-muted` | `text-text-muted` |
+| Gull Gray | `#94A3B8` | `text-inactive` | `--color-text-inactive` | `text-text-inactive` |
+| Boulder | `#757575` | `text-placeholder` | `--color-text-placeholder` | `placeholder:text-text-placeholder` |
+| Zumthor | `#E0E7FF` | `primary-light` | `--color-primary-light` | `bg-primary-light` |
+| Bright Sun | `#FDE68A` | `accent-light` | `--color-accent-light` | `bg-accent-light` |
+| Granny Apple | `#DCFCE7` | `success-light` | `--color-success-light` | `bg-success-light`, `border-success-light` |
+| Polar | `#ECFDF5` | `success-bg` | `--color-success-bg` | `bg-success-bg` |
+| Cinderella | `#FEE2E2` | `danger-light` | `--color-danger-light` | `bg-danger-light` |
+| — | `#FEF2F2` | `danger-bg` | `--color-danger-bg` | `bg-danger-bg` |
+| Bright Sun (var) | `#FDE68A` | `warning-light` | `--color-warning-light` | `bg-warning-light`, `border-warning-light` |
+| — | `#FFFBEB` | `warning-bg` | `--color-warning-bg` | `bg-warning-bg` |
+
+> **PENTING:** Gunakan semantic names seperti `bg-primary`, `text-accent`, `border-border` — BUKAN nama Figma (`bg-bay-of-many`). Lihat [Design Token Mapping](#-design-token-mapping-figma--appcss) untuk mapping lengkap.
 
 ### Font
 
 | Font | Kegunaan |
 |------|----------|
-| **Inter** | Semua teks UI |
-| **Urbanist** | Brand "SMA UII YOGYAKARTA" |
-| **Font Awesome 5 Free** | Icon |
+| **Inter** | Semua teks UI (via `--font-sans`) |
+| **Urbanist** | Brand "SMA UII YOGYAKARTA" (via `--font-brand`) |
+| **Font Awesome 5 Free** | Icon (via CDN `<i>` atau `react-icons/fa`) |
 
 ### Text Styles (dari Figma)
 
@@ -117,8 +131,9 @@ border-radius: 6px;
 
 | Figma | Nilai | Tailwind |
 |-------|-------|----------|
-| Card | `0px 4px 10px rgba(0,0,0,0.05)` | `shadow-sm` |
-| Modal | `0px 20px 40px rgba(0,0,0,0.2)` | `shadow-2xl` |
+| Card | `0px 4px 10px rgba(0,0,0,0.05)` | `shadow-card` |
+| Modal | `0px 20px 40px rgba(0,0,0,0.2)` | `shadow-modal` |
+| Dropdown | `0px 4px 12px rgba(0,0,0,0.02)` | `shadow-dropdown` |
 
 ---
 
@@ -126,45 +141,59 @@ border-radius: 6px;
 
 ### Desktop (`desktop.css`)
 
-| Baris | Halaman | Role |
-|-------|---------|------|
-| 1 | Login | Public |
-| 644 | Dashboard Admin | Admin |
-| 3855 | Pengajuan Izin Sakit | Admin |
-| 4139 | Pengajuan Izin Diterima | Admin |
-| 4231 | Manajemen Data Master | Admin |
-| 8529 | Rekap Bulanan | Admin |
-| 14004 | Enrolment Siswa Kelas | Admin |
-| 16482 | Riwayat Kehadiran | Siswa |
-| 19057 | Live Presensi | Siswa |
-| 20182 | Dashboard Siswa | Siswa |
-| 21843 | Pengajuan Izin | Wali Murid |
-| 26383 | Manajemen Master Kelas | Admin |
-| 29537 | Pengaturan Waktu & Libur | Admin |
-| 41642 | Rekap Harian | Admin |
-| 58852 | Verifikasi Izin & Sakit | Guru/Wali Kelas |
+| Baris | Halaman | Role | Status Real | File |
+|-------|---------|------|-------------|------|
+| 1 | Login | Public | ✅ COMPLETE | `Pages/Login.tsx` |
+| 644 | Dashboard Admin | Admin | ✅ COMPLETE | `Pages/Dashboard.tsx` |
+| 3855 | Pengajuan Izin Sakit | Admin | ✅ (merged via TabSwitcher) | `Pages/Admin/PengajuanIzin.tsx` |
+| 4139 | Pengajuan Izin Diterima | Admin | ✅ (merged via TabSwitcher) | Sama seperti di atas |
+| 4231 | Manajemen Data Master | Admin | ✅ COMPLETE | `Pages/Admin/DataMaster.tsx` |
+| 8529 | Rekap Bulanan | Admin | ✅ COMPLETE | `Pages/Admin/RekapBulanan.tsx` |
+| 14004 | Enrolment Siswa Kelas | Admin | ✅ COMPLETE | `Pages/Admin/EnrolmentKelas.tsx` |
+| 16482 | Riwayat Kehadiran | Siswa | ✅ COMPLETE | `Pages/Siswa/RiwayatKehadiran.tsx` |
+| 19057 | Live Presensi | Siswa | ✅ COMPLETE | `Pages/Siswa/LivePresensi.tsx` |
+| 20182 | Dashboard Siswa | Siswa | ✅ COMPLETE | `Pages/Siswa/Dashboard.tsx` |
+| 21843 | Pengajuan Izin | Wali Murid | ✅ COMPLETE | `Pages/WaliMurid/PengajuanIzin.tsx` |
+| 26383 | Manajemen Master Kelas | Admin | ✅ COMPLETE | `Pages/Admin/MasterKelas.tsx` |
+| 29537 | Pengaturan Waktu & Libur | Admin | ✅ COMPLETE | `Pages/Admin/AturWaktuLibur.tsx` |
+| 41642 | Rekap Harian | Admin | ✅ COMPLETE | `Pages/Admin/RekapHarian.tsx` |
+| 58852 | Verifikasi Izin & Sakit | Guru/Wali Kelas | ✅ COMPLETE | `Pages/Admin/VerifikasiIzin.tsx` |
+| — | Dashboard Piket | Guru | ✅ COMPLETE | `Pages/Guru/DashboardPiket.tsx` |
+| — | Dashboard Wali Kelas | Guru | ✅ COMPLETE | `Pages/Guru/DashboardWaliKelas.tsx` |
+| — | Monitoring Presensi | Admin | ✅ COMPLETE | `Pages/Admin/Monitoring.tsx` |
 
-### Mobile (`mobile.css`)
+**Status: ✅ 100% halaman desktop sudah dibuat (18 halaman).**
 
-| Baris | Halaman | Role |
-|-------|---------|------|
-| 1 | Dashboard Admin | Admin |
-| 853 | Login | Public |
-| 1198 | Data Master | Admin |
-| 2209 | Ekspor Laporan | Admin |
-| 4203 | Enrolment Kelas | Admin |
-| 5068 | Dashboard Siswa | Siswa |
-| 5865 | Live Presensi | Siswa |
-| 6495 | Riwayat Kehadiran | Siswa |
-| 7759 | Pengaturan Jadwal Presensi | Admin |
-| 13667 | Edit Kelas | Admin |
-| 15146 | Dashboard Wali Murid | Wali Murid |
-| 16316 | Pengajuan Izin | Wali Murid |
-| 17954 | Dashboard Guru Piket | Guru |
-| 19785 | Dashboard Wali Kelas | Guru |
-| 21471 | Ekspor Harian | Admin |
-| 21644 | Filters (shared) | Shared |
-| 24158 | Verif Izin | Guru/Wali Kelas |
+### Mobile (`mobile.css`) — Design Spec Viewport 340px
+
+> **PENTING:** mobile.css adalah **design spec untuk viewport 340px** — bukan instruksi
+> untuk membuat 17 halaman React terpisah. Strategi kita adalah **responsive-first**:
+> satu halaman, satu file React, adaptif via Tailwind breakpoints (`sm:`, `md:`, `lg:`).
+> Semua halaman desktop di atas sudah responsif ke mobile.
+>
+> Tabel di bawah adalah daftar **referensi desain mobile dari Figma** — bukan daftar
+> halaman baru yang harus dibuat. Setiap halaman sudah diadaptasi ke halaman desktop
+> yang sudah ada.
+
+| Baris | Mobile Page | Role | Adaptasi via |
+|-------|-------------|------|-------------|
+| 1 | Dashboard Admin | Admin | `grid-cols-2 lg:grid-cols-5` + sidebar `hidden lg:flex` |
+| 853 | Login | Public | Layout single column, left panel dihapus di mobile |
+| 1198 | Data Master | Admin | `w-full sm:w-auto` + `flex-col sm:flex-row` |
+| 2209 | Ekspor Laporan | Admin | Form full-width + tombol full-width |
+| 4203 | Enrolment Kelas | Admin | Card list, tanpa tabel di mobile |
+| 5068 | Dashboard Siswa | Siswa | `flex-col` + bottom nav |
+| 5865 | Live Presensi | Siswa | Camera full-screen, button besar |
+| 6495 | Riwayat Kehadiran | Siswa | Filter tanggal + list vertikal |
+| 7759 | Pengaturan Jadwal Presensi | Admin | Form vertikal, no sidebar |
+| 13667 | Edit Kelas | Admin | Modal full-screen di mobile |
+| 15146 | Dashboard Wali Murid | Wali Murid | StatCard anak + daftar izin |
+| 16316 | Pengajuan Izin | Wali Murid | Form full-width |
+| 17954 | Dashboard Guru Piket | Guru | StatCard + daftar kelas |
+| 19785 | Dashboard Wali Kelas | Guru | StatCard per siswa |
+| 21471 | Ekspor Harian | Admin | Form filter + tombol ekspor |
+| 21644 | Filters (shared) | Shared | Slide-up panel / filter pills |
+| 24158 | Verif Izin | Guru/Wali Kelas | Card vertikal |
 
 ---
 
@@ -177,12 +206,12 @@ Ambil contoh Login desktop. Dari `desktop.css` baris 1-642:
 ```
 Login Page (Desktop)
 ├── Card Utama (white card with shadow)
-│   ├── Left Panel (bg Bay of Many)
-│   │   ├── Logo UII (circle Candlelight)
+│   ├── Left Panel (bg-primary)
+│   │   ├── Logo UII (circle accent)
 │   │   ├── "Portal SSO Mandiri"
 │   │   └── Deskripsi "Satu identitas digital..."
 │   └── Right Panel (white)
-│       ├── Logo UII kecil (circle Bay of Many)
+│       ├── Logo UII kecil (circle primary)
 │       ├── "Sign In Institusi"
 │       ├── Input Username / NISN
 │       ├── Input Password
@@ -217,31 +246,31 @@ color: #757575;
 <input
   type="text"
   placeholder="Username / NISN"
-  className="w-full h-10 px-3 py-[11px] bg-white border border-geyser rounded-md
-             text-xs text-slate-gray font-primary placeholder:text-boulder
-             focus:outline-none focus:ring-2 focus:ring-bay-of-many/20 focus:border-bay-of-many"
+  className="w-full h-10 px-3 py-[11px] bg-white border border-border-input rounded-md
+             text-xs text-text-muted font-primary placeholder:text-text-placeholder
+             focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
 />
 ```
 
 ### Langkah 3: Pisahkan ke Komponen Reusable
 
 ```tsx
-// Components/TextInput.tsx
-interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
+// Components/ui/Input.tsx
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
 
-export default function TextInput({ label, className, ...props }: TextInputProps) {
+export default function Input({ label, className, ...props }: InputProps) {
   return (
     <div className="flex flex-col w-full gap-1">
       {label && (
-        <label className="text-xs text-boulder font-primary">{label}</label>
+        <label className="text-xs text-text-secondary font-primary">{label}</label>
       )}
       <input
         className={clsx(
-          "w-full h-10 px-3 py-[11px] bg-white border border-geyser rounded-md",
+          "w-full h-10 px-3 py-[11px] bg-white border border-border-input rounded-md",
           "text-xs font-primary",
-          "focus:outline-none focus:ring-2 focus:ring-bay-of-many/20 focus:border-bay-of-many",
+          "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
           className
         )}
         {...props}
@@ -254,17 +283,17 @@ export default function TextInput({ label, className, ...props }: TextInputProps
 ### Langkah 4: Rakit Halaman dari Komponen
 
 ```tsx
-// Pages/Auth/Login.tsx
-import TextInput from '@/Components/TextInput';
-import Button from '@/Components/Button';
+// Pages/Login.tsx
+import Input from '@/Components/ui/Input';
+import Button from '@/Components/ui/Button';
 import BrandLogo from '@/Components/BrandLogo';
 
 export default function Login() {
   return (
-    <div className="min-h-screen bg-catskill-white flex items-center justify-center p-4">
-      <div className="flex w-[650px] h-[420px] bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="flex w-[650px] h-[420px] bg-surface rounded-lg shadow-card overflow-hidden">
         {/* Left Panel */}
-        <div className="w-[283px] bg-bay-of-many p-10 flex flex-col justify-center">
+        <div className="w-[283px] bg-primary p-10 flex flex-col justify-center">
           <BrandLogo variant="light" />
           <h1 className="text-lg font-bold text-white mt-4">Portal SSO Mandiri</h1>
           <p className="text-xs text-white/70 mt-3 leading-relaxed">
@@ -274,9 +303,9 @@ export default function Login() {
         {/* Right Panel */}
         <div className="flex-1 p-10 flex flex-col justify-center gap-4">
           <BrandLogo variant="dark" />
-          <p className="text-sm font-bold text-bay-of-many text-center">Sign In Institusi</p>
-          <TextInput label="Username / NISN" placeholder="Username / NISN" />
-          <TextInput label="Password" type="password" placeholder="Password" />
+          <p className="text-sm font-bold text-primary text-center">Sign In Institusi</p>
+          <Input label="Username / NISN" placeholder="Username / NISN" />
+          <Input label="Password" type="password" placeholder="Password" />
           <Button className="w-full">MASUK</Button>
         </div>
       </div>
@@ -292,16 +321,19 @@ export default function Login() {
 ```
 resources/js/
 ├── Pages/
-│   ├── Auth/
-│   │   └── Login.tsx
+│   ├── Login.tsx
+│   ├── Dashboard.tsx
+│   ├── Welcome.tsx
 │   ├── Admin/
-│   │   ├── Dashboard.tsx
 │   │   ├── DataMaster.tsx
 │   │   ├── EnrolmentKelas.tsx
 │   │   ├── MasterKelas.tsx
-│   │   ├── PengaturanWaktuLibur.tsx
+│   │   ├── Monitoring.tsx
+│   │   ├── PengajuanIzin.tsx
+│   │   ├── AturWaktuLibur.tsx
 │   │   ├── RekapBulanan.tsx
-│   │   └── RekapHarian.tsx
+│   │   ├── RekapHarian.tsx
+│   │   └── VerifikasiIzin.tsx
 │   ├── Siswa/
 │   │   ├── Dashboard.tsx
 │   │   ├── LivePresensi.tsx
@@ -311,31 +343,45 @@ resources/js/
 │   │   └── PengajuanIzin.tsx
 │   └── Guru/
 │       ├── DashboardPiket.tsx
-│       ├── DashboardWaliKelas.tsx
-│       └── VerifikasiIzin.tsx
+│       └── DashboardWaliKelas.tsx
 ├── Layouts/
-│   ├── AppLayout.tsx         (sudah ada)
-│   ├── AdminLayout.tsx       sidebar + header + content
-│   ├── AuthLayout.tsx        layout login
+│   ├── AdminLayout.tsx       sidebar + header + mobile nav
+│   ├── AppLayout.tsx         layout utama
+│   ├── AuthLayout.tsx        layout login (centered)
+│   ├── GuruLayout.tsx        layout guru
 │   ├── SiswaLayout.tsx       layout siswa
-│   └── GuruLayout.tsx        layout guru
+│   └── WaliMuridLayout.tsx   layout wali murid
 ├── Components/
-│   ├── Button.tsx
-│   ├── TextInput.tsx
+│   ├── BrandLogo.tsx
+│   ├── DashboardStats.tsx
+│   ├── EmptyState.tsx
+│   ├── ErrorAlert.tsx
+│   ├── FilterBar.tsx
+│   ├── index.ts
+│   ├── LoadingSpinner.tsx
+│   ├── LoginCard.tsx
+│   ├── Modal.tsx
+│   ├── Navbar.tsx
 │   ├── Sidebar.tsx
 │   ├── SidebarItem.tsx
-│   ├── StatCard.tsx
-│   ├── FilterBar.tsx
+│   ├── StudentCard.tsx
 │   ├── TabSwitcher.tsx
-│   ├── Badge.tsx
-│   ├── BrandLogo.tsx
-│   ├── DataTable.tsx
-│   └── StudentCard.tsx
-├── Layouts/
-│   └── AppLayout.tsx         (yang sudah ada di Welcome)
+│   └── ui/
+│       ├── ActionButton.tsx
+│       ├── Badge.tsx
+│       ├── Button.tsx
+│       ├── Checkbox.tsx
+│       ├── Input.tsx
+│       ├── Radio.tsx
+│       ├── RadioGroup.tsx
+│       ├── StatCard.tsx
+│       ├── StatusBadge.tsx
+│       ├── Table.tsx
+│       └── Toggle.tsx
 └── types/
-    ├── index.ts
+    ├── component.ts
     ├── global.d.ts
+    ├── index.ts
     └── inertia.d.ts
 ```
 
@@ -344,36 +390,45 @@ resources/js/
 ## Checklist Pengerjaan (Prioritas)
 
 ### Phase 1 — Foundation (Design Tokens + Komponen Dasar)
-- [ ] Registrasi design tokens di `app.css` via `@theme` (warna, font, border-radius, shadow)
-- [ ] Buat `Components/Button.tsx` (variant: primary/secondary)
-- [ ] Buat `Components/TextInput.tsx`
-- [ ] Buat `Components/BrandLogo.tsx`
-- [ ] Buat `Components/Badge.tsx`
-- [ ] Update `app.css` dengan `@import "tailwindcss"` + `@theme`
+- [x] Registrasi design tokens di `app.css` via `@theme` (warna, font, border-radius, shadow)
+- [x] Buat `Components/ui/Button.tsx` (variant: primary/secondary/outline/danger/ghost)
+- [x] Buat `Components/ui/Input.tsx`
+- [x] Buat `Components/BrandLogo.tsx`
+- [x] Buat `Components/ui/Badge.tsx`
+- [x] Update `app.css` dengan `@import "tailwindcss"` + `@theme`
 
 ### Phase 2 — Layout & Navigasi
-- [ ] Buat `Components/SidebarItem.tsx` (state: active/default)
-- [ ] Buat `Components/Sidebar.tsx`
-- [ ] Buat `Layouts/AdminLayout.tsx` (header + sidebar + content area)
-- [ ] Buat `Layouts/AuthLayout.tsx`
+- [x] Buat `Components/SidebarItem.tsx` (state: active/default)
+- [x] Buat `Components/Sidebar.tsx`
+- [x] Buat `Layouts/AdminLayout.tsx` (header + sidebar + content + mobile nav)
+- [x] Buat `Layouts/AuthLayout.tsx`
 
 ### Phase 3 — Halaman Prioritas Tinggi
-- [ ] **Login** — pakai AuthLayout
-- [ ] **Dashboard Admin** — StatCard, FilterBar, TabSwitcher
-- [ ] **Data Master** — daftar siswa/guru/wali dengan StudentCard
+- [x] **Login** — pakai AuthLayout
+- [x] **Dashboard Admin** — StatCard, FilterBar, TabSwitcher
+- [x] **Data Master** — daftar siswa/guru/wali dengan tabel
 
 ### Phase 4 — Halaman Lanjutan
-- [ ] Enrolment Kelas
-- [ ] Pengaturan Waktu & Libur
-- [ ] Live Presensi Siswa
-- [ ] Riwayat Kehadiran
-- [ ] Verifikasi Izin
-- [ ] Pengajuan Izin
-- [ ] Dashboard Siswa / Wali Murid / Guru
+- [x] Enrolment Kelas
+- [x] Pengaturan Waktu & Libur
+- [x] Live Presensi Siswa
+- [x] Riwayat Kehadiran
+- [x] Verifikasi Izin
+- [x] Pengajuan Izin
+- [x] Dashboard Siswa / Wali Murid / Guru
+- [x] Monitoring Presensi
+- [x] Rekap Bulanan & Harian
+- [x] Master Kelas
 
 ### Phase 5 — Mobile Responsive
-- [ ] Pastikan semua halaman desktop responsif di mobile
-- [ ] Buat mobile-specific layout jika perlu (sidebar jadi dropdown)
+- [x] Mobile header + bottom nav di AdminLayout
+- [x] Slide-out sidebar untuk mobile
+- [x] Filter bar: `flex-col sm:flex-row`, `w-full sm:w-auto`
+- [x] Stat card: 2 kolom mobile, 5 kolom desktop
+- [x] Tabel: `overflow-x-auto` untuk mobile
+- [x] SVGs di layout → FA5 icons
+- [x] DashboardStats: mobile stat card pattern (9px label, 18px value)
+- [ ] Audit setiap halaman untuk mobile readiness (ongoing)
 
 ---
 
@@ -383,10 +438,10 @@ resources/js/
 CSS Figma pake `position: absolute` dan ukuran fix. Di Tailwind kita pake flexbox/grid yang responsif. Ambil **nilai-nilainya** (warna, font-size, spacing, border-radius), bukan properti layout-nya.
 
 ### 2. Mulai dari Komponen Kecil
-Kerjakan komponen kecil dulu (`Button`, `TextInput`, `BrandLogo`), baru naik ke komponen besar (`Sidebar`, `FilterBar`), lalu ke halaman utuh (`Login`, `Dashboard`).
+Kerjakan komponen kecil dulu (`Button`, `Input`, `BrandLogo`), baru naik ke komponen besar (`Sidebar`, `FilterBar`), lalu ke halaman utuh (`Login`, `Dashboard`).
 
 ### 3. Gunakan `@theme` — Jangan Hex Langsung
-Gunakan Tailwind utility classes seperti `bg-bay-of-many`, `text-candlelight`, `border-mystic` — bukan `bg-[#2E3391]`.
+Gunakan Tailwind utility classes seperti `bg-primary`, `text-accent`, `border-border` — bukan `bg-[#2E3391]`.
 
 ### 4. Perhatikan State
 Figma mendefinisikan 2 state per komponen:
@@ -395,10 +450,12 @@ Figma mendefinisikan 2 state per komponen:
 
 Buat prop seperti `isActive` atau `variant` untuk membedakan.
 
-### 5. Ikon Font Awesome
-Figma pakai Font Awesome 5 Free. Opsi untuk React:
-- `lucide-react` (ringan, populer di ekosistem React)
-- `@fortawesome/react-fontawesome`
+### 5. Ikon Font Awesome 5
+Figma pakai Font Awesome 5 Free. Implementasi kita:
+- **Layouts, sidebar, nav**: Pakai FA5 CDN via `<i className="fas fa-icon-name" />`
+- **Components**: Pakai `react-icons/fa` (tree-shaking, ringan)
+- Tidak perlu install `@fortawesome/react-fontawesome` — cukup CDN di `app.tsx` + `react-icons/fa`
+- Mapping icon Figma → FA5 ada di [Icon yang Dipakai di Figma](#icon-yang-dipakai-di-figma)
 
 ### 6. Layout Utama Dulu
 Bikin `AdminLayout.tsx` (header + sidebar) dulu sebelum mengerjakan halaman-halaman admin. Struktur sidebar ada di `desktop.css` baris 1030-1479.
@@ -448,30 +505,40 @@ color: #FFFFFF;
 
 ### Step 1: Buat Design Token di app.css
 
+Ini adalah isi `resources/css/app.css` yang real:
+
 ```css
 @import "tailwindcss";
 
 @theme {
-  --color-bay-of-many: #2E3391;
-  --color-candlelight: #FAE62A;
-  --color-flamingo: #EF4444;
-  --color-mountain-meadow: #10B981;
-  --color-catskill-white: #F1F5F9;
-  --color-mystic: #E2E8F0;
-  --color-geyser: #CBD5E1;
-  --color-slate-gray: #64748B;
-  --color-fiord: #475569;
-  --color-gull-gray: #94A3B8;
-  --color-boulder: #757575;
-  --font-primary: 'Inter', sans-serif;
+  /* ── Colors ── */
+  --color-primary: #2E3391;           /* Bay of Many */
+  --color-primary-light: #E0E7FF;     /* Zumthor */
+  --color-accent: #FAE62A;            /* Candlelight */
+  --color-surface: #FFFFFF;           /* White */
+  --color-background: #F1F5F9;        /* Catskill White */
+  --color-muted: #F8FAFC;             /* Catskill White variant */
+  --color-text-primary: #1E293B;      /* Mirage */
+  --color-text-secondary: #475569;    /* Fiord */
+  --color-text-muted: #64748B;        /* Slate Gray */
+  --color-text-placeholder: #757575;  /* Boulder */
+  --color-text-inactive: #94A3B8;     /* Gull Gray */
+  --color-border: #E2E8F0;            /* Mystic */
+  --color-border-input: #CBD5E1;      /* Geyser */
+  --color-success: #10B981;           /* Mountain Meadow */
+  --color-danger: #EF4444;            /* Flamingo */
+  --color-warning: #F59E0B;
+  --font-sans: 'Inter', sans-serif;
   --font-brand: 'Urbanist', sans-serif;
 }
 ```
 
+**PENTING:** `@theme` di atas adalah yang real di codebase. Token names menggunakan semantic names (`primary`, `accent`, `border`, dll) — BUKAN Figma names (`bay-of-many`, `candlelight`).
+
 ### Step 2: Buat Komponen Button
 
 ```tsx
-// Components/Button.tsx
+// Components/ui/Button.tsx
 import { ButtonHTMLAttributes } from 'react';
 import { clsx } from 'clsx';
 
@@ -493,8 +560,8 @@ export default function Button({
         "flex items-center justify-center font-bold rounded-md transition-colors",
         "font-primary",
         {
-          'bg-bay-of-many text-white hover:bg-bay-of-many/90': variant === 'primary',
-          'bg-catskill-white text-bay-of-many border border-mystic hover:bg-white': variant === 'secondary',
+          'bg-primary text-white hover:bg-primary/90': variant === 'primary',
+          'bg-muted text-primary border border-border hover:bg-surface': variant === 'secondary',
         },
         {
           'px-6 py-2 text-xs': size === 'sm',
@@ -557,32 +624,38 @@ export default function Button({
 
 ## 🔄 Design Token Mapping: Figma → `app.css`
 
-**PENTING:** File `app.css` sudah memiliki design tokens lengkap via `@theme`. Jangan pakai nama Figma (`bay-of-many`) langsung — pakai nama yang sudah terdaftar di `@theme`.
+**PENTING:** File `app.css` sudah memiliki design tokens lengkap via `@theme`. Gunakan **semantic names** seperti `bg-primary`, `text-accent`, `border-border` — **bukan** nama Figma (`bg-bay-of-many`).
 
-| Figma Name | Hex | `@theme` Token | Contoh Pakai |
-|------------|-----|----------------|--------------|
-| Bay of Many | `#2E3391` | `--color-primary` | `bg-primary`, `text-primary`, `border-primary` |
-| Candlelight | `#FAE62A` | `--color-accent` | `bg-accent`, `text-accent` |
-| Flamingo | `#EF4444` | `--color-danger` | `bg-danger`, `text-danger` |
-| Mountain Meadow | `#10B981` | `--color-success` | `bg-success`, `text-success` |
-| Catskill White | `#F1F5F9` | `--color-background` | `bg-background` |
-| Catskill White (variant) | `#F8FAFC` | `--color-muted` | `bg-muted` |
-| White | `#FFFFFF` | `--color-surface` | `bg-surface` |
-| Mystic | `#E2E8F0` | `--color-border` | `border-border` |
-| Geyser | `#CBD5E1` | `--color-border-input` | `border-border-input` |
-| Mirage | `#1E293B` | `--color-text-primary` | `text-text-primary` |
-| Fiord | `#475569` | `--color-text-secondary` | `text-text-secondary` |
-| Slate Gray | `#64748B` | `--color-text-muted` | `text-text-muted` |
-| Gull Gray | `#94A3B8` | `--color-text-inactive` | `text-text-inactive` |
-| Boulder | `#757575` | `--color-text-placeholder` | `placeholder:text-text-placeholder` |
-| Tahiti Gold | `#D97706` | — | `text-amber-600`, `bg-amber-100` |
-| Beeswax / Sweet Corn | `#FEF3C7` / `#FDE68A` | — | `bg-amber-50`, `border-amber-200` |
-| Cinderella / Your Pink | `#FEE2E2` / `#FECACA` | `--color-danger-light` / … | `bg-danger-light`, `border-danger-light` |
-| Zumthor | `#E0E7FF` | `--color-primary-light` | `bg-primary-light` |
-| Jacksons Purple | `#1E3A8A` | — | `text-blue-900` (heading aktif) |
-| Bright Sun | `#FDE047` | — | `bg-yellow-300` (sidebar hover) |
-| Mischka | `#D1D5DB` | — | `text-gray-300` (sidebar default text) |
-| Alto | `#DDDDDD` | — | `border-gray-300` |
+| Figma Name | Hex | Semantic Token | CSS Variable | Contoh Pakai |
+|------------|-----|----------------|--------------|--------------|
+| Bay of Many | `#2E3391` | `primary` | `--color-primary` | `bg-primary`, `text-primary`, `border-primary` |
+| Candlelight | `#FAE62A` | `accent` | `--color-accent` | `bg-accent`, `text-accent` |
+| Flamingo | `#EF4444` | `danger` | `--color-danger` | `bg-danger`, `text-danger` |
+| Mountain Meadow | `#10B981` | `success` | `--color-success` | `bg-success`, `text-success` |
+| Amber | `#F59E0B` | `warning` | `--color-warning` | `bg-warning`, `text-warning` |
+| Catskill White | `#F1F5F9` | `background` | `--color-background` | `bg-background` |
+| Catskill White (variant) | `#F8FAFC` | `muted` | `--color-muted` | `bg-muted` |
+| White | `#FFFFFF` | `surface` | `--color-surface` | `bg-surface` |
+| Mystic | `#E2E8F0` | `border` | `--color-border` | `border-border` |
+| Geyser | `#CBD5E1` | `border-input` | `--color-border-input` | `border-border-input` |
+| Mirage | `#1E293B` | `text-primary` | `--color-text-primary` | `text-text-primary` |
+| Fiord | `#475569` | `text-secondary` | `--color-text-secondary` | `text-text-secondary` |
+| Slate Gray | `#64748B` | `text-muted` | `--color-text-muted` | `text-text-muted` |
+| Gull Gray | `#94A3B8` | `text-inactive` | `--color-text-inactive` | `text-text-inactive` |
+| Boulder | `#757575` | `text-placeholder` | `--color-text-placeholder` | `placeholder:text-text-placeholder` |
+| Zumthor | `#E0E7FF` | `primary-light` | `--color-primary-light` | `bg-primary-light` |
+| Bright Sun | `#FDE68A` | `accent-light` | `--color-accent-light` | `bg-accent-light` |
+| Granny Apple | `#DCFCE7` | `success-light` | `--color-success-light` | `bg-success-light`, `border-success-light` |
+| Polar | `#ECFDF5` | `success-bg` | `--color-success-bg` | `bg-success-bg` |
+| Cinderella | `#FEE2E2` | `danger-light` | `--color-danger-light` | `bg-danger-light` |
+| — | `#FEF2F2` | `danger-bg` | `--color-danger-bg` | `bg-danger-bg` |
+| Bright Sun (var) | `#FDE68A` | `warning-light` | `--color-warning-light` | `bg-warning-light`, `border-warning-light` |
+| — | `#FFFBEB` | `warning-bg` | `--color-warning-bg` | `bg-warning-bg` |
+| Tahiti Gold | `#D97706` | — | — | `text-amber-600` (fallback) |
+| Jacksons Purple | `#1E3A8A` | — | — | `text-blue-900` |
+| Bright Sun | `#FDE047` | — | — | `bg-yellow-300` |
+| Mischka | `#D1D5DB` | — | — | `text-gray-300` |
+| Alto | `#DDDDDD` | — | — | `border-gray-300` |
 
 ### Contoh Perbaikan dari Guide Lama
 
@@ -590,7 +663,7 @@ export default function Button({
 // ❌ SALAH — pakai nama Figma yang tidak terdaftar di @theme
 className="bg-bay-of-many text-white"
 
-// ✅ BENAR — pakai token dari @theme
+// ✅ BENAR — pakai semantic token dari @theme
 className="bg-primary text-white"
 
 // ❌ SALAH
@@ -608,49 +681,57 @@ className="border-border"
 
 ---
 
-## 📊 Status Halaman: Yang SUDAH vs BELUM Dikerjakan
+## 📊 Status Halaman: Real Codebase
 
-### Desktop — 15 Halaman
+### Desktop — 18 Halaman (✅ 100% Selesai)
 
-| Baris | Halaman | Role | Status | File |
-|-------|---------|------|--------|------|
+| Baris Figma | Halaman | Role | Status | File |
+|-------------|---------|------|--------|------|
 | 1 | Login | Public | ✅ COMPLETE | `Pages/Login.tsx` |
-| 644 | Dashboard Admin | Admin | ⚠️ Layout OK, data masih mock | `Pages/Dashboard.tsx` |
-| 3855 | Pengajuan Izin Sakit (Admin view) | Admin | ❌ BELUM | — |
-| 4139 | Pengajuan Izin Diterima | Admin | ❌ BELUM | — |
-| 4231 | Manajemen Data Master | Admin | ✅ COMPLETE | `Pages/Admin/DataMaster.tsx` |
-| 8529 | Rekap Bulanan | Admin | ❌ BELUM | — |
-| 14004 | Enrolment Siswa Kelas | Admin | ❌ BELUM | — |
-| 16482 | Riwayat Kehadiran | Siswa | ❌ BELUM | — |
-| 19057 | Live Presensi | Siswa | ❌ BELUM | — |
-| 20182 | Dashboard Siswa | Siswa | ❌ BELUM | — |
-| 21843 | Pengajuan Izin (Wali Murid) | Wali | ❌ BELUM | — |
-| 26383 | Manajemen Master Kelas | Admin | ❌ BELUM | — |
+| 644 | Dashboard Admin | Admin | ✅ COMPLETE | `Pages/Dashboard.tsx` |
+| 3855 | Pengajuan Izin Sakit | Admin | ✅ (TabSwitcher: Semua/Menunggu/Disetujui/Ditolak) | `Pages/Admin/PengajuanIzin.tsx` |
+| 4139 | Pengajuan Izin Diterima | Admin | ✅ (merged via TabSwitcher) | Sama seperti di atas |
+| 4231 | Manajemen Data Master | Admin | ✅ COMPLETE (TabSwitcher: Siswa/Guru/Kelas/Wali) | `Pages/Admin/DataMaster.tsx` |
+| 8529 | Rekap Bulanan | Admin | ✅ COMPLETE | `Pages/Admin/RekapBulanan.tsx` |
+| 14004 | Enrolment Siswa Kelas | Admin | ✅ COMPLETE | `Pages/Admin/EnrolmentKelas.tsx` |
+| 16482 | Riwayat Kehadiran | Siswa | ✅ COMPLETE | `Pages/Siswa/RiwayatKehadiran.tsx` |
+| 19057 | Live Presensi | Siswa | ✅ COMPLETE | `Pages/Siswa/LivePresensi.tsx` |
+| 20182 | Dashboard Siswa | Siswa | ✅ COMPLETE | `Pages/Siswa/Dashboard.tsx` |
+| 21843 | Pengajuan Izin | Wali Murid | ✅ COMPLETE | `Pages/WaliMurid/PengajuanIzin.tsx` |
+| 26383 | Manajemen Master Kelas | Admin | ✅ COMPLETE | `Pages/Admin/MasterKelas.tsx` |
 | 29537 | Pengaturan Waktu & Libur | Admin | ✅ COMPLETE | `Pages/Admin/AturWaktuLibur.tsx` |
-| 41642 | Rekap Harian | Admin | ❌ BELUM | — |
+| 41642 | Rekap Harian | Admin | ✅ COMPLETE | `Pages/Admin/RekapHarian.tsx` |
 | 58852 | Verifikasi Izin & Sakit | Guru/Wali Kelas | ✅ COMPLETE | `Pages/Admin/VerifikasiIzin.tsx` |
+| — | Dashboard Piket | Guru | ✅ COMPLETE | `Pages/Guru/DashboardPiket.tsx` |
+| — | Dashboard Wali Kelas | Guru | ✅ COMPLETE | `Pages/Guru/DashboardWaliKelas.tsx` |
+| — | Monitoring Presensi | Admin | ✅ COMPLETE | `Pages/Admin/Monitoring.tsx` |
 
-### Mobile — 17 Halaman
+### Mobile — Design Spec (BUKAN Halaman Terpisah)
 
-| Baris | Halaman | Role | Status |
-|-------|---------|------|--------|
-| 1 | Dashboard Admin | Admin | ❌ BELUM |
-| 853 | Login | Public | ❌ (desktop sudah) |
-| 1198 | Data Master | Admin | ❌ BELUM |
-| 2209 | Ekspor Laporan | Admin | ❌ BELUM |
-| 4203 | Enrolment Kelas | Admin | ❌ BELUM |
-| 5068 | Dashboard Siswa | Siswa | ❌ BELUM |
-| 5865 | Live Presensi | Siswa | ❌ BELUM |
-| 6495 | Riwayat Kehadiran | Siswa | ❌ BELUM |
-| 7759 | Pengaturan Jadwal Presensi | Admin | ❌ BELUM |
-| 13667 | Edit Kelas | Admin | ❌ BELUM |
-| 15146 | Dashboard Wali Murid | Wali Murid | ❌ BELUM |
-| 16316 | Pengajuan Izin | Wali Murid | ❌ BELUM |
-| 17954 | Dashboard Guru Piket | Guru | ❌ BELUM |
-| 19785 | Dashboard Wali Kelas | Guru | ❌ BELUM |
-| 21471 | Ekspor Harian | Admin | ❌ BELUM |
-| 21644 | Filters (shared) | Shared | ❌ BELUM |
-| 24158 | Verif Izin | Guru/Wali Kelas | ❌ (desktop sudah) |
+> mobile.css adalah **design spec untuk viewport 340px**. Semua halaman di atas sudah
+> responsif ke mobile via Tailwind breakpoints. Tidak ada halaman React terpisah untuk mobile.
+>
+> Tabel di bawah adalah referensi bagaimana setiap Figma mobile page diadaptasi.
+
+| Baris Mobile | Mobile Page | Role | Adaptasi di Halaman Desktop |
+|-------------|-------------|------|----------------------------|
+| 1 | Dashboard Admin | Admin | ✅ — StatCard 2 kolom (`grid-cols-2 lg:grid-cols-5`) |
+| 853 | Login | Public | ✅ — Single column, left panel hidden |
+| 1198 | Data Master | Admin | ✅ — `w-full sm:w-auto`, `flex-col sm:flex-row` |
+| 2209 | Ekspor Laporan | Admin | ✅ — Form full-width |
+| 4203 | Enrolment Kelas | Admin | ✅ — Card list di mobile |
+| 5068 | Dashboard Siswa | Siswa | ✅ — Bottom nav + stat cards |
+| 5865 | Live Presensi | Siswa | ✅ — Full-screen camera |
+| 6495 | Riwayat Kehadiran | Siswa | ✅ — Filter + list vertikal |
+| 7759 | Pengaturan Jadwal Presensi | Admin | ✅ — Form vertikal, no sidebar |
+| 13667 | Edit Kelas | Admin | ✅ — Modal full-screen |
+| 15146 | Dashboard Wali Murid | Wali Murid | ✅ — StatCard anak |
+| 16316 | Pengajuan Izin | Wali Murid | ✅ — Form full-width |
+| 17954 | Dashboard Guru Piket | Guru | ✅ — StatCard + list |
+| 19785 | Dashboard Wali Kelas | Guru | ✅ — StatCard per siswa |
+| 21471 | Ekspor Harian | Admin | ✅ — Filter + tombol |
+| 21644 | Filters (shared) | Shared | ✅ — Filter pills |
+| 24158 | Verif Izin | Guru/Wali Kelas | ✅ — Card vertikal |
 
 ---
 
@@ -663,22 +744,27 @@ Jangan bikin ulang komponen ini — sudah siap pakai:
 | **Button** | `Components/ui/Button.tsx` | `variant: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'`, `size: 'sm' | 'md' | 'lg'`, `loading: boolean` |
 | **Input** | `Components/ui/Input.tsx` | `label`, `error`, `icon`, `...InputHTMLAttributes` |
 | **Badge** | `Components/ui/Badge.tsx` | `variant: 'default' | 'success' | 'danger' | 'warning'` |
-| **StatusBadge** | `Components/ui/StatusBadge.tsx` | `status: string` (otomatis pilih warna) |
-| **StatCard** | `Components/ui/StatCard.tsx` | `title`, `value`, `icon?`, `color?` |
+| **StatusBadge** | `Components/ui/StatusBadge.tsx` | `status: StatusVariant` (otomatis pilih warna) |
+| **StatCard** | `Components/ui/StatCard.tsx` | `title`, `value`, `icon?`, `color?: StatColor` |
 | **Table** | `Components/ui/Table.tsx` | `columns`, `data`, `loading?`, `emptyMessage?` |
 | **Pagination** | `Components/ui/Table.tsx` | `links` (dari Inertia) |
-| **Navbar** | `Components/Navbar.tsx` | `user` |
-| **Sidebar** | `Components/Sidebar.tsx` | — (otomatis dari route) |
+| **Toggle** | `Components/ui/Toggle.tsx` | `checked`, `onChange` |
+| **Checkbox** | `Components/ui/Checkbox.tsx` | `checked`, `onChange`, `label` |
+| **Radio / RadioGroup** | `Components/ui/Radio.tsx` | `name`, `value`, `options` |
+| **ActionButton** | `Components/ui/ActionButton.tsx` | `variant: 'detail' | 'edit' | 'delete'`, `onClick` |
+| **Navbar** | `Components/Navbar.tsx` | `brand`, `username`, `userInitial` |
+| **Sidebar** | `Components/Sidebar.tsx` | `activeMenu?`, `className?` |
 | **SidebarItem** | `Components/SidebarItem.tsx` | `href`, `icon`, `label`, `active?` |
 | **LoginCard** | `Components/LoginCard.tsx` | `data`, `setData`, `errors`, `processing` |
-| **AppLayout** | `Layouts/AppLayout.tsx` | Layout wrapper (Navbar + content) |
-
-### Komponen Draft (Belum Lengkap)
-
-| Komponen | Lokasi | Masalah |
-|----------|--------|---------|
-| DashboardStats | `Components/DashboardStats.tsx` | Hardcoded string, cuma dipakai di mobile view |
-| StudentCard | `Components/StudentCard.tsx` | Partial, tidak dipakai di halaman mana pun |
+| **BrandLogo** | `Components/BrandLogo.tsx` | `variant: 'light' | 'dark'`, `size?` |
+| **FilterBar** | `Components/FilterBar.tsx` | `children`, sub-komponen: `Select`, `Date`, `Search`, `Pill` |
+| **TabSwitcher** | `Components/TabSwitcher.tsx` | `tabs`, `activeTab`, `onChange` |
+| **Modal** | `Components/Modal.tsx` | `isOpen`, `onClose`, `title`, `children` |
+| **LoadingSpinner** | `Components/LoadingSpinner.tsx` | `size?: 'sm' | 'md' | 'lg'` |
+| **EmptyState** | `Components/EmptyState.tsx` | `icon?`, `message?`, `action?` |
+| **ErrorAlert** | `Components/ErrorAlert.tsx` | `message`, `onRetry?` |
+| **DashboardStats** | `Components/DashboardStats.tsx` | `hadir`, `alpa`, `ijin`, `sakit` (mobile stat card pattern) |
+| **StudentCard** | `Components/StudentCard.tsx` | `student` |
 
 ---
 
@@ -711,12 +797,12 @@ Ada 6 variant button dengan 2 state (hover:true / hover:false):
 
 | Variant | Figma Label | Hover State | Non-Hover State | Penggunaan |
 |---------|------------|-------------|-----------------|------------|
-| **1** | "Detail" | `bg-primary-light` (Zumthor `#E0E7FF`), `text-primary`, icon FA5 | `bg-background` (Catskill White), `text-primary`, icon FA5 | Tombol detail tabel |
-| **2** | "Edit" | `bg-amber-100` (Beeswax `#FEF3C7`), `text-amber-600` | `bg-amber-50` (Buttery White `#FFFBEB`), `text-amber-600` | Tombol edit |
-| **3** | "Filter Kelas" | — (tidak ada hover) | `bg-surface`, `border-border`, `text-text-secondary`, icon FA5 | Filter dropdown |
-| **4** | "Hapus Terpilih" | — (tidak ada hover) | `bg-danger-light` (Cinderella `#FEE2E2`), `text-danger`, icon FA5 | Bulk delete |
-| **5** | "Import Excel" | — (tidak ada hover) | `bg-accent` (Candlelight), `text-text-primary`, rounded-md | Import data |
-| **6** | "Tambah Data Baru" | — (tidak ada hover) | `bg-primary`, `text-white`, icon `+` | Add new record |
+| **1** | "Detail" | `bg-primary-light` (Zumthor), `text-primary`, icon FA5 | `bg-background` (Catskill White), `text-primary`, icon FA5 | Tombol detail tabel |
+| **2** | "Edit" | `bg-amber-100` (Beeswax), `text-amber-600` | `bg-amber-50`, `text-amber-600` | Tombol edit |
+| **3** | "Filter Kelas" | — | `bg-surface`, `border-border`, `text-text-secondary`, icon FA5 | Filter dropdown |
+| **4** | "Hapus Terpilih" | — | `bg-danger-light` (Cinderella), `text-danger`, icon FA5 | Bulk delete |
+| **5** | "Import Excel" | — | `bg-accent` (Candlelight), `text-text-primary`, rounded-md | Import data |
+| **6** | "Tambah Data Baru" | — | `bg-primary`, `text-white`, icon `+` | Add new record |
 
 ### 4. Toggle / Checkbox / Radio (baris 2622–2950)
 
@@ -738,34 +824,33 @@ Dari Component 2:
 
 ## 🎨 Icon System: Font Awesome 5 + React
 
-Figma menggunakan **Font Awesome 5 Free** (Solid) untuk semua icon. Dua opsi:
+Figma menggunakan **Font Awesome 5 Free** (Solid) untuk semua icon.
 
-### Opsi 1: `react-icons` (ringan, recomended)
+### Implementasi Kita
 
-```bash
-bun add react-icons
-```
+Kita menggunakan **2 pendekatan** untuk icon:
 
-```tsx
-import { FaHome, FaUserGraduate, FaClipboardList } from 'react-icons/fa';
+1. **FA5 CDN** — untuk Layouts, Sidebar, Navbar (global, tidak perlu import per komponen)
+   ```html
+   <!-- Di resources/views/app.blade.php (sebelum @vite) -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   ```
+   ```tsx
+   // Pakai langsung di JSX — tanpa import:
+   <i className="fas fa-home" />
+   <i className="fas fa-user-graduate" />
+   ```
 
-// Pakai langsung
-<FaHome className="text-primary w-4 h-4" />
-<FaUserGraduate className="text-text-muted w-4 h-4" />
-```
-
-### Opsi 2: `@fortawesome/react-fontawesome` (official)
-
-```bash
-bun add @fortawesome/react-fontawesome @fortawesome/free-solid-svg-icons
-```
-
-```tsx
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHome, faUserGraduate, faClipboardList } from '@fortawesome/free-solid-svg-icons';
-
-<FontAwesomeIcon icon={faHome} className="text-primary" />
-```
+2. **`react-icons/fa`** — untuk Components (tree-shaking, ringan, hanya import yang dipakai)
+   ```bash
+   bun add react-icons
+   ```
+   ```tsx
+   import { FaHome, FaUserGraduate } from 'react-icons/fa';
+   
+   <FaHome className="text-primary w-4 h-4" />
+   <FaUserGraduate className="text-text-muted w-4 h-4" />
+   ```
 
 ### Icon yang Dipakai di Figma
 
@@ -792,8 +877,15 @@ Dari component.css dan desktop.css, icon yang muncul:
 | `fa-search` | Search | `FaSearch` |
 | `fa-chevron-left` / `fa-chevron-right` | Pagination | `FaChevronLeft`, `FaChevronRight` |
 | `fa-times` | Close | `FaTimes` |
-| `fa check` | Checkbox checked | `FaCheck` |
+| `fa-check` | Checkbox checked | `FaCheck` |
 | `fa-circle` | Radio | `FaCircle` |
+| `fa-bars` | Hamburger menu | `FaBars` |
+| `fa-th-large` | Dashboard grid | `FaThLarge` |
+| `fa-clipboard-list` | Piket | `FaClipboardList` |
+| `fa-user-graduate` | Siswa | `FaUserGraduate` |
+| `fa-chart-bar` | Grafik | `FaChartBar` |
+| `fa-cog` | Pengaturan | `FaCog` |
+| `fa-sign-out-alt` | Logout | `FaSignOutAlt` |
 
 ---
 
@@ -835,31 +927,17 @@ Setiap komponen data (Table, Card, FilterBar) harus punya 3 state:
 
 // Atau manual untuk non-Table
 {data.length === 0 && !loading && (
-  <div className="flex flex-col items-center py-12 text-text-muted">
-    <FaInbox className="w-12 h-12 mb-4" />
-    <p className="text-sm">Belum ada data</p>
-  </div>
+  <EmptyState message="Belum ada data" />
 )}
 ```
 
 ### 3. Error State
 
 ```tsx
-{error && (
-  <div className="bg-danger-bg border border-danger-light rounded-lg p-4 flex items-start gap-3">
-    <FaExclamationCircle className="text-danger mt-0.5" />
-    <div>
-      <p className="text-sm font-bold text-danger">Gagal memuat data</p>
-      <p className="text-xs text-text-secondary mt-1">{error}</p>
-    </div>
-  </div>
-)}
-
-// Button simpan dengan error
-<Button loading={processing} disabled={processing}>
-  {processing ? 'Menyimpan...' : 'Simpan'}
-</Button>
-{error && <p className="text-xs text-danger mt-1">{error}</p>}
+<ErrorAlert
+  message="Gagal memuat data"
+  onRetry={() => fetchData()}
+/>
 ```
 
 ### Pattern Lengkap untuk Halaman Data
@@ -877,8 +955,8 @@ export default function SomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <LoadingSkeleton />;
-  if (error) return <ErrorState message={error} onRetry={() => ...} />;
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorAlert message={error} onRetry={() => ...} />;
   if (data.length === 0) return <EmptyState />;
   return <DataView data={data} />;
 }
@@ -886,223 +964,287 @@ export default function SomePage() {
 
 ---
 
-## 📱 Responsive Strategy
+## 📱 Mobile-First Responsive Strategy
 
-### Breakpoints
+### Prinsip
 
-| Tailwind | Lebar | Target |
-|----------|-------|--------|
-| `sm` | 640px+ | Mobile landscape |
-| `md` | 768px+ | Tablet |
-| `lg` | 1024px+ | Desktop (default) |
-| `xl` | 1280px+ | Desktop wide |
+```
+Satu Halaman → Satu File → Adaptif via Tailwind Breakpoints
+```
+
+### Kenapa Tidak Bikin Halaman Mobile Terpisah?
+
+| Argumentasi | Kesimpulan |
+|-------------|------------|
+| mobile.css adalah Figma spec viewport 340px | ✅ Design reference, bukan spec terpisah |
+| Tailwind `lg:hidden` / `hidden lg:flex` | ✅ Satu komponen bisa tampil beda di tiap viewport |
+| Biaya maintenance lebih rendah | ✅ 1 file = 1 halaman, bukan 2 |
+| Future-proof untuk Next.js/Flutter/RN | ✅ Pisahkan logic dari view, bukan pisah view |
 
 ### Aturan Responsive
 
-1. **Mobile-first**: Tulis style mobile dulu, lalu override dengan `md:`, `lg:` untuk desktop
-2. **Sidebar**: `hidden lg:flex` — sembunyi di mobile, tampil di desktop; `lg:hidden` untuk hamburger menu
-3. **Tabel**: Horizontal scroll di mobile (`overflow-x-auto`), normal di desktop
-4. **Card grid**: `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4`
-5. **Filter bar**: Mobile → vertical stack, Desktop → horizontal row
-6. **Font size**: Base `text-xs` di mobile, `text-sm` di desktop
+| Breakpoint | Target | Prefix |
+|------------|--------|--------|
+| `default` | Mobile (<640px) | Tidak pakai prefix |
+| `sm:` | Tablet (≥640px) | `sm:flex-row`, `sm:w-auto` |
+| `md:` | Tablet landscape (≥768px) | Jarang dipakai |
+| `lg:` | Desktop (≥1024px) | `lg:flex`, `lg:hidden`, `lg:grid-cols-5` |
 
-### Contoh Layout Adaptif
+### Pattern yang Wajib
 
-```tsx
-<div className="min-h-screen bg-background">
-  {/* Mobile Header (lg:hidden) */}
-  <header className="lg:hidden bg-primary text-white p-4 flex items-center justify-between">
-    <button onClick={toggleSidebar}><FaBars /></button>
-    <span className="font-bold text-sm">SMA UII</span>
-    <FaUserCircle />
-  </header>
+1. **Form/Select/Input** → `w-full sm:w-auto` — full-width di mobile, auto di desktop
+2. **Filter bar** → `flex-col sm:flex-row` — stack di mobile, inline di desktop
+3. **Stat cards** → `grid-cols-2 lg:grid-cols-5` — 2 kolom mobile, 5 kolom desktop
+4. **Bottom navigation** → `fixed bottom-0 lg:hidden` — hanya di mobile
+5. **Sidebar** → `hidden lg:flex` desktop, hamburger + overlay mobile
+6. **Tabel** → `overflow-x-auto` — horizontal scroll di mobile
+7. **Modal** → `w-full sm:max-w-lg` — full-width mobile, max-width desktop
 
-  <div className="flex">
-    {/* Sidebar Desktop */}
-    <Sidebar className="hidden lg:flex w-60" />
+### Mobile Layout Patterns dari Codebase (Yang Sudah Diterapkan)
 
-    {/* Overlay Mobile */}
-    {showSidebar && (
-      <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={toggleSidebar} />
-    )}
-    <div className={`fixed left-0 top-0 h-full z-50 lg:hidden ${showSidebar ? 'translate-x-0' : '-translate-x-full'} transition-transform`}>
-      <Sidebar onClose={toggleSidebar} />
-    </div>
-
-    {/* Main Content */}
-    <main className="flex-1 p-4 md:p-6 lg:p-8">
-      {children}
-    </main>
-  </div>
-</div>
-```
-
-### Komponen yang Berbeda di Mobile
-
-Dari Figma mobile.css:
-
-| Mobile Page | Line | Adaptasi dari Desktop |
-|-------------|------|-----------------------|
-| Dashboard Admin | 1 | StatCard jadi horizontal scroll, grafik disembunyikan |
-| Login | 853 | Left panel (bg-primary) dihapus, langsung form |
-| Data Master | 1198 | Tabel jadi card list |
-| Ekspor Laporan | 2209 | Filter di atas, tombol full-width |
-| Enrolment Kelas | 4203 | List siswa per kelas, tanpa tabel |
-| Dashboard Siswa | 5068 | StatCard + daftar kehadiran |
-| Live Presensi | 5865 | Camera full-screen, button besar |
-| Riwayat | 6495 | Filter tanggal di atas, list vertikal |
-| Pengaturan Presensi | 7759 | Form vertikal, no sidebar |
-| Edit Kelas | 13667 | Form modal full-screen |
-| Dashboard Wali Murid | 15146 | StatCard anak + daftar izin |
-| Pengajuan Izin | 16316 | Form full-width |
-| Dashboard Guru Piket | 17954 | StatCard + daftar kelas |
-| Dashboard Wali Kelas | 19785 | StatCard per siswa |
-| Ekspor Harian | 21471 | Form filter + tombol ekspor |
-| Filters | 21644 | Slide-up panel |
-| Verif Izin | 24158 | Card vertikal |
+| Pattern | Implementasi | File Contoh |
+|---------|-------------|-------------|
+| Mobile Header (hamburger + brand + avatar) | `lg:hidden bg-primary text-white` | `AdminLayout.tsx` |
+| Slide-out Sidebar | `fixed inset-0 bg-black/50 z-40` + `-translate-x-full` | `AdminLayout.tsx`, `GuruLayout.tsx` |
+| Bottom Navigation | `fixed bottom-0 lg:hidden` + 4 items | `AdminLayout.tsx` |
+| Filter Vertical Stack | `flex-col sm:flex-row` | `FilterBar.tsx` |
+| Full-width Input | `w-full sm:w-auto` | `FilterBar.tsx` |
+| Mobile Stat Card 2-column | `grid grid-cols-2 gap-2.5` | `DashboardStats.tsx` |
+| Mobile Stat Card Pattern | 9px label, 18px value, p-3 | `DashboardStats.tsx` |
+| Filter Pills | `rounded-full px-4 py-1.5 text-[11px]` | `FilterBar.tsx` |
 
 ---
 
-## 🧩 Panduan Per Halaman yang Belum Dikerjakan
+## 🔮 Persiapan Arsitektur Masa Depan
 
-### Halaman 1: Admin — Pengajuan Izin Sakit (desktop.css baris 3855)
+### Roadmap Pemisahan Frontend-Backend
+
+```
+Sekarang: smauii-core (monolith Inertia)
+  │
+  ├── Backend: Laravel + Eloquent + Services
+  ├── Frontend: InertiaJS + React + Tailwind
+  └── Satu repo, satu deployment
+  │
+  ▼
+Nanti: Pisah menjadi 3 repositori:
+  │
+  ├── smauii-core → backend API (Laravel + Sanctum)
+  │     REST API JSON untuk semua platform
+  │
+  ├── smauii-web → frontend web (Next.js)
+  │     React + Tailwind, consume API
+  │
+  └── smauii-mobile → mobile app (Flutter / React Native)
+        Native experience, consume API yang sama
+```
+
+### Yang Harus Mulai Dilakukan dari Sekarang
+
+| # | Tindakan | Status |
+|---|----------|--------|
+| 1 | **Pisahkan logic fetching dari komponen UI** — buat custom hooks per halaman | ❌ Belum |
+| 2 | **Gunakan TypeScript yang framework-agnostic** — `types/component.ts` pure types | ✅ Sudah |
+| 3 | **Hindari `@inertiajs/react` import di Components** — hanya di Pages/Layouts | ⚠️ Sebagian |
+| 4 | **Dual Controller pattern** — Web + API untuk setiap fitur | ✅ Sudah |
+| 5 | **API response standar** — format JSON konsisten | ✅ Sudah |
+| 6 | **Service Layer** — satu-satunya tempat business logic | ✅ Sudah |
+| 7 | **Export types ke package terpisah** — `@smauii/types` | ❌ Belum |
+
+### Panduan untuk Fathan
+
+```tsx
+// ✅ BOLEH — Inertia import di Pages
+import { router, usePage } from '@inertiajs/react';
+export default function DataMasterPage() {
+    const { students } = usePage().props;
+    // ...
+}
+
+// ❌ JANGAN — Inertia import di Components
+import { router } from '@inertiajs/react';
+export function Button() { ... } // ❌ Button harus pure React
+
+// ✅ BOLEH — react-icons/fa di Components
+import { FaPlus } from 'react-icons/fa';
+export function Button({ children }) {
+    return <button>{children} <FaPlus /></button>;
+}
+```
+
+---
+
+## 🧩 Panduan Per Halaman
+
+### Halaman 1: Admin — Pengajuan Izin (desktop.css baris 3855, 4139)
+
+**Status: ✅ SUDAH — `Pages/Admin/PengajuanIzin.tsx`**
 
 Layout:
 - Sidebar (kiri) + Header + Content
-- Tabel daftar pengajuan izin sakit dengan kolom: Nama, Kelas, Tanggal, Keterangan, Status, Aksi
-- Tombol "Verifikasi Izin" (variant 1 detail) di setiap baris
-- Tab switcher: "Semua" | "Menunggu" | "Disetujui" | "Ditolak"
+- TabSwitcher: "Semua" | "Menunggu" | "Disetujui" | "Ditolak"
+- Tabel daftar pengajuan izin dengan kolom: Nama, Kelas, Tanggal, Keterangan, Status, Aksi
+- Tombol verifikasi di setiap baris
 - Filter: by kelas, by tanggal
 
-Route: `GET /admin/pengajuan-izin-sakit`
-Controller: `Admin/PengajuanIzinSakitController`
-Service: `LeaveRequestService` (existing — pakai `findAll()` dengan filter status)
+**Catatan:** Halaman figma baris 3855 (Pengajuan Izin Sakit) dan 4139 (Pengajuan Izin Diterima) **digabung** via TabSwitcher.
 
-### Halaman 2: Admin — Pengajuan Izin Diterima (desktop.css baris 4139)
+### Halaman 2: Admin — Data Master (desktop.css baris 4231)
+
+**Status: ✅ SUDAH — `Pages/Admin/DataMaster.tsx`**
 
 Layout:
-- Sama seperti Pengajuan Izin Sakit, tapi hanya menampilkan status "disetujui"
-- Tombol "Lihat Detail" (variant 1 non-hover) di setiap baris
-
-Route: `GET /admin/pengajuan-izin-diterima`
-Bisa digabung dengan halaman di atas via query param `?status=approved`
+- TabSwitcher: Siswa | Guru | Kelas | Wali
+- Tabel per tab dengan CRUD
+- Search + Filter kelas
+- Modal form tambah/edit
 
 ### Halaman 3: Admin — Rekap Bulanan (desktop.css baris 8529)
 
+**Status: ✅ SUDAH — `Pages/Admin/RekapBulanan.tsx`**
+
 Layout:
-- Navbar + Sidebar + Header "Rekap Bulanan"
 - Filter: bulan + tahun (dropdown)
 - StatCards: Total Siswa, Hadir, Sakit, Izin, Alpha
-- Tabel atau grafik batang per hari
-- Tombol Ekspor (variant 5 / Import Excel style)
-
-Route: `GET /admin/rekap-bulanan?bulan=1&tahun=2026`
-Controller: `Admin/RekapBulananController`
-Service: butuh method baru di `AttendanceService` — `getMonthlyStats($bulan, $tahun)`
+- Tabel per hari
+- Tombol Ekspor
 
 ### Halaman 4: Admin — Rekap Harian (desktop.css baris 41642)
 
+**Status: ✅ SUDAH — `Pages/Admin/RekapHarian.tsx`**
+
 Layout:
-- Navbar + Sidebar + Header "Rekap Harian"
 - Filter: tanggal (date picker)
 - Tabel: Nama, Kelas, Jam Masuk, Jam Keluar, Status
 - Summary baris: Total Hadir / Tidak Hadir
 
-Route: `GET /admin/rekap-harian?tanggal=2026-07-02`
-Controller: `Admin/RekapHarianController`
-Service: butuh method di `AttendanceService` — `getDailyStats($tanggal)`
-
 ### Halaman 5: Admin — Enrolment Siswa Kelas (desktop.css baris 14004)
 
+**Status: ✅ SUDAH — `Pages/Admin/EnrolmentKelas.tsx`**
+
 Layout:
-- Navbar + Sidebar + Header "Enrolment Siswa Kelas"
 - Pilih kelas (dropdown)
-- Tabel siswa di kelas itu: NIS, Nama, Aksi (Hapus dari kelas)
-- Tombol "Tambah Siswa" — modal/list siswa yang belum punya kelas
+- Tabel siswa di kelas itu: NIS, Nama, Aksi
+- Tombol "Tambah Siswa" — modal
 - Search + Filter
 
-Route: `GET /admin/enrolment-kelas`, `POST /admin/enrolment-kelas/tambah`, `DELETE /admin/enrolment-kelas/{id}`
-Controller: `Admin/EnrolmentKelasController`
-Service: `SchoolClassService` + `StudentService`
+### Halaman 6: Admin — Master Kelas (desktop.css baris 26383)
 
-### Halaman 6: Admin — Manajemen Master Kelas (desktop.css baris 26383)
+**Status: ✅ SUDAH — `Pages/Admin/MasterKelas.tsx`**
 
 Layout:
-- Navbar + Sidebar + Header "Master Kelas"
 - Tabel: Nama Kelas, Tingkat, Wali Kelas, Jumlah Siswa, Aksi
-- Tombol "Tambah Kelas Baru" (variant 6)
-- Modal form: Nama Kelas, Tingkat (X/XI/XII), Wali Kelas (dropdown guru)
+- Modal form tambah/edit
 
-Route: `GET /admin/master-kelas`, `POST /admin/master-kelas`, `PUT /admin/master-kelas/{id}`, `DELETE /admin/master-kelas/{id}`
-Bisa digabung dengan halaman DataMaster yang sudah ada (tab "Kelas")
+### Halaman 7: Admin — Atur Waktu & Libur (desktop.css baris 29537)
 
-### Halaman 7: Siswa — Riwayat Kehadiran (desktop.css baris 16482)
+**Status: ✅ SUDAH — `Pages/Admin/AturWaktuLibur.tsx`**
 
 Layout:
-- Header + Mobile Nav (mobile-first)
-- Profil siswa (nama, kelas, NIS)
-- Filter: bulan + tahun
-- Tabel: Tanggal, Jam Masuk, Jam Keluar, Status (Hadir/Sakit/Izin/Alpha)
-- Ringkasan: total hadir bulan ini
+- Kalender
+- Daftar hari libur
+- Form tambah hari libur
 
-Route: `GET /siswa/riwayat`
-Controller: `Siswa/RiwayatController`
-Service: `AttendanceService` — `getStudentHistory($userId, $bulan, $tahun)`
+### Halaman 8: Admin — Verifikasi Izin (desktop.css baris 58852)
 
-### Halaman 8: Siswa — Live Presensi (desktop.css baris 19057)
+**Status: ✅ SUDAH — `Pages/Admin/VerifikasiIzin.tsx`**
+
+Layout:
+- Tabel + Filter
+- Tombol approve/reject
+
+### Halaman 9: Admin — Monitoring Presensi
+
+**Status: ✅ SUDAH — `Pages/Admin/Monitoring.tsx`**
+
+Layout:
+- Tabel monitoring real-time
+- Filter kelas + tanggal
+
+### Halaman 10: Siswa — Dashboard (desktop.css baris 20182)
+
+**Status: ✅ SUDAH — `Pages/Siswa/Dashboard.tsx`**
+
+Layout:
+- Header + Nav (mobile-first, tanpa sidebar)
+- StatCards: Kehadiran Bulan Ini
+- Tombol "Presensi Sekarang"
+
+### Halaman 11: Siswa — Live Presensi (desktop.css baris 19057)
+
+**Status: ✅ SUDAH — `Pages/Siswa/LivePresensi.tsx`**
 
 Layout:
 - Full-screen camera view (simulasi)
 - Waktu real-time
 - Tombol "Check In" / "Check Out"
-- Status: "Belum Check In" / "Sudah Check In"
-- Notifikasi sukses setelah check in
 
-Route: `POST /siswa/live-presensi/checkin`, `POST /siswa/live-presensi/checkout`
-Controller: `Siswa/LivePresensiController`
-Service: `AttendanceService` — `checkIn()`, `checkOut()`
+### Halaman 12: Siswa — Riwayat Kehadiran (desktop.css baris 16482)
 
-### Halaman 9: Siswa — Dashboard Siswa (desktop.css baris 20182)
+**Status: ✅ SUDAH — `Pages/Siswa/RiwayatKehadiran.tsx`**
 
 Layout:
-- Header + Nav (mobile-first, tanpa sidebar)
-- StatCards: Kehadiran Bulan Ini, Izin Tersisa, Poin (jika ada)
-- Grafik kehadiran (mingguan/bulanan)
-- Daftar notifikasi / pengumuman
-- Tombol "Presensi Sekarang"
+- Filter: bulan + tahun
+- Tabel: Tanggal, Jam Masuk, Jam Keluar, Status
+- Ringkasan: total hadir bulan ini
 
-Route: `GET /siswa/dashboard`
-Controller: `Siswa/DashboardController`
-Service: `AttendanceService` — `getStudentStats($userId)`
+### Halaman 13: Wali Murid — Dashboard (mobile.css baris 15146)
 
-### Halaman 10: Wali Murid — Pengajuan Izin (desktop.css baris 21843)
+**Status: ✅ SUDAH — `Pages/WaliMurid/Dashboard.tsx`**
 
 Layout:
-- Header + Nav
-- Daftar anak (jika wali punya >1 anak)
-- Tombol "Ajukan Izin" (variant 6)
-- Form: Pilih Anak, Tanggal Mulai, Tanggal Selesai, Jenis Izin (Sakit/Keperluan Keluaga/Dll), Keterangan, Upload Bukti (opsional)
-- Tabel riwayat pengajuan izin: Tanggal, Jenis, Status (Menunggu/Disetujui/Ditolak)
+- Daftar anak
+- StatCard per anak
+- Riwayat izin terbaru
 
-Route: `GET /wali/pengajuan-izin`, `POST /wali/pengajuan-izin`
-Controller: `Wali/PengajuanIzinController`
-Service: `LeaveRequestService` — `create()` dengan `guardian_id`
+### Halaman 14: Wali Murid — Pengajuan Izin (desktop.css baris 21843)
+
+**Status: ✅ SUDAH — `Pages/WaliMurid/PengajuanIzin.tsx`**
+
+Layout:
+- Form: Pilih Anak, Tanggal, Jenis Izin, Keterangan, Upload Bukti
+- Tabel riwayat pengajuan
+
+### Halaman 15: Guru — Dashboard Piket (mobile.css baris 17954)
+
+**Status: ✅ SUDAH — `Pages/Guru/DashboardPiket.tsx`**
+
+Layout:
+- StatCard rekap
+- Daftar kelas
+
+### Halaman 16: Guru — Dashboard Wali Kelas (mobile.css baris 19785)
+
+**Status: ✅ SUDAH — `Pages/Guru/DashboardWaliKelas.tsx`**
+
+Layout:
+- StatCard per siswa
+- Daftar kehadiran
+
+### Halaman 17: Login (desktop.css baris 1)
+
+**Status: ✅ SUDAH — `Pages/Login.tsx`**
+
+Layout:
+- Dual panel (desktop) / Single column (mobile)
 
 ---
 
-## 🆕 Komponen Baru yang Perlu Dibuat
+## 🆕 Komponen Baru — Status Real
 
-| Komponen | Lokasi Tujuan | Berdasarkan Figma | Prioritas |
-|----------|--------------|-------------------|-----------|
-| **BrandLogo** | `Components/BrandLogo.tsx` | Login panel, Navbar | Medium |
-| **FilterBar** | `Components/FilterBar.tsx` | Global Filter (desktop.css 1519) | High |
-| **TabSwitcher** | `Components/TabSwitcher.tsx` | Tab di DataMaster, VerifikasiIzin | High |
-| **StudentCard** (perbaiki) | `Components/StudentCard.tsx` | Data Master (daftar siswa) | Low |
-| **Modal** | `Components/Modal.tsx` | Form tambah/edit, konfirmasi hapus | High |
-| **LoadingSpinner** | `Components/LoadingSpinner.tsx` | State loading | Medium |
-| **EmptyState** | `Components/EmptyState.tsx` | State kosong | Medium |
-| **ErrorAlert** | `Components/ErrorAlert.tsx` | State error | Medium |
-| **DashboardStats** (perbaiki) | `Components/DashboardStats.tsx` | Dashboard (masih hardcoded) | Low |
+> Semua komponen di bawah ini **SUDAH DIBUAT**. Tidak perlu dibuat ulang.
+
+| Komponen | Lokasi | Prioritas | Status |
+|----------|--------|-----------|--------|
+| **BrandLogo** | `Components/BrandLogo.tsx` | Medium | ✅ SUDAH |
+| **FilterBar** | `Components/FilterBar.tsx` | High | ✅ SUDAH (dengan sub-komponen Select, Date, Search, Pill) |
+| **TabSwitcher** | `Components/TabSwitcher.tsx` | High | ✅ SUDAH |
+| **StudentCard** | `Components/StudentCard.tsx` | Low | ✅ SUDAH |
+| **Modal** | `Components/Modal.tsx` | High | ✅ SUDAH |
+| **LoadingSpinner** | `Components/LoadingSpinner.tsx` | Medium | ✅ SUDAH |
+| **EmptyState** | `Components/EmptyState.tsx` | Medium | ✅ SUDAH |
+| **ErrorAlert** | `Components/ErrorAlert.tsx` | Medium | ✅ SUDAH |
+| **DashboardStats** | `Components/DashboardStats.tsx` | Low | ✅ SUDAH (mobile stat card pattern) |
 
 ---
 
@@ -1111,10 +1253,12 @@ Service: `LeaveRequestService` — `create()` dengan `guardian_id`
 ### Admin Layout (sidebar + navbar + content)
 ```
 resources/js/Layouts/AdminLayout.tsx
-├── <Sidebar />          — fixed left
-├── <Navbar />           — fixed top
-└── <main>               — content area (ml-60 mt-16)
-    └── {children}       — halaman spesifik
+├── <MobileHeader />     — lg:hidden (hamburger + brand + avatar)
+├── <Navbar />           — hidden lg:block (desktop header)
+├── <Sidebar />          — hidden lg:flex (desktop) + slide-out (mobile)
+├── <main>               — content area (pb-20 lg:pb-6 untuk ruang bottom nav)
+│   └── {children}       — halaman spesifik
+└── <BottomNav />        — lg:hidden, fixed bottom (4 items: Dashboard, Data, Presensi, Izin)
 ```
 
 ### Siswa Layout (mobile-first, tanpa sidebar desktop)
@@ -1122,17 +1266,30 @@ resources/js/Layouts/AdminLayout.tsx
 resources/js/Layouts/SiswaLayout.tsx
 ├── <MobileHeader />     — lg:hidden
 ├── <Navbar />           — lg:flex
-└── <main>               — content full-width
-    └── {children}
+├── <main>               — content full-width
+│   └── {children}
+└── <BottomNav />        — lg:hidden (3 items: Beranda, Presensi, Riwayat)
 ```
 
 ### Guru Layout (sidebar minimal + navbar)
 ```
 resources/js/Layouts/GuruLayout.tsx
-├── <MiniSidebar />      — icon-only sidebar
-├── <Navbar />
-└── <main>
-    └── {children}
+├── <MobileHeader />     — lg:hidden (hamburger + slide-out sidebar)
+├── <Navbar />           — lg:flex (desktop header)
+├── <Sidebar />          — hidden lg:flex
+├── <main>
+│   └── {children}
+└── <BottomNav />        — lg:hidden (3 items: Piket, Wali Kelas, Logout)
+```
+
+### Wali Murid Layout
+```
+resources/js/Layouts/WaliMuridLayout.tsx
+├── <MobileHeader />     — lg:hidden
+├── <Navbar />           — lg:flex
+├── <main>
+│   └── {children}
+└── <BottomNav />        — lg:hidden (2 items: Beranda, Pengajuan Izin)
 ```
 
 ### Auth Layout (no sidebar, centered)
@@ -1146,16 +1303,16 @@ resources/js/Layouts/AuthLayout.tsx
 
 ## 📐 Konvensi Penamaan dari Figma
 
-| Di Figma | Yang Harus Dibuat |
-|----------|-------------------|
+| Di Figma | File Real |
+|----------|-----------|
 | `/* Dekstop Login */` | `Pages/Login.tsx` |
-| `/* Admin Dekstop Dashboard */` | `Pages/Admin/Dashboard.tsx` |
+| `/* Admin Dekstop Dashboard */` | `Pages/Dashboard.tsx` |
 | `/* Admin Manajemen Data Master */` | `Pages/Admin/DataMaster.tsx` |
-| `/* Admin Pengajuan Izin Sakit */` | `Pages/Admin/PengajuanIzinSakit.tsx` |
-| `/* Pengajuan Izin Diterima */` | Bagian dari halaman di atas (tab) |
+| `/* Admin Pengajuan Izin Sakit */` | `Pages/Admin/PengajuanIzin.tsx` (TabSwitcher) |
+| `/* Pengajuan Izin Diterima */` | Bagian dari halaman di atas (tab "Disetujui") |
 | `/* Admin Rekap Bulanan */` | `Pages/Admin/RekapBulanan.tsx` |
 | `/* Admin Enrolment Siswa Kelas */` | `Pages/Admin/EnrolmentKelas.tsx` |
-| `/* Admin Manajemen Master Kelas */` | Gabung dengan DataMaster (tab Kelas) |
+| `/* Admin Manajemen Master Kelas */` | `Pages/Admin/MasterKelas.tsx` |
 | `/* Admin Pengaturan Waktu dan Libur */` | `Pages/Admin/AturWaktuLibur.tsx` |
 | `/* Verifikasi Izin & Sakit */` | `Pages/Admin/VerifikasiIzin.tsx` |
 | `/* Admin Rekap Harian */` | `Pages/Admin/RekapHarian.tsx` |
@@ -1220,9 +1377,6 @@ export default function NamaHalaman({ data, filters }: PageProps) {
         emptyMessage="Belum ada data"
         onSelectionChange={setSelected}
       />
-
-      {/* Pagination from Inertia */}
-      {/* <Pagination links={data.links} /> */}
     </AdminLayout>
   );
 }
@@ -1232,55 +1386,80 @@ export default function NamaHalaman({ data, filters }: PageProps) {
 
 ## 📝 Checklist Lengkap (Update dari Existing)
 
-### Existing Checklist (Phase 1–5) — Lihat di atas ↑
+### Phase 1 — Foundation (✅ Selesai)
+- [x] Registrasi design tokens di `app.css` via `@theme`
+- [x] Components/ui/Button, Input, Badge, StatusBadge
+- [x] Components/BrandLogo
 
-### Phase 4 Detail — Halaman Admin Tersisa
+### Phase 2 — Layout & Navigasi (✅ Selesai)
+- [x] Sidebar, SidebarItem
+- [x] AdminLayout (header + sidebar + mobile nav)
+- [x] AuthLayout, GuruLayout, SiswaLayout, WaliMuridLayout
 
-- [ ] **Pengajuan Izin Sakit** — tabel + filter status (baris 3855)
-- [ ] **Pengajuan Izin Diterima** — filter status=approved (baris 4139)
-- [ ] **Rekap Bulanan** — filter bulan+tahun + StatCard + tabel (baris 8529)
-- [ ] **Rekap Harian** — filter tanggal + tabel kehadiran (baris 41642)
-- [ ] **Enrolment Siswa Kelas** — pilih kelas + daftar siswa + assign (baris 14004)
-- [ ] **Manajemen Master Kelas** — CRUD kelas + wali kelas (baris 26383)
+### Phase 3 — Halaman Prioritas Tinggi (✅ Selesai)
+- [x] Login — dual panel (desktop) / single column (mobile)
+- [x] Dashboard Admin — StatCard, FilterBar, TabSwitcher
+- [x] Data Master — TabSwitcher: Siswa, Guru, Kelas, Wali
 
-### Phase 4B — Halaman Siswa
+### Phase 4 Detail — Halaman Admin (✅ Selesai)
+- [x] **Pengajuan Izin** — TabSwitcher semua status
+- [x] **Rekap Bulanan** — filter bulan+tahun + StatCard + tabel
+- [x] **Rekap Harian** — filter tanggal + tabel kehadiran
+- [x] **Enrolment Siswa Kelas** — pilih kelas + daftar siswa + assign
+- [x] **Manajemen Master Kelas** — CRUD kelas + wali kelas
+- [x] **Atur Waktu & Libur** — kalender + hari libur
+- [x] **Verifikasi Izin** — approve/reject
+- [x] **Monitoring Presensi** — real-time
 
-- [ ] **Dashboard Siswa** — StatCard kehadiran + notifikasi (baris 20182)
-- [ ] **Live Presensi** — check-in/check-out (baris 19057)
-- [ ] **Riwayat Kehadiran** — filter bulan + tabel history (baris 16482)
+### Phase 4B — Halaman Siswa (✅ Selesai)
+- [x] **Dashboard Siswa** — StatCard kehadiran + tombol presensi
+- [x] **Live Presensi** — check-in/check-out
+- [x] **Riwayat Kehadiran** — filter bulan + tabel history
 
-### Phase 4C — Halaman Wali Murid
+### Phase 4C — Halaman Wali Murid (✅ Selesai)
+- [x] **Dashboard Wali Murid** — daftar anak + ringkasan
+- [x] **Pengajuan Izin (Wali)** — form + riwayat
 
-- [ ] **Dashboard Wali Murid** — daftar anak + ringkasan (mobile.css 15146)
-- [ ] **Pengajuan Izin (Wali)** — form + riwayat (desktop.css 21843)
+### Phase 4D — Halaman Guru (✅ Selesai)
+- [x] **Dashboard Guru Piket** — rekap harian per kelas
+- [x] **Dashboard Wali Kelas** — statistik per siswa
 
-### Phase 4D — Halaman Guru
+### Phase 5 — Mobile & Polish (✅ Sebagian)
+- [x] Mobile header + bottom nav di semua layout
+- [x] Slide-out sidebar untuk mobile
+- [x] Filter bar: `flex-col sm:flex-row`, `w-full sm:w-auto`
+- [x] Stat card: 2 kolom mobile, 5 kolom desktop
+- [x] Tabel: `overflow-x-auto` untuk mobile
+- [x] SVGs di layout → FA5 icons
+- [x] DashboardStats: mobile stat card pattern (9px label, 18px value)
+- [ ] Audit setiap halaman untuk mobile readiness (ongoing)
+- [ ] Loading state di semua halaman yang fetching data (ongoing)
+- [ ] Empty state di semua tabel (ongoing)
 
-- [ ] **Dashboard Guru Piket** — rekap harian per kelas (mobile.css 17954)
-- [ ] **Dashboard Wali Kelas** — statistik per siswa (mobile.css 19785)
-- [ ] **Verifikasi Izin (Guru)** — sudah selesai di Admin
+#### 📋 File yang Diubah untuk Mobile Responsive
 
-### Phase 5 — Mobile & Polish
-
-- [ ] Buat `ResponsiveWrapper` atau gunakan `lg:hidden` / `hidden lg:flex`
-- [ ] Sidebar mobile: hamburger menu + overlay
-- [ ] Tabel: `overflow-x-auto` untuk mobile
-- [ ] StatCard: horizontal scroll di mobile
-- [ ] Form: full-width di mobile
-- [ ] Test semua halaman di viewport 375px (mobile) dan 1280px (desktop)
-- [ ] Loading state di semua halaman yang fetching data
-- [ ] Empty state di semua tabel
-- [ ] Error alert di semua form
+| # | File | Perubahan |
+|:---:|---|---|
+| 1 | `Layouts/AdminLayout.tsx` | Mobile header (hamburger + brand + avatar), slide-out sidebar overlay, bottom nav 4 item, wrapper desktop Navbar, `pb-20 lg:pb-6` |
+| 2 | `Layouts/SiswaLayout.tsx` | SVGs → FA5 (`fa-home`, `fa-clock`, `fa-history`), active state bottom nav via `usePage().url`, back button |
+| 3 | `Layouts/GuruLayout.tsx` | SVGs → FA5, slide-out sidebar mobile, tombol logout di sidebar mobile + desktop |
+| 4 | `Layouts/WaliMuridLayout.tsx` | SVGs → FA5 (`fa-home`, `fa-paper-plane`), logout icon di header mobile + desktop |
+| 5 | `Components/FilterBar.tsx` | Mobile-first stacking (`flex-col sm:flex-row`), `w-full sm:w-auto` di input/select, sub-komponen `FilterPill` |
+| 6 | `Components/DashboardStats.tsx` | Mobile stat card pattern: label 9px, value 18px, `p-3`, color-coded (primary/danger/success/warning), period filter pills 11px |
+| 7 | `Pages/Admin/Monitoring.tsx` | Filter: `w-full` + `flex-col sm:flex-row` pada wrapper |
+| 8 | `Pages/Admin/VerifikasiIzin.tsx` | Filter: `w-full` + `flex-col sm:flex-row` pada wrapper |
 
 ---
 
 ## 🚨 Hal yang Perlu Dihindari
 
 1. **Jangan pakai `position: absolute`** — Figma pake itu, kita pake flexbox/grid
-2. **Jangan pakai `left:`, `right:`, `top:`, `bottom:`** — itu position Figma
+2. **Jangan pakai `left:`, `right:`, `top:`, `bottom:`** — itu position Figma yang tidak responsif
 3. **Jangan salin `flex: none; order: 0; flex-grow: 0;`** — itu boilerplate Figma
 4. **Jangan salin `width: 285.79px`** — pake Tailwind `w-*` yang relatif
 5. **Jangan bikin komponen ulang** — cek dulu `Components/ui/` dan `Components/` apa yang sudah ada
 6. **Jangan pakai `bg-bay-of-many`** — tidak terdaftar di `@theme`. Pakai `bg-primary`
 7. **Jangan lupa eager loading** — `->with('relation')` di Service method
 8. **Jangan lupa 3 state** — loading, empty, error untuk setiap komponen data
+9. **Jangan bikin halaman mobile terpisah** — mobile.css adalah design spec 340px, bukan daftar halaman baru
+10. **Jangan import `@inertiajs/react` di Components** — hanya di Pages/Layouts, biar mudah dipisah ke Next.js nanti
