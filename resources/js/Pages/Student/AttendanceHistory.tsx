@@ -2,7 +2,7 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AttendanceChart from "@/Components/AttendanceChart";
 import { StatCard, StatusBadge, FilterBar, Button } from "@/Components";
-import SiswaLayout from "@/Layouts/SiswaLayout";
+import StudentLayout from "@/Layouts/StudentLayout";
 
 interface Student {
     id: number;
@@ -33,10 +33,10 @@ interface MonthlyTrend {
 }
 
 interface Stats {
-    total_hari: number;
+    total_days: number;
     present: number;
     late: number;
-    alpa: number;
+    absent: number;
 }
 
 interface PageProps {
@@ -87,7 +87,7 @@ export default function RiwayatKehadiran({
     ];
 
     return (
-        <SiswaLayout
+        <StudentLayout
             title="Riwayat Kehadiran"
             userInitial={student.name.charAt(0)}
             showBack
@@ -114,7 +114,7 @@ export default function RiwayatKehadiran({
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 <StatCard
                     label="Hari Tercatat"
-                    value={stats.total_hari}
+                    value={stats.total_days}
                     color="grey"
                 />
                 <StatCard label="Hadir" value={stats.present} color="green" />
@@ -123,7 +123,7 @@ export default function RiwayatKehadiran({
                     value={stats.late}
                     color="amber"
                 />
-                <StatCard label="Alpa" value={stats.alpa} color="red" />
+                <StatCard label="Absent" value={stats.absent} color="red" />
             </section>
 
             {/* Monthly Trend Chart */}
@@ -253,6 +253,6 @@ export default function RiwayatKehadiran({
                     </div>
                 )}
             </section>
-        </SiswaLayout>
+        </StudentLayout>
     );
 }

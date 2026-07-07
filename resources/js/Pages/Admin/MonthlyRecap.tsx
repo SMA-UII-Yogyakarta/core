@@ -14,7 +14,7 @@ interface DailyEntry {
     date: string;
     present: number;
     late: number;
-    alpa: number;
+    absent: number;
 }
 
 interface DailyData {
@@ -22,9 +22,9 @@ interface DailyData {
     summary: {
         total_siswa: number;
         total_present: number;
-        total_terlambat: number;
-        total_alpa: number;
-        jumlah_hari: number;
+        total_late: number;
+        total_absent: number;
+        total_days: number;
     };
 }
 
@@ -78,7 +78,7 @@ export default function RekapBulanan({
         { key: "date", header: "Tanggal" },
         { key: "present", header: "Hadir" },
         { key: "late", header: "Terlambat" },
-        { key: "alpa", header: "Alpa" },
+        { key: "absent", header: "Absent" },
     ];
 
     return (
@@ -142,17 +142,17 @@ export default function RekapBulanan({
                         />
                         <StatCard
                             label="Total Terlambat"
-                            value={dailyData.summary.total_terlambat}
+                            value={dailyData.summary.total_late}
                             color="amber"
                         />
                         <StatCard
-                            label="Total Alpa"
-                            value={dailyData.summary.total_alpa}
+                            label="Total Absent"
+                            value={dailyData.summary.total_absent}
                             color="red"
                         />
                         <StatCard
                             label="Hari Aktif"
-                            value={dailyData.summary.jumlah_hari}
+                            value={dailyData.summary.total_days}
                             color="blue"
                         />
                     </section>

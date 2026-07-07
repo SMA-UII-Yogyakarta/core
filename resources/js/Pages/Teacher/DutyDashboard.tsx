@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import GuruLayout from "@/Layouts/GuruLayout";
+import TeacherLayout from "@/Layouts/TeacherLayout";
 
 interface Teacher {
     id: number;
@@ -71,11 +71,11 @@ export default function DashboardPiket({
     }, []);
 
     return (
-        <GuruLayout
+        <TeacherLayout
             title="Dashboard Guru Piket"
             username={teacher.name}
             userInitial={teacher.name.charAt(0)}
-            activeMenu="piket"
+            activeMenu="duty"
         >
             {/* Status */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
@@ -129,7 +129,7 @@ export default function DashboardPiket({
                                     {cs.absent}
                                 </div>
                                 <div className="text-[11px] text-text-muted">
-                                    Alpa
+                                    Absent
                                 </div>
                             </div>
                             <div>
@@ -202,6 +202,6 @@ export default function DashboardPiket({
                     Verifikasi Izin
                 </a>
             </div>
-        </GuruLayout>
+        </TeacherLayout>
     );
 }

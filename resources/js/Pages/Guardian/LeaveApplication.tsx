@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { Button, StatusBadge } from "@/Components";
-import WaliMuridLayout from "@/Layouts/WaliMuridLayout";
+import GuardianLayout from "@/Layouts/GuardianLayout";
 
 interface Student {
     id: number;
@@ -80,7 +80,7 @@ export default function WaliPengajuanIzin({
     };
 
     return (
-        <WaliMuridLayout
+        <GuardianLayout
             title="Pengajuan Izin"
             username={guardian.name}
             userInitial={guardian.name.charAt(0)}
@@ -296,6 +296,6 @@ export default function WaliPengajuanIzin({
                     </div>
                 )}
             </section>
-        </WaliMuridLayout>
+        </GuardianLayout>
     );
 }

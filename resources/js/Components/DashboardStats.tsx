@@ -1,12 +1,19 @@
 import { useState } from "react";
 
-type Period = "harian" | "bulanan" | "semester";
+type Period = "daily" | "monthly" | "semester";
 
 const tabs: { key: Period; label: string }[] = [
-    { key: "harian", label: "Harian" },
-    { key: "bulanan", label: "Bulanan" },
+    { key: "daily", label: "Harian" },
+    { key: "monthly", label: "Bulanan" },
     { key: "semester", label: "Semester" },
 ];
+
+interface DashboardStatsProps {
+    present?: number;
+    absent?: number;
+    sick?: number;
+    late?: number;
+}
 
 interface MobileStatCardProps {
     label: string;
@@ -33,12 +40,16 @@ function MobileStatCard({
     );
 }
 
-export default function DashboardStats() {
-    const [period, setPeriod] = useState<Period>("harian");
+export default function DashboardStats({
+    present = 0,
+    absent = 0,
+    sick = 0,
+    late = 0,
+}: DashboardStatsProps) {
+    const [period, setPeriod] = useState<Period>("daily");
 
     return (
         <section className="font-inter">
-            {/* Period Filter — mobile.css pill pattern */}
             <div className="flex gap-2 mb-4">
                 {tabs.map((t) => (
                     <button
@@ -56,26 +67,25 @@ export default function DashboardStats() {
                 ))}
             </div>
 
-            {/* Mobile Stat Cards — mobile.css 2-col grid pattern */}
             <div className="grid grid-cols-2 gap-2.5">
                 <MobileStatCard
                     label="Hadir"
-                    value="560 || 94%"
+                    value={present}
                     valueColor="text-primary"
                 />
                 <MobileStatCard
-                    label="Alpa"
-                    value="18"
+                    label="Absent"
+                    value={absent}
                     valueColor="text-danger"
                 />
                 <MobileStatCard
                     label="Ijin"
-                    value="40 || 2%"
+                    value={sick}
                     valueColor="text-success"
                 />
                 <MobileStatCard
                     label="Sakit"
-                    value="40 || 2%"
+                    value={late}
                     valueColor="text-warning"
                 />
             </div>

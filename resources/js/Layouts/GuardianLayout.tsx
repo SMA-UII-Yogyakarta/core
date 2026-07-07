@@ -3,7 +3,7 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import ErrorBoundary from "@/Components/ErrorBoundary";
 import Toast from "@/Components/Toast";
 
-interface WaliMuridLayoutProps {
+interface GuardianLayoutProps {
     title?: string;
     children: ReactNode;
     username?: string;
@@ -11,20 +11,20 @@ interface WaliMuridLayoutProps {
 }
 
 const bottomNavItems = [
-    { label: "Beranda", icon: "fa-home", href: "/wali/dashboard" },
+    { label: "Beranda", icon: "fa-home", href: "/guardian" },
     {
         label: "Pengajuan",
         icon: "fa-paper-plane",
-        href: "/wali/pengajuan-izin",
+        href: "/guardian/leave-application",
     },
 ];
 
-export default function WaliMuridLayout({
+export default function GuardianLayout({
     title,
     children,
     username,
     userInitial,
-}: WaliMuridLayoutProps) {
+}: GuardianLayoutProps) {
     const { url } = usePage();
 
     const isActive = (href: string) => url.startsWith(href);

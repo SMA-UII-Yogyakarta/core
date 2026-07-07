@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import Button from "@/Components/ui/Button";
-import SiswaLayout from "@/Layouts/SiswaLayout";
+import StudentLayout from "@/Layouts/StudentLayout";
 
 interface Student {
     id: number;
@@ -22,7 +22,7 @@ interface PageProps {
     todayAttendance: TodayAttendance | null;
 }
 
-export default function LivePresensi({ student, todayAttendance }: PageProps) {
+export default function LiveAttendance({ student, todayAttendance }: PageProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
             }
             setCameraReady(true);
         } catch {
-            setError("Kamera tidak tersedia. Silakan izinkan akses kamera.");
+            setError("Camera not available. Please allow camera access.");
         }
     };
 
@@ -88,7 +88,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
         setSuccess(null);
 
         if (!navigator.geolocation) {
-            setError("Geolocation tidak didukung di browser ini.");
+            setError("Geolocation is not supported in this browser.");
             setLoading(false);
             return;
         }
@@ -112,7 +112,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
-                            setSuccess("Presensi berhasil!");
+                            setSuccess("Check-in successful!");
                             setLoading(false);
                             if (stream) {
                                 stream.getTracks().forEach((t) => t.stop());
@@ -121,7 +121,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                         },
                         onError: (err) => {
                             const msg = typeof err === "string" ? err : Object.values(err).join(", ");
-                            setError(msg || "Terjadi kesalahan.");
+                            setError(msg || "Something went wrong.");
                             setLoading(false);
                         },
                     });
@@ -136,7 +136,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
-                            setSuccess("Presensi berhasil!");
+                            setSuccess("Check-in successful!");
                             setLoading(false);
                             if (stream) {
                                 stream.getTracks().forEach((t) => t.stop());
@@ -145,7 +145,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                         },
                         onError: (err) => {
                             const msg = typeof err === "string" ? err : Object.values(err).join(", ");
-                            setError(msg || "Terjadi kesalahan.");
+                            setError(msg || "Something went wrong.");
                             setLoading(false);
                         },
                     });
@@ -156,7 +156,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
     };
 
     return (
-        <SiswaLayout
+        <StudentLayout
             title="Live Presensi"
             userInitial={student.name.charAt(0)}
             showBack
@@ -198,7 +198,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                     <div className="text-center mb-6">
                         <div className="inline-flex items-center gap-2 px-5 py-3 bg-success-bg border border-success-light rounded-xl text-success font-semibold text-[14px]">
                             <span className="w-3 h-3 bg-success rounded-full" />
-                            Sudah Check In — {todayAttendance.check_in_time}
+                            Checked In — {todayAttendance.check_in_time}
                         </div>
                     </div>
                 ) : (
@@ -208,7 +208,7 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                         size="lg"
                         className="w-full max-w-xs py-4 text-[16px]"
                     >
-                        {loading ? "Memproses..." : "Check In"}
+                        {loading ? "Processing..." : "Check In"}
                     </Button>
                 )}
 
@@ -234,9 +234,9 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
                     href="/student/dashboard"
                     className="mt-8 text-[13px] text-primary hover:underline"
                 >
-                    &larr; Kembali ke Dashboard
+                    &larr; Back to Dashboard
                 </a>
             </main>
-        </SiswaLayout>
+        </StudentLayout>
     );
 }

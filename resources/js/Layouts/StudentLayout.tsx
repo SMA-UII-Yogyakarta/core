@@ -3,7 +3,7 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import ErrorBoundary from "@/Components/ErrorBoundary";
 import Toast from "@/Components/Toast";
 
-interface SiswaLayoutProps {
+interface StudentLayoutProps {
     title?: string;
     children: ReactNode;
     username?: string;
@@ -19,7 +19,7 @@ const bottomNavItems = [
     { label: "Riwayat", icon: "fa-history", href: "/student/history" },
 ];
 
-export default function SiswaLayout({
+export default function StudentLayout({
     title,
     children,
     username,
@@ -27,7 +27,7 @@ export default function SiswaLayout({
     showBack,
     backHref = "/student/dashboard",
     backLabel = "Kembali",
-}: SiswaLayoutProps) {
+}: StudentLayoutProps) {
     const { url } = usePage();
 
     const isActive = (href: string) => url.startsWith(href);

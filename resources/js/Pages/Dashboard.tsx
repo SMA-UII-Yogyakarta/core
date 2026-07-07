@@ -7,10 +7,10 @@ import type { StatusVariant } from "@/types/component";
 
 interface Stats {
     total_students: number;
-    hadir_terdata: number;
+    verified_present: number;
     late: number;
-    sakit_izin: number;
-    alpa: number;
+    sick_permit: number;
+    absent: number;
 }
 
 interface AttendanceRow {
@@ -26,11 +26,11 @@ interface AttendanceRow {
 
 interface MonthlyStats {
     month: string;
-    total_siswa: number;
-    hari_efektif: number;
+    total_students: number;
+    working_days: number;
     total_present: number;
-    total_terlambat: number;
-    rata_hadir_per_hari: number;
+    total_late: number;
+    avg_daily_present: number;
 }
 
 interface SchoolClass {
@@ -55,11 +55,11 @@ interface StudentRow {
 }
 
 interface StudentDetailStats {
-    total_hari: number;
+    total_days: number;
     present: number;
     late: number;
-    alpa: number;
-    persentase_kehadiran: number;
+    absent: number;
+    attendance_percentage: number;
 }
 
 interface StudentDetailData {
@@ -89,7 +89,7 @@ interface DashboardProps {
     todayAttendance: AttendanceRow[];
     pendingLeaveCount: number;
     monthlyStats: MonthlyStats;
-    overview: { date: string; total_siswa: number; hadir_terdata: number; present: number; late: number; sick_permission: number; absent: number; kelas: ClassStat[] };
+    overview: { date: string; total_students: number; verified_present: number; present: number; late: number; sick_permission: number; absent: number; classes: ClassStat[] };
     monthlyTrend: { year: number; months: TrendMonth[] };
     weeklyTrend: TrendWeek[];
     classes: SchoolClass[];
@@ -162,10 +162,10 @@ export default function Dashboard({
             {/* Statistics Cards */}
             <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
                 <StatCard label="Total Siswa" value={stats.total_students} color="grey" />
-                <StatCard label="Hadir Terdata" value={stats.hadir_terdata} color="green" />
+                <StatCard label="Verified Present" value={stats.verified_present} color="green" />
                 <StatCard label="Terlambat" value={stats.late} color="amber" />
-                <StatCard label="Sakit / Izin" value={stats.sakit_izin} color="blue" />
-                <StatCard label="Alpa (Kosong)" value={stats.alpa} color="red" />
+                <StatCard label="Sick / Permit" value={stats.sick_permit} color="blue" />
+                <StatCard label="Absent" value={stats.absent} color="red" />
             </section>
 
             {/* Class Filter + Drill Breadcrumb */}
@@ -207,7 +207,7 @@ export default function Dashboard({
                         Rekap Per Kelas — {overview.date}
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {overview.kelas.map((k) => (
+                        {overview.classes.map((k) => (
                             <button
                                 key={k.id}
                                 onClick={() => drillToClass(k.id)}
@@ -285,7 +285,7 @@ export default function Dashboard({
                     </div>
                     <div className="grid grid-cols-4 gap-3 mb-4">
                         <div className="bg-background rounded-lg p-3 text-center">
-                            <div className="text-[20px] font-bold text-primary">{studentDetail.stats.total_hari}</div>
+                            <div className="text-[20px] font-bold text-primary">{studentDetail.stats.total_days}</div>
                             <div className="text-[11px] text-text-muted">Total</div>
                         </div>
                         <div className="bg-background rounded-lg p-3 text-center">
@@ -297,12 +297,12 @@ export default function Dashboard({
                             <div className="text-[11px] text-text-muted">Terlambat</div>
                         </div>
                         <div className="bg-background rounded-lg p-3 text-center">
-                            <div className="text-[20px] font-bold text-danger">{studentDetail.stats.alpa}</div>
-                            <div className="text-[11px] text-text-muted">Alpa</div>
+                            <div className="text-[20px] font-bold text-danger">{studentDetail.stats.absent}</div>
+                            <div className="text-[11px] text-text-muted">Absent</div>
                         </div>
                     </div>
                     <div className="bg-background rounded-lg p-3 mb-4 text-center">
-                        <div className="text-[24px] font-bold text-primary">{studentDetail.stats.persentase_kehadiran}%</div>
+                        <div className="text-[24px] font-bold text-primary">{studentDetail.stats.attendance_percentage}%</div>
                         <div className="text-[12px] text-text-muted">Persentase Kehadiran</div>
                     </div>
                     <table className="w-full text-[13px]">
@@ -370,7 +370,7 @@ export default function Dashboard({
                 </h2>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-background rounded-lg p-4 text-center">
-                        <div className="text-[24px] font-bold text-primary">{monthlyStats.hari_efektif}</div>
+                        <div className="text-[24px] font-bold text-primary">{monthlyStats.working_days}</div>
                         <div className="text-[12px] text-text-muted mt-1">Hari Efektif</div>
                     </div>
                     <div className="bg-background rounded-lg p-4 text-center">
@@ -378,11 +378,11 @@ export default function Dashboard({
                         <div className="text-[12px] text-text-muted mt-1">Total Hadir</div>
                     </div>
                     <div className="bg-background rounded-lg p-4 text-center">
-                        <div className="text-[24px] font-bold text-warning">{monthlyStats.total_terlambat}</div>
+                        <div className="text-[24px] font-bold text-warning">{monthlyStats.total_late}</div>
                         <div className="text-[12px] text-text-muted mt-1">Total Terlambat</div>
                     </div>
                     <div className="bg-background rounded-lg p-4 text-center">
-                        <div className="text-[24px] font-bold text-primary">{monthlyStats.rata_hadir_per_hari}</div>
+                        <div className="text-[24px] font-bold text-primary">{monthlyStats.avg_daily_present}</div>
                         <div className="text-[12px] text-text-muted mt-1">Rata-rata/Hari</div>
                     </div>
                 </div>
@@ -390,7 +390,12 @@ export default function Dashboard({
 
             {/* Mobile Dashboard Stats */}
             <section className="lg:hidden mb-6">
-                <DashboardStats />
+                <DashboardStats
+                    present={stats.verified_present}
+                    absent={stats.absent}
+                    sick={stats.sick_permit}
+                    late={stats.late}
+                />
             </section>
         </AdminLayout>
     );

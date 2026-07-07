@@ -105,7 +105,7 @@ export default function AturWaktuLibur({
         }));
 
         router.post(
-            "/admin/pengaturan/time-settings",
+            "/admin/settings/time-settings",
             { settings },
             {
                 preserveState: true,
@@ -119,7 +119,7 @@ export default function AturWaktuLibur({
         if (!holidayDate) return;
 
         router.post(
-            "/admin/pengaturan/holidays",
+            "/admin/settings/holidays",
             { holiday_date: holidayDate, description: holidayDesc },
             {
                 preserveState: true,
@@ -137,7 +137,7 @@ export default function AturWaktuLibur({
 
     const confirmDeleteHoliday = () => {
         if (deleteHolidayId === null) return;
-        router.delete(`/admin/pengaturan/holidays/${deleteHolidayId}`, {
+        router.delete(`/admin/settings/holidays/${deleteHolidayId}`, {
             preserveState: true,
             onSuccess: () => setDeleteHolidayId(null),
         });

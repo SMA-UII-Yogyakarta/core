@@ -38,10 +38,10 @@
                 <td>{{ $s['nis'] }}</td>
                 <td>{{ $s['name'] }}</td>
                 <td>{{ $s['class'] }}</td>
-                <td>{{ $s['hadir'] }}</td>
-                <td>{{ $s['terlambat'] }}</td>
-                <td>{{ $s['alpa'] }}</td>
-                <td>{{ $s['persentase'] }}</td>
+                <td>{{ $s['present'] }}</td>
+                <td>{{ $s['late'] }}</td>
+                <td>{{ $s['absent'] }}</td>
+                <td>{{ $s['percentage'] }}</td>
             </tr>
             @endforeach
         </tbody>

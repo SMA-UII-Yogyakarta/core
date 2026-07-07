@@ -1,7 +1,7 @@
 import { router } from "@inertiajs/react";
 import AttendanceChart from "@/Components/AttendanceChart";
 import { StatCard, StatusBadge } from "@/Components";
-import WaliMuridLayout from "@/Layouts/WaliMuridLayout";
+import GuardianLayout from "@/Layouts/GuardianLayout";
 
 interface Student {
   id: number;
@@ -11,10 +11,10 @@ interface Student {
 }
 
 interface Stats {
-  total_hari: number;
+  total_days: number;
   present: number;
   late: number;
-  alpa: number;
+  absent: number;
   pending_leave: number;
 }
 
@@ -81,16 +81,16 @@ export default function WaliMuridDashboard({
       (acc, r) => ({
         present: acc.present + r.present,
         late: acc.late + r.late,
-        alpa: acc.alpa + r.absent,
+        absent: acc.absent + r.absent,
       }),
-      { present: 0, late: 0, alpa: 0 },
+      { present: 0, late: 0, absent: 0 },
     );
   }
 
   const trendStats = monthlyTrend ? statusCount(monthlyTrend) : null;
 
   return (
-    <WaliMuridLayout
+    <GuardianLayout
       title="Dashboard"
       username={guardian.name}
       userInitial={guardian.name.charAt(0)}
@@ -181,7 +181,7 @@ export default function WaliMuridDashboard({
                   value={trendStats?.late ?? 0}
                   color="amber"
                 />
-                <StatCard label="Alpa" value={trendStats?.alpa ?? 0} color="red" />
+                <StatCard label="Absent" value={trendStats?.absent ?? 0} color="red" />
               </div>
               <AttendanceChart
                 data={monthlyTrend.map((m) => ({
@@ -235,7 +235,7 @@ export default function WaliMuridDashboard({
           {/* Stats Overview */}
           {stats && (
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <StatCard label="Hari Tercatat" value={stats.total_hari} color="grey" />
+              <StatCard label="Days Recorded" value={stats.total_days} color="grey" />
               <StatCard label="Hadir" value={stats.present} color="green" />
               <StatCard label="Terlambat" value={stats.late} color="amber" />
               <StatCard label="Izin Pending" value={stats.pending_leave} color="blue" />
@@ -327,6 +327,6 @@ export default function WaliMuridDashboard({
           + Ajukan Izin
         </a>
       </section>
-    </WaliMuridLayout>
+    </GuardianLayout>
   );
 }

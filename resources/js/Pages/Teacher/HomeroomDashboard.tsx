@@ -1,5 +1,5 @@
 import { StatCard, StatusBadge } from "@/Components";
-import GuruLayout from "@/Layouts/GuruLayout";
+import TeacherLayout from "@/Layouts/TeacherLayout";
 
 interface Teacher {
     id: number;
@@ -22,7 +22,7 @@ interface Stats {
     total: number;
     present: number;
     late: number;
-    alpa: number;
+    absent: number;
 }
 
 interface PageProps {
@@ -39,11 +39,11 @@ export default function DashboardWaliKelas({
     stats,
 }: PageProps) {
     return (
-        <GuruLayout
+        <TeacherLayout
             title="Dashboard Wali Kelas"
             username={teacher.name}
             userInitial={teacher.name.charAt(0)}
-            activeMenu="walas"
+            activeMenu="homeroom"
         >
             {!kelas ? (
                 <div className="bg-surface border border-border rounded-xl p-12 text-center">
@@ -82,8 +82,8 @@ export default function DashboardWaliKelas({
                                 color="amber"
                             />
                             <StatCard
-                                label="Alpa"
-                                value={stats.alpa}
+                                label="Absent"
+                                value={stats.absent}
                                 color="red"
                             />
                         </section>
@@ -159,6 +159,6 @@ export default function DashboardWaliKelas({
                     </section>
                 </>
             )}
-        </GuruLayout>
+        </TeacherLayout>
     );
 }

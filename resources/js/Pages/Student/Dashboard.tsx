@@ -1,5 +1,5 @@
 import { StatCard, StatusBadge } from "@/Components";
-import SiswaLayout from "@/Layouts/SiswaLayout";
+import StudentLayout from "@/Layouts/StudentLayout";
 
 interface Student {
     id: number;
@@ -44,7 +44,7 @@ export default function SiswaDashboard({
     stats,
 }: PageProps) {
     return (
-        <SiswaLayout
+        <StudentLayout
             title="Dashboard Siswa"
             userInitial={student.name.charAt(0)}
         >
@@ -148,6 +148,6 @@ export default function SiswaDashboard({
                     </div>
                 )}
             </section>
-        </SiswaLayout>
+        </StudentLayout>
     );
 }

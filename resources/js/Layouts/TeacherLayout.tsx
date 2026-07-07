@@ -4,42 +4,42 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import ErrorBoundary from "@/Components/ErrorBoundary";
 import Toast from "@/Components/Toast";
 
-interface GuruLayoutProps {
+interface TeacherLayoutProps {
     title?: string;
     children: ReactNode;
     username?: string;
     userInitial?: string;
-    activeMenu?: "piket" | "walas" | "verifikasi";
+    activeMenu?: "duty" | "homeroom" | "verification";
 }
 
 const menuItems = [
     {
-        key: "piket",
+        key: "duty",
         label: "Dashboard Piket",
         href: "/teacher/duty",
         icon: "fa-clipboard-list",
     },
     {
-        key: "walas",
+        key: "homeroom",
         label: "Wali Kelas",
         href: "/teacher/homeroom",
         icon: "fa-chalkboard-teacher",
     },
     {
-        key: "verifikasi",
+        key: "verification",
         label: "Verifikasi Izin",
         href: "/admin/leave-verification",
         icon: "fa-check-circle",
     },
 ];
 
-export default function GuruLayout({
+export default function TeacherLayout({
     title,
     children,
     username,
     userInitial,
     activeMenu,
-}: GuruLayoutProps) {
+}: TeacherLayoutProps) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const { url } = usePage();
 
