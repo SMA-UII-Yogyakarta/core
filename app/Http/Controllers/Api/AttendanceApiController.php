@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\GetStudentFromUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreAttendanceRequest;
-use App\Models\Student;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +13,7 @@ class AttendanceApiController extends Controller
 {
     public function __construct(
         protected AttendanceService $attendanceService,
+        protected GetStudentFromUser $getStudent,
     ) {
     }
 
@@ -27,8 +28,7 @@ class AttendanceApiController extends Controller
 
     public function today(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
             return response()->json(['message' => 'Student not found.'], 404);
@@ -47,8 +47,7 @@ class AttendanceApiController extends Controller
 
     public function checkIn(StoreAttendanceRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
             return response()->json(['message' => 'Student not found.'], 404);
@@ -68,8 +67,7 @@ class AttendanceApiController extends Controller
 
     public function history(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $student = Student::where('user_id', $user->id)->first();
+        $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
             return response()->json(['message' => 'Siswa tidak ditemukan.'], 404);
