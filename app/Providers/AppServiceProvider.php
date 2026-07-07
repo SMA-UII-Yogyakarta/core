@@ -46,6 +46,15 @@ class AppServiceProvider extends ServiceProvider
                 ->response(fn() => back()->with('error', 'Terlalu banyak percobaan login. Silakan coba lagi dalam 1 menit.'));
         });
 
+        RateLimiter::for('api-refresh', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinute(3)->by('api-refresh:' . $key)
+                ->response(fn() => response()->json([
+                    'message' => 'Too many refresh attempts. Please try again in 1 minute.',
+                ], 429));
+        });
+
         RateLimiter::for('leave-request', function (Request $request) {
             $key = $request->user()?->id ?: $request->ip();
 

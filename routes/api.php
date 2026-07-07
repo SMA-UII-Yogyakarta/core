@@ -30,6 +30,17 @@ Route::middleware("auth:sanctum")->group(function () {
     );
     Route::get("/user", [AuthController::class, "user"])->name("api.user");
 
+    // ── Session Management ──
+    Route::post("/refresh", [AuthController::class, "refresh"])->name(
+        "api.refresh",
+    )->middleware("throttle:api-refresh");
+    Route::get("/sessions", [AuthController::class, "sessions"])->name(
+        "api.sessions",
+    );
+    Route::delete("/sessions/{id}", [AuthController::class, "revokeSession"])->name(
+        "api.sessions.revoke",
+    )->whereNumber("id");
+
     // ── Master Data API ──
     Route::apiResource("students", StudentController::class);
     Route::apiResource("teachers", TeacherController::class);
