@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class PengajuanIzinController extends Controller
+class LeaveApplicationController extends Controller
 {
     public function __construct(
         protected LeaveRequestService $leaveRequestService,

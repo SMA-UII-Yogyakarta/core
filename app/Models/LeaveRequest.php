@@ -47,6 +47,7 @@ class LeaveRequest extends Model
         'category',
         'start_date',
         'end_date',
+        'description',
         'document_url',
         'approval_status',
     ];

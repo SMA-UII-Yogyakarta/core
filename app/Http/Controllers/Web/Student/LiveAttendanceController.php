@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class LivePresensiController extends Controller
+class LiveAttendanceController extends Controller
 {
     public function __construct(
         protected AttendanceService $attendanceService,

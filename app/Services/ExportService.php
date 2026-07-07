@@ -100,8 +100,8 @@ class ExportService
                 'class' => $s->class?->name ?? '-',
                 'present' => $present,
                 'late' => $late,
-                'alpa' => $absent,
-                'persentase' => $total > 0 ? round(($present / $total) * 100, 1) . '%' : '0%',
+                'absent' => $absent,
+                'percentage' => $total > 0 ? round(($present / $total) * 100, 1) . '%' : '0%',
             ];
         });
 

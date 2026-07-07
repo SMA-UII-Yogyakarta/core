@@ -42,13 +42,13 @@ class AnalyticsService
 
         return [
             'date' => $date,
-            'total_siswa' => $total,
-            'hadir_terdata' => $hadirTerdata,
+            'total_students' => $total,
+            'verified_present' => $hadirTerdata,
             'present' => $present,
             'late' => $late,
             'sick_permission' => $sick,
             'absent' => max(0, $total - $hadirTerdata - $sick),
-            'kelas' => $classStats,
+            'classes' => $classStats,
         ];
     }
 
@@ -115,11 +115,11 @@ class AnalyticsService
             'month' => $month,
             'year' => $year,
             'stats' => [
-                'total_hari' => $total,
+                'total_days' => $total,
                 'present' => $present,
                 'late' => $late,
-                'alpa' => max(0, $total - $present - $late),
-                'persentase_kehadiran' => $total > 0 ? round(($present / $total) * 100, 1) : 0,
+                'absent' => max(0, $total - $present - $late),
+                'attendance_percentage' => $total > 0 ? round(($present / $total) * 100, 1) : 0,
             ],
             'daily' => $daily,
         ];
@@ -200,7 +200,7 @@ class AnalyticsService
 
     public function weeklyTrend(?int $weeks = 4): array
     {
-        $weeks = [];
+        $weekly = [];
         for ($i = $weeks - 1; $i >= 0; $i--) {
             $start = now()->subWeeks($i)->startOfWeek();
             $end = now()->subWeeks($i)->endOfWeek();
@@ -209,15 +209,15 @@ class AnalyticsService
             $present = Attendance::whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Present')->count();
             $late = Attendance::whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Late')->count();
 
-            $weeks[] = [
-                'label' => 'Minggu ' . now()->subWeeks($weeks - 1 - $i)->weekOfYear,
+            $weekly[] = [
+                'label' => 'Week ' . now()->subWeeks($weeks - 1 - $i)->weekOfYear,
                 'total' => $total,
                 'present' => $present,
                 'late' => $late,
             ];
         }
 
-        return $weeks;
+        return $weekly;
     }
 
     public function kelasPerbandingan(?string $date = null): Collection

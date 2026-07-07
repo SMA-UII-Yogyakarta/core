@@ -22,7 +22,7 @@ class SchoolClassController extends Controller
         );
 
         return Inertia::render('Admin/MasterData', [
-            'activeTab' => 'kelas',
+            'activeTab' => 'classes',
             'schoolClasses' => $classes,
             'filters' => request()->only(['search']),
         ]);
@@ -68,7 +68,7 @@ class SchoolClassController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Kelas berhasil ditambahkan.');
+            ->with('success', 'Class added successfully.');
     }
 
     public function update(Request $request, int $id)
@@ -89,12 +89,12 @@ class SchoolClassController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Data kelas berhasil diperbarui.');
+            ->with('success', 'Class data updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->schoolClassService->delete($id);
-        return redirect()->back()->with('success', 'Kelas berhasil dihapus.');
+        return redirect()->back()->with('success', 'Class deleted successfully.');
     }
 }

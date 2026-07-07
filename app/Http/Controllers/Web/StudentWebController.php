@@ -23,7 +23,7 @@ class StudentWebController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Student data not found.');
         }
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
@@ -52,7 +52,7 @@ class StudentWebController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Student data not found.');
         }
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
@@ -78,12 +78,12 @@ class StudentWebController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->back()->with('error', 'Data siswa tidak ditemukan.');
+            return redirect()->back()->with('error', 'Student data not found.');
         }
 
         try {
             $this->attendanceService->checkIn($student->id, $request->all());
-            return redirect()->route('student.dashboard')->with('success', 'Presensi berhasil.');
+            return redirect()->route('student.dashboard')->with('success', 'Check-in successful.');
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -94,14 +94,14 @@ class StudentWebController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Data siswa tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Student data not found.');
         }
 
-        $bulan = (int) request('month', date('m'));
-        $tahun = (int) request('year', date('Y'));
+        $month = (int) request('month', date('m'));
+        $year = (int) request('year', date('Y'));
 
-        $attendances = $this->attendanceService->history($student->id);
-        $stats = $this->attendanceService->getStudentStats($student->id);
+        $attendances = $this->attendanceService->history($student->id, 30, $month, $year);
+        $stats = $this->attendanceService->getStudentStats($student->id, $month, $year);
         $monthlyTrend = $this->analyticsService->studentMonthlyTrend($student->id);
 
         return Inertia::render('Student/AttendanceHistory', [
@@ -113,8 +113,8 @@ class StudentWebController extends Controller
             ],
             'attendances' => $attendances->items(),
             'leaveRequests' => $student->leaveRequests()->latest()->get()->toArray(),
-            'month' => $bulan,
-            'year' => $tahun,
+            'month' => $month,
+            'year' => $year,
             'stats' => $stats,
             'monthlyTrend' => $monthlyTrend,
         ]);

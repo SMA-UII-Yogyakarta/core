@@ -32,6 +32,7 @@ class LeaveRequestService
             'category' => $data['category'],
             'start_date' => $data['start_date'],
             'end_date' => $data['end_date'],
+            'description' => $data['description'] ?? null,
             'document_url' => $data['document_url'] ?? null,
             'approval_status' => 'Pending',
         ]);

@@ -71,7 +71,7 @@ class AttendanceService
             ->first();
 
         if ($holiday) {
-            throw new \RuntimeException('Hari ini adalah hari libur: ' . $holiday->description);
+            throw new \RuntimeException('Today is a holiday: ' . $holiday->description);
         }
 
         // ─── Layer 2: Active Day Check ───
@@ -79,7 +79,7 @@ class AttendanceService
         $setting = AttendanceTimeSetting::where('day', $dayName)->first();
 
         if (! $setting) {
-            throw new \RuntimeException('Tidak ada jadwal absensi untuk hari ' . $dayName);
+            throw new \RuntimeException('No attendance schedule for ' . $dayName);
         }
 
         // ─── Layer 3: Time Range Check ───
@@ -89,7 +89,7 @@ class AttendanceService
         $closeTime = $setting->check_in_close->format('H:i:s');
 
         if ($currentTime < $openTime) {
-            throw new \RuntimeException('Belum waktu absen. Absen dibuka pukul ' . $openTime);
+            throw new \RuntimeException('Attendance opens at ' . $openTime);
         }
 
         $status = 'Present';
@@ -98,7 +98,7 @@ class AttendanceService
         }
 
         if ($currentTime > $closeTime) {
-            throw new \RuntimeException('Absen sudah ditutup pukul ' . $closeTime);
+            throw new \RuntimeException('Attendance closed at ' . $closeTime);
         }
 
         // Check if already checked in today
@@ -107,7 +107,7 @@ class AttendanceService
             ->first();
 
         if ($existing) {
-            throw new \RuntimeException('Sudah melakukan presensi hari ini.');
+            throw new \RuntimeException('Already checked in today.');
         }
 
         $photoUrl = $data['photo_url'] ?? '';
@@ -144,23 +144,40 @@ class AttendanceService
             ->first();
     }
 
-    public function getStudentStats(int $studentId): array
+    public function getStudentStats(int $studentId, ?int $month = null, ?int $year = null): array
     {
-        $total = Attendance::where('student_id', $studentId)->count();
-        $present = Attendance::where('student_id', $studentId)->where('status', 'Present')->count();
-        $late = Attendance::where('student_id', $studentId)->where('status', 'Late')->count();
+        $query = Attendance::where('student_id', $studentId);
+        $presentQuery = Attendance::where('student_id', $studentId)->where('status', 'Present');
+        $lateQuery = Attendance::where('student_id', $studentId)->where('status', 'Late');
+
+        if ($month) {
+            $query->whereMonth('attendance_date', $month);
+            $presentQuery->whereMonth('attendance_date', $month);
+            $lateQuery->whereMonth('attendance_date', $month);
+        }
+        if ($year) {
+            $query->whereYear('attendance_date', $year);
+            $presentQuery->whereYear('attendance_date', $year);
+            $lateQuery->whereYear('attendance_date', $year);
+        }
+
+        $total = $query->count();
+        $present = $presentQuery->count();
+        $late = $lateQuery->count();
 
         return [
-            'total_hari' => $total,
+            'total_days' => $total,
             'present' => $present,
             'late' => $late,
-            'alpa' => max(0, $total - $present - $late),
+            'absent' => max(0, $total - $present - $late),
         ];
     }
 
-    public function history(int $studentId, int $perPage = 20): LengthAwarePaginator
+    public function history(int $studentId, int $perPage = 20, ?int $month = null, ?int $year = null): LengthAwarePaginator
     {
         return Attendance::where('student_id', $studentId)
+            ->when($month, fn ($q, $v) => $q->whereMonth('attendance_date', $v))
+            ->when($year, fn ($q, $v) => $q->whereYear('attendance_date', $v))
             ->latest('attendance_date')
             ->paginate($perPage);
     }
@@ -219,7 +236,7 @@ class AttendanceService
                 'date' => $date,
                 'present' => $present,
                 'late' => $late,
-                'alpa' => max(0, $absent),
+                'absent' => max(0, $absent),
             ];
 
             $totalPresent += $present;
@@ -230,11 +247,11 @@ class AttendanceService
         return [
             'days' => $days,
             'summary' => [
-                'total_siswa' => $students,
+                'total_students' => $students,
                 'total_present' => $totalPresent,
-                'total_terlambat' => $totalLate,
-                'total_alpa' => $totalAbsent,
-                'jumlah_hari' => count($days),
+                'total_late' => $totalLate,
+                'total_absent' => $totalAbsent,
+                'total_days' => count($days),
             ],
         ];
     }

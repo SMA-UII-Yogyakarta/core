@@ -34,10 +34,10 @@ class DashboardService
 
         return [
             'total_students' => $totalStudents,
-            'hadir_terdata' => $hadirTerdata,
+            'verified_present' => $hadirTerdata,
             'late' => $late,
-            'sakit_izin' => $sickPermissionToday,
-            'alpa' => $absent,
+            'sick_permit' => $sickPermissionToday,
+            'absent' => $absent,
         ];
     }
 
@@ -75,11 +75,11 @@ class DashboardService
 
         return [
             'month' => Carbon::create($year, $month)->locale('id')->monthName,
-            'total_siswa' => $totalStudents,
-            'hari_efektif' => $workingDays,
+            'total_students' => $totalStudents,
+            'working_days' => $workingDays,
             'total_present' => $totalPresent,
-            'total_terlambat' => $totalLate,
-            'rata_hadir_per_hari' => $workingDays > 0 ? round(($totalPresent + $totalLate) / $workingDays, 1) : 0,
+            'total_late' => $totalLate,
+            'avg_daily_present' => $workingDays > 0 ? round(($totalPresent + $totalLate) / $workingDays, 1) : 0,
         ];
     }
 

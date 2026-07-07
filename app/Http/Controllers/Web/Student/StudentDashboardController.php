@@ -8,7 +8,7 @@ use App\Services\AttendanceService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class SiswaDashboardController extends Controller
+class StudentDashboardController extends Controller
 {
     public function __construct(
         protected AttendanceService $attendanceService,

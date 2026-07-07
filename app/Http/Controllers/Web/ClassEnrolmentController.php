@@ -46,13 +46,13 @@ class ClassEnrolmentController extends Controller
 
         $this->studentService->assignToClass($studentId, $classId);
 
-        return redirect()->back()->with('success', 'Siswa berhasil ditambahkan ke kelas.');
+        return redirect()->back()->with('success', 'Student added to class successfully.');
     }
 
     public function removeStudent(int $studentId)
     {
         $this->studentService->assignToClass($studentId, null);
 
-        return redirect()->back()->with('success', 'Siswa berhasil dihapus dari kelas.');
+        return redirect()->back()->with('success', 'Student removed from class successfully.');
     }
 }

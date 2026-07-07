@@ -9,7 +9,7 @@ use App\Models\Student;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class RiwayatController extends Controller
+class HistoryController extends Controller
 {
     public function index()
     {
@@ -44,10 +44,10 @@ class RiwayatController extends Controller
             'month' => (int) $month,
             'year' => (int) $year,
             'stats' => [
-                'total_hari' => $attendances->count(),
+                'total_days' => $attendances->count(),
                 'present' => $present,
                 'late' => $late,
-                'alpa' => max(0, now()->daysInMonth - $attendances->count()),
+                'absent' => max(0, now()->daysInMonth - $attendances->count()),
             ],
             'monthName' => $monthNames[$month - 1],
         ]);

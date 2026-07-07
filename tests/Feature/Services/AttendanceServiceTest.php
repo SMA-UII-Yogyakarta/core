@@ -131,7 +131,7 @@ class AttendanceServiceTest extends TestCase
 
         // Second check-in should fail
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Sudah melakukan presensi hari ini.');
+        $this->expectExceptionMessage('Already checked in today.');
 
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
@@ -265,7 +265,7 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Tidak ada jadwal absensi');
+        $this->expectExceptionMessage('No attendance schedule for');
 
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
@@ -303,7 +303,7 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Belum waktu absen');
+        $this->expectExceptionMessage('Attendance opens at');
 
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
@@ -341,7 +341,7 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Absen sudah ditutup');
+        $this->expectExceptionMessage('Attendance closed at');
 
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
@@ -378,7 +378,7 @@ class AttendanceServiceTest extends TestCase
         ]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Hari ini adalah hari libur');
+        $this->expectExceptionMessage('Today is a holiday');
 
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',

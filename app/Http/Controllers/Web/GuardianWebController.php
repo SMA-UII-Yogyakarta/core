@@ -27,7 +27,7 @@ class GuardianWebController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Data wali murid tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [
@@ -62,10 +62,10 @@ class GuardianWebController extends Controller
             $late = Attendance::whereIn('student_id', $studentIds)->where('status', 'Late')->count();
 
             $allStats = [
-                'total_hari' => $totalDays,
+                'total_days' => $totalDays,
                 'present' => $present,
                 'late' => $late,
-                'alpa' => max(0, $totalDays - $present - $late),
+                'absent' => max(0, $totalDays - $present - $late),
                 'pending_leave' => LeaveRequest::whereIn('student_id', $studentIds)
                     ->where('approval_status', 'Pending')->count(),
             ];
@@ -96,7 +96,7 @@ class GuardianWebController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Data wali murid tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
         }
 
         $students = $guardian->students()->get()->map(fn ($s) => [
@@ -122,12 +122,12 @@ class GuardianWebController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->back()->with('error', 'Data wali murid tidak ditemukan.');
+            return redirect()->back()->with('error', 'Guardian data not found.');
         }
 
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
-            'category' => 'required|in:Sick,Permission,Other',
+            'category' => 'required|in:Sick,Event,Competition,Other',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:500',
@@ -148,10 +148,11 @@ class GuardianWebController extends Controller
             'category' => $validated['category'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
+            'description' => $validated['description'] ?? null,
             'document_url' => $documentUrl,
         ]);
 
         return redirect()->route('guardian.leave-application')
-            ->with('success', 'Pengajuan izin berhasil dikirim.');
+            ->with('success', 'Leave application submitted successfully.');
     }
 }

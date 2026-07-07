@@ -24,7 +24,7 @@ class TeacherWebController extends Controller
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
         if (! $teacher) {
-            return redirect()->route('dashboard')->with('error', 'Data guru tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
         }
 
         $today = now()->format('l');
@@ -63,7 +63,7 @@ class TeacherWebController extends Controller
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
         if (! $teacher) {
-            return redirect()->route('dashboard')->with('error', 'Data guru tidak ditemukan.');
+            return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
         }
 
         $schoolClass = $teacher->schoolClasses()->first();

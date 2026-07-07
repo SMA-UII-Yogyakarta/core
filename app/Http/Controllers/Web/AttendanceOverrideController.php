@@ -55,12 +55,12 @@ class AttendanceOverrideController extends Controller
             reason: $validated['reason'],
         );
 
-        return redirect()->back()->with('success', 'Status kehadiran berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Attendance status updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->overrideService->deleteOverride($id);
-        return redirect()->back()->with('success', 'Override berhasil dihapus.');
+        return redirect()->back()->with('success', 'Override deleted successfully.');
     }
 }

@@ -31,18 +31,18 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request)
     {
         $this->teacherService->create($request->validated());
-        return redirect()->back()->with('success', 'Guru berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Teacher added successfully.');
     }
 
     public function update(UpdateTeacherRequest $request, int $id)
     {
         $this->teacherService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Data guru berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Teacher data updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->teacherService->delete($id);
-        return redirect()->back()->with('success', 'Guru berhasil dihapus.');
+        return redirect()->back()->with('success', 'Teacher deleted successfully.');
     }
 }

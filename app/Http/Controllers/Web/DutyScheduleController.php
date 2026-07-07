@@ -31,7 +31,7 @@ class DutyScheduleController extends Controller
 
         $schedule = $this->dutyScheduleService->create($validated);
 
-        return redirect()->back()->with('success', 'Jadwal piket berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Duty schedule added successfully.');
     }
 
     public function update(Request $request, int $id)
@@ -43,13 +43,13 @@ class DutyScheduleController extends Controller
 
         $this->dutyScheduleService->update($id, $validated);
 
-        return redirect()->back()->with('success', 'Jadwal piket berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Duty schedule updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->dutyScheduleService->delete($id);
 
-        return redirect()->back()->with('success', 'Jadwal piket berhasil dihapus.');
+        return redirect()->back()->with('success', 'Duty schedule deleted successfully.');
     }
 }

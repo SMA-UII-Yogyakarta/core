@@ -31,18 +31,18 @@ class GuardianController extends Controller
     public function store(StoreGuardianRequest $request)
     {
         $this->guardianService->create($request->validated());
-        return redirect()->back()->with('success', 'Wali murid berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Guardian added successfully.');
     }
 
     public function update(UpdateGuardianRequest $request, int $id)
     {
         $this->guardianService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Data wali murid berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Guardian data updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->guardianService->delete($id);
-        return redirect()->back()->with('success', 'Wali murid berhasil dihapus.');
+        return redirect()->back()->with('success', 'Guardian deleted successfully.');
     }
 }

@@ -31,7 +31,7 @@ class AttendanceApiController extends Controller
         $student = Student::where('user_id', $user->id)->first();
 
         if (! $student) {
-            return response()->json(['message' => 'Siswa tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Student not found.'], 404);
         }
 
         $today = now()->toDateString();
@@ -51,7 +51,7 @@ class AttendanceApiController extends Controller
         $student = Student::where('user_id', $user->id)->first();
 
         if (! $student) {
-            return response()->json(['message' => 'Siswa tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Student not found.'], 404);
         }
 
         try {
@@ -62,7 +62,7 @@ class AttendanceApiController extends Controller
             $attendance = $this->attendanceService->checkIn($student->id, $data);
             return response()->json($attendance, 201);
         } catch (\RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json(['message' => $e->getMessage()], 403);
         }
     }
 

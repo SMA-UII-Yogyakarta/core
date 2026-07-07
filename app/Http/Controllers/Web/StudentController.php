@@ -37,24 +37,24 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request)
     {
         $this->studentService->create($request->validated());
-        return redirect()->back()->with('success', 'Siswa berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Student added successfully.');
     }
 
     public function update(UpdateStudentRequest $request, int $id)
     {
         $this->studentService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Data siswa berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Student data updated successfully.');
     }
 
     public function destroy(int $id)
     {
         $this->studentService->delete($id);
-        return redirect()->back()->with('success', 'Siswa berhasil dihapus.');
+        return redirect()->back()->with('success', 'Student deleted successfully.');
     }
 
     public function toggleStatus(int $id)
     {
         $this->studentService->toggleStatus($id);
-        return redirect()->back()->with('success', 'Status siswa berhasil diubah.');
+        return redirect()->back()->with('success', 'Student status updated successfully.');
     }
 }

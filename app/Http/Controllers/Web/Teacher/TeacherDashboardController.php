@@ -11,14 +11,14 @@ use App\Services\SchoolClassService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class GuruDashboardController extends Controller
+class TeacherDashboardController extends Controller
 {
     public function __construct(
         protected SchoolClassService $schoolClassService,
     ) {
     }
 
-    public function piket()
+    public function duty()
     {
         $user = Auth::user();
         $teacher = \App\Models\Teacher::with(['user'])->where('user_id', $user->id)->firstOrFail();
@@ -61,7 +61,7 @@ class GuruDashboardController extends Controller
         ]);
     }
 
-    public function waliKelas()
+    public function homeroom()
     {
         $user = Auth::user();
         $teacher = \App\Models\Teacher::with(['user', 'schoolClasses'])->where('user_id', $user->id)->firstOrFail();
@@ -85,7 +85,7 @@ class GuruDashboardController extends Controller
             'total' => $students->count(),
             'present' => $students->filter(fn ($s) => $s->attendances->where('status', 'Present')->isNotEmpty())->count(),
             'late' => $students->filter(fn ($s) => $s->attendances->where('status', 'Late')->isNotEmpty())->count(),
-            'alpa' => $students->filter(fn ($s) => $s->attendances->isEmpty())->count(),
+            'absent' => $students->filter(fn ($s) => $s->attendances->isEmpty())->count(),
         ];
 
         return Inertia::render('Teacher/HomeroomDashboard', [

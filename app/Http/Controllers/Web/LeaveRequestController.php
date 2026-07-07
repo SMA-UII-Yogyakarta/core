@@ -28,12 +28,12 @@ class LeaveRequestController extends Controller
     public function approve(int $id)
     {
         $this->leaveRequestService->verify($id, 'Approved');
-        return redirect()->back()->with('success', 'Izin disetujui.');
+        return redirect()->back()->with('success', 'Leave request approved.');
     }
 
     public function reject(int $id)
     {
         $this->leaveRequestService->verify($id, 'Rejected');
-        return redirect()->back()->with('success', 'Izin ditolak.');
+        return redirect()->back()->with('success', 'Leave request rejected.');
     }
 }
