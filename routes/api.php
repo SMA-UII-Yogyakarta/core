@@ -20,7 +20,8 @@ Route::post("/log-client-error", ClientLogController::class)->middleware(
 );
 
 // ─── Public ───
-Route::post("/login", [AuthController::class, "login"])->name("api.login");
+Route::post("/login", [AuthController::class, "login"])->name("api.login")
+    ->middleware('throttle:api-login');
 
 // ─── Authenticated ───
 Route::middleware("auth:sanctum")->group(function () {
@@ -64,7 +65,7 @@ Route::middleware("auth:sanctum")->group(function () {
         );
         Route::post("/", [LeaveRequestApiController::class, "store"])->name(
             "api.leave-requests.store",
-        );
+        )->middleware('throttle:leave-request');
         Route::get("/{id}", [LeaveRequestApiController::class, "show"])->name(
             "api.leave-requests.show",
         );

@@ -70,19 +70,64 @@ const statusLabels: Record<string, string> = {
 export default function Monitoring({
     classes,
     selectedClassId,
-    stats,
-    students,
+    stats: initialStats,
+    students: initialStudents,
 }: MonitoringProps) {
     const [classId, setClassId] = useState<string>(
         selectedClassId?.toString() ?? "",
     );
+    const [studentsState, setStudentsState] = useState(initialStudents);
+    const [statsState, setStatsState] = useState(initialStats);
 
     // Real-time monitoring with Laravel Echo
     useState(() => {
         if (typeof window !== 'undefined' && window.Echo && classId) {
             window.Echo.channel(`monitoring.${classId}`)
-                .listen('.attendance.created', (data: { student_name: string; status: string; check_in_time: string }) => {
-                    console.log('Real-time attendance update:', data);
+                .listen('.attendance.created', (data: {
+                    student_id: number;
+                    student_name: string;
+                    status: string;
+                    check_in_time: string;
+                    id: number;
+                    latitude: string;
+                    longitude: string;
+                }) => {
+                    setStudentsState((prev) =>
+                        prev.map((s) =>
+                            s.student.id === data.student_id
+                                ? {
+                                    ...s,
+                                    attendance: {
+                                        id: data.id,
+                                        check_in_time: data.check_in_time,
+                                        status: data.status,
+                                        latitude: data.latitude,
+                                        longitude: data.longitude,
+                                        photo_url: s.attendance?.photo_url ?? "",
+                                    },
+                                    status: data.status,
+                                }
+                                : s,
+                        ),
+                    );
+                    setStatsState((prev) => {
+                        if (!prev) return prev;
+                        const counts = { ...prev };
+                        const oldStatus = studentsState.find(
+                            (s) => s.student.id === data.student_id,
+                        )?.status;
+                        if (oldStatus && counts[oldStatus as keyof Stats] > 0) {
+                            counts[oldStatus as keyof Stats]--;
+                        }
+                        const newKey =
+                            data.status === "Permission"
+                                ? "sick_permission"
+                                : (data.status.toLowerCase() as keyof Stats);
+                        if (newKey in counts) {
+                            counts[newKey]++;
+                        }
+                        return counts;
+                    });
                 });
         }
         return () => {
@@ -170,31 +215,31 @@ export default function Monitoring({
             </section>
 
             {/* Stats Cards */}
-            {stats && (
+            {statsState && (
                 <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
                     <StatCard
                         label="Total Siswa"
-                        value={stats.total}
+                        value={statsState.total}
                         color="grey"
                     />
                     <StatCard
                         label="Hadir"
-                        value={stats.present}
+                        value={statsState.present}
                         color="green"
                     />
                     <StatCard
                         label="Terlambat"
-                        value={stats.late}
+                        value={statsState.late}
                         color="amber"
                     />
                     <StatCard
                         label="Sakit / Izin"
-                        value={stats.sick_permission}
+                        value={statsState.sick_permission}
                         color="blue"
                     />
                     <StatCard
                         label="Tidak Hadir"
-                        value={stats.absent}
+                        value={statsState.absent}
                         color="red"
                     />
                 </section>
@@ -208,7 +253,7 @@ export default function Monitoring({
                     </h2>
                     <Table
                         columns={columns}
-                        data={students}
+                        data={studentsState}
                         keyExtractor={(s) => s.student.id}
                         emptyMessage="Belum ada data untuk kelas ini."
                     />

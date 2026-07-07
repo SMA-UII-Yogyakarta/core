@@ -31,7 +31,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate'])->name(
         'login.authenticate',
-    );
+    )->middleware('throttle:web-login');
 });
 
 // ─── Authenticated Routes ───
@@ -298,6 +298,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/leave-application/store', [
             GuardianWebController::class,
             'storeLeaveApplication',
-        ])->name('guardian.leave-application.store');
+        ])->name('guardian.leave-application.store')
+        ->middleware('throttle:leave-request');
     });
 });

@@ -33,5 +33,24 @@ class AppServiceProvider extends ServiceProvider
                     'message' => 'Anda sudah melakukan presensi. Silakan tunggu 5 menit.',
                 ], 429));
         });
+
+        RateLimiter::for('api-login', function (Request $request) {
+            return Limit::perMinute(5)->by('api-login:' . $request->ip())
+                ->response(fn() => response()->json([
+                    'message' => 'Terlalu banyak percobaan login. Silakan coba lagi dalam 1 menit.',
+                ], 429));
+        });
+
+        RateLimiter::for('web-login', function (Request $request) {
+            return Limit::perMinute(5)->by('web-login:' . $request->ip())
+                ->response(fn() => back()->with('error', 'Terlalu banyak percobaan login. Silakan coba lagi dalam 1 menit.'));
+        });
+
+        RateLimiter::for('leave-request', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinutes(5, 3)->by('leave-request:' . $key)
+                ->response(fn() => back()->with('error', 'Terlalu banyak pengajuan izin. Silakan tunggu 5 menit.'));
+        });
     }
 }
