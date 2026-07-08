@@ -89,9 +89,8 @@ export default function RiwayatKehadiran({
     return (
         <SiswaLayout
             title="Riwayat Kehadiran"
-            userInitial={student.name.charAt(0)}
-            showBack
-            backHref="/siswa/dashboard"
+            username={student.name}
+            studentClass={student.class?.name}
         >
             {/* Profile */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">

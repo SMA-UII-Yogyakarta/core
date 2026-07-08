@@ -1,8 +1,6 @@
-import { Head, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { useState } from "react";
 import {
-    Navbar,
-    Sidebar,
     Button,
     ActionButton,
     StatusBadge,
@@ -10,6 +8,7 @@ import {
     Pagination,
     ImportModal,
 } from "@/Components";
+import AdminLayout from "@/Layouts/AdminLayout";
 import type { Column } from "@/Components/ui/Table";
 
 // ─── Shared Types ───
@@ -266,16 +265,10 @@ export default function DataMaster({
     // ─── Render ───
 
     return (
-        <>
-            <Head title="Manajemen Data Master" />
-            <div className="min-h-screen flex flex-col bg-background">
-                <Navbar brand="SMA UII YOGYAKARTA" />
-                <div className="flex flex-1">
-                    <Sidebar activeMenu="Data Master" />
-                    <main className="flex-1 p-6">
-                        <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
-                            Manajemen Data Master
-                        </h1>
+        <AdminLayout title="Manajemen Data Master" activeMenu="Data Master">
+            <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
+                Manajemen Data Master
+            </h1>
 
                         {/* Tabs */}
                         <div className="flex gap-1 border-b border-border mb-6">
@@ -439,15 +432,12 @@ export default function DataMaster({
                                 </div>
                             </div>
                         )}
-                    </main>
-                </div>
-            </div>
             <ImportModal
                 open={importModalOpen}
                 onClose={() => setImportModalOpen(false)}
                 entity={importEntity}
             />
-        </>
+        </AdminLayout>
     );
 }
 

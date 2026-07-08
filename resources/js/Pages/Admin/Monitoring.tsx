@@ -47,24 +47,6 @@ interface MonitoringProps {
     students: AttendanceStudent[];
 }
 
-// ─── Helpers ───
-
-const statusToVariant: Record<string, StatusVariant> = {
-    Present: "present",
-    Late: "late",
-    Absent: "absent",
-    Sick: "sick",
-    Permission: "permission",
-};
-
-const statusLabels: Record<string, string> = {
-    Present: "Hadir",
-    Late: "Terlambat",
-    Absent: "Tidak Hadir",
-    Sick: "Sakit",
-    Permission: "Izin",
-};
-
 // ─── Page ───
 
 export default function Monitoring({
@@ -104,33 +86,80 @@ export default function Monitoring({
         { key: "nisn", header: "NISN", render: (s) => s.student.nisn },
         { key: "name", header: "Nama Siswa", render: (s) => s.student.name },
         {
-            key: "class",
-            header: "Kelas",
-            render: (s) => s.student.class?.name ?? "-",
-        },
-        {
             key: "status",
-            header: "Status",
+            header: "Status Hari Ini",
             render: (s) => {
-                const variant = statusToVariant[s.status] ?? "absent";
-                const label = statusLabels[s.status] ?? s.status;
+                let variant: StatusVariant = "absent";
+                let label = "ALPA";
+
+                if (s.status === "Present") {
+                    variant = "present";
+                    label = "HADIR";
+                } else if (s.status === "Late") {
+                    variant = "late";
+                    label = "TERLAMBAT";
+                } else if (s.status === "Sick" || s.status === "Permission") {
+                    variant = "approved";
+                    label = "DIIZINKAN";
+                } else if (s.status === "Pending") {
+                    variant = "pending";
+                    label = "PENDING IZIN";
+                }
+
                 return <StatusBadge variant={variant} label={label} />;
             },
         },
         {
             key: "time",
-            header: "Waktu",
-            render: (s) =>
-                s.attendance?.check_in_time
-                    ? `${s.attendance.check_in_time} WIB`
-                    : "-",
+            header: "Waktu / Keterangan",
+            render: (s) => {
+                if (s.status === "Absent") {
+                    return <span className="text-text-placeholder">Belum ada kabar</span>;
+                }
+                if (s.status === "Sick" || s.status === "Permission") {
+                    return <span className="text-text-secondary">Pengajuan Izin Diterima</span>;
+                }
+                if (s.status === "Pending") {
+                    return <span className="text-text-secondary">Pengajuan Izin Sakit</span>;
+                }
+                return s.attendance?.check_in_time ? `${s.attendance.check_in_time} WIB` : "-";
+            },
+        },
+        {
+            key: "action",
+            header: "Tindakan",
+            className: "text-right",
+            render: (s) => {
+                if (s.status === "Pending") {
+                    return (
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => router.get("/admin/verifikasi-izin")}
+                            className="bg-primary hover:bg-primary/90 text-white rounded text-[12px] px-3 py-1 font-semibold"
+                        >
+                            Verifikasi Izin
+                        </Button>
+                    );
+                }
+                return (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.get(`/admin/data-master`)}
+                        className="border border-border text-text-primary hover:bg-background rounded text-[12px] px-3 py-1 font-semibold"
+                    >
+                        Lihat Detail
+                    </Button>
+                );
+            },
         },
     ];
 
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AdminLayout title="Monitoring Presensi" activeMenu="Live Presensi">
+        <AdminLayout title="Monitoring Live" activeMenu="Live Presensi">
             {/* Filter Section */}
             <section className="bg-surface border border-border rounded-lg p-4 lg:p-6 mb-6">
                 <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
@@ -178,7 +207,7 @@ export default function Monitoring({
                         color="grey"
                     />
                     <StatCard
-                        label="Hadir"
+                        label="Hadir Terdata"
                         value={stats.present}
                         color="green"
                     />
@@ -193,7 +222,7 @@ export default function Monitoring({
                         color="blue"
                     />
                     <StatCard
-                        label="Tidak Hadir"
+                        label="Alpa (Kosong)"
                         value={stats.absent}
                         color="red"
                     />
@@ -203,9 +232,19 @@ export default function Monitoring({
             {/* Students Table */}
             {selectedClassId && (
                 <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                        Daftar Kehadiran Siswa
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-[16px] font-bold text-text-primary font-inter">
+                            Perhatian Khusus Hari Ini
+                        </h2>
+                        <div className="flex items-center gap-4">
+                            <span className="text-[13px] text-text-muted">
+                                Filter Kelas: <strong className="text-text-primary">{classes.find(c => c.id === selectedClassId)?.name}</strong>
+                            </span>
+                            <span className="text-[13px] text-text-muted">
+                                Tanggal: <strong className="text-text-primary">{today}</strong>
+                            </span>
+                        </div>
+                    </div>
                     <Table
                         columns={columns}
                         data={students}

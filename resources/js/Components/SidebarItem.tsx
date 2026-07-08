@@ -16,21 +16,25 @@ export default function SidebarItem({
 }: SidebarItemProps) {
     const isActive = status === "active";
 
-    const classes = `flex items-center gap-3 px-[18px] py-3 w-[210px] h-[41px] rounded-lg transition-all duration-150 font-inter
-        ${
-            isActive
-                ? "bg-accent text-primary font-bold"
-                : "bg-transparent text-white/60 font-normal hover:bg-white/10"
-        }`;
+    // Disamakan persis dengan SiswaLayout & GuruLayout
+    const classes = [
+        "flex items-center gap-3 px-4 py-3 rounded-lg font-inter text-[14px] transition-all",
+        isActive
+            ? "bg-accent text-primary font-bold"
+            : "text-white/70 hover:bg-white/10 hover:text-white"
+    ].join(" ");
 
     const content = (
         <>
-            <span className="flex items-center justify-center w-4 h-3.5 text-sm shrink-0">
-                <i className={`fas ${icon}`} />
-            </span>
-            <span className="text-[14px] leading-4.25 flex-1 truncate">
+            {/* Icon */}
+            <i className={`fas ${icon} w-5 text-center shrink-0`} />
+
+            {/* Label */}
+            <span className="flex-1 truncate tracking-normal">
                 {label}
             </span>
+
+            {/* Badge */}
             {badge !== undefined && badge > 0 && <Badge count={badge} />}
         </>
     );
@@ -46,7 +50,7 @@ export default function SidebarItem({
     return (
         <button
             onClick={onClick}
-            className={`${classes} w-full text-left`}
+            className={`${classes} text-left w-full`}
             type="button"
         >
             {content}

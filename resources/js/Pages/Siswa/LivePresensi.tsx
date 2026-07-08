@@ -158,9 +158,8 @@ export default function LivePresensi({ student, todayAttendance }: PageProps) {
     return (
         <SiswaLayout
             title="Live Presensi"
-            userInitial={student.name.charAt(0)}
-            showBack
-            backHref="/siswa/dashboard"
+            username={student.name}
+            studentClass={student.class?.name}
         >
             <main className="flex-1 flex flex-col items-center justify-center p-6">
                 {/* Time Display */}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
-import { StatCard, Table, FilterBar } from "@/Components";
+import { Table, Button } from "@/Components";
 import AdminLayout from "@/Layouts/AdminLayout";
 import type { Column } from "@/Components/ui/Table";
 
@@ -10,175 +10,157 @@ interface SchoolClass {
     teacher: { id: number; name: string } | null;
 }
 
-interface DailyEntry {
-    tanggal: string;
-    hadir: number;
-    terlambat: number;
-    alpa: number;
-}
-
-interface DailyData {
-    days: DailyEntry[];
-    summary: {
-        total_siswa: number;
-        total_hadir: number;
-        total_terlambat: number;
-        total_alpa: number;
-        jumlah_hari: number;
-    };
+interface StudentSummary {
+    id: number;
+    nama: string;
+    kelas: string;
+    masuk: number;
+    izin: number;
+    sakit: number;
+    alpha: number;
 }
 
 interface PageProps {
     classes: SchoolClass[];
     selectedClassId: number | null;
-    bulan: number;
-    tahun: number;
-    dailyData: DailyData | null;
+    studentsData: StudentSummary[];
 }
 
 export default function RekapBulanan({
     classes,
     selectedClassId,
-    bulan,
-    tahun,
-    dailyData,
+    studentsData,
 }: PageProps) {
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
-    const [bulanVal, setBulanVal] = useState(bulan.toString());
-    const [tahunVal, setTahunVal] = useState(tahun.toString());
+    const [period, setPeriod] = useState<"Harian" | "Bulanan" | "Semester">("Bulanan");
 
-    const handleFilter = () => {
+    const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setClassId(val);
         router.get(
             "/admin/rekap-bulanan",
-            {
-                class_id: classId || undefined,
-                bulan: bulanVal || undefined,
-                tahun: tahunVal || undefined,
-            },
-            { preserveState: true },
+            { class_id: val || undefined },
+            { preserveState: true }
         );
     };
 
-    const monthNames = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
+    const columns: Column<StudentSummary & { no: number }>[] = [
+        {
+            key: "no",
+            header: "No",
+            render: (row) => <span className="text-text-inactive">{row.no}</span>,
+        },
+        { 
+            key: "nama", 
+            header: "Nama Lengkap",
+            render: (row) => <span className="font-semibold text-text-primary">{row.nama}</span>,
+        },
+        { key: "kelas", header: "Kelas" },
+        { key: "masuk", header: "Masuk", render: (row) => row.masuk.toString() },
+        { 
+            key: "izin", 
+            header: "Izin",
+            render: (row) => (
+                <span className={row.izin > 0 ? "text-blue-600 font-bold" : "text-text-inactive"}>
+                    {row.izin}
+                </span>
+            ),
+        },
+        { 
+            key: "sakit", 
+            header: "Sakit",
+            render: (row) => (
+                <span className={row.sakit > 0 ? "text-amber-500 font-bold" : "text-text-inactive"}>
+                    {row.sakit}
+                </span>
+            ),
+        },
+        { 
+            key: "alpha", 
+            header: "Alpha",
+            render: (row) => (
+                <span className={row.alpha > 0 || row.alpha === 0 ? "text-red-500 font-bold" : "text-text-inactive"}>
+                    {row.alpha}
+                </span>
+            ),
+        },
     ];
 
-    const columns: Column<DailyEntry>[] = [
-        { key: "tanggal", header: "Tanggal" },
-        { key: "hadir", header: "Hadir" },
-        { key: "terlambat", header: "Terlambat" },
-        { key: "alpa", header: "Alpa" },
-    ];
+    // Tambahkan nomor urut
+    const tableData = studentsData.map((d, idx) => ({ ...d, no: idx + 1 }));
 
     return (
-        <AdminLayout title="Rekap Bulanan" activeMenu="Laporan Rekap">
-            <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
-                Rekap Bulanan
-            </h1>
+        <AdminLayout title="Laporan & Ekspor Global" activeMenu="Laporan Rekap">
+            <div className="mb-6">
+                <h1 className="text-[22px] font-bold text-text-primary font-inter mb-1">
+                    Laporan & Ekspor Global
+                </h1>
+                <p className="text-text-inactive text-[14px]">
+                    Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas.
+                </p>
+            </div>
 
-            <FilterBar className="mb-6">
-                <FilterBar.Select
-                    label="Kelas"
-                    options={[
-                        { value: "", label: "-- Pilih Kelas --" },
-                        ...classes.map((c) => ({
-                            value: c.id.toString(),
-                            label: c.name,
-                        })),
-                    ]}
-                    value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                />
-                <FilterBar.Select
-                    label="Bulan"
-                    options={monthNames.map((name, i) => ({
-                        value: (i + 1).toString(),
-                        label: name,
-                    }))}
-                    value={bulanVal}
-                    onChange={(e) => setBulanVal(e.target.value)}
-                />
-                <FilterBar.Select
-                    label="Tahun"
-                    options={["2024", "2025", "2026", "2027"].map((t) => ({
-                        value: t,
-                        label: t,
-                    }))}
-                    value={tahunVal}
-                    onChange={(e) => setTahunVal(e.target.value)}
-                />
-                <button
-                    onClick={handleFilter}
-                    className="px-5 py-2 bg-primary text-white rounded-lg text-[13px] font-semibold hover:bg-primary/90 transition-colors"
-                    type="button"
-                >
-                    Tampilkan
-                </button>
-            </FilterBar>
+            <div className="bg-surface border border-border rounded-xl">
+                {/* ── Toolbar ── */}
+                <div className="p-4 lg:p-6 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Tab Toggle */}
+                    <div className="flex bg-background border border-border rounded-lg p-1">
+                        {["Harian", "Bulanan", "Semester"].map((p) => (
+                            <button
+                                key={p}
+                                onClick={() => setPeriod(p as "Harian" | "Bulanan" | "Semester")}
+                                className={`px-5 py-2 text-[14px] font-semibold rounded-md transition-all ${
+                                    period === p
+                                        ? "bg-primary text-white shadow-sm"
+                                        : "text-text-inactive hover:text-text-primary"
+                                }`}
+                                type="button"
+                            >
+                                {p}
+                            </button>
+                        ))}
+                    </div>
 
-            {dailyData && (
-                <>
-                    <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-                        <StatCard
-                            label="Total Siswa"
-                            value={dailyData.summary.total_siswa}
-                            color="grey"
-                        />
-                        <StatCard
-                            label="Total Hadir"
-                            value={dailyData.summary.total_hadir}
-                            color="green"
-                        />
-                        <StatCard
-                            label="Total Terlambat"
-                            value={dailyData.summary.total_terlambat}
-                            color="amber"
-                        />
-                        <StatCard
-                            label="Total Alpa"
-                            value={dailyData.summary.total_alpa}
-                            color="red"
-                        />
-                        <StatCard
-                            label="Hari Aktif"
-                            value={dailyData.summary.jumlah_hari}
-                            color="blue"
-                        />
-                    </section>
-
-                    <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                        <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                            Detail Harian — {monthNames[bulan - 1]} {tahun}
-                        </h2>
-                        <Table
-                            columns={columns}
-                            data={dailyData.days}
-                            keyExtractor={(d) => d.tanggal}
-                            emptyMessage="Belum ada data untuk bulan ini."
-                        />
-                    </section>
-                </>
-            )}
-
-            {!selectedClassId && (
-                <div className="bg-surface border border-border rounded-lg p-12 text-center">
-                    <p className="text-text-muted font-inter text-[14px]">
-                        Silakan pilih kelas, bulan, dan tahun untuk menampilkan
-                        data.
-                    </p>
+                    {/* Filter & Export */}
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={classId}
+                            onChange={handleClassChange}
+                            className="bg-background border border-border text-text-primary text-[14px] rounded-lg px-4 py-2.5 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                            <option value="">Semua Kelas</option>
+                            {classes.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                        
+                        <Button className="!bg-red-500 hover:!bg-red-600 text-white font-bold gap-2">
+                            <i className="fas fa-file-pdf" /> PDF
+                        </Button>
+                        <Button className="!bg-[#10B981] hover:!bg-[#059669] text-white font-bold gap-2">
+                            <i className="fas fa-file-excel" /> Excel
+                        </Button>
+                    </div>
                 </div>
-            )}
+
+                {/* ── Table ── */}
+                <div className="p-4 lg:p-6 pb-0">
+                    <Table
+                        columns={columns}
+                        data={tableData}
+                        keyExtractor={(d) => d.id}
+                        emptyMessage="Belum ada data rekapitulasi."
+                    />
+                </div>
+
+                {/* ── Footer ── */}
+                <div className="p-4 lg:p-6 pt-4 text-[13px] text-text-inactive flex items-center gap-2">
+                    <i className="fas fa-info-circle" />
+                    Tampilan kolom akan menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
+                </div>
+            </div>
         </AdminLayout>
     );
 }
