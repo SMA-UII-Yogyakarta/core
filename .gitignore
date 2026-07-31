@@ -37,3 +37,22 @@ secrets.env
 # Editor / temp
 .obsidian/
 publish.txt
+
+# Local dev tooling (lerd) & AI assistants — not tracked
+.env.before_lerd
+.env.bak
+.lerd.yaml
+.php-version
+smauii_core
+package-lock.json
+compose.yaml
+docker/8.4/
+docs/lerd-onboarding.md
+AGENTS.md
+GEMINI.md
+.github/copilot-instructions.md
+.claude/
+.gemini/
+.gjc/
+.junie/
+.mcp.json
