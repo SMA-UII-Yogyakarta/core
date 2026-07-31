@@ -15,9 +15,13 @@ createInertiaApp({
         ),
     setup({ el, App, props }) {
         const rootElement = (
-            <LanguageProvider>
-                <App {...props} />
-            </LanguageProvider>
+            <App {...props}>
+                {({ Component, props, key }) => (
+                    <LanguageProvider>
+                        <Component {...props} key={key} />
+                    </LanguageProvider>
+                )}
+            </App>
         );
 
         if (import.meta.env.DEV) {

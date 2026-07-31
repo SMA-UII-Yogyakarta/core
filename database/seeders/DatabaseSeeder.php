@@ -27,13 +27,15 @@ class DatabaseSeeder extends Seeder
         $this->call([RolePermissionSeeder::class]);
 
         // ─── 2. Admin User ───
-        $admin = User::factory()->create([
-            'username' => 'admin',
-            'name' => 'Administrator',
-            'email' => 'admin@smauii.sch.id',
-            'role' => 'admin',
-            'password' => bcrypt('password'),
-        ]);
+        $admin = User::updateOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'Administrator',
+                'email' => 'admin@smauii.sch.id',
+                'role' => 'admin',
+                'password' => bcrypt('password'),
+            ],
+        );
         $admin->assignRole('admin');
 
         // ─── 3. Teachers (5) ───
@@ -67,13 +69,15 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($teacherNames as $t) {
-            $user = User::factory()->create([
-                'username' => $t['username'],
-                'name' => $t['name'],
-                'email' => $t['email'],
-                'role' => 'teacher',
-                'password' => bcrypt('password'),
-            ]);
+            $user = User::updateOrCreate(
+                ['username' => $t['username']],
+                [
+                    'name' => $t['name'],
+                    'email' => $t['email'],
+                    'role' => 'teacher',
+                    'password' => bcrypt('password'),
+                ],
+            );
             $user->assignRole('teacher');
             $teacherUsers->push($user);
         }
@@ -81,13 +85,15 @@ class DatabaseSeeder extends Seeder
         $teachers = collect();
         foreach ($teacherUsers as $i => $user) {
             $teachers->push(
-                Teacher::factory()->create([
-                    'user_id' => $user->id,
-                    'name' => $user->name,
-                    'teacher_code' =>
-                        'TCH-' .
-                        str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
-                ]),
+                Teacher::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name' => $user->name,
+                        'teacher_code' =>
+                            'TCH-' .
+                            str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
+                    ],
+                ),
             );
         }
 
@@ -102,10 +108,10 @@ class DatabaseSeeder extends Seeder
         $classes = collect();
         foreach ($classNames as $i => $name) {
             $classes->push(
-                SchoolClass::factory()->create([
-                    'name' => $name,
-                    'teacher_id' => $teachers[$i]->id,
-                ]),
+                SchoolClass::firstOrCreate(
+                    ['name' => $name],
+                    ['teacher_id' => $teachers[$i]->id],
+                ),
             );
         }
 
@@ -145,13 +151,15 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($guardianNames as $g) {
-            $user = User::factory()->create([
-                'username' => $g['username'],
-                'name' => $g['name'],
-                'email' => $g['email'],
-                'role' => 'guardian',
-                'password' => bcrypt('password'),
-            ]);
+            $user = User::updateOrCreate(
+                ['username' => $g['username']],
+                [
+                    'name' => $g['name'],
+                    'email' => $g['email'],
+                    'role' => 'guardian',
+                    'password' => bcrypt('password'),
+                ],
+            );
             $user->assignRole('guardian');
             $guardianUsers->push($user);
         }
@@ -159,10 +167,10 @@ class DatabaseSeeder extends Seeder
         $guardians = collect();
         foreach ($guardianUsers as $i => $user) {
             $guardians->push(
-                Guardian::factory()->create([
-                    'user_id' => $user->id,
-                    'name' => $user->name,
-                ]),
+                Guardian::firstOrCreate(
+                    ['user_id' => $user->id],
+                    ['name' => $user->name],
+                ),
             );
         }
 
@@ -197,13 +205,15 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($studentData as $s) {
-            $user = User::factory()->create([
-                'username' => $s['username'],
-                'name' => $s['name'],
-                'email' => $s['username'] . '@smauii.sch.id',
-                'role' => 'student',
-                'password' => bcrypt('password'),
-            ]);
+            $user = User::updateOrCreate(
+                ['username' => $s['username']],
+                [
+                    'name' => $s['name'],
+                    'email' => $s['username'] . '@smauii.sch.id',
+                    'role' => 'student',
+                    'password' => bcrypt('password'),
+                ],
+            );
             $user->assignRole('student');
             $studentUsers->push($user);
         }
@@ -214,19 +224,21 @@ class DatabaseSeeder extends Seeder
             $guardian = $guardians[$i % $guardians->count()];
 
             $students->push(
-                Student::factory()->create([
-                    'user_id' => $user->id,
-                    'class_id' => $class->id,
-                    'guardian_id' => $guardian->id,
-                    'nis' =>
-                        '2324' .
-                        str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
-                    'nisn' =>
-                        '00' .
-                        str_pad((string) ($i + 1), 12, '0', STR_PAD_LEFT),
-                    'name' => $user->name,
-                    'status' => $i < 23 ? 'Active' : 'Inactive',
-                ]),
+                Student::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'class_id' => $class->id,
+                        'guardian_id' => $guardian->id,
+                        'nis' =>
+                            '2324' .
+                            str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
+                        'nisn' =>
+                            '00' .
+                            str_pad((string) ($i + 1), 12, '0', STR_PAD_LEFT),
+                        'name' => $user->name,
+                        'status' => $i < 23 ? 'Active' : 'Inactive',
+                    ],
+                ),
             );
         }
 
@@ -265,7 +277,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($days as $d) {
-            AttendanceTimeSetting::factory()->create($d);
+            AttendanceTimeSetting::firstOrCreate(['day' => $d['day']], $d);
         }
 
         // ─── 8. Academic Calendars (5 holidays) ───
@@ -273,27 +285,32 @@ class DatabaseSeeder extends Seeder
             [
                 'holiday_date' => now()->addDays(5)->format('Y-m-d'),
                 'description' => 'Libur Nasional',
+                'is_holiday' => true,
             ],
             [
                 'holiday_date' => now()->addDays(30)->format('Y-m-d'),
                 'description' => 'Cuti Bersama',
+                'is_holiday' => true,
             ],
             [
                 'holiday_date' => now()->subDays(10)->format('Y-m-d'),
                 'description' => 'Hari Raya',
+                'is_holiday' => true,
             ],
             [
                 'holiday_date' => now()->addDays(60)->format('Y-m-d'),
                 'description' => 'Libur Semester',
+                'is_holiday' => true,
             ],
             [
                 'holiday_date' => now()->addDays(90)->format('Y-m-d'),
                 'description' => 'Hari Besar Keagamaan',
+                'is_holiday' => true,
             ],
         ];
 
         foreach ($holidayDates as $h) {
-            AcademicCalendar::factory()->create($h);
+            AcademicCalendar::firstOrCreate($h);
         }
 
         // ─── 9. Attendances (samples for active students) ───
@@ -305,30 +322,44 @@ class DatabaseSeeder extends Seeder
 
             if ($rand <= 70) {
                 // Present
-                Attendance::factory()->create([
-                    'student_id' => $student->id,
-                    'attendance_date' => $today,
-                    'check_in_time' => fake()->randomElement([
-                        '06:45:00',
-                        '06:48:00',
-                        '06:50:00',
-                        '06:52:00',
-                        '06:55:00',
-                    ]),
-                    'status' => 'Present',
-                ]);
+                Attendance::firstOrCreate(
+                    [
+                        'student_id' => $student->id,
+                        'attendance_date' => $today,
+                    ],
+                    [
+                        'check_in_time' => fake()->randomElement([
+                            '06:45:00',
+                            '06:48:00',
+                            '06:50:00',
+                            '06:52:00',
+                            '06:55:00',
+                        ]),
+                        'latitude' => fake()->latitude(-8, -7),
+                        'longitude' => fake()->longitude(110, 111),
+                        'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+                        'status' => 'Present',
+                    ],
+                );
             } elseif ($rand <= 85) {
                 // Late
-                Attendance::factory()->create([
-                    'student_id' => $student->id,
-                    'attendance_date' => $today,
-                    'check_in_time' => fake()->randomElement([
-                        '07:05:00',
-                        '07:10:00',
-                        '07:15:00',
-                    ]),
-                    'status' => 'Late',
-                ]);
+                Attendance::firstOrCreate(
+                    [
+                        'student_id' => $student->id,
+                        'attendance_date' => $today,
+                    ],
+                    [
+                        'check_in_time' => fake()->randomElement([
+                            '07:05:00',
+                            '07:10:00',
+                            '07:15:00',
+                        ]),
+                        'latitude' => fake()->latitude(-8, -7),
+                        'longitude' => fake()->longitude(110, 111),
+                        'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+                        'status' => 'Late',
+                    ],
+                );
             }
             // else: Absent (no attendance record)
         }
@@ -383,18 +414,22 @@ class DatabaseSeeder extends Seeder
             $student = $students[$ld['student_index']];
             $guardian = $guardians[$ld['guardian_index']];
 
-            LeaveRequest::factory()->create([
-                'student_id' => $student->id,
-                'guardian_id' => $guardian->id,
-                'category' => $ld['category'],
-                'approval_status' => $ld['status'],
-                'start_date' => now()
-                    ->addDays(fake()->numberBetween(1, 10))
-                    ->format('Y-m-d'),
-                'end_date' => now()
-                    ->addDays(fake()->numberBetween(11, 14))
-                    ->format('Y-m-d'),
-            ]);
+            LeaveRequest::firstOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'category' => $ld['category'],
+                ],
+                [
+                    'guardian_id' => $guardian->id,
+                    'approval_status' => $ld['status'],
+                    'start_date' => now()
+                        ->addDays(fake()->numberBetween(1, 10))
+                        ->format('Y-m-d'),
+                    'end_date' => now()
+                        ->addDays(fake()->numberBetween(11, 14))
+                        ->format('Y-m-d'),
+                ],
+            );
         }
     }
 }
