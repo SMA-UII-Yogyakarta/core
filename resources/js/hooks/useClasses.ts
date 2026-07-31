@@ -57,7 +57,7 @@ export function useClasses() {
         options?: UseClassesOptions,
     ) => {
         const { id, ...rest } = data;
-        router.put(`/admin/master-data/classes/${id}`, rest, {
+        router.patch(`/admin/master-data/classes/${id}`, rest, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

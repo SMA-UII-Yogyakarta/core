@@ -60,7 +60,7 @@ export function useStudents() {
         options?: UseStudentsOptions,
     ) => {
         const { id, ...rest } = data;
-        router.put(`/admin/master-data/students/${id}`, rest, {
+        router.patch(`/admin/master-data/students/${id}`, rest, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,

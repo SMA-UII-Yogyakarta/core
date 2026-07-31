@@ -107,7 +107,7 @@ export default function MasterKelas({
         };
 
         if (editId) {
-            router.put(`/admin/master-data/classes/${editId}`, payload, {
+            router.patch(`/admin/master-data/classes/${editId}`, payload, {
                 preserveState: true,
                 onSuccess: () => {
                     setShowModal(false);
