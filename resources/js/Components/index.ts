@@ -1,7 +1,11 @@
 // ─── UI Primitives ───
 export { default as Badge } from "@/Components/ui/Badge";
 export { default as Button } from "@/Components/ui/Button";
+export { default as Card } from "@/Components/ui/Card";
 export { default as Input } from "@/Components/ui/Input";
+export { default as PageHeader } from "@/Components/ui/PageHeader";
+export { default as SearchBar } from "@/Components/ui/SearchBar";
+export { default as SelectInput } from "@/Components/ui/SelectInput";
 export { default as StatCard } from "@/Components/ui/StatCard";
 export { default as StatusBadge } from "@/Components/ui/StatusBadge";
 export { default as Table, Pagination } from "@/Components/ui/Table";

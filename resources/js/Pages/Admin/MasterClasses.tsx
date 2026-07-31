@@ -3,9 +3,12 @@ import { router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import {
     Button,
+    Card,
+    PageHeader,
+    SearchBar,
+    SelectInput,
     Table,
     Pagination,
-    FilterBar,
     Modal,
     ActionButton,
 } from "@/Components";
@@ -23,6 +26,7 @@ interface SchoolClass {
     level: string;
     teacher: Teacher | null;
     students_count: number;
+    capacity: number;
 }
 
 interface PaginatedData<T> {
@@ -58,17 +62,17 @@ export default function MasterKelas({
     const [name, setName] = useState("");
     const [level, setLevel] = useState("X");
     const [teacherId, setTeacherId] = useState("");
+    const [capacity, setCapacity] = useState("36");
     const [loading, setLoading] = useState(false);
 
     // Delete confirmation
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSearch = (value: string) => {
         router.get(
             "/admin/classes",
-            { search: search || undefined },
+            { search: value || undefined },
             { preserveState: true },
         );
     };
@@ -78,6 +82,7 @@ export default function MasterKelas({
         setName("");
         setLevel("X");
         setTeacherId("");
+        setCapacity("36");
         setShowModal(true);
     };
 
@@ -86,6 +91,7 @@ export default function MasterKelas({
         setName(cls.name);
         setLevel(cls.level);
         setTeacherId(cls.teacher?.id.toString() ?? "");
+        setCapacity(cls.capacity.toString());
         setShowModal(true);
     };
 
@@ -97,6 +103,7 @@ export default function MasterKelas({
             name,
             level,
             teacher_id: teacherId || undefined,
+            capacity: capacity ? Number(capacity) : undefined,
         };
 
         if (editId) {
@@ -179,6 +186,15 @@ export default function MasterKelas({
             ),
         },
         {
+            key: "capacity",
+            header: "Kapasitas",
+            render: (cls) => (
+                <span className="text-text-secondary text-[14px]">
+                    {cls.students_count}/{cls.capacity} siswa
+                </span>
+            ),
+        },
+        {
             key: "actions",
             header: "Aksi",
             render: (cls) => (
@@ -200,28 +216,30 @@ export default function MasterKelas({
         },
     ];
 
+    const teacherOptions = teachers.map((t) => ({
+        value: t.id,
+        label: t.name,
+    }));
+
     return (
         <AdminLayout title="Master Kelas" activeMenu="Data Master">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-[18px] font-bold text-text-primary font-inter">
-                    Manajemen Master Kelas
-                </h1>
+            <PageHeader title="Manajemen Master Kelas">
                 <Button onClick={openCreateModal} size="md">
                     <FaPlus className="mr-1.5 text-[13px]" />
                     Tambah Kelas Baru
                 </Button>
-            </div>
+            </PageHeader>
 
-            <FilterBar className="mb-6">
-                <FilterBar.Search
+            <div className="mb-6">
+                <SearchBar
                     value={search}
                     onChange={setSearch}
-                    onSubmit={handleSearch}
+                    onSearch={handleSearch}
                     placeholder="Cari kelas..."
                 />
-            </FilterBar>
+            </div>
 
-            <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
+            <Card className="p-4 lg:p-6">
                 <Table
                     columns={columns}
                     data={schoolClasses.data}
@@ -241,7 +259,7 @@ export default function MasterKelas({
                         )
                     }
                 />
-            </section>
+            </Card>
 
             {/* Create/Edit Modal */}
             <Modal
@@ -282,21 +300,28 @@ export default function MasterKelas({
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[13px] text-text-muted font-inter mb-1">
-                            Wali Kelas
-                        </label>
-                        <select
+                        <SelectInput
+                            label="Wali Kelas"
+                            options={teacherOptions}
                             value={teacherId}
-                            onChange={(e) => setTeacherId(e.target.value)}
+                            onChange={(v) => setTeacherId(String(v ?? ""))}
+                            placeholder="-- Pilih Guru --"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[13px] text-text-muted font-inter mb-1">
+                            Kapasitas Siswa
+                        </label>
+                        <input
+                            type="number"
+                            min={1}
+                            value={capacity}
+                            onChange={(e) =>
+                                setCapacity(e.target.value.replace(/[^0-9]/g, ""))
+                            }
                             className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                        >
-                            <option value="">-- Pilih Guru --</option>
-                            {teachers.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="Contoh: 36"
+                        />
                     </div>
                 </form>
             </Modal>

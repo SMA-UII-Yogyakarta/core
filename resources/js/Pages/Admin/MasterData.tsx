@@ -18,6 +18,8 @@ interface SchoolClass {
     id: number;
     name: string;
     teacher: { id: number; name: string } | null;
+    students_count: number;
+    capacity: number;
 }
 
 interface Student {
@@ -199,8 +201,8 @@ export default function DataMaster({
         },
         {
             key: "student_count",
-            header: "Jumlah Siswa",
-            render: () => "-",
+            header: "Siswa/Kapasitas",
+            render: (c) => `${c.students_count}/${c.capacity}`,
         },
         {
             key: "actions",
