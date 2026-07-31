@@ -39,6 +39,7 @@ class SchoolClassController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'teacher_id' => 'nullable|exists:teachers,id',
+            'capacity' => 'nullable|integer|min:1',
         ]);
 
         return response()->json($this->schoolClassService->create($validated), 201);
@@ -49,6 +50,7 @@ class SchoolClassController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:50',
             'teacher_id' => 'nullable|exists:teachers,id',
+            'capacity' => 'nullable|integer|min:1',
         ]);
 
         return response()->json($this->schoolClassService->update($id, $validated));

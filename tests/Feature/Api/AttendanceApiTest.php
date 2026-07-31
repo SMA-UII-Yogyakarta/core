@@ -41,7 +41,7 @@ class AttendanceApiTest extends TestCase
 
         $response->assertStatus(404);
         $response->assertJson([
-            'message' => 'Siswa tidak ditemukan.',
+            'message' => 'Student not found.',
         ]);
     }
 }

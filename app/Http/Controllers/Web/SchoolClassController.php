@@ -55,6 +55,7 @@ class SchoolClassController extends Controller
             'name' => 'required|string|max:50',
             'level' => 'nullable|string|in:X,XI,XII',
             'teacher_id' => 'nullable|exists:teachers,id',
+            'capacity' => 'nullable|integer|min:1',
         ]);
 
         $validated['level'] = $validated['level'] ?? 'X';
@@ -77,6 +78,7 @@ class SchoolClassController extends Controller
             'name' => 'required|string|max:50',
             'level' => 'nullable|string|in:X,XI,XII',
             'teacher_id' => 'nullable|exists:teachers,id',
+            'capacity' => 'nullable|integer|min:1',
         ]);
 
         $this->schoolClassService->update($id, $validated);
