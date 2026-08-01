@@ -8,19 +8,19 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        channels: __DIR__ . "/../routes/channels.php",
-        api: __DIR__ . "/../routes/api.php",
-        web: __DIR__ . "/../routes/web.php",
-        commands: __DIR__ . "/../routes/console.php",
-        health: "/up",
+        channels: __DIR__ . '/../routes/channels.php',
+        api: __DIR__ . '/../routes/api.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Global middleware — semua request
@@ -39,7 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn(Request $request) => $request->is("api/*"),
+            fn (Request $request) => $request->is('api/*'),
         );
 
         // ── Inertia-specific Exception Rendering ──
@@ -51,7 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->inertia()) {
                 return redirect()
                     ->back()
-                    ->with("error", "Data tidak ditemukan.");
+                    ->with('error', 'Data tidak ditemukan.');
             }
         });
 
@@ -63,7 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->inertia()) {
                 return redirect()
                     ->back()
-                    ->with("error", "Anda tidak memiliki izin untuk aksi ini.");
+                    ->with('error', 'Anda tidak memiliki izin untuk aksi ini.');
             }
         });
 
@@ -74,8 +74,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ) {
             if ($request->inertia()) {
                 return redirect()
-                    ->route("login")
-                    ->with("error", "Sesi berakhir. Silakan login ulang.");
+                    ->route('login')
+                    ->with('error', 'Sesi berakhir. Silakan login ulang.');
             }
         });
 
@@ -85,11 +85,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Request $request,
         ) {
             if ($request->inertia()) {
-                return redirect()->route("login");
+                return redirect()->route('login');
             }
 
-            if ($request->is("api/*")) {
-                return response()->json(["message" => "Unauthenticated."], 401);
+            if ($request->is('api/*')) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
             }
         });
 
@@ -101,12 +101,12 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->inertia()) {
                 return redirect()
                     ->back()
-                    ->with("error", "Terlalu banyak permintaan. Silakan tunggu beberapa saat.");
+                    ->with('error', 'Terlalu banyak permintaan. Silakan tunggu beberapa saat.');
             }
 
-            if ($request->is("api/*")) {
+            if ($request->is('api/*')) {
                 return response()->json([
-                    "message" => "Terlalu banyak permintaan. Silakan tunggu beberapa saat.",
+                    'message' => 'Terlalu banyak permintaan. Silakan tunggu beberapa saat.',
                 ], 429);
             }
         });
@@ -123,12 +123,12 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->inertia()) {
                 return redirect()
                     ->back()
-                    ->with("error", "Terjadi kesalahan server. Silakan coba lagi.");
+                    ->with('error', 'Terjadi kesalahan server. Silakan coba lagi.');
             }
 
-            if ($request->is("api/*")) {
+            if ($request->is('api/*')) {
                 return response()->json([
-                    "message" => "Terjadi kesalahan server.",
+                    'message' => 'Terjadi kesalahan server.',
                 ], 500);
             }
         });

@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\Attendance;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<Attendance>
+ */
 class AttendanceFactory extends Factory
 {
     protected $model = Attendance::class;

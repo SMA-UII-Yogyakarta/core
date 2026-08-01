@@ -3,27 +3,26 @@
 namespace App\Exports;
 
 use App\Models\Teacher;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Writer;
 
 class TeachersExport
 {
     public function export(string $filePath): void
     {
-        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer = new Writer();
         $writer->openToFile($filePath);
 
-        $header = WriterEntityFactory::createRowFromArray([
+        $writer->addRow(Row::fromValues([
             'Kode Guru', 'Nama',
-        ]);
-        $writer->addRow($header);
+        ]));
 
         Teacher::chunk(200, function ($teachers) use ($writer) {
             foreach ($teachers as $t) {
-                $row = WriterEntityFactory::createRowFromArray([
+                $writer->addRow(Row::fromValues([
                     $t->teacher_code,
                     $t->name,
-                ]);
-                $writer->addRow($row);
+                ]));
             }
         });
 

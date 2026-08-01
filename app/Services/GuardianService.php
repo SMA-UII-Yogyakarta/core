@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Guardian;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,6 @@ class GuardianService
     public function linkToStudent(int $guardianId, int $studentId): void
     {
         $guardian = Guardian::findOrFail($guardianId);
-        $guardian->students()->syncWithoutDetaching([$studentId]);
+        Student::where('id', $studentId)->update(['guardian_id' => $guardian->id]);
     }
 }

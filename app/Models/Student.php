@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property int $user_id
- * @property int $class_id
+ * @property int|null $class_id
  * @property string $nis
  * @property string $nisn
  * @property string $name
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Attendance> $attendances
  * @property-read int|null $attendances_count
- * @property-read \App\Models\SchoolClass $class
+ * @property-read \App\Models\SchoolClass|null $class
  * @property-read \App\Models\Guardian|null $guardian
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LeaveRequest> $leaveRequests
  * @property-read int|null $leave_requests_count

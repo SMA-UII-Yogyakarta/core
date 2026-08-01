@@ -45,7 +45,7 @@ class LiveAttendanceController extends Controller
 
         try {
             $attendance = $this->attendanceService->checkIn($student->id, $validated);
-            return redirect()->back()->with('success', 'Presensi berhasil!');
+            return redirect()->back()->with('success', 'Attendance recorded successfully!');
         } catch (\RuntimeException $e) {
             return redirect()->back()->withErrors(['message' => $e->getMessage()]);
         }

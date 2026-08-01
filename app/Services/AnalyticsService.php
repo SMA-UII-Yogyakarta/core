@@ -71,7 +71,7 @@ class AnalyticsService
             'id' => $s->id,
             'name' => $s->name,
             'nis' => $s->nis,
-            'status' => $attendances->get($s->id)?->status ?? 'Absent',
+            'status' => $attendances->get($s->id)->status ?? 'Absent',
             'check_in_time' => $attendances->get($s->id)?->check_in_time,
         ]);
 

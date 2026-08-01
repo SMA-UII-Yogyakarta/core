@@ -17,7 +17,7 @@
         "laravel/sanctum": "*",
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "*",
-        "openspout/openspout": "*",
+        "openspout/openspout": "^4.23",
         "pusher/pusher-php-server": "*",
         "spatie/laravel-permission": "*"
     },

@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\AttendanceTimeSetting;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<AttendanceTimeSetting>
+ */
 class AttendanceTimeSettingFactory extends Factory
 {
     protected $model = AttendanceTimeSetting::class;

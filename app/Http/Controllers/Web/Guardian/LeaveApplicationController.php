@@ -56,6 +56,6 @@ class LeaveApplicationController extends Controller
             'document_url' => $validated['document_url'] ?? null,
         ]);
 
-        return redirect()->back()->with('success', 'Pengajuan izin berhasil dikirim.');
+        return redirect()->back()->with('success', 'Leave request submitted successfully.');
     }
 }

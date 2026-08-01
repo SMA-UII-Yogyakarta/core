@@ -9,8 +9,8 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_that_true_is_true(): void
+    public function test_string_helper_trims_whitespace(): void
     {
-        $this->assertTrue(true);
+        $this->assertSame('hello world', trim('  hello world  '));
     }
 }

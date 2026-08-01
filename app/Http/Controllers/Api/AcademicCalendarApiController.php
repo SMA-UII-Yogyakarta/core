@@ -40,7 +40,7 @@ class AcademicCalendarApiController extends Controller
     {
         $calendar = \App\Models\AcademicCalendar::find($id);
         if (! $calendar) {
-            return response()->json(['message' => 'Data kalender tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Academic calendar data not found.'], 404);
         }
         return response()->json($calendar);
     }
@@ -54,6 +54,6 @@ class AcademicCalendarApiController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->academicCalendarService->delete($id);
-        return response()->json(['message' => 'Data kalender berhasil dihapus.']);
+        return response()->json(['message' => 'Academic calendar data deleted successfully.']);
     }
 }

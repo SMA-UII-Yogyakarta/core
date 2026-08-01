@@ -54,8 +54,8 @@ class ExportService
             return [
                 'nis' => $s->nis,
                 'name' => $s->name,
-                'class' => $s->class?->name ?? '-',
-                'status' => $att?->status ?? 'Absent',
+                'class' => $s->class->name ?? '-',
+                'status' => $att->status ?? 'Absent',
                 'check_in_time' => $att?->check_in_time,
             ];
         });
@@ -97,7 +97,7 @@ class ExportService
             return [
                 'nis' => $s->nis,
                 'name' => $s->name,
-                'class' => $s->class?->name ?? '-',
+                'class' => $s->class->name ?? '-',
                 'present' => $present,
                 'late' => $late,
                 'absent' => $absent,

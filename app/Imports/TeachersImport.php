@@ -6,7 +6,7 @@ use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
+use OpenSpout\Reader\Common\Creator\ReaderFactory;
 
 class TeachersImport
 {
@@ -15,7 +15,7 @@ class TeachersImport
 
     public function import(string $filePath): array
     {
-        $reader = ReaderEntityFactory::createReaderFromFile($filePath);
+        $reader = ReaderFactory::createFromFile($filePath);
         $reader->open($filePath);
 
         $isFirstRow = true;
@@ -43,7 +43,7 @@ class TeachersImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Baris ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
                 }
             }
         }
@@ -65,11 +65,11 @@ class TeachersImport
             $name = $data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '';
 
             if (empty($code) || empty($name)) {
-                throw new \RuntimeException('Kode Guru dan Nama wajib diisi.');
+                throw new \RuntimeException('Teacher code and name are required.');
             }
 
             if (User::where('username', $code)->exists()) {
-                throw new \RuntimeException("Username {$code} sudah terdaftar.");
+                throw new \RuntimeException("Username {$code} is already registered.");
             }
 
             $user = User::create([

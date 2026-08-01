@@ -88,7 +88,8 @@ class LogTailCommand extends Command
                         continue;
                     }
 
-                    $this->line("  <fg=gray>[$this->formatTimestamp()]</> $line");
+                    $timestamp = $this->formatTimestamp();
+                    $this->line("  <fg=gray>[$timestamp]</> $line");
                 }
 
                 fclose($handle);
@@ -111,9 +112,9 @@ class LogTailCommand extends Command
     protected function passesFilter(string $line): bool
     {
         $level = $this->option('level');
-        if ($level && ! str_contains(strtolower($line), strtolower(".$level") ?? strtolower($level))) {
+        if ($level && ! str_contains(strtolower($line), strtolower(".$level"))) {
             $parts = explode('.', $line);
-            if (count($parts) < 2 || strtolower(explode(' ', $parts[1] ?? '')[0]) !== strtolower($level)) {
+            if (count($parts) < 2 || strtolower(explode(' ', $parts[1])[0]) !== strtolower($level)) {
                 return false;
             }
         }

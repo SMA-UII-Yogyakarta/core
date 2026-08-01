@@ -4,19 +4,19 @@ namespace App\Exports;
 
 use App\Models\Attendance;
 use App\Models\Student;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\XLSX\Writer;
 
 class MonthlyRecapExport
 {
     public function export(string $filePath, int $month, int $year, ?int $classId = null): void
     {
-        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer = new Writer();
         $writer->openToFile($filePath);
 
-        $header = WriterEntityFactory::createRowFromArray([
+        $writer->addRow(Row::fromValues([
             'NIS', 'Nama', 'Kelas', 'Total Hadir', 'Total Terlambat', 'Total Alpa', 'Persentase',
-        ]);
-        $writer->addRow($header);
+        ]));
 
         $query = Student::with('class')->where('status', 'Active');
 
@@ -46,11 +46,10 @@ class MonthlyRecapExport
                 $alpa = max(0, $total - $hadir - $terlambat);
                 $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%';
 
-                $row = WriterEntityFactory::createRowFromArray([
-                    $s->nis, $s->name, $s->class?->name ?? '-',
+                $writer->addRow(Row::fromValues([
+                    $s->nis, $s->name, $s->class->name ?? '-',
                     $hadir, $terlambat, $alpa, $persentase,
-                ]);
-                $writer->addRow($row);
+                ]));
             }
         });
 

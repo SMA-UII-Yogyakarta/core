@@ -31,7 +31,7 @@ class DutyScheduleApiController extends Controller
     {
         $schedule = DutySchedule::with('teacher')->find($id);
         if (! $schedule) {
-            return response()->json(['message' => 'Jadwal piket tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Duty schedule not found.'], 404);
         }
         return response()->json($schedule);
     }
@@ -45,6 +45,6 @@ class DutyScheduleApiController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->dutyScheduleService->delete($id);
-        return response()->json(['message' => 'Jadwal piket berhasil dihapus.']);
+        return response()->json(['message' => 'Duty schedule deleted successfully.']);
     }
 }

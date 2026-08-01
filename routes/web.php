@@ -1,13 +1,13 @@
 <?php
 
 use App\Http\Controllers\Web\AttendanceController;
+use App\Http\Controllers\Web\AttendanceOverrideController;
 use App\Http\Controllers\Web\AttendanceSettingController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ClassEnrolmentController;
 use App\Http\Controllers\Web\DailyRecapController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\DutyScheduleController;
-use App\Http\Controllers\Web\AttendanceOverrideController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianWebController;

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class SessionService
 {
@@ -22,22 +21,6 @@ class SessionService
             : null;
 
         return $user->createToken($deviceName, ['*'], $expiration)->plainTextToken;
-    }
-
-    public function listSessions(User $user): array
-    {
-        return $user->tokens()
-            ->orderBy('last_used_at', 'desc')
-            ->get()
-            ->map(fn (PersonalAccessToken $token) => [
-                'id' => $token->id,
-                'device_name' => $token->name,
-                'created_at' => $token->created_at->toIso8601String(),
-                'last_used_at' => $token->last_used_at?->toIso8601String(),
-                'expires_at' => $token->expires_at?->toIso8601String(),
-                'is_current' => $token->id === $request?->user()?->currentAccessToken()?->id,
-            ])
-            ->toArray();
     }
 
     public function revokeSession(User $user, int $tokenId): bool

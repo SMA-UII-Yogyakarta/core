@@ -110,4 +110,10 @@ class StudentService
             ->where('status', 'Active')
             ->get();
     }
+
+    public function assignToClass(int $studentId, ?int $classId): void
+    {
+        $student = Student::findOrFail($studentId);
+        $student->update(['class_id' => $classId]);
+    }
 }

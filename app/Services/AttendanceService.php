@@ -9,8 +9,6 @@ use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
 use App\Models\LeaveRequest;
 use App\Models\Student;
-use App\Services\StorageService;
-use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -53,7 +51,7 @@ class AttendanceService
             $results[] = [
                 'student' => $student,
                 'attendance' => $att,
-                'status' => $att?->status ?? 'Absent',
+                'status' => $att->status ?? 'Absent',
             ];
         }
 

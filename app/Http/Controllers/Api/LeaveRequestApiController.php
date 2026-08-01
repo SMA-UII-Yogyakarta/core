@@ -35,7 +35,7 @@ class LeaveRequestApiController extends Controller
     {
         $leaveRequest = $this->leaveRequestService->findById($id);
         if (! $leaveRequest) {
-            return response()->json(['message' => 'Pengajuan izin tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Leave request not found.'], 404);
         }
         return response()->json($leaveRequest);
     }

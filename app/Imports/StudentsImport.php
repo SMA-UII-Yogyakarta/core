@@ -7,7 +7,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
+use OpenSpout\Reader\Common\Creator\ReaderFactory;
 
 class StudentsImport
 {
@@ -16,7 +16,7 @@ class StudentsImport
 
     public function import(string $filePath): array
     {
-        $reader = ReaderEntityFactory::createReaderFromFile($filePath);
+        $reader = ReaderFactory::createFromFile($filePath);
         $reader->open($filePath);
 
         $isFirstRow = true;
@@ -44,7 +44,7 @@ class StudentsImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Baris ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
                 }
             }
         }
@@ -68,11 +68,11 @@ class StudentsImport
             $className = $data['class'] ?? $data['Kelas'] ?? $data['KELAS'] ?? '';
 
             if (empty($nis) || empty($name)) {
-                throw new \RuntimeException('NIS dan Nama wajib diisi.');
+                throw new \RuntimeException('NIS and name are required.');
             }
 
             if (User::where('username', $nis)->exists()) {
-                throw new \RuntimeException("Username {$nis} sudah terdaftar.");
+                throw new \RuntimeException("Username {$nis} is already registered.");
             }
 
             $classId = null;

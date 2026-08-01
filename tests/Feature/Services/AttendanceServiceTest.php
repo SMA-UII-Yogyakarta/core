@@ -92,7 +92,7 @@ class AttendanceServiceTest extends TestCase
 
         $this->assertEquals($student->id, $attendance->student_id);
         $this->assertEquals('Late', $attendance->status);
-        $this->assertNotNull($attendance->check_in_time);
+        $this->assertMatchesRegularExpression('/^\d{2}:\d{2}:\d{2}$/', $attendance->check_in_time->format('H:i:s'));
     }
 
     public function test_check_in_prevents_duplicate(): void

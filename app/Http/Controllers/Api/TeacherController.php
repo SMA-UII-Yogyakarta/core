@@ -26,7 +26,7 @@ class TeacherController extends Controller
     {
         $teacher = $this->teacherService->findById($id);
         if (! $teacher) {
-            return response()->json(['message' => 'Guru tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Teacher not found.'], 404);
         }
         return response()->json($teacher);
     }
@@ -44,6 +44,6 @@ class TeacherController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->teacherService->delete($id);
-        return response()->json(['message' => 'Guru berhasil dihapus.']);
+        return response()->json(['message' => 'Teacher deleted successfully.']);
     }
 }

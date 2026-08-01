@@ -115,7 +115,7 @@ class LeaveRequestServiceTest extends TestCase
     public function test_verify_throws_exception_for_invalid_status(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Status harus Approved atau Rejected.');
+        $this->expectExceptionMessage('Status must be Approved or Rejected.');
 
         $this->service->verify(999, 'InvalidStatus');
     }

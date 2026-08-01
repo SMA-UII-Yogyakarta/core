@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -13,7 +12,7 @@ class StorageService
 
     public function __construct()
     {
-        $this->disk = env('FILESYSTEM_DISK', 'local');
+        $this->disk = (string) config('filesystems.default', 'local');
     }
 
     public function uploadAttendancePhoto(UploadedFile $file, int $studentId): string

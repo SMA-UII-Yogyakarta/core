@@ -41,7 +41,7 @@ class LeaveRequestService
     public function verify(int $id, string $status): LeaveRequest
     {
         if (! in_array($status, ['Approved', 'Rejected'])) {
-            throw new \InvalidArgumentException('Status harus Approved atau Rejected.');
+            throw new \InvalidArgumentException('Status must be Approved or Rejected.');
         }
 
         $leave = LeaveRequest::findOrFail($id);

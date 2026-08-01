@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\AcademicCalendar;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<AcademicCalendar>
+ */
 class AcademicCalendarFactory extends Factory
 {
     protected $model = AcademicCalendar::class;

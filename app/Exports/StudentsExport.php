@@ -4,31 +4,29 @@ namespace App\Exports;
 
 use App\Models\Student;
 use OpenSpout\Common\Entity\Row;
-use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
+use OpenSpout\Writer\XLSX\Writer;
 
 class StudentsExport
 {
     public function export(string $filePath): void
     {
-        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer = new Writer();
         $writer->openToFile($filePath);
 
-        $header = WriterEntityFactory::createRowFromArray([
+        $writer->addRow(Row::fromValues([
             'NIS', 'NISN', 'Nama', 'Kelas', 'Tahun Masuk', 'Status',
-        ]);
-        $writer->addRow($header);
+        ]));
 
         Student::with('class')->chunk(200, function ($students) use ($writer) {
             foreach ($students as $s) {
-                $row = WriterEntityFactory::createRowFromArray([
+                $writer->addRow(Row::fromValues([
                     $s->nis,
                     $s->nisn,
                     $s->name,
-                    $s->class?->name ?? '-',
+                    $s->class->name ?? '-',
                     $s->enrollment_year,
                     $s->status,
-                ]);
-                $writer->addRow($row);
+                ]));
             }
         });
 

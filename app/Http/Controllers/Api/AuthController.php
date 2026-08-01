@@ -29,7 +29,7 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'username' => ['Username atau password salah.'],
+                'username' => ['Incorrect username or password.'],
             ]);
         }
 
@@ -53,7 +53,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Berhasil logout.']);
+        return response()->json(['message' => 'Logged out successfully.']);
     }
 
     public function user(Request $request): JsonResponse

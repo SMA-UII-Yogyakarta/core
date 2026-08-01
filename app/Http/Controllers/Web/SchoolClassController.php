@@ -63,7 +63,7 @@ class SchoolClassController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Kelas berhasil ditambahkan.',
+                'message' => 'Class added successfully.',
             ]);
         }
 
@@ -85,7 +85,7 @@ class SchoolClassController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Data kelas berhasil diperbarui.',
+                'message' => 'Class data updated successfully.',
             ]);
         }
 

@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\LeaveRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<LeaveRequest>
+ */
 class LeaveRequestFactory extends Factory
 {
     protected $model = LeaveRequest::class;

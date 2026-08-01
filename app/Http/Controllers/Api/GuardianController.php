@@ -26,7 +26,7 @@ class GuardianController extends Controller
     {
         $guardian = $this->guardianService->findById($id);
         if (! $guardian) {
-            return response()->json(['message' => 'Wali murid tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Guardian not found.'], 404);
         }
         return response()->json($guardian);
     }
@@ -44,6 +44,6 @@ class GuardianController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->guardianService->delete($id);
-        return response()->json(['message' => 'Wali murid berhasil dihapus.']);
+        return response()->json(['message' => 'Guardian deleted successfully.']);
     }
 }

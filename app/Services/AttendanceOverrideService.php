@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\AttendanceOverride;
 use App\Models\Student;
-use Carbon\Carbon;
 
 class AttendanceOverrideService
 {
@@ -36,10 +35,10 @@ class AttendanceOverrideService
                 'id' => $s->id,
                 'nis' => $s->nis,
                 'name' => $s->name,
-                'class' => $s->class?->name ?? '-',
-                'original_status' => $att?->status ?? 'Absent',
-                'overridden_status' => $override?->new_status ?? null,
-                'current_status' => $override?->new_status ?? $att?->status ?? 'Absent',
+                'class' => $s->class->name ?? '-',
+                'original_status' => $att->status ?? 'Absent',
+                'overridden_status' => $override->new_status ?? null,
+                'current_status' => $override->new_status ?? $att->status ?? 'Absent',
                 'override_id' => $override?->id,
                 'check_in_time' => $att?->check_in_time,
             ];

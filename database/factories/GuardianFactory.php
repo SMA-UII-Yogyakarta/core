@@ -5,6 +5,9 @@ namespace Database\Factories;
 use App\Models\Guardian;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<Guardian>
+ */
 class GuardianFactory extends Factory
 {
     protected $model = Guardian::class;

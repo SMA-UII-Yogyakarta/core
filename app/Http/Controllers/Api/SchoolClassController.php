@@ -29,7 +29,7 @@ class SchoolClassController extends Controller
     {
         $class = $this->schoolClassService->findById($id);
         if (! $class) {
-            return response()->json(['message' => 'Kelas tidak ditemukan.'], 404);
+            return response()->json(['message' => 'Class not found.'], 404);
         }
         return response()->json($class);
     }
@@ -59,6 +59,6 @@ class SchoolClassController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $this->schoolClassService->delete($id);
-        return response()->json(['message' => 'Kelas berhasil dihapus.']);
+        return response()->json(['message' => 'Class deleted successfully.']);
     }
 }

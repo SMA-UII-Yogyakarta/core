@@ -23,7 +23,7 @@ class AttendanceTimeSettingApiController extends Controller
     {
         $this->attendanceTimeSettingService->bulkUpdate($request->input('settings'));
         return response()->json([
-            'message' => 'Pengaturan waktu berhasil diperbarui.',
+            'message' => 'Time settings updated successfully.',
             'settings' => $this->attendanceTimeSettingService->findAll(),
         ]);
     }
