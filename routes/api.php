@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
 use Illuminate\Support\Facades\Route;
 
-// ─── Client Log (tanpa auth — throttle saja) ───
+// ─── Client Log (no auth — throttled) ───
 Route::post('/log-client-error', ClientLogController::class)->middleware(
     'throttle:60,1',
 );
@@ -23,7 +23,7 @@ Route::post('/log-client-error', ClientLogController::class)->middleware(
 Route::post('/login', [AuthController::class, 'login'])->name('api.login')
     ->middleware('throttle:api-login');
 
-// ─── Authenticated ───
+// ─── Authenticated (all roles) ───
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name(
         'api.logout',
@@ -41,52 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'api.sessions.revoke',
     )->whereNumber('id');
 
-    // ── Master Data API ──
-    Route::apiResource('students', StudentController::class);
-    Route::apiResource('teachers', TeacherController::class);
-    Route::apiResource('classes', SchoolClassController::class);
-    Route::apiResource('guardians', GuardianController::class);
-
-    // ── Attendance API ──
-    Route::prefix('attendances')->group(function () {
-        Route::get('/', [AttendanceApiController::class, 'index'])->name(
-            'api.attendances.index',
-        );
-        Route::get('/today', [AttendanceApiController::class, 'today'])->name(
-            'api.attendances.today',
-        );
-        Route::post('/check-in', [
-            AttendanceApiController::class,
-            'checkIn',
-        ])->name('api.attendances.check-in')
-        ->middleware('throttle:api-attendance-checkin');
-        Route::get('/history', [
-            AttendanceApiController::class,
-            'history',
-        ])->name('api.attendances.history');
-        Route::get('/stats', [AttendanceApiController::class, 'stats'])->name(
-            'api.attendances.stats',
-        );
-    });
-
-    // ── Leave Request API ──
-    Route::prefix('leave-requests')->group(function () {
-        Route::get('/', [LeaveRequestApiController::class, 'index'])->name(
-            'api.leave-requests.index',
-        );
-        Route::post('/', [LeaveRequestApiController::class, 'store'])->name(
-            'api.leave-requests.store',
-        )->middleware('throttle:leave-request');
-        Route::get('/{id}', [LeaveRequestApiController::class, 'show'])->name(
-            'api.leave-requests.show',
-        );
-        Route::patch('/{id}/verify', [
-            LeaveRequestApiController::class,
-            'verify',
-        ])->name('api.leave-requests.verify');
-    });
-
-    // ── Academic Calendar API ──
+    // ── Academic Calendar API (read for all roles) ──
     Route::prefix('academic-calendars')->group(function () {
         Route::get('/', [AcademicCalendarApiController::class, 'index'])->name(
             'api.academic-calendars.index',
@@ -94,64 +49,139 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/all', [AcademicCalendarApiController::class, 'all'])->name(
             'api.academic-calendars.all',
         );
-        Route::post('/', [AcademicCalendarApiController::class, 'store'])->name(
-            'api.academic-calendars.store',
-        );
         Route::get('/{id}', [
             AcademicCalendarApiController::class,
             'show',
         ])->name('api.academic-calendars.show');
-        Route::put('/{id}', [
-            AcademicCalendarApiController::class,
-            'update',
-        ])->name('api.academic-calendars.update');
-        Route::delete('/{id}', [
-            AcademicCalendarApiController::class,
-            'destroy',
-        ])->name('api.academic-calendars.destroy');
     });
 
-    // ── Attendance Time Settings API ──
-    Route::prefix('attendance-time-settings')->group(function () {
-        Route::get('/', [
-            AttendanceTimeSettingApiController::class,
-            'index',
-        ])->name('api.attendance-time-settings.index');
-        Route::put('/', [
-            AttendanceTimeSettingApiController::class,
-            'bulkUpdate',
-        ])->name('api.attendance-time-settings.bulk-update');
+    // ── Admin only ──
+    Route::middleware('role:admin')->group(function () {
+        // ── Master Data API ──
+        Route::apiResource('students', StudentController::class);
+        Route::apiResource('teachers', TeacherController::class);
+        Route::apiResource('classes', SchoolClassController::class);
+        Route::apiResource('guardians', GuardianController::class);
+
+        // ── Academic Calendar API (write) ──
+        Route::prefix('academic-calendars')->group(function () {
+            Route::post('/', [AcademicCalendarApiController::class, 'store'])->name(
+                'api.academic-calendars.store',
+            );
+            Route::put('/{id}', [
+                AcademicCalendarApiController::class,
+                'update',
+            ])->name('api.academic-calendars.update');
+            Route::delete('/{id}', [
+                AcademicCalendarApiController::class,
+                'destroy',
+            ])->name('api.academic-calendars.destroy');
+        });
+
+        // ── Attendance Time Settings API ──
+        Route::prefix('attendance-time-settings')->group(function () {
+            Route::get('/', [
+                AttendanceTimeSettingApiController::class,
+                'index',
+            ])->name('api.attendance-time-settings.index');
+            Route::put('/', [
+                AttendanceTimeSettingApiController::class,
+                'bulkUpdate',
+            ])->name('api.attendance-time-settings.bulk-update');
+        });
+
+        // ── Duty Schedule API (write) ──
+        Route::prefix('duty-schedules')->group(function () {
+            Route::post('/', [DutyScheduleApiController::class, 'store'])->name(
+                'api.duty-schedules.store',
+            );
+            Route::put('/{id}', [DutyScheduleApiController::class, 'update'])->name(
+                'api.duty-schedules.update',
+            );
+            Route::delete('/{id}', [
+                DutyScheduleApiController::class,
+                'destroy',
+            ])->name('api.duty-schedules.destroy');
+        });
+
+        // ── Import API ──
+        Route::prefix('import')->group(function () {
+            Route::post('/students', [
+                ImportController::class,
+                'importStudents',
+            ])->name('api.import.students');
+            Route::post('/teachers', [
+                ImportController::class,
+                'importTeachers',
+            ])->name('api.import.teachers');
+        });
     });
 
-    // ── Duty Schedule API ──
-    Route::prefix('duty-schedules')->group(function () {
-        Route::get('/', [DutyScheduleApiController::class, 'index'])->name(
-            'api.duty-schedules.index',
+    // ── Admin + Teacher ──
+    Route::middleware('role:admin,teacher')->group(function () {
+        Route::get('/attendances', [AttendanceApiController::class, 'index'])->name(
+            'api.attendances.index',
         );
-        Route::post('/', [DutyScheduleApiController::class, 'store'])->name(
-            'api.duty-schedules.store',
-        );
-        Route::get('/{id}', [DutyScheduleApiController::class, 'show'])->name(
-            'api.duty-schedules.show',
-        );
-        Route::put('/{id}', [DutyScheduleApiController::class, 'update'])->name(
-            'api.duty-schedules.update',
-        );
-        Route::delete('/{id}', [
-            DutyScheduleApiController::class,
-            'destroy',
-        ])->name('api.duty-schedules.destroy');
+
+        // ── Duty Schedule API (read) ──
+        Route::prefix('duty-schedules')->group(function () {
+            Route::get('/', [DutyScheduleApiController::class, 'index'])->name(
+                'api.duty-schedules.index',
+            );
+            Route::get('/{id}', [DutyScheduleApiController::class, 'show'])->name(
+                'api.duty-schedules.show',
+            );
+        });
+
+        // ── Leave Request API (verify) ──
+        Route::patch('/leave-requests/{id}/verify', [
+            LeaveRequestApiController::class,
+            'verify',
+        ])->name('api.leave-requests.verify');
     });
 
-    // ── Import API ──
-    Route::prefix('import')->group(function () {
-        Route::post('/students', [
-            ImportController::class,
-            'importStudents',
-        ])->name('api.import.students');
-        Route::post('/teachers', [
-            ImportController::class,
-            'importTeachers',
-        ])->name('api.import.teachers');
+    // ── Admin + Teacher + Guardian ──
+    Route::middleware('role:admin,teacher,guardian')->group(function () {
+        // ── Leave Request API (list/detail) ──
+        Route::prefix('leave-requests')->group(function () {
+            Route::get('/', [LeaveRequestApiController::class, 'index'])->name(
+                'api.leave-requests.index',
+            );
+            Route::get('/{id}', [LeaveRequestApiController::class, 'show'])->name(
+                'api.leave-requests.show',
+            );
+        });
+    });
+
+    // ── Student only ──
+    Route::middleware('role:student')->group(function () {
+        // ── Attendance API (self) ──
+        Route::prefix('attendances')->group(function () {
+            Route::get('/today', [AttendanceApiController::class, 'today'])->name(
+                'api.attendances.today',
+            );
+            Route::post('/check-in', [
+                AttendanceApiController::class,
+                'checkIn',
+            ])->name('api.attendances.check-in')
+            ->middleware('throttle:api-attendance-checkin');
+            Route::get('/history', [
+                AttendanceApiController::class,
+                'history',
+            ])->name('api.attendances.history');
+            Route::get('/stats', [AttendanceApiController::class, 'stats'])->name(
+                'api.attendances.stats',
+            );
+        });
+    });
+
+    // ── Student + Guardian ──
+    Route::middleware('role:student,guardian')->group(function () {
+        // ── Leave Request API (submit) ──
+        Route::post('/leave-requests', [
+            LeaveRequestApiController::class,
+            'store',
+        ])->name('api.leave-requests.store')
+        ->middleware('throttle:leave-request');
     });
 });

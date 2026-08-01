@@ -50,7 +50,7 @@ interface PageProps {
     monthlyTrend: MonthlyTrend[];
 }
 
-export default function RiwayatKehadiran({
+export default function AttendanceHistory({
     student,
     attendances,
     leaveRequests,
@@ -123,7 +123,7 @@ export default function RiwayatKehadiran({
                     value={stats.late}
                     color="amber"
                 />
-                <StatCard label="Absent" value={stats.absent} color="red" />
+                <StatCard label="Tidak Hadir" value={stats.absent} color="red" />
             </section>
 
             {/* Monthly Trend Chart */}

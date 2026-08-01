@@ -1,22 +1,50 @@
-import type { InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes, KeyboardEvent } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
     icon?: string;
+    numeric?: boolean;
+    description?: string;
+    inputClassName?: string;
 }
+
+const allowedNumericKeys = [
+    "Backspace",
+    "Delete",
+    "Tab",
+    "Escape",
+    "Enter",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+];
 
 export default function Input({
     label,
     error,
     icon,
+    numeric = false,
+    description,
     className = "",
+    inputClassName = "",
+    onKeyDown,
     ...props
 }: InputProps) {
+    const handleNumericKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (allowedNumericKeys.includes(e.key)) return;
+        if (e.ctrlKey || e.metaKey) return;
+        if (!/^\d$/.test(e.key)) {
+            e.preventDefault();
+        }
+        onKeyDown?.(e);
+    };
+
     return (
-        <div className="w-full">
+        <div className={`w-full ${className}`}>
             {label && (
-                <label className="block text-[13px] font-medium text-primary mb-1.5 font-inter">
+                <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
                     {label}
                 </label>
             )}
@@ -33,10 +61,16 @@ export default function Input({
                         focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
                         ${icon ? "pl-10" : ""}
                         ${error ? "border-danger ring-1 ring-danger/40" : ""}
-                        ${className}`}
+                        ${inputClassName}`}
+                    onKeyDown={numeric ? handleNumericKeyDown : onKeyDown}
                     {...props}
                 />
             </div>
+            {description && !error && (
+                <p className="mt-1 text-[12px] text-text-muted font-inter">
+                    {description}
+                </p>
+            )}
             {error && (
                 <p className="mt-1 text-[12px] text-danger font-inter">
                     {error}

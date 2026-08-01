@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
 use App\Services\AnalyticsService;
 use App\Services\DashboardService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -16,7 +18,19 @@ class DashboardController extends Controller
     ) {
     }
 
-    public function index()
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        return match ($user->role) {
+            'teacher' => app(TeacherWebController::class)->homeroomDashboard(),
+            'guardian' => app(GuardianWebController::class)->dashboard($request),
+            'student' => app(StudentWebController::class)->dashboard(),
+            default => $this->adminDashboard($request),
+        };
+    }
+
+    private function adminDashboard(Request $request)
     {
         $classId = request('class_id');
         $date = request('date', now()->toDateString());

@@ -82,7 +82,7 @@ export default function DashboardWaliKelas({
                                 color="amber"
                             />
                             <StatCard
-                                label="Absent"
+                                label="Tidak Hadir"
                                 value={stats.absent}
                                 color="red"
                             />

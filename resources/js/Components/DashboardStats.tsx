@@ -74,7 +74,7 @@ export default function DashboardStats({
                     valueColor="text-primary"
                 />
                 <MobileStatCard
-                    label="Absent"
+                    label="Tidak Hadir"
                     value={absent}
                     valueColor="text-danger"
                 />

@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>
@@ -33,6 +34,15 @@ class UserFactory extends Factory
             'role' => 'student',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if (in_array($user->role, ['admin', 'student', 'teacher', 'guardian'], true)) {
+                $user->assignRole(Role::findOrCreate($user->role));
+            }
+        });
     }
 
     /**

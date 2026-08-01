@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Models\Teacher;
 use App\Services\TeacherService;
 use Inertia\Inertia;
 
@@ -17,6 +18,8 @@ class TeacherController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Teacher::class);
+
         $teachers = $this->teacherService->paginate(
             request()->only(['search']),
         );
@@ -30,18 +33,24 @@ class TeacherController extends Controller
 
     public function store(StoreTeacherRequest $request)
     {
+        $this->authorize('create', Teacher::class);
+
         $this->teacherService->create($request->validated());
         return redirect()->back()->with('success', 'Teacher added successfully.');
     }
 
     public function update(UpdateTeacherRequest $request, int $id)
     {
+        $this->authorize('update', Teacher::class);
+
         $this->teacherService->update($id, $request->validated());
         return redirect()->back()->with('success', 'Teacher data updated successfully.');
     }
 
     public function destroy(int $id)
     {
+        $this->authorize('delete', Teacher::class);
+
         $this->teacherService->delete($id);
         return redirect()->back()->with('success', 'Teacher deleted successfully.');
     }

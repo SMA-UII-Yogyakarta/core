@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import { usePage, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import { translations } from "@/utils/translations";
 
 type Language = "id" | "en";
@@ -21,26 +21,13 @@ const getCookie = (name: string): string | null => {
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    // Read shared props from Inertia backend
-    const { locale: backendLocale } = usePage().props as unknown as { locale?: string };
-    
-    // Fallback order: backend shared prop -> cookie -> default to 'id'
     const getInitialLanguage = (): Language => {
-        if (backendLocale === "id" || backendLocale === "en") return backendLocale as Language;
         const cookieLang = getCookie("app_locale");
         if (cookieLang === "id" || cookieLang === "en") return cookieLang as Language;
         return "id";
     };
 
     const [locale, setLocaleState] = useState<Language>(getInitialLanguage);
-    const [prevBackendLocale, setPrevBackendLocale] = useState<string | undefined>(backendLocale);
-
-    if (backendLocale && backendLocale !== prevBackendLocale) {
-        setPrevBackendLocale(backendLocale);
-        if (backendLocale === "id" || backendLocale === "en") {
-            setLocaleState(backendLocale as Language);
-        }
-    }
 
     const setLanguage = (lang: Language) => {
         // 1. Set cookie so Laravel backend can read it on next request

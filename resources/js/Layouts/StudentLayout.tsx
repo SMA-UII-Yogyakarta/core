@@ -8,6 +8,7 @@ interface StudentLayoutProps {
     children: ReactNode;
     username?: string;
     userInitial?: string;
+    studentClass?: string;
     showBack?: boolean;
     backHref?: string;
     backLabel?: string;
@@ -24,6 +25,7 @@ export default function StudentLayout({
     children,
     username,
     userInitial,
+    studentClass,
     showBack,
     backHref = "/student/dashboard",
     backLabel = "Kembali",
@@ -86,6 +88,7 @@ export default function StudentLayout({
                     {username && (
                         <span className="text-[13px] text-white/80">
                             {username}
+                            {studentClass && ` (${studentClass})`}
                         </span>
                     )}
                 </header>

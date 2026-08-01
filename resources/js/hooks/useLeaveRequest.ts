@@ -35,7 +35,7 @@ export function useLeaveRequest() {
         params: FetchLeaveParams = {},
         options?: UseLeaveRequestOptions,
     ) => {
-        router.get("/admin/leave-requests", params, {
+        router.get("/leave-requests", params, {
             preserveState: options?.preserveState ?? true,
             onSuccess: options?.onSuccess,
             onError: options?.onError,
@@ -59,7 +59,7 @@ export function useLeaveRequest() {
         options?: UseLeaveRequestOptions,
     ) => {
         router.patch(
-            `/admin/leave-verification/${id}`,
+            `/leave-verification/${id}`,
             data ?? { status: "approved" },
             {
                 preserveState: options?.preserveState ?? true,
@@ -75,7 +75,7 @@ export function useLeaveRequest() {
         options?: UseLeaveRequestOptions,
     ) => {
         router.patch(
-            `/admin/leave-verification/${id}`,
+            `/leave-verification/${id}`,
             data ?? { status: "rejected" },
             {
                 preserveState: options?.preserveState ?? true,
