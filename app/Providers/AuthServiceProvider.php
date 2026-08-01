@@ -3,11 +3,13 @@
 namespace App\Providers;
 
 use App\Models\Attendance;
+use App\Models\Guardian;
 use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Policies\AttendancePolicy;
+use App\Policies\GuardianPolicy;
 use App\Policies\LeaveRequestPolicy;
 use App\Policies\SchoolClassPolicy;
 use App\Policies\StudentPolicy;
@@ -22,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         SchoolClass::class => SchoolClassPolicy::class,
         Attendance::class => AttendancePolicy::class,
         LeaveRequest::class => LeaveRequestPolicy::class,
+        Guardian::class => GuardianPolicy::class,
     ];
 
     public function boot(): void

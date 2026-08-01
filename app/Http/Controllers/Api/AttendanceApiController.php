@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Actions\GetStudentFromUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreAttendanceRequest;
+use App\Models\Attendance;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ class AttendanceApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Attendance::class);
+
         $attendances = $this->attendanceService->paginate(
             $request->only(['student_id', 'class_id', 'date', 'status']),
         );
@@ -47,6 +50,8 @@ class AttendanceApiController extends Controller
 
     public function checkIn(StoreAttendanceRequest $request): JsonResponse
     {
+        $this->authorize('checkIn', Attendance::class);
+
         $student = $this->getStudent->handle($request->user());
 
         if (! $student) {

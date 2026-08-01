@@ -11,6 +11,11 @@ class SchoolClassPolicy
         return in_array($user->role, ['admin', 'teacher']);
     }
 
+    public function view(User $user): bool
+    {
+        return in_array($user->role, ['admin', 'teacher']);
+    }
+
     public function create(User $user): bool
     {
         return $user->role === 'admin';

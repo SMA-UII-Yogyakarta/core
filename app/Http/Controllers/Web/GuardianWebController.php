@@ -45,7 +45,13 @@ class GuardianWebController extends Controller
 
         if ($selectedStudentId && $guardian->students()->where('id', $selectedStudentId)->exists()) {
             $selectedStudent = $students->firstWhere('id', $selectedStudentId);
-            $studentStats = $this->analyticsService->studentDetail($selectedStudentId);
+            $detail = $this->analyticsService->studentDetail($selectedStudentId);
+            $studentStats = [
+                'total' => $detail['stats']['total_days'],
+                'present' => $detail['stats']['present'],
+                'late' => $detail['stats']['late'],
+                'sick_permit' => $detail['stats']['sick_permit'],
+            ];
             $monthlyTrend = $this->analyticsService->studentMonthlyTrend($selectedStudentId);
             $recentHistory = Attendance::where('student_id', $selectedStudentId)
                 ->latest('attendance_date')

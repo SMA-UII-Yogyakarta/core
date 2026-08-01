@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 
-class TeacherPolicy
+class GuardianPolicy
 {
     public function viewAny(User $user): bool
     {

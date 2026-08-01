@@ -28,6 +28,7 @@ class StudentWebController extends Controller
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
         $stats = $this->attendanceService->getStudentStats($student->id);
+        $recentHistory = $this->attendanceService->history($student->id, 10);
 
         return Inertia::render('Student/Dashboard', [
             'student' => [
@@ -43,6 +44,7 @@ class StudentWebController extends Controller
                 'check_in_time' => $todayAttendance->check_in_time,
                 'attendance_date' => $todayAttendance->attendance_date->toDateString(),
             ] : null,
+            'recentHistory' => $recentHistory->items(),
             'stats' => $stats,
         ]);
     }
