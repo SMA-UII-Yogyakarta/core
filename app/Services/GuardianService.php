@@ -5,12 +5,18 @@ namespace App\Services;
 use App\Models\Guardian;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class GuardianService
 {
+    public function findAll(): Collection
+    {
+        return Guardian::select(['id', 'name'])->get();
+    }
+
     public function paginate(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         return Guardian::query()
@@ -75,7 +81,7 @@ class GuardianService
 
     public function linkToStudent(int $guardianId, int $studentId): void
     {
-        $guardian = Guardian::findOrFail($guardianId);
-        Student::where('id', $studentId)->update(['guardian_id' => $guardian->id]);
+        Guardian::findOrFail($guardianId);
+        Student::where('id', $studentId)->update(['guardian_id' => $guardianId]);
     }
 }
