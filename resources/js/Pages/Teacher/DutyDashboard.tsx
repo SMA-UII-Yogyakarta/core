@@ -190,13 +190,13 @@ export default function DashboardPiket({
 
             <div className="flex gap-3">
                 <a
-                    href="/admin/monitoring"
+                    href="/monitoring"
                     className="flex-1 px-4 py-3 bg-primary text-white rounded-xl text-center text-[13px] font-semibold hover:bg-primary/90 transition-colors"
                 >
                     Monitoring Presensi
                 </a>
                 <a
-                    href="/admin/leave-verification"
+                    href="/leave-verification"
                     className="flex-1 px-4 py-3 bg-surface border border-border text-text-primary rounded-xl text-center text-[13px] font-semibold hover:bg-background transition-colors"
                 >
                     Verifikasi Izin

@@ -19,7 +19,7 @@ const config: Record<
         text: "text-warning",
         defaultLabel: "Terlambat",
     },
-    absent: { bg: "bg-danger-bg", text: "text-danger", defaultLabel: "Absent" },
+    absent: { bg: "bg-danger-bg", text: "text-danger", defaultLabel: "Tidak Hadir" },
     sick: {
         bg: "bg-primary-light",
         text: "text-primary",

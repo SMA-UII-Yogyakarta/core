@@ -281,7 +281,7 @@ export default function Welcome() {
                                     {t("welcome.devDashboard")}
                                 </Link>
                                 <Link
-                                    href="/admin/master-data"
+                                    href="/master-data"
                                     className="px-3.5 py-1.5 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg text-xs font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
                                 >
                                     {t("welcome.devMaster")}

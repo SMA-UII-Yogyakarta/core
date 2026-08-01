@@ -28,7 +28,7 @@ interface LeaveRequest {
 }
 
 interface MonthlyTrend {
-  month: string;
+  label: string;
   present: number;
   late: number;
   absent: number;
@@ -45,8 +45,7 @@ interface PageProps {
     total: number;
     present: number;
     late: number;
-    sick: number;
-    permit: number;
+    sick_permit: number;
   } | null;
   monthlyTrend: MonthlyTrend[] | null;
   recentHistory: Array<{
@@ -162,8 +161,8 @@ export default function WaliMuridDashboard({
               <StatCard label="Hadir" value={studentStats.present} color="green" />
               <StatCard label="Terlambat" value={studentStats.late} color="amber" />
               <StatCard
-                label="Sakit"
-                value={studentStats.sick + studentStats.permit}
+                label="Sakit/Izin"
+                value={studentStats.sick_permit}
                 color="blue"
               />
             </div>
@@ -181,11 +180,11 @@ export default function WaliMuridDashboard({
                   value={trendStats?.late ?? 0}
                   color="amber"
                 />
-                <StatCard label="Absent" value={trendStats?.absent ?? 0} color="red" />
+                <StatCard label="Tidak Hadir" value={trendStats?.absent ?? 0} color="red" />
               </div>
               <AttendanceChart
                 data={monthlyTrend.map((m) => ({
-                  label: m.month,
+                  label: m.label,
                   present: m.present,
                   late: m.late,
                 }))}
@@ -235,7 +234,7 @@ export default function WaliMuridDashboard({
           {/* Stats Overview */}
           {stats && (
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <StatCard label="Days Recorded" value={stats.total_days} color="grey" />
+              <StatCard label="Total Hari" value={stats.total_days} color="grey" />
               <StatCard label="Hadir" value={stats.present} color="green" />
               <StatCard label="Terlambat" value={stats.late} color="amber" />
               <StatCard label="Izin Pending" value={stats.pending_leave} color="blue" />

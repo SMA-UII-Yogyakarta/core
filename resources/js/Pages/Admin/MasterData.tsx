@@ -1,15 +1,19 @@
-import { Head, router } from "@inertiajs/react";
+import { router, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import {
-    Navbar,
-    Sidebar,
     Button,
+    Card,
+    Input,
+    SelectInput,
+    PageHeader,
+    SearchBar,
     ActionButton,
     StatusBadge,
     Table,
     Pagination,
     ImportModal,
 } from "@/Components";
+import AdminLayout from "@/Layouts/AdminLayout";
 import type { Column } from "@/Components/ui/Table";
 
 // ─── Shared Types ───
@@ -17,9 +21,10 @@ import type { Column } from "@/Components/ui/Table";
 interface SchoolClass {
     id: number;
     name: string;
+    level: string;
+    capacity: number;
     teacher: { id: number; name: string } | null;
     students_count: number;
-    capacity: number;
 }
 
 interface Student {
@@ -55,14 +60,36 @@ interface PaginatedData<T> {
     per_page: number;
 }
 
+interface SearchConfig {
+    mode: "client" | "server";
+    allData?: SchoolClass[];
+}
+
 interface PageProps {
     students: PaginatedData<Student>;
     teachers?: PaginatedData<Teacher>;
+    allTeachers?: Teacher[];
     schoolClasses?: PaginatedData<SchoolClass>;
+    allGuardians?: { id: number; name: string }[];
     guardians?: PaginatedData<Guardian>;
-    tab: string;
+    searchConfig?: SearchConfig;
+    activeTab?: string;
     filters: Record<string, string | undefined>;
 }
+
+const tabRoutes: Record<string, string> = {
+    students: "/admin/master-data",
+    teachers: "/admin/master-data/teachers",
+    class: "/admin/master-data/classes",
+    guardians: "/admin/master-data/guardians",
+};
+
+const activeTabMap: Record<string, string> = {
+    siswa: "students",
+    guru: "teachers",
+    classes: "class",
+    wali: "guardians",
+};
 
 const tabs = [
     { key: "students", label: "Siswa", icon: "fa-user-graduate" },
@@ -71,32 +98,85 @@ const tabs = [
     { key: "guardians", label: "Wali Murid", icon: "fa-user-friends" },
 ];
 
-export default function DataMaster({
+export default function MasterData({
     students,
     teachers,
+    allTeachers,
     schoolClasses,
     guardians,
+    searchConfig,
+    activeTab,
     filters,
 }: PageProps) {
-    const [currentTab, setCurrentTab] = useState(filters.tab ?? "students");
+    const [currentTab, setCurrentTab] = useState(
+        activeTabMap[activeTab ?? ""] ?? "students",
+    );
     const [search, setSearch] = useState(filters.search ?? "");
     const [, setSelectedIds] = useState<number[]>([]); // value not needed, only setter for reset
     const [importModalOpen, setImportModalOpen] = useState(false);
-    const [importEntity, setImportEntity] = useState<"students" | "teachers">("students");
+    const [importEntity, setImportEntity] = useState<"students" | "teachers">(
+        "students",
+    );
+
+    const [allClasses] = useState<SchoolClass[]>(
+        () => searchConfig?.allData || [],
+    );
+    const [filteredClasses, setFilteredClasses] = useState<SchoolClass[]>(
+        () => searchConfig?.allData || schoolClasses?.data || [],
+    );
+
+    const { data: formData, setData: setFormData, post, processing, reset } = useForm({
+        name: "",
+        teacher_id: null as number | null,
+        capacity: "",
+        level: "X",
+    });
+
+    const { errors } = usePage().props as { errors: Record<string, string> };
+
+    const handleCreateClass = (e: React.FormEvent) => {
+        e.preventDefault();
+        post("/admin/master-data/classes", {
+            onSuccess: () => {
+                reset();
+            },
+        });
+    };
 
     const switchTab = (tab: string) => {
         setCurrentTab(tab);
         setSelectedIds([]);
-        router.get("/admin/master-data", { tab }, { preserveState: true });
-    };
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
         router.get(
-            "/admin/master-data",
-            { tab: currentTab, search: search || undefined },
+            tabRoutes[tab] ?? "/admin/master-data",
+            {},
             { preserveState: true },
         );
+    };
+
+    const handleSearch = (value: string) => {
+        setSearch(value);
+
+        if (searchConfig?.mode === "client" && currentTab === "class") {
+            const filtered = allClasses.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(value.toLowerCase()) ||
+                    c.teacher?.name
+                        ?.toLowerCase()
+                        .includes(value.toLowerCase()),
+            );
+            setFilteredClasses(filtered);
+        } else {
+            router.get(
+                tabRoutes[currentTab] ?? "/admin/master-data",
+                { search: value || undefined },
+                { preserveState: true },
+            );
+        }
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSearch(search);
     };
 
     const handleDelete = (entity: string, id: number) => {
@@ -114,14 +194,24 @@ export default function DataMaster({
             header: "Identitas Nomor",
             render: (s) => (
                 <div>
-                    <div className="font-medium text-text-primary">{s.nis}</div>
-                    <div className="text-[12px] text-text-inactive">
+                    <div className="font-semibold text-text-primary">
+                        {s.nis}
+                    </div>
+                    <div className="text-[12px] font-medium text-text-inactive">
                         NISN: {s.nisn}
                     </div>
                 </div>
             ),
         },
-        { key: "name", header: "Nama Siswa" },
+        {
+            key: "name",
+            header: "Nama Siswa",
+            render: (s) => (
+                <div>
+                    <div className="font-semibold text-primary">{s.name}</div>
+                </div>
+            ),
+        },
         { key: "class", header: "Kelas", render: (s) => s.class?.name ?? "-" },
         {
             key: "status",
@@ -156,8 +246,22 @@ export default function DataMaster({
     // ─── Teacher Columns ───
 
     const teacherColumns: Column<Teacher>[] = [
-        { key: "teacher_code", header: "Kode Guru" },
-        { key: "name", header: "Nama Guru" },
+        {
+            key: "teacher_code",
+            header: "Kode Guru",
+            render: (t) => (
+                <p className="font-semibold text-text-primary">
+                    {t.teacher_code}
+                </p>
+            ),
+        },
+        {
+            key: "name",
+            header: "Nama Guru",
+            render: (t) => (
+                <p className="font-semibold text-primary">{t.name}</p>
+            ),
+        },
         {
             key: "email",
             header: "Email",
@@ -200,8 +304,8 @@ export default function DataMaster({
             render: (c) => c.teacher?.name ?? "-",
         },
         {
-            key: "student_count",
-            header: "Siswa/Kapasitas",
+            key: "students_count",
+            header: "Jumlah Siswa",
             render: (c) => `${c.students_count}/${c.capacity}`,
         },
         {
@@ -268,123 +372,134 @@ export default function DataMaster({
     // ─── Render ───
 
     return (
-        <>
-            <Head title="Manajemen Data Master" />
-            <div className="min-h-screen flex flex-col bg-background">
-                <Navbar brand="SMA UII YOGYAKARTA" />
-                <div className="flex flex-1">
-                    <Sidebar activeMenu="Data Master" />
-                    <main className="flex-1 p-6">
-                        <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
-                            Manajemen Data Master
-                        </h1>
+        <AdminLayout title="Manajemen Data Master" activeMenu="Data Master">
+            <div>
+                <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
+                    Manajemen Data Master
+                </h1>
 
-                        {/* Tabs */}
-                        <div className="flex gap-1 border-b border-border mb-6">
-                            {tabs.map((t) => (
-                                <button
-                                    key={t.key}
-                                    onClick={() => switchTab(t.key)}
-                                    className={`px-4 py-2.5 text-[14px] font-inter transition-colors border-b-2 -mb-px inline-flex items-center gap-2 ${
-                                        currentTab === t.key
-                                            ? "text-primary border-primary font-bold"
-                                            : "text-text-inactive border-transparent hover:text-text-primary"
-                                    }`}
-                                    type="button"
-                                >
-                                    <i className={`fas ${t.icon}`} />
-                                    {t.label}
-                                </button>
-                            ))}
+                {/* Tabs */}
+                <div className="flex gap-1 border-b border-border mb-6">
+                    {tabs.map((t) => (
+                        <button
+                            key={t.key}
+                            onClick={() => switchTab(t.key)}
+                            className={`px-4 py-2.5 text-[14px] font-inter transition-colors border-b-2 -mb-px inline-flex items-center gap-2 ${
+                                currentTab === t.key
+                                    ? "text-primary border-primary font-bold"
+                                    : "text-text-inactive border-transparent hover:text-text-primary"
+                            }`}
+                            type="button"
+                        >
+                            <i className={`fas ${t.icon}`} />
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── Siswa Tab ── */}
+                {currentTab === "students" && students?.data && (
+                    <div>
+                        <Toolbar
+                            search={search}
+                            setSearch={setSearch}
+                            handleSearch={handleSearchSubmit}
+                            onImport={() => {
+                                setImportEntity("students");
+                                setImportModalOpen(true);
+                            }}
+                        />
+                        <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
+                            <Table
+                                columns={studentColumns}
+                                data={students.data}
+                                keyExtractor={(s: Student) => s.id}
+                            />
+                            {students.total > 0 && (
+                                <Pagination
+                                    currentPage={students.current_page}
+                                    totalPages={students.last_page}
+                                    totalItems={students.total}
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/admin/master-data",
+                                            {
+                                                page,
+                                            },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                />
+                            )}
                         </div>
+                    </div>
+                )}
 
-                        {/* ── Siswa Tab ── */}
-                        {currentTab === "students" && students && (
-                            <div>
-                                <Toolbar
-                                    search={search}
-                                    setSearch={setSearch}
-                                    handleSearch={handleSearch}
-                                    onImport={() => { setImportEntity("students"); setImportModalOpen(true); }}
+                {/* ── Guru Tab ── */}
+                {currentTab === "teachers" && teachers?.data && (
+                    <div>
+                        <Toolbar
+                            search={search}
+                            setSearch={setSearch}
+                            handleSearch={handleSearchSubmit}
+                            onImport={() => {
+                                setImportEntity("teachers");
+                                setImportModalOpen(true);
+                            }}
+                        />
+                        <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
+                            <Table
+                                columns={teacherColumns}
+                                data={teachers.data}
+                                keyExtractor={(t: Teacher) => t.id}
+                            />
+                            {teachers.total > 0 && (
+                                <Pagination
+                                    currentPage={teachers.current_page}
+                                    totalPages={teachers.last_page}
+                                    totalItems={teachers.total}
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/admin/master-data/teachers",
+                                            {
+                                                page,
+                                            },
+                                            { preserveState: true },
+                                        )
+                                    }
                                 />
-                                <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                                    <Table
-                                        columns={studentColumns}
-                                        data={students.data}
-                                        keyExtractor={(s: Student) => s.id}
-                                    />
-                                    {students.total > 0 && (
-                                        <Pagination
-                                            currentPage={students.current_page}
-                                            totalPages={students.last_page}
-                                            totalItems={students.total}
-                                            onPageChange={(page) =>
-                                                router.get(
-                                                    "/admin/master-data",
-                                                    {
-                                                        tab: "students",
-                                                        page,
-                                                    },
-                                                    { preserveState: true },
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    </div>
+                )}
 
-                        {/* ── Guru Tab ── */}
-                        {currentTab === "teachers" && teachers && (
-                            <div>
-                                <Toolbar
-                                    search={search}
-                                    setSearch={setSearch}
-                                    handleSearch={handleSearch}
-                                    onImport={() => { setImportEntity("teachers"); setImportModalOpen(true); }}
-/>
-                                <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                                    <Table
-                                        columns={teacherColumns}
-                                        data={teachers.data}
-                                        keyExtractor={(t: Teacher) => t.id}
+                {/* ── Kelas Tab ── */}
+                {currentTab === "class" && schoolClasses?.data && (
+                    <div className="grid grid-cols-5 gap-3">
+                        <div className="col-span-3">
+                            <Card className="p-4 lg:p-6">
+                                <PageHeader>
+                                    <SearchBar
+                                        value={search}
+                                        onChange={setSearch}
+                                        onSearch={handleSearch}
+                                        autoSearch={
+                                            searchConfig?.mode !== "client"
+                                        }
+                                        debounceMs={300}
                                     />
-                                    {teachers.total > 0 && (
-                                        <Pagination
-                                            currentPage={teachers.current_page}
-                                            totalPages={teachers.last_page}
-                                            totalItems={teachers.total}
-                                            onPageChange={(page) =>
-                                                router.get(
-                                                    "/admin/master-data",
-                                                    {
-                                                        tab: "teachers",
-                                                        page,
-                                                    },
-                                                    { preserveState: true },
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* ── Kelas Tab ── */}
-                        {currentTab === "class" && schoolClasses && (
-                            <div>
-                                <Toolbar
-                                    search={search}
-                                    setSearch={setSearch}
-                                    handleSearch={handleSearch}
+                                </PageHeader>
+                                <Table
+                                    columns={classColumns}
+                                    data={
+                                        searchConfig?.mode === "client"
+                                            ? filteredClasses
+                                            : schoolClasses.data
+                                    }
+                                    keyExtractor={(c: SchoolClass) => c.id}
                                 />
-                                <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                                    <Table
-                                        columns={classColumns}
-                                        data={schoolClasses.data}
-                                        keyExtractor={(c: SchoolClass) => c.id}
-                                    />
-                                    {schoolClasses.total > 0 && (
+                                {searchConfig?.mode !== "client" &&
+                                    schoolClasses.total > 0 && (
                                         <Pagination
                                             currentPage={
                                                 schoolClasses.current_page
@@ -393,9 +508,8 @@ export default function DataMaster({
                                             totalItems={schoolClasses.total}
                                             onPageChange={(page) =>
                                                 router.get(
-                                                    "/admin/master-data",
+                                                    "/admin/master-data/classes",
                                                     {
-                                                        tab: "class",
                                                         page,
                                                     },
                                                     { preserveState: true },
@@ -403,53 +517,121 @@ export default function DataMaster({
                                             }
                                         />
                                     )}
-                                </div>
+                            </Card>
+                        </div>
+                        <Card className="col-span-2 border-2 border-dashed border-border p-4 h-[480px] flex flex-col">
+                            <div className="text-primary py-2 text-lg font-semibold">
+                                    Buat Kelas Baru
                             </div>
-                        )}
-
-                        {/* ── Wali Tab ── */}
-                        {currentTab === "guardians" && guardians && (
-                            <div>
-                                <Toolbar
-                                    search={search}
-                                    setSearch={setSearch}
-                                    handleSearch={handleSearch}
-                                />
-                                <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                                    <Table
-                                        columns={guardianColumns}
-                                        data={guardians.data}
-                                        keyExtractor={(w: Guardian) => w.id}
+                            <form onSubmit={handleCreateClass} className="flex flex-col gap-2 flex-1">
+                                <div className="grid grid-cols-3 gap-2 py-2">
+                                    <SelectInput
+                                        label="Tingkat"
+                                        options={[
+                                            { value: "X", label: "X" },
+                                            { value: "XI", label: "XI" },
+                                            { value: "XII", label: "XII" },
+                                        ]}
+                                        value={formData.level}
+                                        onChange={(val) =>
+                                            setFormData("level", (val as string) ?? "X")
+                                        }
+                                        className="col-span-1"
+                                        error={errors.level}
                                     />
-                                    {guardians.total > 0 && (
-                                        <Pagination
-                                            currentPage={guardians.current_page}
-                                            totalPages={guardians.last_page}
-                                            totalItems={guardians.total}
-                                            onPageChange={(page) =>
-                                                router.get(
-                                                    "/admin/master-data",
-                                                    {
-                                                        tab: "guardians",
-                                                        page,
-                                                    },
-                                                    { preserveState: true },
-                                                )
-                                            }
-                                        />
-                                    )}
+                                    <Input
+                                        label="Nama / Kode Kelas"
+                                        type="text"
+                                        id="kode_kelas"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData("name", e.target.value)}
+                                        description="Nama kelas harus unik."
+                                        className="col-span-2"
+                                        error={errors.name}
+                                    />
                                 </div>
-                            </div>
-                        )}
-                    </main>
-                </div>
+                                <SelectInput
+                                    label="Tugaskan Wali Kelas"
+                                    placeholder="-- Pilih Wali Kelas --"
+                                    description="Guru yang sudah menjadi Wali Kelas tidak akan muncul di sini."
+                                    options={(allTeachers || []).map((t) => ({
+                                        value: t.id,
+                                        label: t.name,
+                                    }))}
+                                    value={formData.teacher_id}
+                                    onChange={(val) =>
+                                        setFormData(
+                                            "teacher_id",
+                                            typeof val === "number" ? val : null,
+                                        )
+                                    }
+                                    className="py-2"
+                                    error={errors.teacher_id}
+                                />
+                                <Input
+                                    label="Kapasitas Maksimal"
+                                    type="number"
+                                    id="kapasitas"
+                                    min="0"
+                                    numeric
+                                    value={formData.capacity}
+                                    onChange={(e) => setFormData("capacity", e.target.value)}
+                                    className="py-2"
+                                    error={errors.capacity}
+                                />
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    className="w-full h-10 mt-auto"
+                                    disabled={processing}
+                                >
+                                    {processing ? "Menyimpan..." : "Simpan Kelas Baru"}
+                                </Button>
+                            </form>
+                        </Card>
+                    </div>
+                )}
+
+                {/* ── Wali Tab ── */}
+                {currentTab === "guardians" && guardians?.data && (
+                    <div>
+                        <Toolbar
+                            search={search}
+                            setSearch={setSearch}
+                            handleSearch={handleSearchSubmit}
+                        />
+                        <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
+                            <Table
+                                columns={guardianColumns}
+                                data={guardians.data}
+                                keyExtractor={(w: Guardian) => w.id}
+                            />
+                            {guardians.total > 0 && (
+                                <Pagination
+                                    currentPage={guardians.current_page}
+                                    totalPages={guardians.last_page}
+                                    totalItems={guardians.total}
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/admin/master-data/guardians",
+                                            {
+                                                page,
+                                            },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                />
+                            )}
+                        </div>
+                    </div>
+                )}
+                <ImportModal
+                    open={importModalOpen}
+                    onClose={() => setImportModalOpen(false)}
+                    entity={importEntity}
+                />
             </div>
-            <ImportModal
-                open={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
-                entity={importEntity}
-            />
-        </>
+        </AdminLayout>
     );
 }
 
@@ -496,5 +678,3 @@ function Toolbar({
         </div>
     );
 }
-
-
