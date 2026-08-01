@@ -117,21 +117,6 @@ Route::middleware(['auth'])->group(function () {
             'monitoring',
         ])->name('admin.monitoring');
 
-        // Leave Verification
-        Route::prefix('/admin/leave-verification')->group(function () {
-            Route::get('/', [LeaveRequestController::class, 'verification'])->name(
-                'admin.leave-verification',
-            );
-            Route::patch('/{id}/approve', [
-                LeaveRequestController::class,
-                'approve',
-            ])->name('admin.leave-verification.approve');
-            Route::patch('/{id}/reject', [
-                LeaveRequestController::class,
-                'reject',
-            ])->name('admin.leave-verification.reject');
-        });
-
         // Leave Requests (Admin View)
         Route::get('/admin/leave-requests', [
             LeaveRequestViewController::class,
@@ -258,6 +243,23 @@ Route::middleware(['auth'])->group(function () {
         });
 
     });
+
+    // ─── Leave Verification (admin & teacher) ───
+    Route::middleware('role:admin,teacher')
+        ->prefix('/admin/leave-verification')
+        ->group(function () {
+            Route::get('/', [LeaveRequestController::class, 'verification'])->name(
+                'admin.leave-verification',
+            );
+            Route::patch('/{id}/approve', [
+                LeaveRequestController::class,
+                'approve',
+            ])->name('admin.leave-verification.approve');
+            Route::patch('/{id}/reject', [
+                LeaveRequestController::class,
+                'reject',
+            ])->name('admin.leave-verification.reject');
+        });
 
     // ─── Role-based Pages ───
 

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -74,6 +75,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (User $user): void {
+            if (! $user->role || (! $user->wasRecentlyCreated && ! $user->wasChanged('role'))) {
+                return;
+            }
+
+            if (! $user->hasRole($user->role)) {
+                $user->syncRoles([Role::findOrCreate($user->role)]);
+            }
+        });
     }
 
     public function student(): HasOne
