@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
 use App\Models\DutySchedule;
+use App\Models\LeaveRequest;
+use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Services\AttendanceService;
 use App\Services\DutyScheduleService;
@@ -27,25 +30,39 @@ class TeacherWebController extends Controller
             return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
         }
 
-        $today = now()->format('l');
+        $today = now()->toDateString();
+        $dayName = now()->format('l');
         $isScheduled = DutySchedule::where('teacher_id', $teacher->id)
-            ->where('duty_day', $today)
+            ->where('duty_day', $dayName)
             ->exists();
 
-        $classStats = [];
-        $classes = \App\Models\SchoolClass::all();
+        $classes = SchoolClass::with(['students' => fn ($q) => $q->where('status', 'Active')])->get();
+        $studentIds = $classes->flatMap(fn ($c) => $c->students->pluck('id'))->all();
 
-        foreach ($classes as $class) {
-            $stats = $this->attendanceService->stats($class->id);
-            $classStats[] = [
+        $attendances = Attendance::whereDate('attendance_date', $today)
+            ->whereIn('student_id', $studentIds)
+            ->get();
+
+        $sickPermits = LeaveRequest::where('approval_status', 'Approved')
+            ->where('category', 'Sick')
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today)
+            ->whereIn('student_id', $studentIds)
+            ->get();
+
+        $classStats = $classes->map(function ($class) use ($attendances, $sickPermits) {
+            $ids = $class->students->pluck('id');
+            $classAttendances = $attendances->whereIn('student_id', $ids);
+
+            return [
                 'class' => $class->name,
-                'total' => $stats['total'],
-                'present' => $stats['present'],
-                'late' => $stats['late'],
-                'absent' => $stats['absent'],
-                'pending_leaves' => $stats['sick_permission'],
+                'total' => $class->students->count(),
+                'present' => $classAttendances->where('status', 'Present')->count(),
+                'late' => $classAttendances->where('status', 'Late')->count(),
+                'absent' => max(0, $class->students->count() - $classAttendances->count()),
+                'pending_leaves' => $sickPermits->whereIn('student_id', $ids)->count(),
             ];
-        }
+        })->values()->all();
 
         return Inertia::render('Teacher/DutyDashboard', [
             'teacher' => [

@@ -6,6 +6,7 @@ use App\Exports\DailyRecapExport;
 use App\Exports\MonthlyRecapExport;
 use App\Exports\StudentsExport;
 use App\Exports\TeachersExport;
+use App\Models\Attendance;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -43,14 +44,19 @@ class ExportService
 
     public function dailyRecapPdf(string $date, ?int $classId = null): string
     {
-        $query = Student::with('class')->where('status', 'Active');
-        if ($classId) {
-            $query->where('class_id', $classId);
-        }
+        $students = Student::with('class')
+            ->where('status', 'Active')
+            ->when($classId, fn ($q) => $q->where('class_id', $classId))
+            ->get();
 
-        $students = $query->get()->map(function ($s) use ($date) {
-            $att = \App\Models\Attendance::where('student_id', $s->id)
-                ->whereDate('attendance_date', $date)->first();
+        $attendances = Attendance::whereDate('attendance_date', $date)
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get()
+            ->keyBy('student_id');
+
+        $rows = $students->map(function ($s) use ($attendances) {
+            $att = $attendances->get($s->id);
+
             return [
                 'nis' => $s->nis,
                 'name' => $s->name,
@@ -64,7 +70,7 @@ class ExportService
 
         $pdf = Pdf::loadView('exports.daily-recap', [
             'date' => Carbon::parse($date)->translatedFormat('l, d F Y'),
-            'students' => $students,
+            'students' => $rows,
             'class' => $class,
         ]);
 
@@ -75,23 +81,27 @@ class ExportService
 
     public function monthlyRecapPdf(int $month, int $year, ?int $classId = null): string
     {
-        $query = Student::with('class')->where('status', 'Active');
-        if ($classId) {
-            $query->where('class_id', $classId);
-        }
+        $students = Student::with('class')
+            ->where('status', 'Active')
+            ->when($classId, fn ($q) => $q->where('class_id', $classId))
+            ->get();
 
-        $students = $query->get()->map(function ($s) use ($month, $year) {
-            $total = \App\Models\Attendance::where('student_id', $s->id)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $month)->count();
-            $present = \App\Models\Attendance::where('student_id', $s->id)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $month)
-                ->where('status', 'Present')->count();
-            $late = \App\Models\Attendance::where('student_id', $s->id)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $month)
-                ->where('status', 'Late')->count();
+        $stats = Attendance::query()
+            ->selectRaw('student_id, COUNT(*) as total, '
+                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present, "
+                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late")
+            ->whereIn('student_id', $students->pluck('id'))
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month)
+            ->groupBy('student_id')
+            ->get()
+            ->keyBy('student_id');
+
+        $rows = $students->map(function ($s) use ($stats) {
+            $row = $stats->get($s->id);
+            $total = (int) ($row->total ?? 0);
+            $present = (int) ($row->present ?? 0);
+            $late = (int) ($row->late ?? 0);
             $absent = max(0, $total - $present - $late);
 
             return [
@@ -111,7 +121,7 @@ class ExportService
         $pdf = Pdf::loadView('exports.monthly-recap', [
             'monthName' => $monthName,
             'year' => $year,
-            'students' => $students,
+            'students' => $rows,
             'class' => $class,
         ]);
 
