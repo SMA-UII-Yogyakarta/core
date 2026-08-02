@@ -20,8 +20,14 @@ class AnalyticsService
         $date = $date ?? now()->toDateString();
         $classes = SchoolClass::all();
 
-        $total = Student::where('status', 'Active')->count();
-        $attendances = Attendance::whereDate('attendance_date', $date)->get();
+        $studentsByClass = Student::where('status', 'Active')
+            ->get()
+            ->groupBy('class_id');
+        $total = $studentsByClass->flatten()->count();
+
+        $attendances = Attendance::with('student')
+            ->whereDate('attendance_date', $date)
+            ->get();
 
         $present = $attendances->where('status', 'Present')->count();
         $late = $attendances->where('status', 'Late')->count();
@@ -35,7 +41,7 @@ class AnalyticsService
         $classStats = $classes->map(fn ($c) => [
             'id' => $c->id,
             'name' => $c->name,
-            'total' => Student::where('class_id', $c->id)->where('status', 'Active')->count(),
+            'total' => $studentsByClass->get($c->id)?->count() ?? 0,
             'present' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
             'late' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
         ]);
@@ -146,36 +152,20 @@ class AnalyticsService
     public function studentMonthlyTrend(int $studentId, ?int $year = null): array
     {
         $year = $year ?? now()->year;
-        $months = [];
 
+        $buckets = $this->monthlyBuckets($year, $studentId);
+
+        $months = [];
         for ($m = 1; $m <= 12; $m++) {
             $start = now()->setDate($year, $m, 1)->startOfMonth();
-
-            $total = Attendance::where('student_id', $studentId)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->count();
-
-            $present = Attendance::where('student_id', $studentId)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->where('status', 'Present')
-                ->count();
-
-            $late = Attendance::where('student_id', $studentId)
-                ->whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->where('status', 'Late')
-                ->count();
-
-            $absent = max(0, $total - $present - $late);
+            $bucket = $buckets[$m] ?? ['total' => 0, 'present' => 0, 'late' => 0];
 
             $months[] = [
                 'month' => $start->translatedFormat('M'),
                 'label' => $start->translatedFormat('M'),
-                'present' => $present,
-                'late' => $late,
-                'absent' => $absent,
+                'present' => $bucket['present'],
+                'late' => $bucket['late'],
+                'absent' => max(0, $bucket['total'] - $bucket['present'] - $bucket['late']),
             ];
         }
 
@@ -184,46 +174,89 @@ class AnalyticsService
 
     private function buildMonthlyTrend(int $year): array
     {
+        $buckets = $this->monthlyBuckets($year);
+
         $months = [];
         for ($m = 1; $m <= 12; $m++) {
             $start = now()->setDate($year, $m, 1)->startOfMonth();
-
-            $total = Attendance::whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->count();
-
-            $present = Attendance::whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->where('status', 'Present')
-                ->count();
-
-            $late = Attendance::whereYear('attendance_date', $year)
-                ->whereMonth('attendance_date', $m)
-                ->where('status', 'Late')
-                ->count();
+            $bucket = $buckets[$m] ?? ['total' => 0, 'present' => 0, 'late' => 0];
 
             $months[] = [
                 'label' => $start->translatedFormat('M'),
-                'present' => $present,
-                'late' => $late,
+                'present' => $bucket['present'],
+                'late' => $bucket['late'],
             ];
         }
+
         return $months;
+    }
+
+    private function monthlyBuckets(int $year, ?int $studentId = null): array
+    {
+        $query = Attendance::query()
+            ->selectRaw('DATE(attendance_date) as d, COUNT(*) as total, '
+                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present, "
+                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late")
+            ->whereYear('attendance_date', $year)
+            ->groupByRaw('DATE(attendance_date)');
+
+        if ($studentId) {
+            $query->where('student_id', $studentId);
+        }
+
+        $buckets = [];
+
+        foreach ($query->get() as $row) {
+            $month = (int) substr((string) ($row->d ?? ''), 5, 2);
+            $buckets[$month]['total'] = ($buckets[$month]['total'] ?? 0) + (int) ($row->total ?? 0);
+            $buckets[$month]['present'] = ($buckets[$month]['present'] ?? 0) + (int) ($row->present ?? 0);
+            $buckets[$month]['late'] = ($buckets[$month]['late'] ?? 0) + (int) ($row->late ?? 0);
+        }
+
+        return $buckets;
     }
 
     public function weeklyTrend(?int $weeks = 4): array
     {
+        $startOfRange = now()->subWeeks($weeks - 1)->startOfWeek();
+        $endOfRange = now()->endOfWeek();
+
+        $rows = Attendance::query()
+            ->selectRaw('DATE(attendance_date) as d, COUNT(*) as total, '
+                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present, "
+                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late")
+            ->whereBetween('attendance_date', [$startOfRange->toDateString(), $endOfRange->toDateString()])
+            ->groupByRaw('DATE(attendance_date)')
+            ->get();
+
+        $byDate = [];
+        foreach ($rows as $row) {
+            $byDate[(string) ($row->d ?? '')] = [
+                'total' => (int) ($row->total ?? 0),
+                'present' => (int) ($row->present ?? 0),
+                'late' => (int) ($row->late ?? 0),
+            ];
+        }
+
         $weekly = [];
         for ($i = $weeks - 1; $i >= 0; $i--) {
-            $start = now()->subWeeks($i)->startOfWeek();
-            $end = now()->subWeeks($i)->endOfWeek();
+            $weekStart = now()->subWeeks($i)->startOfWeek();
+            $weekEnd = now()->subWeeks($i)->endOfWeek();
 
-            $total = Attendance::whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->count();
-            $present = Attendance::whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Present')->count();
-            $late = Attendance::whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])->where('status', 'Late')->count();
+            $total = 0;
+            $present = 0;
+            $late = 0;
+
+            foreach ($byDate as $date => $counts) {
+                if ($date >= $weekStart->toDateString() && $date <= $weekEnd->toDateString()) {
+                    $total += $counts['total'];
+                    $present += $counts['present'];
+                    $late += $counts['late'];
+                }
+            }
 
             $weekly[] = [
-                'label' => 'Week ' . now()->subWeeks($weeks - 1 - $i)->weekOfYear,
+                'label' => 'Week ' . $weekStart->weekOfYear,
                 'total' => $total,
                 'present' => $present,
                 'late' => $late,
@@ -238,18 +271,20 @@ class AnalyticsService
         $date = $date ?? now()->toDateString();
         $classes = SchoolClass::all();
 
+        $studentsByClass = Student::where('status', 'Active')
+            ->get()
+            ->groupBy('class_id');
+
+        $attendances = Attendance::with('student')
+            ->whereDate('attendance_date', $date)
+            ->get();
+
         return $classes->map(fn ($c) => [
             'id' => $c->id,
             'name' => $c->name,
-            'total' => Student::where('class_id', $c->id)->where('status', 'Active')->count(),
-            'present' => Attendance::whereDate('attendance_date', $date)
-                ->where('status', 'Present')
-                ->whereHas('student', fn ($q) => $q->where('class_id', $c->id))
-                ->count(),
-            'late' => Attendance::whereDate('attendance_date', $date)
-                ->where('status', 'Late')
-                ->whereHas('student', fn ($q) => $q->where('class_id', $c->id))
-                ->count(),
+            'total' => $studentsByClass->get($c->id)?->count() ?? 0,
+            'present' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
+            'late' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
         ]);
     }
 }

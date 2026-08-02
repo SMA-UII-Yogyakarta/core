@@ -20,14 +20,18 @@ class AttendanceOverrideService
 
         $students = $query->get();
 
+        $attendances = Attendance::whereDate('attendance_date', $date)
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get()
+            ->keyBy('student_id');
+
         $overrides = AttendanceOverride::whereIn('student_id', $students->pluck('id'))
             ->where('attendance_date', $date)
             ->get()
             ->keyBy('student_id');
 
-        return $students->map(function ($s) use ($date, $overrides) {
-            $att = Attendance::where('student_id', $s->id)
-                ->whereDate('attendance_date', $date)->first();
+        return $students->map(function ($s) use ($attendances, $overrides) {
+            $att = $attendances->get($s->id);
 
             $override = $overrides->get($s->id);
 

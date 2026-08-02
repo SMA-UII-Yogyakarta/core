@@ -18,40 +18,35 @@ class MonthlyRecapExport
             'NIS', 'Nama', 'Kelas', 'Total Hadir', 'Total Terlambat', 'Total Alpa', 'Persentase',
         ]));
 
-        $query = Student::with('class')->where('status', 'Active');
+        $students = Student::with('class')
+            ->where('status', 'Active')
+            ->when($classId, fn ($q) => $q->where('class_id', $classId))
+            ->get();
 
-        if ($classId) {
-            $query->where('class_id', $classId);
+        $stats = Attendance::query()
+            ->selectRaw('student_id, COUNT(*) as total, '
+                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as hadir, "
+                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as terlambat")
+            ->whereIn('student_id', $students->pluck('id'))
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month)
+            ->groupBy('student_id')
+            ->get()
+            ->keyBy('student_id');
+
+        foreach ($students as $s) {
+            $row = $stats->get($s->id);
+            $total = (int) ($row->total ?? 0);
+            $hadir = (int) ($row->hadir ?? 0);
+            $terlambat = (int) ($row->terlambat ?? 0);
+            $alpa = max(0, $total - $hadir - $terlambat);
+            $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%';
+
+            $writer->addRow(Row::fromValues([
+                $s->nis, $s->name, $s->class->name ?? '-',
+                $hadir, $terlambat, $alpa, $persentase,
+            ]));
         }
-
-        $query->chunk(200, function ($students) use ($writer, $month, $year) {
-            foreach ($students as $s) {
-                $total = Attendance::where('student_id', $s->id)
-                    ->whereYear('attendance_date', $year)
-                    ->whereMonth('attendance_date', $month)
-                    ->count();
-
-                $hadir = Attendance::where('student_id', $s->id)
-                    ->whereYear('attendance_date', $year)
-                    ->whereMonth('attendance_date', $month)
-                    ->where('status', 'Present')
-                    ->count();
-
-                $terlambat = Attendance::where('student_id', $s->id)
-                    ->whereYear('attendance_date', $year)
-                    ->whereMonth('attendance_date', $month)
-                    ->where('status', 'Late')
-                    ->count();
-
-                $alpa = max(0, $total - $hadir - $terlambat);
-                $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%';
-
-                $writer->addRow(Row::fromValues([
-                    $s->nis, $s->name, $s->class->name ?? '-',
-                    $hadir, $terlambat, $alpa, $persentase,
-                ]));
-            }
-        });
 
         $writer->close();
     }
