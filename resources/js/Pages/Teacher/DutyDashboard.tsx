@@ -12,7 +12,7 @@ interface ClassStat {
     present: number;
     late: number;
     absent: number;
-    pending_leaves: number;
+    sick_permission: number;
 }
 
 interface AttendanceEvent {
@@ -134,7 +134,7 @@ export default function DashboardPiket({
                             </div>
                             <div>
                                 <div className="text-[18px] font-bold text-primary">
-                                    {cs.pending_leaves}
+                                    {cs.sick_permission}
                                 </div>
                                 <div className="text-[11px] text-text-muted">
                                     Izin

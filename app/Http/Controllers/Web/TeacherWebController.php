@@ -45,8 +45,8 @@ class TeacherWebController extends Controller
 
         $sickPermits = LeaveRequest::where('approval_status', 'Approved')
             ->where('category', 'Sick')
-            ->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
             ->whereIn('student_id', $studentIds)
             ->get();
 
@@ -60,7 +60,7 @@ class TeacherWebController extends Controller
                 'present' => $classAttendances->where('status', 'Present')->count(),
                 'late' => $classAttendances->where('status', 'Late')->count(),
                 'absent' => max(0, $class->students->count() - $classAttendances->count()),
-                'pending_leaves' => $sickPermits->whereIn('student_id', $ids)->count(),
+                'sick_permission' => $sickPermits->whereIn('student_id', $ids)->count(),
             ];
         })->values()->all();
 
