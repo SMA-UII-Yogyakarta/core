@@ -225,7 +225,8 @@ class AnalyticsService
             ->selectRaw('DATE(attendance_date) as d, COUNT(*) as total, '
                 . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present, "
                 . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late")
-            ->whereBetween('attendance_date', [$startOfRange->toDateString(), $endOfRange->toDateString()])
+            ->whereDate('attendance_date', '>=', $startOfRange->toDateString())
+            ->whereDate('attendance_date', '<=', $endOfRange->toDateString())
             ->groupByRaw('DATE(attendance_date)')
             ->get();
 

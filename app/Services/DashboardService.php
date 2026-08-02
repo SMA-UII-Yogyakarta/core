@@ -19,24 +19,26 @@ class DashboardService
         $today = now()->toDateString();
         $totalStudents = Student::where('status', 'Active')->count();
 
-        $attendances = Attendance::where('attendance_date', $today)->get();
+        $attendances = Attendance::whereDate('attendance_date', $today)->get();
 
         $present = $attendances->where('status', 'Present')->count();
         $late = $attendances->where('status', 'Late')->count();
 
-        $sickPermissionToday = LeaveRequest::where('approval_status', 'Approved')
-            ->where('start_date', '<=', $today)
-            ->where('end_date', '>=', $today)
-            ->count();
+        $sickPermitIds = LeaveRequest::where('approval_status', 'Approved')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->pluck('student_id')
+            ->unique();
 
         $hadirTerdata = $present + $late;
-        $absent = max(0, $totalStudents - $hadirTerdata - $sickPermissionToday);
+        $sickPermitOnly = $sickPermitIds->diff($attendances->pluck('student_id'))->count();
+        $absent = max(0, $totalStudents - $hadirTerdata - $sickPermitOnly);
 
         return [
             'total_students' => $totalStudents,
             'verified_present' => $hadirTerdata,
             'late' => $late,
-            'sick_permit' => $sickPermissionToday,
+            'sick_permit' => $sickPermitOnly,
             'absent' => $absent,
         ];
     }
