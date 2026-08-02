@@ -25,37 +25,52 @@ class DashboardRoleTest extends TestCase
         $response->assertInertia(fn (Assert $page) => $page->component('Dashboard'));
     }
 
-    public function test_teacher_dashboard_renders_homeroom_view(): void
+    public function test_teacher_dashboard_redirects_to_homeroom(): void
     {
         $user = User::factory()->create(['role' => 'teacher']);
         Teacher::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->get('/dashboard');
+        $this->actingAs($user)->get('/dashboard')
+            ->assertRedirect(route('teacher.homeroom'));
 
-        $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page->component('Teacher/HomeroomDashboard'));
+        $this->actingAs($user)->get('/teacher/homeroom')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Teacher/HomeroomDashboard'));
     }
 
-    public function test_guardian_dashboard_renders_guardian_view(): void
+    public function test_guardian_dashboard_redirects_to_guardian_view(): void
     {
         $user = User::factory()->create(['role' => 'guardian']);
         Guardian::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->get('/dashboard');
+        $this->actingAs($user)->get('/dashboard')
+            ->assertRedirect(route('guardian.dashboard'));
 
-        $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page->component('Guardian/Dashboard'));
+        $this->actingAs($user)->get('/guardian')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Guardian/Dashboard'));
     }
 
-    public function test_student_dashboard_renders_student_view(): void
+    public function test_guardian_dashboard_redirect_preserves_student_id_query(): void
+    {
+        $user = User::factory()->create(['role' => 'guardian']);
+        Guardian::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($user)->get('/dashboard?student_id=42')
+            ->assertRedirect('/guardian?student_id=42');
+    }
+
+    public function test_student_dashboard_redirects_to_student_view(): void
     {
         $user = User::factory()->create(['role' => 'student']);
         $schoolClass = SchoolClass::factory()->create();
         Student::factory()->create(['user_id' => $user->id, 'class_id' => $schoolClass->id]);
 
-        $response = $this->actingAs($user)->get('/dashboard');
+        $this->actingAs($user)->get('/dashboard')
+            ->assertRedirect(route('student.dashboard'));
 
-        $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page->component('Student/Dashboard'));
+        $this->actingAs($user)->get('/student/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Student/Dashboard'));
     }
 }

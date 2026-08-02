@@ -46,6 +46,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Allowed Emails
+    |--------------------------------------------------------------------------
+    |
+    | Comma-separated list of user emails allowed to view Telescope in
+    | addition to users holding the "admin" role. Leave empty to restrict
+    | access to admins only.
+    |
+    */
+
+    'allowed_emails' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('TELESCOPE_ALLOWED_EMAILS', '')),
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Telescope Storage Driver
     |--------------------------------------------------------------------------
     |
