@@ -16,6 +16,21 @@ use Carbon\Carbon;
 
 class ExportService
 {
+    /**
+     * Ensure the exports directory exists before writing files.
+     * CI and fresh installs may not have storage/app/exports yet.
+     */
+    private function exportPath(string $filename): string
+    {
+        $dir = storage_path('app/exports');
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        return $dir . DIRECTORY_SEPARATOR . $filename;
+    }
+
     public function previewData(string $period, string $date, int $month, int $year, int $semester, ?int $classId = null): array
     {
         $start = Carbon::parse($date)->startOfDay();
@@ -116,7 +131,7 @@ class ExportService
 
     public function semesterRecapXlsx(int $semester, int $year, ?int $classId = null): string
     {
-        $path = storage_path('app/exports/semester-recap_' . $semester . '-' . $year . '_' . now()->timestamp . '.xlsx');
+        $path = $this->exportPath('semester-recap_' . $semester . '-' . $year . '_' . now()->timestamp . '.xlsx');
         (new SemesterRecapExport())->export($path, $semester, $year, $classId);
         return $path;
     }
@@ -215,35 +230,35 @@ class ExportService
             'class' => $class,
         ]);
 
-        $path = storage_path('app/exports/semester-recap_' . $semester . '-' . $year . '_' . now()->timestamp . '.pdf');
+        $path = $this->exportPath('semester-recap_' . $semester . '-' . $year . '_' . now()->timestamp . '.pdf');
         file_put_contents($path, $pdf->output());
         return $path;
     }
 
     public function studentsXlsx(): string
     {
-        $path = storage_path('app/exports/students_' . now()->timestamp . '.xlsx');
+        $path = $this->exportPath('students_' . now()->timestamp . '.xlsx');
         (new StudentsExport())->export($path);
         return $path;
     }
 
     public function teachersXlsx(): string
     {
-        $path = storage_path('app/exports/teachers_' . now()->timestamp . '.xlsx');
+        $path = $this->exportPath('teachers_' . now()->timestamp . '.xlsx');
         (new TeachersExport())->export($path);
         return $path;
     }
 
     public function dailyRecapXlsx(string $date, ?int $classId = null): string
     {
-        $path = storage_path('app/exports/daily-recap_' . $date . '_' . now()->timestamp . '.xlsx');
+        $path = $this->exportPath('daily-recap_' . $date . '_' . now()->timestamp . '.xlsx');
         (new DailyRecapExport())->export($path, $date, $classId);
         return $path;
     }
 
     public function monthlyRecapXlsx(int $month, int $year, ?int $classId = null): string
     {
-        $path = storage_path('app/exports/monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.xlsx');
+        $path = $this->exportPath('monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.xlsx');
         (new MonthlyRecapExport())->export($path, $month, $year, $classId);
         return $path;
     }
@@ -280,7 +295,7 @@ class ExportService
             'class' => $class,
         ]);
 
-        $path = storage_path('app/exports/daily-recap_' . $date . '_' . now()->timestamp . '.pdf');
+        $path = $this->exportPath('daily-recap_' . $date . '_' . now()->timestamp . '.pdf');
         file_put_contents($path, $pdf->output());
         return $path;
     }
@@ -331,7 +346,7 @@ class ExportService
             'class' => $class,
         ]);
 
-        $path = storage_path('app/exports/monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.pdf');
+        $path = $this->exportPath('monthly-recap_' . $month . '-' . $year . '_' . now()->timestamp . '.pdf');
         file_put_contents($path, $pdf->output());
         return $path;
     }

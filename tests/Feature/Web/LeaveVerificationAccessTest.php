@@ -33,13 +33,25 @@ class LeaveVerificationAccessTest extends TestCase
             ->assertOk();
     }
 
-    public function test_piket_teacher_cannot_access_leave_requests(): void
+    public function test_piket_teacher_can_access_leave_requests_pantauan(): void
     {
+        // Pantauan Izin: teacher:piket may view /leave-requests (PermissionRegistry).
         $user = $this->createUser('teacher');
         Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
 
         $this->actingAs($user)
             ->get('/leave-requests')
+            ->assertOk();
+    }
+
+    public function test_piket_teacher_cannot_access_leave_verification(): void
+    {
+        // Verifikasi Izin remains wali-only (+ admin).
+        $user = $this->createUser('teacher');
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+
+        $this->actingAs($user)
+            ->get('/leave-requests/verification')
             ->assertForbidden();
     }
 
