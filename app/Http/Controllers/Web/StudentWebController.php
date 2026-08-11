@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Services\AnalyticsService;
 use App\Services\AttendanceService;
 use App\Services\StudentService;
 use Illuminate\Http\Request;
@@ -14,7 +13,6 @@ class StudentWebController extends Controller
     public function __construct(
         protected StudentService $studentService,
         protected AttendanceService $attendanceService,
-        protected AnalyticsService $analyticsService,
     ) {
     }
 
@@ -100,25 +98,30 @@ class StudentWebController extends Controller
         }
 
         $month = (int) request('month', date('m'));
-        $year = (int) request('year', date('Y'));
+        $year  = (int) request('year', date('Y'));
 
-        $attendances = $this->attendanceService->history($student->id, 30, $month, $year);
-        $stats = $this->attendanceService->getStudentStats($student->id, $month, $year);
-        $monthlyTrend = $this->analyticsService->studentMonthlyTrend($student->id);
+        $attendances = $this->attendanceService->history($student->id, 100, $month, $year);
 
         return Inertia::render('Student/AttendanceHistory', [
             'student' => [
-                'id' => $student->id,
-                'nis' => $student->nis,
-                'name' => $student->name,
-                'class' => $student->class ? ['id' => $student->class->id, 'name' => $student->class->name] : null,
+                'id'    => $student->id,
+                'nis'   => $student->nis,
+                'name'  => $student->name,
+                'class' => $student->class
+                    ? ['id' => $student->class->id, 'name' => $student->class->name]
+                    : null,
             ],
-            'attendances' => $attendances->items(),
-            'leaveRequests' => $student->leaveRequests()->latest()->get()->toArray(),
+            'attendances' => collect($attendances->items())->map(fn ($att) => [
+                'id'              => $att->id,
+                'status'          => $att->status,
+                'check_in_time'   => $att->check_in_time,
+                'attendance_date' => $att->attendance_date instanceof \Carbon\Carbon
+                    ? $att->attendance_date->toDateString()
+                    : $att->attendance_date,
+                'photo_url'       => $att->photo_url ?? null,
+            ])->values()->all(),
             'month' => $month,
-            'year' => $year,
-            'stats' => $stats,
-            'monthlyTrend' => $monthlyTrend,
+            'year'  => $year,
         ]);
     }
 }

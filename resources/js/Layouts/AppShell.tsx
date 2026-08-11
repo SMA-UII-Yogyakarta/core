@@ -139,23 +139,18 @@ export default function AppShell({ title, children }: AppShellProps) {
                         {navSections.map((section) => (
                             <div key={section.key} className="flex flex-col gap-1">
                                 {section.items.map((item) => {
-                                    const isSubmenu = item.key === "class-enrolment";
                                     const isActive = activeItem?.key === item.key;
                                     return (
                                         <Link
                                             key={item.key}
                                             href={item.href}
                                             className={`flex items-center gap-3 py-3 px-[18px] rounded-lg transition-colors ${
-                                                isSubmenu ? "pl-9" : ""
-                                            } ${
                                                 isActive
                                                     ? "bg-accent text-primary font-bold"
                                                     : "text-white/60 hover:text-white hover:bg-white/10 font-normal"
                                             }`}
                                         >
-                                            {!isSubmenu && (
-                                                <i className={`fas ${item.icon} text-[14px] shrink-0 ${isActive ? 'text-primary' : 'text-white/60'}`} />
-                                            )}
+                                            <i className={`fas ${item.icon} text-[14px] shrink-0 ${isActive ? 'text-primary' : 'text-white/60'}`} />
                                             <span className="text-[14px] truncate">{item.label}</span>
                                         </Link>
                                     );
@@ -250,7 +245,6 @@ export default function AppShell({ title, children }: AppShellProps) {
                         {navSections.map((section) => (
                             <div key={section.key} className="flex flex-col gap-1 mb-4">
                                 {section.items.map((item) => {
-                                    const isSubmenu = item.key === "class-enrolment";
                                     const isActive = activeItem?.key === item.key;
                                     return (
                                         <Link
@@ -258,16 +252,12 @@ export default function AppShell({ title, children }: AppShellProps) {
                                             href={item.href}
                                             onClick={() => setMobileSidebarOpen(false)}
                                             className={`flex items-center gap-3 py-3 px-[18px] rounded-lg transition-colors ${
-                                                isSubmenu ? "pl-9" : ""
-                                            } ${
                                                 isActive
                                                     ? "bg-accent text-primary font-bold"
                                                     : "text-white/60 hover:text-white hover:bg-white/10 font-normal"
                                             }`}
                                         >
-                                            {!isSubmenu && (
-                                                <i className={`fas ${item.icon} text-[14px] shrink-0 ${isActive ? 'text-primary' : 'text-white/60'}`} />
-                                            )}
+                                            <i className={`fas ${item.icon} text-[14px] shrink-0 ${isActive ? 'text-primary' : 'text-white/60'}`} />
                                             <span className="text-[14px] truncate">{item.label}</span>
                                         </Link>
                                     );
