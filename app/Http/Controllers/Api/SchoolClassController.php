@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\SchoolClassResource;
 use App\Models\SchoolClass;
 use App\Services\SchoolClassService;
 use Illuminate\Http\JsonResponse;
@@ -20,11 +22,13 @@ class SchoolClassController extends Controller
         $this->authorize('viewAny', SchoolClass::class);
 
         if (request()->has('all') && request()->boolean('all')) {
-            return response()->json($this->schoolClassService->findAll());
+            return ApiResponse::success(SchoolClassResource::collection(
+                $this->schoolClassService->findAll(),
+            ));
         }
 
-        return response()->json($this->schoolClassService->paginate(
-            request()->only(['search']),
+        return ApiResponse::success(SchoolClassResource::collection(
+            $this->schoolClassService->paginate(request()->only(['search'])),
         ));
     }
 
@@ -34,9 +38,10 @@ class SchoolClassController extends Controller
 
         $class = $this->schoolClassService->findById($id);
         if (! $class) {
-            return response()->json(['message' => 'Class not found.'], 404);
+            return ApiResponse::notFound('Class not found.');
         }
-        return response()->json($class);
+
+        return ApiResponse::success(new SchoolClassResource($class));
     }
 
     public function store(Request $request): JsonResponse
@@ -49,7 +54,11 @@ class SchoolClassController extends Controller
             'capacity' => 'nullable|integer|min:1',
         ]);
 
-        return response()->json($this->schoolClassService->create($validated), 201);
+        return ApiResponse::success(
+            new SchoolClassResource($this->schoolClassService->create($validated)),
+            'Class created.',
+            201,
+        );
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -62,7 +71,9 @@ class SchoolClassController extends Controller
             'capacity' => 'nullable|integer|min:1',
         ]);
 
-        return response()->json($this->schoolClassService->update($id, $validated));
+        return ApiResponse::success(new SchoolClassResource(
+            $this->schoolClassService->update($id, $validated),
+        ));
     }
 
     public function destroy(int $id): JsonResponse
@@ -70,6 +81,7 @@ class SchoolClassController extends Controller
         $this->authorize('delete', SchoolClass::class);
 
         $this->schoolClassService->delete($id);
-        return response()->json(['message' => 'Class deleted successfully.']);
+
+        return ApiResponse::success(null, 'Class deleted successfully.');
     }
 }

@@ -1,9 +1,10 @@
-import type { InputHTMLAttributes, KeyboardEvent } from "react";
+import type { InputHTMLAttributes, KeyboardEvent, ReactNode } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
     icon?: string;
+    rightIcon?: ReactNode;
     numeric?: boolean;
     description?: string;
     inputClassName?: string;
@@ -25,6 +26,7 @@ export default function Input({
     label,
     error,
     icon,
+    rightIcon,
     numeric = false,
     description,
     className = "",
@@ -60,11 +62,17 @@ export default function Input({
                         placeholder:text-text-inactive
                         focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
                         ${icon ? "pl-10" : ""}
+                        ${rightIcon ? "pr-10" : ""}
                         ${error ? "border-danger ring-1 ring-danger/40" : ""}
                         ${inputClassName}`}
                     onKeyDown={numeric ? handleNumericKeyDown : onKeyDown}
                     {...props}
                 />
+                {rightIcon && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-sm">
+                        {rightIcon}
+                    </span>
+                )}
             </div>
             {description && !error && (
                 <p className="mt-1 text-[12px] text-text-muted font-inter">

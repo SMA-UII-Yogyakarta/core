@@ -28,7 +28,7 @@ class DashboardRoleTest extends TestCase
     public function test_teacher_dashboard_redirects_to_homeroom(): void
     {
         $user = User::factory()->create(['role' => 'teacher']);
-        Teacher::factory()->create(['user_id' => $user->id]);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
 
         $this->actingAs($user)->get('/dashboard')
             ->assertRedirect(route('teacher.homeroom'));
@@ -36,6 +36,19 @@ class DashboardRoleTest extends TestCase
         $this->actingAs($user)->get('/teacher/homeroom')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Teacher/HomeroomDashboard'));
+    }
+
+    public function test_piket_teacher_dashboard_redirects_to_duty(): void
+    {
+        $user = User::factory()->create(['role' => 'teacher']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+
+        $this->actingAs($user)->get('/dashboard')
+            ->assertRedirect(route('teacher.duty'));
+
+        $this->actingAs($user)->get('/teacher/duty')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Teacher/DutyDashboard'));
     }
 
     public function test_guardian_dashboard_redirects_to_guardian_view(): void

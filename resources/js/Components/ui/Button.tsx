@@ -1,10 +1,11 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import type { ButtonVariant, ButtonSize } from "@/types/component";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
     loading?: boolean;
+    icon?: ReactNode;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -29,6 +30,7 @@ export default function Button({
     disabled,
     className = "",
     children,
+    icon,
     ...props
 }: ButtonProps) {
     return (
@@ -65,7 +67,10 @@ export default function Button({
                     Loading...
                 </span>
             ) : (
-                children
+                <>
+                    {icon && <span className="inline-flex items-center gap-1.5">{icon}</span>}
+                    {children}
+                </>
             )}
         </button>
     );

@@ -3,14 +3,41 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\SchoolClass;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ExportController extends Controller
 {
     public function __construct(
         protected ExportService $exportService,
     ) {
+    }
+
+    public function index(Request $request)
+    {
+        $period = in_array($request->query('period'), ['harian', 'bulanan', 'semester'], true)
+            ? $request->query('period')
+            : 'bulanan';
+        $date = $request->query('date', now()->toDateString());
+        $month = (int) $request->query('month', now()->month);
+        $year = (int) $request->query('year', now()->year);
+        $semester = (int) $request->query('semester', now()->month <= 6 ? 1 : 2);
+        $classId = $request->integer('class_id') ?: null;
+
+        $classes = SchoolClass::select('id', 'name')->orderBy('name')->get();
+
+        return Inertia::render('Export', [
+            'classes' => $classes,
+            'preview' => $this->exportService->previewData($period, $date, $month, $year, $semester, $classId),
+            'selectedPeriod' => $period,
+            'selectedDate' => $date,
+            'selectedMonth' => $month,
+            'selectedYear' => $year,
+            'selectedSemester' => $semester,
+            'selectedClassId' => $classId,
+        ]);
     }
 
     public function students()
@@ -83,5 +110,37 @@ class ExportController extends Controller
 
         $path = $this->exportService->monthlyRecapPdf($month, $year, $classId);
         return response()->download($path, 'monthly-recap-' . $month . '-' . $year . '.pdf')->deleteFileAfterSend();
+    }
+
+    public function semesterRecap(Request $request)
+    {
+        $request->validate([
+            'semester' => 'nullable|integer|between:1,2',
+            'year' => 'nullable|integer|min:2020',
+            'class_id' => 'nullable|integer|exists:school_classes,id',
+        ]);
+
+        $semester = $request->integer('semester', now()->month <= 6 ? 1 : 2);
+        $year = $request->integer('year', now()->year);
+        $classId = $request->integer('class_id') ?: null;
+
+        $path = $this->exportService->semesterRecapXlsx($semester, $year, $classId);
+        return response()->download($path, 'semester-recap-' . $year . '-s' . $semester . '.xlsx')->deleteFileAfterSend();
+    }
+
+    public function semesterRecapPdf(Request $request)
+    {
+        $request->validate([
+            'semester' => 'nullable|integer|between:1,2',
+            'year' => 'nullable|integer|min:2020',
+            'class_id' => 'nullable|integer|exists:school_classes,id',
+        ]);
+
+        $semester = $request->integer('semester', now()->month <= 6 ? 1 : 2);
+        $year = $request->integer('year', now()->year);
+        $classId = $request->integer('class_id') ?: null;
+
+        $path = $this->exportService->semesterRecapPdf($semester, $year, $classId);
+        return response()->download($path, 'semester-recap-' . $year . '-s' . $semester . '.pdf')->deleteFileAfterSend();
     }
 }

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\GetStudentFromUser;
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreAttendanceRequest;
+use App\Http\Resources\AttendanceResource;
+use App\Http\Resources\StudentResource;
 use App\Models\Attendance;
 use App\Services\AttendanceService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +29,7 @@ class AttendanceApiController extends Controller
             $request->only(['student_id', 'class_id', 'date', 'status']),
         );
 
-        return response()->json($attendances);
+        return ApiResponse::success(AttendanceResource::collection($attendances));
     }
 
     public function today(Request $request): JsonResponse
@@ -34,7 +37,7 @@ class AttendanceApiController extends Controller
         $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
-            return response()->json(['message' => 'Student not found.'], 404);
+            return ApiResponse::notFound('Student not found.');
         }
 
         $today = now()->toDateString();
@@ -42,9 +45,9 @@ class AttendanceApiController extends Controller
             ->where('attendance_date', $today)
             ->first();
 
-        return response()->json([
-            'attendance' => $attendance,
-            'student' => $student->load('class'),
+        return ApiResponse::success([
+            'attendance' => $attendance ? new AttendanceResource($attendance) : null,
+            'student' => new StudentResource($student->load('class')),
         ]);
     }
 
@@ -55,7 +58,7 @@ class AttendanceApiController extends Controller
         $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
-            return response()->json(['message' => 'Student not found.'], 404);
+            return ApiResponse::notFound('Student not found.');
         }
 
         try {
@@ -64,9 +67,14 @@ class AttendanceApiController extends Controller
                 $data['photo'] = $request->file('photo');
             }
             $attendance = $this->attendanceService->checkIn($student->id, $data);
-            return response()->json($attendance, 201);
+
+            return ApiResponse::success(
+                new AttendanceResource($attendance),
+                'Attendance recorded.',
+                201,
+            );
         } catch (\RuntimeException $e) {
-            return response()->json(['message' => $e->getMessage()], 403);
+            return ApiResponse::error($e->getMessage(), 403);
         }
     }
 
@@ -75,13 +83,13 @@ class AttendanceApiController extends Controller
         $student = $this->getStudent->handle($request->user());
 
         if (! $student) {
-            return response()->json(['message' => 'Student not found.'], 404);
+            return ApiResponse::notFound('Student not found.');
         }
 
         $limit = $request->integer('limit', 30);
         $history = $this->attendanceService->history($student->id, $limit);
 
-        return response()->json($history);
+        return ApiResponse::success(AttendanceResource::collection($history));
     }
 
     public function stats(Request $request): JsonResponse
@@ -96,6 +104,6 @@ class AttendanceApiController extends Controller
             $request->input('date'),
         );
 
-        return response()->json($stats);
+        return ApiResponse::success($stats);
     }
 }

@@ -1,5 +1,5 @@
 import { StatCard, StatusBadge } from "@/Components";
-import TeacherLayout from "@/Layouts/TeacherLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Teacher {
     id: number;
@@ -32,19 +32,14 @@ interface PageProps {
     stats: Stats | null;
 }
 
-export default function DashboardWaliKelas({
-    teacher,
+export default function HomeroomDashboard({
+    teacher: _teacher,
     class: kelas,
     students,
     stats,
 }: PageProps) {
     return (
-        <TeacherLayout
-            title="Dashboard Wali Kelas"
-            username={teacher.name}
-            userInitial={teacher.name.charAt(0)}
-            activeMenu="homeroom"
-        >
+        <AppShell title="Dashboard Wali Kelas">
             {!kelas ? (
                 <div className="bg-surface border border-border rounded-xl p-12 text-center">
                     <p className="text-text-muted text-[14px]">
@@ -159,6 +154,6 @@ export default function DashboardWaliKelas({
                     </section>
                 </>
             )}
-        </TeacherLayout>
+        </AppShell>
     );
 }

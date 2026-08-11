@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
-import { StatCard, StatusBadge, Button } from "@/Components";
+import AppShell from "@/Layouts/AppShell";
+import { StatCard, StatusBadge, Button, AttendanceChart } from "@/Components";
 import type { StatusVariant } from "@/types/component";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -70,7 +71,10 @@ export default function Dashboard({
     selectedClassId,
     classDetail,
     selectedDate,
+    monthlyTrend,
 }: DashboardProps) {
+    const [period, setPeriod] = useState("Bulanan"); // "Harian" | "Bulanan" | "Semester"
+
     // ── Handlers ──
     const handleClassFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
         router.get(
@@ -91,15 +95,97 @@ export default function Dashboard({
     // ── Table students: use classDetail when a class is selected ──
     const students: AttentionStudent[] = classDetail?.students ?? [];
 
+    const avgAttendance = stats.total_students > 0 
+        ? ((stats.verified_present / stats.total_students) * 100).toFixed(1) + "%" 
+        : "0%";
+
+    const monthlyTrendData = (monthlyTrend as any)?.months ?? [];
+
     // ─────────────────────────────────────────────────────────────────────────
     return (
-        <AdminLayout title="Dashboard Admin" activeMenu="Dashboard">
-            {/* ── Header: "Monitoring Live" + Filter ── */}
-            <div className="bg-surface border border-border rounded-xl p-4 mb-5 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <h1 className="text-[20px] font-bold text-text-primary font-inter">
-                        Monitoring Live
-                    </h1>
+        <AppShell title="Dashboard Admin">
+            {/* ── Page Header: Title + Period Toggle ── */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <h1 className="text-[24px] font-bold text-text-primary font-inter tracking-tight">
+                    Statistik Kehadiran Sekolah (Desktop)
+                </h1>
+
+                {/* Period Selector (Segmented Control) */}
+                <div className="flex bg-slate-200/60 p-1 rounded-xl select-none self-start sm:self-auto shadow-sm border border-slate-300/30">
+                    {["Harian", "Bulanan", "Semester"].map((p) => {
+                        const isPeriodActive = period === p;
+                        return (
+                            <button
+                                key={p}
+                                onClick={() => setPeriod(p)}
+                                className={`px-5 py-1.5 text-[13px] font-bold font-inter rounded-lg transition-all cursor-pointer ${
+                                    isPeriodActive
+                                        ? "bg-surface text-primary shadow-sm"
+                                        : "text-text-secondary hover:text-text-primary bg-transparent"
+                                }`}
+                                type="button"
+                            >
+                                {p}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── Stat Cards (4 Cards) ── */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <StatCard
+                    label="Rata-rata Kehadiran"
+                    value={avgAttendance}
+                    color="grey"
+                />
+                <StatCard
+                    label="Siswa Terlambat"
+                    value={stats.late}
+                    color="grey"
+                />
+                <StatCard
+                    label="Pengajuan Izin"
+                    value={stats.sick_permit}
+                    color="grey"
+                />
+                <StatCard
+                    label="Absensi Tanpa Ket."
+                    value={stats.absent}
+                    color="red"
+                />
+            </section>
+
+            {/* ── Chart: Tren Kehadiran Bulanan ── */}
+            <section className="bg-surface border border-border rounded-xl p-6 shadow-card mb-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-[15px] font-bold text-text-primary font-inter">
+                        Tren Kehadiran Bulanan (Semester Ganjil)
+                    </h2>
+                    <span className="text-[12px] text-text-muted font-medium font-inter">
+                        Januari 2026 - Juni 2026
+                    </span>
+                </div>
+                <div className="h-[220px]">
+                    <AttendanceChart data={monthlyTrendData} type="line" height={220} />
+                </div>
+            </section>
+
+            {/* ── Perhatian Khusus Hari Ini ── */}
+            <section className="bg-surface border border-border rounded-xl shadow-card overflow-hidden">
+                {/* Section header containing title & filters */}
+                <div className="px-6 py-4 border-b border-border flex flex-wrap items-center bg-muted justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-[15px] font-bold text-text-primary font-inter">
+                            Perhatian Khusus Hari Ini
+                        </h2>
+                        {pendingLeaveCount > 0 && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger-bg text-danger text-[12px] font-semibold font-inter">
+                                <span className="w-1.5 h-1.5 rounded-full bg-danger" />
+                                {pendingLeaveCount} izin menunggu
+                            </span>
+                        )}
+                    </div>
 
                     <div className="flex flex-wrap items-center gap-5">
                         {/* Filter Kelas */}
@@ -135,47 +221,6 @@ export default function Dashboard({
                             />
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* ── Stat Cards ── */}
-            <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-                <StatCard
-                    label="Total Siswa"
-                    value={stats.total_students}
-                    color="grey"
-                />
-                <StatCard
-                    label="Hadir Terdata"
-                    value={stats.verified_present}
-                    color="green"
-                />
-                <StatCard label="Terlambat" value={stats.late} color="amber" />
-                <StatCard
-                    label="Sakit / Izin"
-                    value={stats.sick_permit}
-                    color="blue"
-                />
-                <StatCard
-                    label="Alpa (Kosong)"
-                    value={stats.absent}
-                    color="red"
-                />
-            </section>
-
-            {/* ── Perhatian Khusus Hari Ini ── */}
-            <section className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-                {/* Section header */}
-                <div className="px-6 py-4 border-b border-border flex items-center bg-muted justify-between">
-                    <h2 className="text-[15px] font-bold text-text-primary font-inter">
-                        Perhatian Khusus Hari Ini
-                    </h2>
-                    {pendingLeaveCount > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger-bg text-danger text-[12px] font-semibold font-inter">
-                            <span className="w-1.5 h-1.5 rounded-full bg-danger" />
-                            {pendingLeaveCount} izin menunggu
-                        </span>
-                    )}
                 </div>
 
                 {!selectedClassId ? (
@@ -293,7 +338,7 @@ export default function Dashboard({
                                                         size="sm"
                                                         onClick={() =>
                                                             router.get(
-                                                                "/leave-verification",
+                                                                "/leave-requests/verification",
                                                             )
                                                         }
                                                     >
@@ -325,6 +370,6 @@ export default function Dashboard({
                     </div>
                 )}
             </section>
-        </AdminLayout>
+        </AppShell>
     );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AttendanceChart from "@/Components/AttendanceChart";
 import { StatCard, StatusBadge, FilterBar, Button } from "@/Components";
-import StudentLayout from "@/Layouts/StudentLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Student {
     id: number;
@@ -46,9 +46,23 @@ interface PageProps {
     month: number;
     year: number;
     stats: Stats;
-    monthName: string;
     monthlyTrend: MonthlyTrend[];
 }
+
+const MONTH_NAMES = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+];
 
 export default function AttendanceHistory({
     student,
@@ -57,7 +71,6 @@ export default function AttendanceHistory({
     month,
     year,
     stats,
-    monthName,
     monthlyTrend,
 }: PageProps) {
     const [monthVal, setMonthVal] = useState(month.toString());
@@ -71,28 +84,10 @@ export default function AttendanceHistory({
         );
     };
 
-    const monthNames = [
-        "Januari",
-        "Februari",
-        "Maret",
-        "April",
-        "Mei",
-        "Juni",
-        "Juli",
-        "Agustus",
-        "September",
-        "Oktober",
-        "November",
-        "Desember",
-    ];
+    const monthNames = MONTH_NAMES;
 
     return (
-        <StudentLayout
-            title="Riwayat Kehadiran"
-            userInitial={student.name.charAt(0)}
-            showBack
-            backHref="/student/dashboard"
-        >
+        <AppShell title="Riwayat Kehadiran">
             {/* Profile */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
                 <div className="flex items-center gap-3">
@@ -132,7 +127,7 @@ export default function AttendanceHistory({
                     <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
                         Tren Kehadiran Bulanan
                     </h2>
-                    <AttendanceChart data={monthlyTrend} title="" />
+                    <AttendanceChart data={monthlyTrend} />
                 </section>
             )}
 
@@ -164,7 +159,7 @@ export default function AttendanceHistory({
             {/* Attendance Table */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
                 <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                    Detail Kehadiran — {monthName} {year}
+                        Detail Kehadiran — {MONTH_NAMES[month - 1]} {year}
                 </h2>
                 {attendances.length === 0 ? (
                     <p className="text-text-muted text-[13px] text-center py-8">
@@ -244,8 +239,8 @@ export default function AttendanceHistory({
                                         lr.approval_status === "Approved"
                                             ? "approved"
                                             : lr.approval_status === "Rejected"
-                                              ? "rejected"
-                                              : "pending"
+                                            ? "rejected"
+                                            : "pending"
                                     }
                                 />
                             </div>
@@ -253,6 +248,6 @@ export default function AttendanceHistory({
                     </div>
                 )}
             </section>
-        </StudentLayout>
+        </AppShell>
     );
 }

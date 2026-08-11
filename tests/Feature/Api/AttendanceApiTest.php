@@ -21,12 +21,14 @@ class AttendanceApiTest extends TestCase
             'class_id' => $schoolClass->id,
         ]);
 
-        $response = $this->actingAs($user)->getJson('/api/attendances/today');
+        $response = $this->actingAs($user)->getJson('/api/v1/attendances/today');
 
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'attendance',
-            'student' => ['id', 'name', 'class'],
+            'data' => [
+                'attendance',
+                'student' => ['id', 'name', 'class'],
+            ],
         ]);
     }
 
@@ -34,7 +36,7 @@ class AttendanceApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->postJson('/api/attendances/check-in', [
+        $response = $this->actingAs($user)->postJson('/api/v1/attendances/check-in', [
             'latitude' => -7.123,
             'longitude' => 110.456,
         ]);

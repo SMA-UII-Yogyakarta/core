@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import TeacherLayout from "@/Layouts/TeacherLayout";
+import { usePage } from "@inertiajs/react";
+import AppShell from "@/Layouts/AppShell";
 
 interface Teacher {
     id: number;
@@ -28,14 +29,18 @@ interface PageProps {
     classStats: ClassStat[];
 }
 
-export default function DashboardPiket({
-    teacher,
+export default function DutyDashboard({
+    teacher: _teacher,
     isScheduled,
     today,
     classStats: initialClassStats,
 }: PageProps) {
     const [classStats, setClassStats] = useState(initialClassStats);
     const [realtimeLog, setRealtimeLog] = useState<AttendanceEvent[]>([]);
+
+    const page = usePage<{ auth: { user: { teacher?: { teacher_type?: string } | null } } }>();
+    const teacherType = page.props.auth?.user?.teacher?.teacher_type;
+    const isWali = teacherType === "wali" || teacherType === "both";
 
     useEffect(() => {
         if (!window.Echo) return;
@@ -71,12 +76,7 @@ export default function DashboardPiket({
     }, []);
 
     return (
-        <TeacherLayout
-            title="Dashboard Guru Piket"
-            username={teacher.name}
-            userInitial={teacher.name.charAt(0)}
-            activeMenu="duty"
-        >
+        <AppShell title="Dashboard Guru Piket">
             {/* Status */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
                 <div className="flex items-center gap-3 mb-3">
@@ -143,15 +143,15 @@ export default function DashboardPiket({
                         </div>
                     </div>
                 ))}
-
-                {classStats.length === 0 && (
-                    <div className="bg-surface border border-border rounded-xl p-8 text-center">
-                        <p className="text-text-muted text-[13px]">
-                            Belum ada data kelas.
-                        </p>
-                    </div>
-                )}
             </section>
+
+            {classStats.length === 0 && (
+                <div className="bg-surface border border-border rounded-xl p-8 text-center">
+                    <p className="text-text-muted text-[13px]">
+                        Belum ada data kelas.
+                    </p>
+                </div>
+            )}
 
             {/* Real-time Log */}
             {realtimeLog.length > 0 && (
@@ -195,13 +195,15 @@ export default function DashboardPiket({
                 >
                     Monitoring Presensi
                 </a>
-                <a
-                    href="/leave-verification"
-                    className="flex-1 px-4 py-3 bg-surface border border-border text-text-primary rounded-xl text-center text-[13px] font-semibold hover:bg-background transition-colors"
-                >
-                    Verifikasi Izin
-                </a>
+                {isWali && (
+                    <a
+                        href="/leave-requests/verification"
+                        className="flex-1 px-4 py-3 bg-surface border border-border text-text-primary rounded-xl text-center text-[13px] font-semibold hover:bg-background transition-colors"
+                    >
+                        Verifikasi Izin
+                    </a>
+                )}
             </div>
-        </TeacherLayout>
+        </AppShell>
     );
 }

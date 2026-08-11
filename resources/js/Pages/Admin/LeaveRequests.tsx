@@ -8,7 +8,7 @@ import {
     FilterBar,
     TabSwitcher,
 } from "@/Components";
-import AdminLayout from "@/Layouts/AdminLayout";
+import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 
@@ -71,7 +71,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
 
     const handleFilter = (extra?: Record<string, string | undefined>) => {
         router.get(
-            "/admin/leave-requests",
+            "/leave-requests",
             {
                 status: statusTab || undefined,
                 category: categoryFilter || undefined,
@@ -142,7 +142,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
     ];
 
     return (
-        <AdminLayout title="Pengajuan Izin" activeMenu="Pengajuan Izin">
+        <AppShell title="Pengajuan Izin">
             <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
                 Pengajuan Izin
             </h1>
@@ -197,7 +197,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                     perPage={leaveRequests.per_page}
                     onPageChange={(page) =>
                         router.get(
-                            "/admin/leave-requests",
+                            "/leave-requests",
                             {
                                 page,
                                 status: statusTab || undefined,
@@ -208,6 +208,6 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                     }
                 />
             </section>
-        </AdminLayout>
+        </AppShell>
     );
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Http\Resources\TeacherResource;
 use App\Models\Teacher;
 use App\Services\TeacherService;
 use Illuminate\Http\JsonResponse;
@@ -20,9 +22,11 @@ class TeacherController extends Controller
     {
         $this->authorize('viewAny', Teacher::class);
 
-        return response()->json($this->teacherService->paginate(
+        $teachers = $this->teacherService->paginate(
             request()->only(['search']),
-        ));
+        );
+
+        return ApiResponse::success(TeacherResource::collection($teachers));
     }
 
     public function show(int $id): JsonResponse
@@ -31,23 +35,28 @@ class TeacherController extends Controller
 
         $teacher = $this->teacherService->findById($id);
         if (! $teacher) {
-            return response()->json(['message' => 'Teacher not found.'], 404);
+            return ApiResponse::notFound('Teacher not found.');
         }
-        return response()->json($teacher);
+
+        return ApiResponse::success(new TeacherResource($teacher));
     }
 
     public function store(StoreTeacherRequest $request): JsonResponse
     {
         $this->authorize('create', Teacher::class);
 
-        return response()->json($this->teacherService->create($request->validated()), 201);
+        $teacher = $this->teacherService->create($request->validated());
+
+        return ApiResponse::success(new TeacherResource($teacher), 'Teacher created.', 201);
     }
 
     public function update(UpdateTeacherRequest $request, int $id): JsonResponse
     {
         $this->authorize('update', Teacher::class);
 
-        return response()->json($this->teacherService->update($id, $request->validated()));
+        $teacher = $this->teacherService->update($id, $request->validated());
+
+        return ApiResponse::success(new TeacherResource($teacher));
     }
 
     public function destroy(int $id): JsonResponse
@@ -55,6 +64,7 @@ class TeacherController extends Controller
         $this->authorize('delete', Teacher::class);
 
         $this->teacherService->delete($id);
-        return response()->json(['message' => 'Teacher deleted successfully.']);
+
+        return ApiResponse::success(null, 'Teacher deleted successfully.');
     }
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { Button, StatusBadge } from "@/Components";
-import GuardianLayout from "@/Layouts/GuardianLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Student {
     id: number;
@@ -35,7 +35,7 @@ interface PageProps {
 }
 
 export default function WaliPengajuanIzin({
-    guardian,
+    guardian: _guardian,
     students,
     leaveRequests,
 }: PageProps) {
@@ -64,7 +64,7 @@ export default function WaliPengajuanIzin({
                 formData.append("document", document);
             }
 
-            router.post("/guardian/leave-application/store", formData, {
+            router.post("/guardian/leave-application", formData, {
                 preserveState: true,
                 headers: { "Content-Type": "multipart/form-data" },
                 onSuccess: () => {
@@ -80,11 +80,7 @@ export default function WaliPengajuanIzin({
     };
 
     return (
-        <GuardianLayout
-            title="Pengajuan Izin"
-            username={guardian.name}
-            userInitial={guardian.name.charAt(0)}
-        >
+        <AppShell title="Pengajuan Izin">
             {/* Header Actions */}
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-[18px] font-bold text-text-primary">
@@ -296,6 +292,6 @@ export default function WaliPengajuanIzin({
                     </div>
                 )}
             </section>
-        </GuardianLayout>
+        </AppShell>
     );
 }

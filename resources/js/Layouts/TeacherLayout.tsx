@@ -28,7 +28,7 @@ const menuItems = [
     {
         key: "verification",
         label: "Verifikasi Izin",
-        href: "/admin/leave-verification",
+        href: "/leave-requests/verification",
         icon: "fa-check-circle",
     },
 ];

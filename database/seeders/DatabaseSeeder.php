@@ -94,6 +94,9 @@ class DatabaseSeeder extends Seeder
 
         $teachers = collect();
         foreach ($teacherUsers as $i => $user) {
+            // First 5 = guru piket (piket), last 2 = wali kelas (wali)
+            $teacherType = $i < 5 ? 'piket' : 'wali';
+
             $teachers->push(
                 Teacher::firstOrCreate(
                     ['user_id' => $user->id],
@@ -102,6 +105,7 @@ class DatabaseSeeder extends Seeder
                         'teacher_code' =>
                             'TCH-' .
                             str_pad((string) ($i + 1), 3, '0', STR_PAD_LEFT),
+                        'teacher_type' => $teacherType,
                     ],
                 ),
             );
@@ -214,7 +218,7 @@ class DatabaseSeeder extends Seeder
             ['username' => 'zahra', 'name' => 'Zahra Alifia'],
         ];
 
-        foreach ($studentData as $s) {
+        foreach ($studentData as $i => $s) {
             $user = User::updateOrCreate(
                 ['username' => $s['username']],
                 [
@@ -229,9 +233,17 @@ class DatabaseSeeder extends Seeder
         }
 
         $students = collect();
+        $baseBirthYear = 2008; // SMA umur 15-18 tahun
         foreach ($studentUsers as $i => $user) {
             $class = $classes[$i % $classes->count()];
             $guardian = $guardians[$i % $guardians->count()];
+
+            // Generate birth date: 15-18 years ago
+            $age = 15 + ($i % 4); // 15, 16, 17, 18
+            $birthYear = now()->year - $age;
+            $birthMonth = fake()->numberBetween(1, 12);
+            $birthDay = fake()->numberBetween(1, 28);
+            $birthDate = sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay);
 
             $students->push(
                 Student::firstOrCreate(
@@ -246,6 +258,8 @@ class DatabaseSeeder extends Seeder
                             '00' .
                             str_pad((string) ($i + 1), 12, '0', STR_PAD_LEFT),
                         'name' => $user->name,
+                        'birth_date' => $birthDate,
+                        'enrollment_year' => $birthYear + 15, // Masuk SMA umur ~15 th
                         'status' => $i < 23 ? 'Active' : 'Inactive',
                     ],
                 ),

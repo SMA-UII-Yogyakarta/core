@@ -18,12 +18,19 @@ class DashboardController extends Controller
     ) {
     }
 
+    public function redirect(Request $request)
+    {
+        return $this->index($request);
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
 
         return match ($user->role) {
-            'teacher' => redirect()->route('teacher.homeroom'),
+            'teacher' => $user->teacher?->isWaliKelas()
+                ? redirect()->route('teacher.homeroom')
+                : redirect()->route('teacher.duty'),
             'guardian' => redirect()->route('guardian.dashboard', $request->query()),
             'student' => redirect()->route('student.dashboard'),
             default => $this->adminDashboard($request),

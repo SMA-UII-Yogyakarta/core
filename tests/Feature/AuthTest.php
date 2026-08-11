@@ -76,7 +76,7 @@ class AuthTest extends TestCase
 
     public function test_api_login_returns_token(): void
     {
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/v1/login', [
             'username' => 'testuser',
             'password' => $this->password,
             'device_name' => 'testing',
@@ -88,7 +88,7 @@ class AuthTest extends TestCase
 
     public function test_api_login_fails_with_wrong_credentials(): void
     {
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/v1/login', [
             'username' => 'testuser',
             'password' => 'wrongpassword',
         ]);
@@ -102,7 +102,7 @@ class AuthTest extends TestCase
         $token = $this->user->createToken('test-token')->plainTextToken;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->postJson('/api/logout');
+            ->postJson('/api/v1/logout');
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('personal_access_tokens', [
@@ -112,7 +112,7 @@ class AuthTest extends TestCase
 
     public function test_api_user_endpoint_requires_authentication(): void
     {
-        $response = $this->getJson('/api/user');
+        $response = $this->getJson('/api/v1/user');
 
         $response->assertStatus(401);
     }
@@ -138,7 +138,7 @@ class AuthTest extends TestCase
         $token = $this->user->createToken('test-device')->plainTextToken;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->postJson('/api/refresh');
+            ->postJson('/api/v1/refresh');
 
         $response->assertStatus(200)
             ->assertJsonStructure(['token']);
@@ -153,7 +153,7 @@ class AuthTest extends TestCase
         $tokenId = $tokenModel->accessToken->id;
 
         $this->withHeader('Authorization', 'Bearer ' . $plainText)
-            ->postJson('/api/refresh');
+            ->postJson('/api/v1/refresh');
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'id' => $tokenId,
@@ -166,7 +166,7 @@ class AuthTest extends TestCase
         $this->user->createToken('device-2');
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token1)
-            ->getJson('/api/sessions');
+            ->getJson('/api/v1/sessions');
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'sessions')
@@ -182,7 +182,7 @@ class AuthTest extends TestCase
         $token = $this->user->createToken('current-device')->plainTextToken;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/api/sessions');
+            ->getJson('/api/v1/sessions');
 
         $current = collect($response->json('sessions'))->firstWhere('is_current', true);
         $this->assertNotNull($current);
@@ -196,7 +196,7 @@ class AuthTest extends TestCase
         $token2Id = $token2->accessToken->id;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token1)
-            ->deleteJson('/api/sessions/' . $token2Id);
+            ->deleteJson('/api/v1/sessions/' . $token2Id);
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('personal_access_tokens', [
@@ -209,28 +209,28 @@ class AuthTest extends TestCase
         $token = $this->user->createToken('test')->plainTextToken;
 
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->deleteJson('/api/sessions/99999');
+            ->deleteJson('/api/v1/sessions/99999');
 
         $response->assertStatus(404);
     }
 
     public function test_api_refresh_requires_authentication(): void
     {
-        $response = $this->postJson('/api/refresh');
+        $response = $this->postJson('/api/v1/refresh');
 
         $response->assertStatus(401);
     }
 
     public function test_api_sessions_requires_authentication(): void
     {
-        $response = $this->getJson('/api/sessions');
+        $response = $this->getJson('/api/v1/sessions');
 
         $response->assertStatus(401);
     }
 
     public function test_token_has_expiration_set(): void
     {
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/v1/login', [
             'username' => 'testuser',
             'password' => $this->password,
             'device_name' => 'expirable',
@@ -250,14 +250,14 @@ class AuthTest extends TestCase
         // Use up the 3 rate limit quota
         for ($i = 0; $i < 3; $i++) {
             $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-                ->postJson('/api/refresh');
+                ->postJson('/api/v1/refresh');
 
             $token = $response->json('token');
         }
 
         // 4th attempt should hit rate limiter
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->postJson('/api/refresh');
+            ->postJson('/api/v1/refresh');
 
         $response->assertStatus(429);
     }

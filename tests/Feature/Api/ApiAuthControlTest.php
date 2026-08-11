@@ -62,13 +62,13 @@ class ApiAuthControlTest extends TestCase
 
     public function test_guest_cannot_access_master_data_api(): void
     {
-        $this->getJson('/api/students')
+        $this->getJson('/api/v1/students')
             ->assertStatus(401);
     }
 
     public function test_guest_cannot_access_leave_requests_api(): void
     {
-        $this->getJson('/api/leave-requests')
+        $this->getJson('/api/v1/leave-requests')
             ->assertStatus(401);
     }
 
@@ -77,7 +77,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('student');
 
         $this->actingAs($user)
-            ->getJson('/api/students')
+            ->getJson('/api/v1/students')
             ->assertStatus(403);
     }
 
@@ -86,7 +86,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('student');
 
         $this->actingAs($user)
-            ->postJson('/api/students', $this->studentStorePayload())
+            ->postJson('/api/v1/students', $this->studentStorePayload())
             ->assertStatus(403);
     }
 
@@ -95,7 +95,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('student');
 
         $this->actingAs($user)
-            ->getJson('/api/leave-requests')
+            ->getJson('/api/v1/leave-requests')
             ->assertStatus(403);
     }
 
@@ -105,7 +105,7 @@ class ApiAuthControlTest extends TestCase
         $leave = $this->createLeaveRequest();
 
         $this->actingAs($user)
-            ->patchJson('/api/leave-requests/' . $leave->id . '/verify', [
+            ->patchJson('/api/v1/leave-requests/' . $leave->id . '/verify', [
                 'status' => 'Approved',
             ])
             ->assertStatus(403);
@@ -117,7 +117,7 @@ class ApiAuthControlTest extends TestCase
         $student = $this->createStudent();
 
         $this->actingAs($user)
-            ->postJson('/api/leave-requests', [
+            ->postJson('/api/v1/leave-requests', [
                 'student_id' => $student->id,
                 'guardian_id' => $this->createGuardian()->id,
                 'category' => 'Sick',
@@ -130,9 +130,10 @@ class ApiAuthControlTest extends TestCase
     public function test_teacher_can_view_attendances(): void
     {
         $user = $this->createUser('teacher');
+        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
 
         $this->actingAs($user)
-            ->getJson('/api/attendances')
+            ->getJson('/api/v1/attendances')
             ->assertStatus(200);
     }
 
@@ -141,7 +142,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('teacher');
 
         $this->actingAs($user)
-            ->getJson('/api/students')
+            ->getJson('/api/v1/students')
             ->assertStatus(403);
     }
 
@@ -150,21 +151,22 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('teacher');
 
         $this->actingAs($user)
-            ->postJson('/api/students', $this->studentStorePayload())
+            ->postJson('/api/v1/students', $this->studentStorePayload())
             ->assertStatus(403);
     }
 
     public function test_teacher_can_verify_leave_request(): void
     {
         $user = $this->createUser('teacher');
+        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
         $leave = $this->createLeaveRequest();
 
         $this->actingAs($user)
-            ->patchJson('/api/leave-requests/' . $leave->id . '/verify', [
+            ->patchJson('/api/v1/leave-requests/' . $leave->id . '/verify', [
                 'status' => 'Approved',
             ])
             ->assertStatus(200)
-            ->assertJsonPath('approval_status', 'Approved');
+            ->assertJsonPath('data.approval_status', 'Approved');
     }
 
     public function test_guardian_can_list_leave_requests(): void
@@ -172,7 +174,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('guardian');
 
         $this->actingAs($user)
-            ->getJson('/api/leave-requests')
+            ->getJson('/api/v1/leave-requests')
             ->assertStatus(200);
     }
 
@@ -182,7 +184,7 @@ class ApiAuthControlTest extends TestCase
         $student = $this->createStudent();
 
         $this->actingAs($user)
-            ->postJson('/api/leave-requests', [
+            ->postJson('/api/v1/leave-requests', [
                 'student_id' => $student->id,
                 'guardian_id' => $this->createGuardian()->id,
                 'category' => 'Permission',
@@ -197,7 +199,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('guardian');
 
         $this->actingAs($user)
-            ->getJson('/api/students')
+            ->getJson('/api/v1/students')
             ->assertStatus(403);
     }
 
@@ -206,7 +208,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('admin');
 
         $this->actingAs($user)
-            ->getJson('/api/students')
+            ->getJson('/api/v1/students')
             ->assertStatus(200);
     }
 
@@ -215,7 +217,7 @@ class ApiAuthControlTest extends TestCase
         $user = $this->createUser('admin');
 
         $this->actingAs($user)
-            ->getJson('/api/leave-requests')
+            ->getJson('/api/v1/leave-requests')
             ->assertStatus(200);
     }
 }

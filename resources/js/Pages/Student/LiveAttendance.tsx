@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import Button from "@/Components/ui/Button";
-import StudentLayout from "@/Layouts/StudentLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Student {
     id: number;
@@ -22,7 +22,7 @@ interface PageProps {
     todayAttendance: TodayAttendance | null;
 }
 
-export default function LiveAttendance({ student, todayAttendance }: PageProps) {
+export default function LiveAttendance({ student: _student, todayAttendance }: PageProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
                     formData.append("longitude", position.coords.longitude.toString());
                     formData.append("photo_blob", photoBlob.split(",")[1] || "");
 
-                    router.post("/student/live-attendance/checkin", formData, {
+                    router.post("/student/attendance/check-in", formData, {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
@@ -132,7 +132,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
                     formData.append("longitude", "0");
                     formData.append("photo_blob", photoBlob.split(",")[1] || "");
 
-                    router.post("/student/live-attendance/checkin", formData, {
+                    router.post("/student/attendance/check-in", formData, {
                         preserveState: true,
                         headers: { "Content-Type": "multipart/form-data" },
                         onSuccess: () => {
@@ -156,12 +156,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
     };
 
     return (
-        <StudentLayout
-            title="Live Presensi"
-            userInitial={student.name.charAt(0)}
-            showBack
-            backHref="/student/dashboard"
-        >
+        <AppShell title="Live Presensi">
             <main className="flex-1 flex flex-col items-center justify-center p-6">
                 {/* Time Display */}
                 <div className="text-center mb-8">
@@ -237,6 +232,6 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
                     &larr; Back to Dashboard
                 </a>
             </main>
-        </StudentLayout>
+        </AppShell>
     );
 }

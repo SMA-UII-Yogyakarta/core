@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, Table } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
@@ -139,7 +139,7 @@ export default function Monitoring({
 
     const handleFilter = () => {
         router.get(
-            "/admin/monitoring",
+            "/monitoring",
             { class_id: classId || undefined },
             { preserveState: true },
         );
@@ -175,7 +175,7 @@ export default function Monitoring({
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AdminLayout title="Monitoring Presensi" activeMenu="Live Presensi">
+        <AppShell title="Monitoring Presensi">
             {/* Filter Section */}
             <section className="bg-surface border border-border rounded-lg p-4 lg:p-6 mb-6">
                 <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
@@ -268,6 +268,6 @@ export default function Monitoring({
                     </p>
                 </div>
             )}
-        </AdminLayout>
+        </AppShell>
     );
 }
