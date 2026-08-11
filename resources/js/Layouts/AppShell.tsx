@@ -30,7 +30,30 @@ export default function AppShell({ title, children }: AppShellProps) {
     const user = pageProps.auth?.user;
     const userName = user?.name ?? "User";
     const userInitial = getInitials(userName);
-    
+    const userRole = user?.role;
+    const mobileBrand =
+        userRole === "admin"
+            ? "ADMIN SMA UII"
+            : userRole === "student"
+              ? "SISWA SMA UII"
+              : userRole === "guardian"
+                ? "WALI MURID"
+                : userRole === "teacher"
+                  ? "GURU SMA UII"
+                  : "SMA UII YOGYAKARTA";
+    const homeHref =
+        userRole === "admin"
+            ? "/dashboard"
+            : userRole === "student"
+              ? "/student/dashboard"
+              : userRole === "guardian"
+                ? "/guardian"
+                : userRole === "teacher"
+                  ? user?.teacher?.teacher_type === "wali"
+                      ? "/teacher/homeroom"
+                      : "/teacher/duty"
+                  : "/overview";
+
     const handleLogout = () => router.post("/logout");
 
     const navSections = useMemo<NavSection[]>(
@@ -89,8 +112,8 @@ export default function AppShell({ title, children }: AppShellProps) {
                     >
                         <i className="fas fa-bars text-[18px]" />
                     </button>
-                    <h1 className="text-[14px] font-bold">
-                        SMA UII YOGYAKARTA
+                    <h1 className="text-[14px] font-bold tracking-wide">
+                        {mobileBrand}
                     </h1>
                     <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-primary font-bold text-[12px]">
                         {userInitial}
@@ -146,14 +169,19 @@ export default function AppShell({ title, children }: AppShellProps) {
                         <nav className="mb-4 lg:mb-6" aria-label="Breadcrumb">
                             <ol className="flex items-center gap-2 text-sm text-text-inactive">
                                 <li>
-                                    <Link href="/overview" className="hover:text-primary transition-colors">
+                                    <Link
+                                        href={homeHref}
+                                        className="hover:text-primary transition-colors"
+                                    >
                                         Beranda
                                     </Link>
                                 </li>
-                                {activeItem && activeItem.href !== "/overview" && (
+                                {activeItem && activeItem.href !== homeHref && (
                                     <>
                                         <i className="fas fa-chevron-right text-[10px]" />
-                                        <li className="text-text capitalize">{activeItem.label}</li>
+                                        <li className="text-text capitalize">
+                                            {activeItem.label}
+                                        </li>
                                     </>
                                 )}
                             </ol>

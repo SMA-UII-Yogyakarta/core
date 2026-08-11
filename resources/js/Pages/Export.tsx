@@ -311,16 +311,34 @@ export default function ExportPage({
                                             <td className="px-[15px] py-[11px] text-[14px] text-text-primary">
                                                 {row.class}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary">
+                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary font-medium">
                                                 {row.masuk}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary">
+                                            <td
+                                                className={`px-[15px] py-[11px] text-center text-[14px] font-medium ${
+                                                    row.izin > 0
+                                                        ? "text-primary"
+                                                        : "text-text-primary"
+                                                }`}
+                                            >
                                                 {row.izin}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary">
+                                            <td
+                                                className={`px-[15px] py-[11px] text-center text-[14px] font-medium ${
+                                                    row.sakit > 0
+                                                        ? "text-warning"
+                                                        : "text-text-primary"
+                                                }`}
+                                            >
                                                 {row.sakit}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary">
+                                            <td
+                                                className={`px-[15px] py-[11px] text-center text-[14px] font-medium ${
+                                                    row.alpha > 0
+                                                        ? "text-danger"
+                                                        : "text-text-primary"
+                                                }`}
+                                            >
                                                 {row.alpha}
                                             </td>
                                         </tr>
