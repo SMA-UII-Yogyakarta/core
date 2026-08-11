@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Pagination\AbstractPaginator;
 
 /**
  * ApiResponse — Format standar respons JSON untuk seluruh API.
@@ -16,9 +18,16 @@ class ApiResponse
 {
     /**
      * Success response.
+     *
+     * Koleksi resource yang membungkus paginator otomatis diserialisasi
+     * dengan bentuk paginasi standar ({ data, links, meta }).
      */
     public static function success(mixed $data = null, string $message = 'Success', int $code = 200): JsonResponse
     {
+        if ($data instanceof AnonymousResourceCollection && $data->resource instanceof AbstractPaginator) {
+            $data = $data->toResponse(request())->getData(true);
+        }
+
         return response()->json([
             'success' => true,
             'message' => $message,

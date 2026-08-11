@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Permissions\PermissionRegistry;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,15 +36,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'auth' => [
-                'user' => $request->user()
-                    ? $request->user()->only('id', 'name', 'email')
+                'user' => $user
+                    ? $user->only('id', 'name', 'email', 'role', 'teacher')
                     : null,
             ],
-            // ── Flash Messages untuk Toast component ──
+            'navSections' => $user ? PermissionRegistry::getNavFor($user) : [],
+            // Flash Messages untuk Toast component
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

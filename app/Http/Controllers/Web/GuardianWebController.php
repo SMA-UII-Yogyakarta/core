@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Services\AnalyticsService;
+use App\Services\AttendanceService;
 use App\Services\GuardianService;
 use App\Services\LeaveRequestService;
 use App\Services\StorageService;
@@ -18,6 +19,7 @@ class GuardianWebController extends Controller
         protected GuardianService $guardianService,
         protected LeaveRequestService $leaveRequestService,
         protected AnalyticsService $analyticsService,
+        protected AttendanceService $attendanceService,
         protected StorageService $storageService,
     ) {
     }
@@ -140,6 +142,12 @@ class GuardianWebController extends Controller
             'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
+        if (! $guardian->students()->whereKey($validated['student_id'])->exists()) {
+            return redirect()->back()
+                ->withErrors(['student_id' => 'Siswa tidak terhubung ke akun ini.'])
+                ->withInput();
+        }
+
         $documentUrl = null;
         if ($request->hasFile('document')) {
             $documentUrl = $this->storageService->uploadDocument(
@@ -160,5 +168,62 @@ class GuardianWebController extends Controller
 
         return redirect()->route('guardian.leave-application')
             ->with('success', 'Leave application submitted successfully.');
+    }
+
+    public function history(Request $request)
+    {
+        $guardian = $this->guardianService->findByUserId(auth()->id());
+
+        if (! $guardian) {
+            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+        }
+
+        $students = $guardian->students()->with('class')->get()->map(fn ($s) => [
+            'id' => $s->id,
+            'name' => $s->name,
+            'nis' => $s->nis,
+            'class' => $s->class ? ['id' => $s->class->id, 'name' => $s->class->name] : null,
+        ]);
+
+        $studentIds = $students->pluck('id');
+
+        $selectedStudentId = $request->integer('student_id');
+        if ($selectedStudentId && ! $studentIds->contains($selectedStudentId)) {
+            $selectedStudentId = 0;
+        }
+        $selectedStudentId = $selectedStudentId ?: $studentIds->first() ?: 0;
+
+        $month = (int) $request->integer('month', now()->month);
+        $year = (int) $request->integer('year', now()->year);
+
+        $attendances = [];
+        $stats = null;
+        $monthlyTrend = null;
+        $selectedStudent = null;
+        $leaveRequests = [];
+
+        if ($selectedStudentId) {
+            $selectedStudent = $students->firstWhere('id', $selectedStudentId);
+            $attendances = $this->attendanceService->history($selectedStudentId, 30, $month, $year)->items();
+            $stats = $this->attendanceService->getStudentStats($selectedStudentId, $month, $year);
+            $monthlyTrend = $this->analyticsService->studentMonthlyTrend($selectedStudentId);
+            $leaveRequests = LeaveRequest::where('student_id', $selectedStudentId)
+                ->latest()
+                ->get()
+                ->toArray();
+        }
+
+        return Inertia::render('Guardian/History', [
+            'guardian' => ['id' => $guardian->id, 'name' => $guardian->name],
+            'students' => $students,
+            'selectedStudentId' => $selectedStudentId,
+            'selectedStudent' => $selectedStudent,
+            'attendances' => $attendances,
+            'leaveRequests' => $leaveRequests,
+            'month' => $month,
+            'year' => $year,
+            'stats' => $stats,
+            'monthlyTrend' => $monthlyTrend,
+        ]);
     }
 }

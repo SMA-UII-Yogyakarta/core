@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Http\Resources\StudentResource;
 use App\Models\Student;
 use App\Services\StudentService;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +26,7 @@ class StudentController extends Controller
             request()->only(['search', 'class_id', 'status']),
         );
 
-        return response()->json($students);
+        return ApiResponse::success(StudentResource::collection($students));
     }
 
     public function show(int $id): JsonResponse
@@ -33,10 +35,10 @@ class StudentController extends Controller
 
         $student = $this->studentService->findById($id);
         if (! $student) {
-            return response()->json(['message' => 'Student not found.'], 404);
+            return ApiResponse::notFound('Student not found.');
         }
 
-        return response()->json($student);
+        return ApiResponse::success(new StudentResource($student));
     }
 
     public function store(StoreStudentRequest $request): JsonResponse
@@ -44,7 +46,8 @@ class StudentController extends Controller
         $this->authorize('create', Student::class);
 
         $student = $this->studentService->create($request->validated());
-        return response()->json($student, 201);
+
+        return ApiResponse::success(new StudentResource($student), 'Student created.', 201);
     }
 
     public function update(UpdateStudentRequest $request, int $id): JsonResponse
@@ -52,7 +55,8 @@ class StudentController extends Controller
         $this->authorize('update', Student::class);
 
         $student = $this->studentService->update($id, $request->validated());
-        return response()->json($student);
+
+        return ApiResponse::success(new StudentResource($student));
     }
 
     public function destroy(int $id): JsonResponse
@@ -60,6 +64,7 @@ class StudentController extends Controller
         $this->authorize('delete', Student::class);
 
         $this->studentService->delete($id);
-        return response()->json(['message' => 'Student deleted successfully.']);
+
+        return ApiResponse::success(null, 'Student deleted successfully.');
     }
 }

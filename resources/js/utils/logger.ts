@@ -22,7 +22,7 @@ interface LogEntry {
 class Logger {
     private async sendToBackend(entry: LogEntry): Promise<void> {
         try {
-            await fetch("/api/log-client-error", {
+            await fetch("/api/v1/log-client-error", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(entry),

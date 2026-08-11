@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreLeaveRequestRequest;
 use App\Http\Requests\Api\VerifyLeaveRequestRequest;
+use App\Http\Resources\LeaveRequestResource;
 use App\Models\LeaveRequest;
 use App\Services\LeaveRequestService;
 use Illuminate\Http\JsonResponse;
@@ -25,7 +27,7 @@ class LeaveRequestApiController extends Controller
             $request->only(['student_id', 'guardian_id', 'status', 'category']),
         );
 
-        return response()->json($leaveRequests);
+        return ApiResponse::success(LeaveRequestResource::collection($leaveRequests));
     }
 
     public function store(StoreLeaveRequestRequest $request): JsonResponse
@@ -33,7 +35,12 @@ class LeaveRequestApiController extends Controller
         $this->authorize('create', LeaveRequest::class);
 
         $leaveRequest = $this->leaveRequestService->create($request->validated());
-        return response()->json($leaveRequest, 201);
+
+        return ApiResponse::success(
+            new LeaveRequestResource($leaveRequest),
+            'Leave request submitted.',
+            201,
+        );
     }
 
     public function show(int $id): JsonResponse
@@ -42,9 +49,10 @@ class LeaveRequestApiController extends Controller
 
         $leaveRequest = $this->leaveRequestService->findById($id);
         if (! $leaveRequest) {
-            return response()->json(['message' => 'Leave request not found.'], 404);
+            return ApiResponse::notFound('Leave request not found.');
         }
-        return response()->json($leaveRequest);
+
+        return ApiResponse::success(new LeaveRequestResource($leaveRequest));
     }
 
     public function verify(VerifyLeaveRequestRequest $request, int $id): JsonResponse
@@ -56,9 +64,10 @@ class LeaveRequestApiController extends Controller
                 $id,
                 $request->input('status'),
             );
-            return response()->json($leaveRequest);
+
+            return ApiResponse::success(new LeaveRequestResource($leaveRequest));
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return ApiResponse::error($e->getMessage(), 422);
         }
     }
 }

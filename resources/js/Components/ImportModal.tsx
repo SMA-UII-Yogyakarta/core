@@ -49,7 +49,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
         const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
 
         try {
-            const res = await fetch(`/api/import/${entity}`, {
+            const res = await fetch(`/api/v1/import/${entity}`, {
                 method: "POST",
                 headers: {
                     "Accept": "application/json",

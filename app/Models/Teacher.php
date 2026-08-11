@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $user_id
  * @property string $name
  * @property string $teacher_code
+ * @property string $teacher_type
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DutySchedule> $dutySchedules
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereTeacherCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereTeacherType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Teacher whereUserId($value)
  * @mixin \Eloquent
@@ -37,7 +39,7 @@ class Teacher extends Model
 
     protected $table = 'teachers';
 
-    protected $fillable = ['user_id', 'name', 'teacher_code'];
+    protected $fillable = ['user_id', 'name', 'teacher_code', 'teacher_type'];
 
     public function user(): BelongsTo
     {
@@ -53,5 +55,15 @@ class Teacher extends Model
     public function dutySchedules(): HasMany
     {
         return $this->hasMany(DutySchedule::class);
+    }
+
+    public function isWaliKelas(): bool
+    {
+        return in_array($this->teacher_type, ['wali', 'both']);
+    }
+
+    public function isGuruPiket(): bool
+    {
+        return in_array($this->teacher_type, ['piket', 'both']);
     }
 }

@@ -48,29 +48,6 @@ class SchoolClassController extends Controller
         ]);
     }
 
-    /**
-     * Standalone Master Kelas page (separate from DataMaster).
-     */
-    public function masterIndex()
-    {
-        $this->authorize('viewAny', SchoolClass::class);
-
-        $classes = $this->schoolClassService->paginate(
-            request()->only(['search']),
-        );
-
-        $teachers = Teacher::query()
-            ->select(['id', 'name'])
-            ->orderBy('name')
-            ->get();
-
-        return Inertia::render('Admin/MasterClasses', [
-            'schoolClasses' => $classes,
-            'teachers' => $teachers,
-            'filters' => request()->only(['search']),
-        ]);
-    }
-
     public function store(Request $request)
     {
         $this->authorize('create', SchoolClass::class);

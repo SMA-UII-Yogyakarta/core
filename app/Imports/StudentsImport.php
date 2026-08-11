@@ -66,10 +66,23 @@ class StudentsImport
             $nisn = $data['nisn'] ?? $data['NISN'] ?? '';
             $name = $data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '';
             $className = $data['class'] ?? $data['Kelas'] ?? $data['KELAS'] ?? '';
+            $birthDate = trim($data['birth_date'] ?? $data['Tanggal Lahir'] ?? '');
 
             if (empty($nis) || empty($name)) {
                 throw new \RuntimeException('NIS and name are required.');
             }
+
+            if (empty($birthDate)) {
+                throw new \RuntimeException("Birth date (Tanggal Lahir) is required for student {$name}.");
+            }
+
+            $enrollmentYear = trim($data['enrollment_year'] ?? $data['Tahun Masuk'] ?? '');
+
+            if ($enrollmentYear !== '' && ! preg_match('/^\d{4}$/', $enrollmentYear)) {
+                throw new \RuntimeException("Invalid enrollment year for student {$name}.");
+            }
+
+            $enrollmentYear = $enrollmentYear !== '' ? $enrollmentYear : date('Y');
 
             if (User::where('username', $nis)->exists()) {
                 throw new \RuntimeException("Username {$nis} is already registered.");
@@ -98,10 +111,10 @@ class StudentsImport
                 'nis' => $nis,
                 'nisn' => $nisn,
                 'name' => $name,
-                'birth_date' => $data['birth_date'] ?? $data['Tanggal Lahir'] ?? null,
+                'birth_date' => $birthDate,
                 'phone' => $data['phone'] ?? $data['Telepon'] ?? null,
                 'address' => $data['address'] ?? $data['Alamat'] ?? null,
-                'enrollment_year' => $data['enrollment_year'] ?? $data['Tahun Masuk'] ?? date('Y'),
+                'enrollment_year' => $enrollmentYear,
                 'status' => 'Active',
             ]);
 

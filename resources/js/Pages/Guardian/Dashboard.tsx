@@ -1,7 +1,7 @@
 import { router } from "@inertiajs/react";
 import AttendanceChart from "@/Components/AttendanceChart";
 import { StatCard, StatusBadge } from "@/Components";
-import GuardianLayout from "@/Layouts/GuardianLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Student {
   id: number;
@@ -56,7 +56,7 @@ interface PageProps {
   }>;
 }
 
-export default function WaliMuridDashboard({
+export default function GuardianDashboard({
   guardian,
   students,
   stats,
@@ -89,11 +89,7 @@ export default function WaliMuridDashboard({
   const trendStats = monthlyTrend ? statusCount(monthlyTrend) : null;
 
   return (
-    <GuardianLayout
-      title="Dashboard"
-      username={guardian.name}
-      userInitial={guardian.name.charAt(0)}
-    >
+    <AppShell title="Dashboard">
       <section className="bg-surface border border-border rounded-xl p-5 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-[16px]">
@@ -188,7 +184,8 @@ export default function WaliMuridDashboard({
                   present: m.present,
                   late: m.late,
                 }))}
-                title="Kehadiran Bulanan"
+                type="bar"
+                height={250}
               />
             </section>
           )}
@@ -219,8 +216,8 @@ export default function WaliMuridDashboard({
                         r.status === "Present"
                           ? "present"
                           : r.status === "Late"
-                            ? "late"
-                            : "absent"
+                          ? "late"
+                          : "absent"
                       }
                     />
                   </div>
@@ -308,8 +305,8 @@ export default function WaliMuridDashboard({
                     lr.approval_status === "Approved"
                       ? "approved"
                       : lr.approval_status === "Rejected"
-                        ? "rejected"
-                        : "pending"
+                      ? "rejected"
+                      : "pending"
                   }
                 />
               </div>
@@ -326,6 +323,6 @@ export default function WaliMuridDashboard({
           + Ajukan Izin
         </a>
       </section>
-    </GuardianLayout>
+    </AppShell>
   );
 }

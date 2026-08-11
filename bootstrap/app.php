@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\ApiResponse;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LogContextMiddleware;
 use App\Http\Middleware\SetLocaleMiddleware;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -35,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Alias middleware untuk route role guard
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'teacher.type' => \App\Http\Middleware\CheckTeacherType::class,
+            'authorize' => \App\Http\Middleware\AuthorizeRoute::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -52,6 +56,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect()
                     ->back()
                     ->with('error', 'Data tidak ditemukan.');
+            }
+
+            if ($request->is('api/*')) {
+                return ApiResponse::notFound();
             }
         });
 
@@ -89,7 +97,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('api/*')) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
+                return ApiResponse::error('Unauthenticated.', 401);
             }
         });
 
@@ -105,9 +113,10 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Terlalu banyak permintaan. Silakan tunggu beberapa saat.',
-                ], 429);
+                return ApiResponse::error(
+                    'Terlalu banyak permintaan. Silakan tunggu beberapa saat.',
+                    429,
+                );
             }
         });
 
@@ -127,9 +136,30 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'Terjadi kesalahan server.',
-                ], 500);
+                return ApiResponse::error('Terjadi kesalahan server.', 500);
+            }
+        });
+
+        // 422 — Validation (API)
+        $exceptions->renderable(function (
+            ValidationException $e,
+            Request $request,
+        ) {
+            if ($request->is('api/*')) {
+                return ApiResponse::validationError($e->errors());
+            }
+        });
+
+        // Generic HTTP error (API) — 403, 405, dll.
+        $exceptions->renderable(function (
+            HttpException $e,
+            Request $request,
+        ) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error(
+                    $e->getMessage() ?: 'Error',
+                    $e->getStatusCode(),
+                );
             }
         });
     })

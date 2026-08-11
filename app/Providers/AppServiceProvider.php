@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Helpers\ApiResponse;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,16 +30,18 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinutes(5, 1)
                 ->by('api-checkin:' . $key)
-                ->response(fn () => response()->json([
-                    'message' => 'You have already recorded attendance. Please wait 5 minutes.',
-                ], 429));
+                ->response(fn (Request $request, array $headers) => ApiResponse::error(
+                    'You have already recorded attendance. Please wait 5 minutes.',
+                    429,
+                )->withHeaders($headers));
         });
 
         RateLimiter::for('api-login', function (Request $request) {
             return Limit::perMinute(5)->by('api-login:' . $request->ip())
-                ->response(fn () => response()->json([
-                    'message' => 'Too many login attempts. Please try again in 1 minute.',
-                ], 429));
+                ->response(fn (Request $request, array $headers) => ApiResponse::error(
+                    'Too many login attempts. Please try again in 1 minute.',
+                    429,
+                )->withHeaders($headers));
         });
 
         RateLimiter::for('web-login', function (Request $request) {
@@ -50,9 +53,10 @@ class AppServiceProvider extends ServiceProvider
             $key = $request->user()?->id ?: $request->ip();
 
             return Limit::perMinute(3)->by('api-refresh:' . $key)
-                ->response(fn () => response()->json([
-                    'message' => 'Too many refresh attempts. Please try again in 1 minute.',
-                ], 429));
+                ->response(fn (Request $request, array $headers) => ApiResponse::error(
+                    'Too many refresh attempts. Please try again in 1 minute.',
+                    429,
+                )->withHeaders($headers));
         });
 
         RateLimiter::for('leave-request', function (Request $request) {
@@ -60,6 +64,22 @@ class AppServiceProvider extends ServiceProvider
 
             return Limit::perMinutes(5, 3)->by('leave-request:' . $key)
                 ->response(fn () => back()->with('error', 'Too many leave requests. Please wait 5 minutes.'));
+        });
+
+        RateLimiter::for('api-leave-request', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinutes(5, 3)->by('api-leave-request:' . $key)
+                ->response(fn (Request $request, array $headers) => ApiResponse::error(
+                    'Too many leave requests. Please wait 5 minutes.',
+                    429,
+                )->withHeaders($headers));
+        });
+
+        RateLimiter::for('api', function (Request $request) {
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinute(120)->by('api:' . $key);
         });
     }
 }

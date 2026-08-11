@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import StudentLayout from "@/Layouts/StudentLayout";
+import AppShell from "@/Layouts/AppShell";
 
 interface Student {
     id: number;
@@ -21,7 +21,7 @@ interface Stats {
     present: number;
     late: number;
     pending_leaves: number;
-    absent?: number; // Not always provided, but we can default to 0
+    absent?: number;
 }
 
 interface PageProps {
@@ -31,16 +31,12 @@ interface PageProps {
 }
 
 export default function StudentDashboard({
-    student,
+    student: _student,
     todayAttendance,
     stats,
 }: PageProps) {
     return (
-        <StudentLayout
-            title="Dashboard Siswa"
-            username={student.name}
-            studentClass={student.class?.name}
-        >
+        <AppShell title="Dashboard Siswa">
             {/* Header Text */}
             <div className="mb-8">
                 <h1 className="text-[22px] font-bold text-primary font-inter mb-1.5">
@@ -53,7 +49,7 @@ export default function StudentDashboard({
 
             {/* Stat Cards */}
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
+                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
                     <span className="text-[32px] font-bold text-primary leading-none mb-2">
                         {stats.present} Hari
                     </span>
@@ -61,7 +57,7 @@ export default function StudentDashboard({
                         Hadir Bulan Ini
                     </span>
                 </div>
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
+                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
                     <span className="text-[32px] font-bold text-warning leading-none mb-2">
                         {stats.late} Kali
                     </span>
@@ -69,7 +65,7 @@ export default function StudentDashboard({
                         Terlambat
                     </span>
                 </div>
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
+                <div className="bg-surface border border-border rounded-xl p-6 shadow-sm flex flex-col items-center justify-center">
                     <span className="text-[32px] font-bold text-danger leading-none mb-2">
                         {stats.absent ?? 0}
                     </span>
@@ -80,7 +76,7 @@ export default function StudentDashboard({
             </section>
 
             {/* Action Box */}
-            <section className="bg-[#F8FAFC] border-2 border-dashed border-primary/40 rounded-xl flex flex-col items-center justify-center py-16 px-4">
+            <section className="bg-surface border-2 border-dashed border-primary/40 rounded-xl flex flex-col items-center justify-center py-16 px-4">
                 {todayAttendance ? (
                     <>
                         <div className="w-14 h-14 bg-success rounded-xl flex items-center justify-center text-white text-2xl mb-5 shadow-sm">
@@ -105,7 +101,7 @@ export default function StudentDashboard({
                             Sistem mendeteksi Anda belum melakukan presensi hari ini.
                         </p>
                         <Link
-                            href="/student/live-attendance"
+                            href="/student/attendance"
                             className="bg-primary text-white font-bold text-[13px] px-6 py-3 rounded-md hover:bg-primary/90 transition-colors shadow-sm"
                         >
                             <i className="fas fa-fingerprint mr-2" />
@@ -114,6 +110,6 @@ export default function StudentDashboard({
                     </>
                 )}
             </section>
-        </StudentLayout>
+        </AppShell>
     );
 }

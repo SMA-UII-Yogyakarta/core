@@ -60,14 +60,19 @@
             "bun run concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"php artisan log:tail --timeout=0\" \"bun run dev\" --names=server,queue,logs,vite --kill-others"
         ],
         "lint": [
-            "@php artisan config:clear --ansi @no_additional_args",
+            "@php artisan config:clear --ansi",
             "./vendor/bin/phpstan analyse --memory-limit=2G",
             "./vendor/bin/pint --test",
-            "@php artisan test"
+            "@php artisan test",
+            "@no_additional_args"
+        ],
+        "phpstan": [
+            "./vendor/bin/phpstan analyse --memory-limit=2G"
         ],
         "test": [
-            "@php artisan config:clear --ansi @no_additional_args",
-            "@php artisan test"
+            "@php artisan config:clear --ansi",
+            "@php artisan test",
+            "@no_additional_args"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

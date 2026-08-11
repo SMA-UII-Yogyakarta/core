@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AdminLayout from "@/Layouts/AdminLayout";
+import AppShell from "@/Layouts/AppShell";
 import { StatusBadge, Button, Table, Pagination } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
@@ -89,7 +89,7 @@ export default function VerifikasiIzin({
         const s = status ?? statusFilter;
         const c = category ?? categoryFilter;
         router.get(
-            "/admin/leave-verification",
+            "/leave-requests/verification",
             { status: s || undefined, category: c || undefined },
             { preserveState: true },
         );
@@ -97,7 +97,7 @@ export default function VerifikasiIzin({
 
     const handleApprove = (id: number) => {
         if (confirm("Setujui izin ini?")) {
-            router.patch(`/admin/leave-verification/${id}/approve`, undefined, {
+            router.patch(`/leave-requests/${id}/approve`, undefined, {
                 preserveState: true,
             });
         }
@@ -105,7 +105,7 @@ export default function VerifikasiIzin({
 
     const handleReject = (id: number) => {
         if (confirm("Tolak izin ini?")) {
-            router.patch(`/admin/leave-verification/${id}/reject`, undefined, {
+            router.patch(`/leave-requests/${id}/reject`, undefined, {
                 preserveState: true,
             });
         }
@@ -193,7 +193,7 @@ export default function VerifikasiIzin({
     ];
 
     return (
-        <AdminLayout title="Verifikasi Izin" activeMenu="Verifikasi Izin">
+        <AppShell title="Verifikasi Izin">
             {/* Filter Tabs */}
             <section className="bg-surface border border-border rounded-lg p-4 lg:p-6 mb-6">
                 <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-center">
@@ -250,7 +250,7 @@ export default function VerifikasiIzin({
                     perPage={leaveRequests.per_page}
                     onPageChange={(page) => {
                         router.get(
-                            "/admin/leave-verification",
+                            "/leave-requests/verification",
                             {
                                 page,
                                 status: statusFilter || undefined,
@@ -261,6 +261,6 @@ export default function VerifikasiIzin({
                     }}
                 />
             </section>
-        </AdminLayout>
+        </AppShell>
     );
 }

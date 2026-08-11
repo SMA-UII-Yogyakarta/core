@@ -7,26 +7,12 @@ interface StatCardProps {
     color?: StatColor;
 }
 
-/*
- * Figma: cards have a thin colored left-border (border-l-4) and subtle border around.
- * The "Total Student" (grey) card has no special left-border color.
- * Number is large (text-[34px]), bold, colored.
- * Label is small (text-[11px]), uppercase, muted.
- */
-const accentBorder: Record<StatColor, string> = {
-    green: "border-success",
-    amber: "border-warning",
-    blue: "border-primary",
-    red: "border-danger",
-    grey: "border-secondary",
-};
-
 const valueColor: Record<StatColor, string> = {
     green: "text-success",
     amber: "text-warning",
     blue: "text-primary",
     red: "text-danger",
-    grey: "text-text-primary",
+    grey: "text-primary", // Default to primary dark blue in Figma
 };
 
 export default function StatCard({
@@ -37,18 +23,20 @@ export default function StatCard({
 }: StatCardProps) {
     return (
         <article
-            className={`flex flex-col gap-0.5 bg-surface border border-border rounded-lg px-5 py-4 min-w-[130px] shadow-sm border-1 border-t-3 ${accentBorder[color]}`}
+            className="flex flex-col justify-between bg-surface border border-border rounded-xl p-6 min-w-[130px] shadow-card min-h-[110px]"
         >
-            <span
-                className={`text-[34px] font-bold font-inter leading-none ${valueColor[color]}`}
-            >
-                {value}
-            </span>
-            <span className="text-[11px] font-semibold uppercase text-text-muted font-inter tracking-[0.06em] mt-1.5">
-                {label}
-            </span>
+            <div className="flex flex-col gap-1">
+                <span className="text-[13px] font-medium text-text-secondary font-inter">
+                    {label}
+                </span>
+                <span
+                    className={`text-[34px] font-bold font-inter leading-none mt-1.5 ${valueColor[color]}`}
+                >
+                    {value}
+                </span>
+            </div>
             {subtitle && (
-                <span className="text-[12px] text-text-inactive font-inter mt-0.5">
+                <span className="text-[12px] text-text-inactive font-inter mt-1.5">
                     {subtitle}
                 </span>
             )}

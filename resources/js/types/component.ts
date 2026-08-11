@@ -1,11 +1,16 @@
-export type SidebarStatus = 'active' | 'default';
-
-export interface SidebarMenuItem {
+export interface NavItem {
+    key: string;
     label: string;
     icon: string;
-    status: SidebarStatus;
-    badge?: number;
-    href?: string;
+    href: string;
+    roles?: string[];
+}
+
+export interface NavSection {
+    key: string;
+    label: string;
+    roles?: string[];
+    items: NavItem[];
 }
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';

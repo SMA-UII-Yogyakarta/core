@@ -5,16 +5,17 @@ use App\Http\Controllers\Web\AttendanceOverrideController;
 use App\Http\Controllers\Web\AttendanceSettingController;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ClassEnrolmentController;
-use App\Http\Controllers\Web\DailyRecapController;
+use App\Http\Controllers\Web\DailyReportController;
 use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\DutyScheduleController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianWebController;
 use App\Http\Controllers\Web\LeaveRequestController;
-use App\Http\Controllers\Web\LeaveRequestViewController;
-use App\Http\Controllers\Web\MonthlyRecapController;
+use App\Http\Controllers\Web\MonthlyReportController;
+use App\Http\Controllers\Web\OverviewController;
+use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SchoolClassController;
+use App\Http\Controllers\Web\SemesterReportController;
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\StudentWebController;
 use App\Http\Controllers\Web\TeacherController;
@@ -22,289 +23,111 @@ use App\Http\Controllers\Web\TeacherWebController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// ─── Public Routes ───
+// ─── PUBLIC ROUTES ───
 Route::get('/', function () {
     return Inertia::render('Welcome');
 });
+Route::get('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')
+    ->middleware('throttle:web-login');
+Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'login'])->name('login');
-    Route::post('/login', [AuthController::class, 'authenticate'])->name(
-        'login.authenticate',
-    )->middleware('throttle:web-login');
-});
-
-// ─── Authenticated Routes ───
-Route::middleware(['auth'])->group(function () {
+// ─── AUTHENTICATED + AUTHORIZED ───
+Route::middleware(['auth', 'authorize'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name(
-        'dashboard',
-    );
+    // Executive
+    Route::get('/overview', [OverviewController::class, 'index'])->name('overview');
+    Route::get('/dashboard', [DashboardController::class, 'redirect'])->name('dashboard');
 
-    // ─── Admin (role:admin) ───
-    Route::middleware('role:admin')->group(function () {
-        // Master Data
-        Route::prefix('/admin/master-data')->group(function () {
-            Route::get('/', [StudentController::class, 'index'])->name(
-                'admin.master-data',
-            );
-            Route::post('/students', [StudentController::class, 'store'])->name(
-                'admin.master-data.students.store',
-            );
-            Route::patch('/students/{student}', [
-                StudentController::class,
-                'update',
-            ])->name('admin.master-data.students.update');
-            Route::delete('/students/{student}', [
-                StudentController::class,
-                'destroy',
-            ])->name('admin.master-data.students.destroy');
-            Route::patch('/students/{student}/toggle-status', [
-                StudentController::class,
-                'toggleStatus',
-            ])->name('admin.master-data.students.toggle');
+    // Monitoring
+    Route::get('/monitoring', [AttendanceController::class, 'monitoring'])->name('monitoring');
 
-            Route::get('/teachers', [TeacherController::class, 'index'])->name(
-                'admin.master-data.teachers',
-            );
-            Route::post('/teachers', [TeacherController::class, 'store'])->name(
-                'admin.master-data.teachers.store',
-            );
-            Route::patch('/teachers/{teacher}', [
-                TeacherController::class,
-                'update',
-            ])->name('admin.master-data.teachers.update');
-            Route::delete('/teachers/{teacher}', [
-                TeacherController::class,
-                'destroy',
-            ])->name('admin.master-data.teachers.destroy');
+    // Master Data
+    Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
+    Route::post('/master-data', [StudentController::class, 'store'])->name('master-data.store');
+    Route::get('/master-data/teachers', [TeacherController::class, 'index'])->name('master-data.teachers');
+    Route::post('/master-data/teachers', [TeacherController::class, 'store'])->name('master-data.teachers.store');
+    Route::get('/master-data/classes', [SchoolClassController::class, 'index'])->name('master-data.classes');
+    Route::post('/master-data/classes', [SchoolClassController::class, 'store'])->name('master-data.classes.store');
+    Route::patch('/master-data/classes/{id}', [SchoolClassController::class, 'update'])->name('master-data.classes.update');
+    Route::get('/master-data/guardians', [GuardianController::class, 'index'])->name('master-data.guardians');
+    Route::post('/master-data/guardians', [GuardianController::class, 'store'])->name('master-data.guardians.store');
+    Route::delete('/master-data/students/{id}', [StudentController::class, 'destroy'])->name('master-data.students.destroy');
+    Route::delete('/master-data/teachers/{id}', [TeacherController::class, 'destroy'])->name('master-data.teachers.destroy');
+    Route::delete('/master-data/classes/{id}', [SchoolClassController::class, 'destroy'])->name('master-data.classes.destroy');
+    Route::delete('/master-data/guardians/{id}', [GuardianController::class, 'destroy'])->name('master-data.guardians.destroy');
 
-            Route::get('/classes', [SchoolClassController::class, 'index'])->name(
-                'admin.master-data.classes',
-            );
-            Route::post('/classes', [SchoolClassController::class, 'store'])->name(
-                'admin.master-data.classes.store',
-            );
-            Route::patch('/classes/{schoolClass}', [
-                SchoolClassController::class,
-                'update',
-            ])->name('admin.master-data.classes.update');
-            Route::delete('/classes/{schoolClass}', [
-                SchoolClassController::class,
-                'destroy',
-            ])->name('admin.master-data.classes.destroy');
+    // Class Enrolment
+    Route::get('/class-enrolment', [ClassEnrolmentController::class, 'index'])->name('class-enrolment');
+    Route::post('/class-enrolment/assign', [ClassEnrolmentController::class, 'assignStudent'])->name('class-enrolment.assign');
+    Route::delete('/class-enrolment/remove/{studentId}', [ClassEnrolmentController::class, 'removeStudent'])->name('class-enrolment.remove');
 
-            Route::get('/guardians', [GuardianController::class, 'index'])->name(
-                'admin.master-data.guardians',
-            );
-            Route::post('/guardians', [GuardianController::class, 'store'])->name(
-                'admin.master-data.guardians.store',
-            );
-            Route::patch('/guardians/{guardian}', [
-                GuardianController::class,
-                'update',
-            ])->name('admin.master-data.guardians.update');
-            Route::delete('/guardians/{guardian}', [
-                GuardianController::class,
-                'destroy',
-            ])->name('admin.master-data.guardians.destroy');
-        });
+    // Settings (Waktu & Libur)
+    Route::get('/settings', [AttendanceSettingController::class, 'index'])->name('settings');
+    Route::post('/settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('settings.time-settings');
+    Route::post('/settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('settings.holidays');
+    Route::delete('/settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('settings.holidays.destroy');
 
-        // Live Monitoring
-        Route::get('/admin/monitoring', [
-            AttendanceController::class,
-            'monitoring',
-        ])->name('admin.monitoring');
-
-        // Leave Requests (Admin View)
-        Route::get('/admin/leave-requests', [
-            LeaveRequestViewController::class,
-            'index',
-        ])->name('admin.leave-requests');
-
-        // Classes Management (Standalone)
-        Route::prefix('/admin/classes')->group(function () {
-            Route::get('/', [SchoolClassController::class, 'masterIndex'])->name(
-                'admin.classes',
-            );
-            Route::post('/', [SchoolClassController::class, 'store'])->name(
-                'admin.classes.store',
-            );
-            Route::put('/{id}', [SchoolClassController::class, 'update'])->name(
-                'admin.classes.update',
-            );
-            Route::delete('/{id}', [SchoolClassController::class, 'destroy'])->name(
-                'admin.classes.destroy',
-            );
-        });
-
-        // Monthly Recap
-        Route::get('/admin/monthly-recap', [
-            MonthlyRecapController::class,
-            'index',
-        ])->name('admin.monthly-recap');
-
-        // Daily Recap
-        Route::get('/admin/daily-recap', [
-            DailyRecapController::class,
-            'index',
-        ])->name('admin.daily-recap');
-
-        // Class Enrolment
-        Route::prefix('/admin/class-enrolment')->group(function () {
-            Route::get('/', [ClassEnrolmentController::class, 'index'])->name(
-                'admin.class-enrolment',
-            );
-            Route::post('/assign', [
-                ClassEnrolmentController::class,
-                'assignStudent',
-            ])->name('admin.class-enrolment.assign');
-            Route::delete('/remove/{student}', [
-                ClassEnrolmentController::class,
-                'removeStudent',
-            ])->name('admin.class-enrolment.remove');
-        });
-
-        // Duty Schedules
-        Route::prefix('/admin/duty-schedules')->group(function () {
-            Route::get('/', [DutyScheduleController::class, 'index'])->name(
-                'admin.duty-schedules',
-            );
-            Route::post('/', [DutyScheduleController::class, 'store'])->name(
-                'admin.duty-schedules.store',
-            );
-            Route::patch('/{id}', [DutyScheduleController::class, 'update'])->name(
-                'admin.duty-schedules.update',
-            );
-            Route::delete('/{id}', [
-                DutyScheduleController::class,
-                'destroy',
-            ])->name('admin.duty-schedules.destroy');
-        });
-
-        // Attendance Settings + Academic Calendar
-        Route::prefix('/admin/settings')->group(function () {
-            Route::get('/', [AttendanceSettingController::class, 'index'])->name(
-                'admin.settings',
-            );
-            Route::post('/time-settings', [
-                AttendanceSettingController::class,
-                'updateTimeSettings',
-            ])->name('admin.settings.time-settings');
-            Route::post('/holidays', [
-                AttendanceSettingController::class,
-                'storeHoliday',
-            ])->name('admin.settings.holidays.store');
-            Route::delete('/holidays/{id}', [
-                AttendanceSettingController::class,
-                'deleteHoliday',
-            ])->name('admin.settings.holidays.delete');
-        });
-
-        // ─── Export Routes ───
-        Route::prefix('/admin/export')->group(function () {
-            Route::get('/students', [ExportController::class, 'students'])->name(
-                'admin.export.students',
-            );
-            Route::get('/teachers', [ExportController::class, 'teachers'])->name(
-                'admin.export.teachers',
-            );
-            Route::get('/daily-recap', [
-                ExportController::class,
-                'dailyRecap',
-            ])->name('admin.export.daily-recap');
-            Route::get('/monthly-recap', [
-                ExportController::class,
-                'monthlyRecap',
-            ])->name('admin.export.monthly-recap');
-            Route::get('/daily-recap/pdf', [
-                ExportController::class,
-                'dailyRecapPdf',
-            ])->name('admin.export.daily-recap-pdf');
-            Route::get('/monthly-recap/pdf', [
-                ExportController::class,
-                'monthlyRecapPdf',
-            ])->name('admin.export.monthly-recap-pdf');
-        });
-
-        Route::prefix('/admin/attendance-correction')->group(function () {
-            Route::get('/', [AttendanceOverrideController::class, 'index'])->name(
-                'admin.attendance.correction',
-            );
-            Route::post(
-                '/',
-                [AttendanceOverrideController::class, 'store'],
-            )->name('admin.attendance.correction.store');
-            Route::delete(
-                '/{id}',
-                [AttendanceOverrideController::class, 'destroy'],
-            )->name('admin.attendance.correction.destroy');
-        });
-
+    // Leave Requests
+    Route::prefix('leave-requests')->name('leave-requests.')->group(function () {
+        Route::get('/', [LeaveRequestController::class, 'index'])->name('index');
+        Route::get('/verification', [LeaveRequestController::class, 'verification'])->name('verification');
+        Route::get('/{id}', [LeaveRequestController::class, 'show'])->name('show');
+        Route::patch('/{id}/approve', [LeaveRequestController::class, 'approve'])->name('approve');
+        Route::patch('/{id}/reject', [LeaveRequestController::class, 'reject'])->name('reject');
     });
 
-    // ─── Leave Verification (admin & teacher) ───
-    Route::middleware('role:admin,teacher')
-        ->prefix('/admin/leave-verification')
-        ->group(function () {
-            Route::get('/', [LeaveRequestController::class, 'verification'])->name(
-                'admin.leave-verification',
-            );
-            Route::patch('/{id}/approve', [
-                LeaveRequestController::class,
-                'approve',
-            ])->name('admin.leave-verification.approve');
-            Route::patch('/{id}/reject', [
-                LeaveRequestController::class,
-                'reject',
-            ])->name('admin.leave-verification.reject');
-        });
-
-    // ─── Role-based Pages ───
-
-    // Student
-    Route::middleware('role:student')->prefix('/student')->group(function () {
-        Route::get('/dashboard', [StudentWebController::class, 'dashboard'])->name(
-            'student.dashboard',
-        );
-        Route::get('/live-attendance', [
-            StudentWebController::class,
-            'liveAttendance',
-        ])->name('student.live-attendance');
-        Route::post('/live-attendance/checkin', [
-            StudentWebController::class,
-            'checkIn',
-        ])->name('student.live-attendance.checkin')
-        ->middleware('throttle:attendance-checkin');
-        Route::get('/history', [StudentWebController::class, 'history'])->name(
-            'student.history',
-        );
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/daily', [DailyReportController::class, 'index'])->name('daily');
+        Route::get('/monthly', [MonthlyReportController::class, 'index'])->name('monthly');
+        Route::get('/semester', [SemesterReportController::class, 'index'])->name('semester');
     });
 
-    // Teacher
-    Route::middleware('role:teacher')->prefix('/teacher')->group(function () {
-        Route::get('/duty', [TeacherWebController::class, 'dutyDashboard'])->name(
-            'teacher.duty',
-        );
-        Route::get('/homeroom', [TeacherWebController::class, 'homeroomDashboard'])->name(
-            'teacher.homeroom',
-        );
+    // Export
+    Route::prefix('export')->name('export.')->group(function () {
+        Route::get('/', [ExportController::class, 'index'])->name('index');
+        Route::get('/students', [ExportController::class, 'students'])->name('students');
+        Route::get('/teachers', [ExportController::class, 'teachers'])->name('teachers');
+        Route::get('/daily-recap', [ExportController::class, 'dailyRecap'])->name('daily-recap');
+        Route::get('/monthly-recap', [ExportController::class, 'monthlyRecap'])->name('monthly-recap');
+        Route::get('/semester-recap', [ExportController::class, 'semesterRecap'])->name('semester-recap');
+        Route::get('/daily-recap-pdf', [ExportController::class, 'dailyRecapPdf'])->name('daily-recap-pdf');
+        Route::get('/monthly-recap-pdf', [ExportController::class, 'monthlyRecapPdf'])->name('monthly-recap-pdf');
+        Route::get('/semester-recap-pdf', [ExportController::class, 'semesterRecapPdf'])->name('semester-recap-pdf');
+    });
+
+    // Attendance Correction
+    Route::get('/attendance-correction', [AttendanceOverrideController::class, 'index'])->name('attendance-correction');
+    Route::post('/attendance-correction', [AttendanceOverrideController::class, 'store'])->name('attendance-correction.store');
+    Route::delete('/attendance-correction/{id}', [AttendanceOverrideController::class, 'destroy'])->name('attendance-correction.destroy');
+
+    // Teacher Dashboards
+    Route::prefix('teacher')->name('teacher.')->group(function () {
+        Route::get('/duty', [TeacherWebController::class, 'dutyDashboard'])->name('duty')->middleware('teacher.type:piket');
+        Route::get('/homeroom', [TeacherWebController::class, 'homeroomDashboard'])->name('homeroom')->middleware('teacher.type:wali');
     });
 
     // Guardian
-    Route::middleware('role:guardian')->prefix('/guardian')->group(function () {
-        Route::get('/', [GuardianWebController::class, 'dashboard'])->name(
-            'guardian.dashboard',
-        );
-        Route::get('/leave-application', [
-            GuardianWebController::class,
-            'leaveApplication',
-        ])->name('guardian.leave-application');
-        Route::post('/leave-application/store', [
-            GuardianWebController::class,
-            'storeLeaveApplication',
-        ])->name('guardian.leave-application.store')
-        ->middleware('throttle:leave-request');
+    Route::prefix('guardian')->name('guardian.')->group(function () {
+        Route::get('/', [GuardianWebController::class, 'dashboard'])->name('dashboard');
+        Route::get('/leave-application', [GuardianWebController::class, 'leaveApplication'])->name('leave-application');
+        Route::post('/leave-application', [GuardianWebController::class, 'storeLeaveApplication'])->name('leave-application.store');
+        Route::get('/history', [GuardianWebController::class, 'history'])->name('history');
     });
+
+    // Student
+    Route::prefix('student')->name('student.')->group(function () {
+        Route::get('/dashboard', [StudentWebController::class, 'dashboard'])->name('dashboard');
+        Route::get('/attendance', [StudentWebController::class, 'liveAttendance'])->name('attendance');
+        Route::post('/attendance/check-in', [StudentWebController::class, 'checkIn'])->name('attendance.check-in')
+            ->middleware('throttle:attendance-checkin');
+        Route::get('/history', [StudentWebController::class, 'history'])->name('history');
+    });
+
+    // Profile
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/sessions/{id}', [ProfileController::class, 'revokeSession'])->name('profile.sessions.revoke');
 });
