@@ -14,7 +14,7 @@ class UpdateStudentRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('student');
+        $id = $this->route('id');
 
         return [
             'nis' => ['required', 'string', 'max:30', Rule::unique('students', 'nis')->ignore($id)],

@@ -29,13 +29,22 @@ class StudentController extends Controller
             request()->only(['search', 'class_id', 'status']),
         );
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\SchoolClass> $classes */
         $classes = $this->schoolClassService->findAll();
         $guardians = $this->guardianService->findAll();
+
+        $classOptions = $classes
+            ->map(static fn (\App\Models\SchoolClass $c): array => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])
+            ->values()
+            ->all();
 
         return Inertia::render('Admin/MasterData', [
             'activeTab' => 'siswa',
             'students' => $students,
-            'schoolClasses' => $classes,
+            'classOptions' => $classOptions,
             'allGuardians' => $guardians,
             'filters' => request()->only(['search', 'class_id', 'status']),
         ]);
@@ -46,7 +55,7 @@ class StudentController extends Controller
         $this->authorize('create', Student::class);
 
         $this->studentService->create($request->validated());
-        return redirect()->back()->with('success', 'Student added successfully.');
+        return redirect()->back()->with('success', 'Siswa berhasil ditambahkan.');
     }
 
     public function update(UpdateStudentRequest $request, int $id)
@@ -54,7 +63,7 @@ class StudentController extends Controller
         $this->authorize('update', Student::class);
 
         $this->studentService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Student data updated successfully.');
+        return redirect()->back()->with('success', 'Data siswa berhasil diperbarui.');
     }
 
     public function destroy(int $id)
@@ -62,7 +71,24 @@ class StudentController extends Controller
         $this->authorize('delete', Student::class);
 
         $this->studentService->delete($id);
-        return redirect()->back()->with('success', 'Student deleted successfully.');
+        return redirect()->back()->with('success', 'Siswa berhasil dihapus.');
+    }
+
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('delete', Student::class);
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:students,id',
+        ]);
+
+        $count = $this->studentService->bulkDelete($validated['ids']);
+
+        return redirect()->back()->with(
+            'success',
+            $count . ' siswa terpilih berhasil dihapus.',
+        );
     }
 
     public function toggleStatus(int $id)
@@ -70,6 +96,6 @@ class StudentController extends Controller
         $this->authorize('update', Student::class);
 
         $this->studentService->toggleStatus($id);
-        return redirect()->back()->with('success', 'Student status updated successfully.');
+        return redirect()->back()->with('success', 'Status siswa berhasil diperbarui.');
     }
 }

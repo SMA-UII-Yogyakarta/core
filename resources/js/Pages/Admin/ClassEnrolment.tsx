@@ -43,6 +43,7 @@ export default function EnrolmentKelas({
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
     const [showAddModal, setShowAddModal] = useState(false);
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
+    const [saveNotice, setSaveNotice] = useState<string | null>(null);
 
     const handleRemove = (studentId: number) => {
         setRemoveConfirmId(studentId);
@@ -122,6 +123,13 @@ export default function EnrolmentKelas({
                     Petakan rombongan belajar dan tetapkan Wali Kelas untuk tahun ajaran aktif.
                 </p>
             </div>
+
+            {saveNotice && (
+                <div className="mb-4 rounded-lg bg-success-bg border border-success/30 text-success px-4 py-2.5 text-[13px] font-medium">
+                    <i className="fas fa-check-circle mr-2" />
+                    {saveNotice}
+                </div>
+            )}
 
             {/* Split Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
@@ -213,9 +221,18 @@ export default function EnrolmentKelas({
                                     Total: {students.length} Siswa
                                 </span>
                                 <button
-                                    onClick={() => alert("Pembaruan kelas berhasil disimpan!")}
+                                    onClick={() => {
+                                        setSaveNotice(
+                                            "Perubahan enrolment sudah tersimpan otomatis saat tambah/hapus siswa.",
+                                        );
+                                        window.setTimeout(
+                                            () => setSaveNotice(null),
+                                            3500,
+                                        );
+                                    }}
                                     className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
                                     type="button"
+                                    title="Perubahan siswa sudah tersimpan otomatis saat tambah/hapus"
                                 >
                                     <i className="fas fa-check text-[12px]" />
                                     <span>Simpan Pembaruan</span>

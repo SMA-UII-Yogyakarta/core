@@ -46,13 +46,18 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Master Data
     Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
     Route::post('/master-data', [StudentController::class, 'store'])->name('master-data.store');
+    Route::patch('/master-data/students/{id}', [StudentController::class, 'update'])->name('master-data.students.update');
+    Route::post('/master-data/students/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('master-data.students.bulk-destroy');
+    Route::patch('/master-data/students/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('master-data.students.toggle');
     Route::get('/master-data/teachers', [TeacherController::class, 'index'])->name('master-data.teachers');
     Route::post('/master-data/teachers', [TeacherController::class, 'store'])->name('master-data.teachers.store');
+    Route::patch('/master-data/teachers/{id}', [TeacherController::class, 'update'])->name('master-data.teachers.update');
     Route::get('/master-data/classes', [SchoolClassController::class, 'index'])->name('master-data.classes');
     Route::post('/master-data/classes', [SchoolClassController::class, 'store'])->name('master-data.classes.store');
     Route::patch('/master-data/classes/{id}', [SchoolClassController::class, 'update'])->name('master-data.classes.update');
     Route::get('/master-data/guardians', [GuardianController::class, 'index'])->name('master-data.guardians');
     Route::post('/master-data/guardians', [GuardianController::class, 'store'])->name('master-data.guardians.store');
+    Route::patch('/master-data/guardians/{id}', [GuardianController::class, 'update'])->name('master-data.guardians.update');
     Route::delete('/master-data/students/{id}', [StudentController::class, 'destroy'])->name('master-data.students.destroy');
     Route::delete('/master-data/teachers/{id}', [TeacherController::class, 'destroy'])->name('master-data.teachers.destroy');
     Route::delete('/master-data/classes/{id}', [SchoolClassController::class, 'destroy'])->name('master-data.classes.destroy');

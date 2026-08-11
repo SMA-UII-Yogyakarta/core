@@ -23,6 +23,7 @@ class SchoolClassService
             ->paginate($perPage);
     }
 
+    /** @return Collection<int, SchoolClass> */
     public function findAll(): Collection
     {
         return SchoolClass::with('teacher')->get();

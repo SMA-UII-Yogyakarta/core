@@ -11,6 +11,7 @@ interface TimeSetting {
     check_in_open: string;
     late_threshold: string;
     check_in_close: string;
+    is_active?: boolean;
 }
 
 interface Holiday {
@@ -61,6 +62,12 @@ export default function AturWaktuLibur({
     filters,
 }: AturWaktuLiburProps) {
     const [saving, setSaving] = useState(false);
+    const normalizeTime = (value?: string | null, fallback = "06:30") => {
+        if (!value) return fallback;
+        // Backend may cast as H:i:s
+        return value.length >= 5 ? value.slice(0, 5) : value;
+    };
+
     const [form, setForm] = useState<
         Record<
             string,
@@ -68,6 +75,7 @@ export default function AturWaktuLibur({
                 check_in_open: string;
                 late_threshold: string;
                 check_in_close: string;
+                is_active: boolean;
             }
         >
     >(() => {
@@ -77,14 +85,22 @@ export default function AturWaktuLibur({
                 check_in_open: string;
                 late_threshold: string;
                 check_in_close: string;
+                is_active: boolean;
             }
         > = {};
         for (const day of daysOfWeek) {
             const existing = timeSettings.find((ts) => ts.day === day);
             initial[day] = {
-                check_in_open: existing?.check_in_open ?? "06:30",
-                late_threshold: existing?.late_threshold ?? "07:00",
-                check_in_close: existing?.check_in_close ?? "07:30",
+                check_in_open: normalizeTime(existing?.check_in_open, "06:30"),
+                late_threshold: normalizeTime(
+                    existing?.late_threshold,
+                    "07:00",
+                ),
+                check_in_close: normalizeTime(
+                    existing?.check_in_close,
+                    "07:30",
+                ),
+                is_active: existing?.is_active ?? true,
             };
         }
         return initial;
@@ -102,6 +118,7 @@ export default function AturWaktuLibur({
             check_in_open: form[day].check_in_open,
             late_threshold: form[day].late_threshold,
             check_in_close: form[day].check_in_close,
+            is_active: form[day].is_active,
         }));
 
         router.post(
@@ -144,10 +161,21 @@ export default function AturWaktuLibur({
         });
     };
 
-    const handleTimeChange = (day: string, field: string, value: string) => {
+    const handleTimeChange = (
+        day: string,
+        field: "check_in_open" | "late_threshold" | "check_in_close",
+        value: string,
+    ) => {
         setForm((prev) => ({
             ...prev,
             [day]: { ...prev[day], [field]: value },
+        }));
+    };
+
+    const handleDayToggle = (day: string, isActive: boolean) => {
+        setForm((prev) => ({
+            ...prev,
+            [day]: { ...prev[day], is_active: isActive },
         }));
     };
 
@@ -212,21 +240,31 @@ export default function AturWaktuLibur({
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {daysOfWeek.map((day) => (
+                                    {daysOfWeek.map((day) => {
+                                        const dayActive = form[day].is_active;
+                                        return (
                                         <tr
                                             key={day}
-                                            className="border-b border-border last:border-b-0 hover:bg-muted/10 transition-colors"
+                                            className={`border-b border-border last:border-b-0 hover:bg-muted/10 transition-colors ${
+                                                !dayActive ? "opacity-55" : ""
+                                            }`}
                                         >
                                             <td className="px-4 py-4 text-[14px] font-bold text-text-primary">
                                                 {dayNames[day] ?? day}
                                             </td>
                                             <td className="px-4 py-4 text-center">
-                                                {/* Green CSS toggle switch */}
                                                 <label className="relative inline-flex items-center cursor-pointer select-none">
                                                     <input
                                                         type="checkbox"
-                                                        defaultChecked
+                                                        checked={dayActive}
+                                                        onChange={(e) =>
+                                                            handleDayToggle(
+                                                                day,
+                                                                e.target.checked,
+                                                            )
+                                                        }
                                                         className="sr-only peer"
+                                                        aria-label={`Buka presensi ${dayNames[day] ?? day}`}
                                                     />
                                                     <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success relative cursor-pointer" />
                                                 </label>
@@ -236,6 +274,7 @@ export default function AturWaktuLibur({
                                                     <input
                                                         type="time"
                                                         value={form[day].check_in_open}
+                                                        disabled={!dayActive}
                                                         onChange={(e) =>
                                                             handleTimeChange(
                                                                 day,
@@ -243,7 +282,7 @@ export default function AturWaktuLibur({
                                                                 e.target.value,
                                                             )
                                                         }
-                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
                                                     />
                                                     <i className="far fa-clock absolute right-2.5 top-1/2 -translate-y-1/2 text-text-inactive text-[11px] pointer-events-none" />
                                                 </div>
@@ -253,6 +292,7 @@ export default function AturWaktuLibur({
                                                     <input
                                                         type="time"
                                                         value={form[day].late_threshold}
+                                                        disabled={!dayActive}
                                                         onChange={(e) =>
                                                             handleTimeChange(
                                                                 day,
@@ -260,7 +300,7 @@ export default function AturWaktuLibur({
                                                                 e.target.value,
                                                             )
                                                         }
-                                                        className={`border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 ${
+                                                        className={`border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed ${
                                                             day === "Friday" ? "text-[#D97706]" : "text-warning"
                                                         }`}
                                                     />
@@ -272,6 +312,7 @@ export default function AturWaktuLibur({
                                                     <input
                                                         type="time"
                                                         value={form[day].check_in_close}
+                                                        disabled={!dayActive}
                                                         onChange={(e) =>
                                                             handleTimeChange(
                                                                 day,
@@ -279,13 +320,14 @@ export default function AturWaktuLibur({
                                                                 e.target.value,
                                                             )
                                                         }
-                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
                                                     />
                                                     <i className="far fa-clock absolute right-2.5 top-1/2 -translate-y-1/2 text-text-inactive text-[11px] pointer-events-none" />
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
