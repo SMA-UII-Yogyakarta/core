@@ -20,6 +20,7 @@ class AttendanceTimeSettingService
                 'check_in_open' => $data['check_in_open'],
                 'late_threshold' => $data['late_threshold'],
                 'check_in_close' => $data['check_in_close'],
+                'is_active' => $data['is_active'] ?? true,
             ],
         );
     }

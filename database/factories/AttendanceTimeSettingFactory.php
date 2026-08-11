@@ -19,6 +19,7 @@ class AttendanceTimeSettingFactory extends Factory
             'check_in_open' => '06:00:00',
             'late_threshold' => '07:00:00',
             'check_in_close' => '08:00:00',
+            'is_active' => true,
         ];
     }
 }

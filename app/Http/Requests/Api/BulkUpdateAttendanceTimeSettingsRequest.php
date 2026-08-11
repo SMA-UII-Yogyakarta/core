@@ -19,6 +19,7 @@ class BulkUpdateAttendanceTimeSettingsRequest extends FormRequest
             'settings.*.check_in_open' => 'required|date_format:H:i',
             'settings.*.late_threshold' => 'required|date_format:H:i',
             'settings.*.check_in_close' => 'required|date_format:H:i',
+            'settings.*.is_active' => 'sometimes|boolean',
         ];
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon $check_in_open
  * @property \Illuminate\Support\Carbon $late_threshold
  * @property \Illuminate\Support\Carbon $check_in_close
+ * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Database\Factories\AttendanceTimeSettingFactory factory($count = null, $state = [])
@@ -32,7 +33,13 @@ class AttendanceTimeSetting extends Model
 
     protected $table = 'attendance_time_settings';
 
-    protected $fillable = ['day', 'check_in_open', 'late_threshold', 'check_in_close'];
+    protected $fillable = [
+        'day',
+        'check_in_open',
+        'late_threshold',
+        'check_in_close',
+        'is_active',
+    ];
 
     protected function casts(): array
     {
@@ -40,6 +47,7 @@ class AttendanceTimeSetting extends Model
             'check_in_open' => 'datetime:H:i:s',
             'late_threshold' => 'datetime:H:i:s',
             'check_in_close' => 'datetime:H:i:s',
+            'is_active' => 'boolean',
         ];
     }
 }

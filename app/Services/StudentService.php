@@ -86,6 +86,27 @@ class StudentService
         });
     }
 
+    /**
+     * @param  list<int>  $ids
+     */
+    public function bulkDelete(array $ids): int
+    {
+        $deleted = 0;
+
+        DB::transaction(function () use ($ids, &$deleted) {
+            foreach (array_unique($ids) as $id) {
+                $student = Student::find($id);
+                if (! $student) {
+                    continue;
+                }
+                $student->user?->delete();
+                $deleted++;
+            }
+        });
+
+        return $deleted;
+    }
+
     public function toggleStatus(int $id): Student
     {
         $student = Student::findOrFail($id);
