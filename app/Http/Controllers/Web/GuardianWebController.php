@@ -10,6 +10,7 @@ use App\Services\AttendanceService;
 use App\Services\GuardianService;
 use App\Services\LeaveRequestService;
 use App\Services\StorageService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,69 +34,70 @@ class GuardianWebController extends Controller
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [
-            'id' => $s->id,
-            'name' => $s->name,
+            'id'    => $s->id,
+            'name'  => $s->name,
             'class' => $s->class ? ['id' => $s->class->id, 'name' => $s->class->name] : null,
-            'nis' => $s->nis,
+            'nis'   => $s->nis,
         ]);
 
-        $selectedStudentId = $request->integer('student_id');
-        $selectedStudent = null;
-        $studentStats = null;
-        $monthlyTrend = null;
-        $recentHistory = [];
+        // Auto-select first student if none provided
+        $selectedStudentId = $request->integer('student_id') ?: $students->first()?['id'];
+        $selectedStudent   = $students->firstWhere('id', $selectedStudentId);
 
-        if ($selectedStudentId && $guardian->students()->where('id', $selectedStudentId)->exists()) {
-            $selectedStudent = $students->firstWhere('id', $selectedStudentId);
-            $detail = $this->analyticsService->studentDetail($selectedStudentId);
-            $studentStats = [
-                'total' => $detail['stats']['total_days'],
-                'present' => $detail['stats']['present'],
-                'late' => $detail['stats']['late'],
-                'sick_permit' => $detail['stats']['sick_permit'],
-            ];
-            $monthlyTrend = $this->analyticsService->studentMonthlyTrend($selectedStudentId);
-            $recentHistory = Attendance::where('student_id', $selectedStudentId)
-                ->latest('attendance_date')
-                ->take(10)
-                ->get()
-                ->toArray();
+        // Today attendance for selected student
+        $todayAttendance = null;
+        if ($selectedStudentId) {
+            $att = Attendance::where('student_id', $selectedStudentId)
+                ->where('attendance_date', now()->toDateString())
+                ->first();
+            if ($att) {
+                $todayAttendance = [
+                    'id'              => $att->id,
+                    'status'          => $att->status,
+                    'check_in_time'   => $att->check_in_time,
+                    'attendance_date' => $att->attendance_date instanceof \Carbon\Carbon
+                        ? $att->attendance_date->toDateString()
+                        : $att->attendance_date,
+                ];
+            }
         }
 
-        $allStats = null;
-        if ($students->isNotEmpty()) {
-            $studentIds = $students->pluck('id');
-            $totalDays = Attendance::whereIn('student_id', $studentIds)->count();
-            $present = Attendance::whereIn('student_id', $studentIds)->where('status', 'Present')->count();
-            $late = Attendance::whereIn('student_id', $studentIds)->where('status', 'Late')->count();
+        // Semester stats for selected student (current year)
+        $semesterStats = null;
+        if ($selectedStudentId) {
+            $year   = now()->year;
+            $counts = Attendance::where('student_id', $selectedStudentId)
+                ->whereYear('attendance_date', $year)
+                ->selectRaw("
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status = 'Late'    THEN 1 ELSE 0 END) as late
+                ")
+                ->first();
 
-            $allStats = [
-                'total_days' => $totalDays,
-                'present' => $present,
-                'late' => $late,
-                'absent' => max(0, $totalDays - $present - $late),
-                'pending_leave' => LeaveRequest::whereIn('student_id', $studentIds)
-                    ->where('approval_status', 'Pending')->count(),
+            $sickPermit = LeaveRequest::where('student_id', $selectedStudentId)
+                ->where('approval_status', 'Approved')
+                ->whereYear('start_date', $year)
+                ->count();
+
+            $total   = (int) ($counts?->total ?? 0);
+            $present = (int) ($counts?->present ?? 0);
+            $late    = (int) ($counts?->late ?? 0);
+
+            $semesterStats = [
+                'present'     => $present + $late, // hadir = tepat + terlambat
+                'sick_permit' => $sickPermit,
+                'absent'      => max(0, $total - $present - $late),
             ];
         }
-
-        $recentLeaves = LeaveRequest::where('guardian_id', $guardian->id)
-            ->with('student')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->toArray();
 
         return Inertia::render('Guardian/Dashboard', [
-            'guardian' => ['id' => $guardian->id, 'name' => $guardian->name],
-            'students' => $students,
-            'stats' => $allStats,
-            'recentLeaves' => $recentLeaves,
+            'guardian'          => ['id' => $guardian->id, 'name' => $guardian->name],
+            'students'          => $students,
             'selectedStudentId' => $selectedStudentId,
-            'selectedStudent' => $selectedStudent,
-            'studentStats' => $studentStats,
-            'monthlyTrend' => $monthlyTrend,
-            'recentHistory' => $recentHistory,
+            'selectedStudent'   => $selectedStudent,
+            'todayAttendance'   => $todayAttendance,
+            'semesterStats'     => $semesterStats,
         ]);
     }
 
@@ -137,7 +139,7 @@ class GuardianWebController extends Controller
             'student_id' => 'required|exists:students,id',
             'category' => 'required|in:Sick,Event,Competition,Other',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string|max:500',
             'document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
@@ -157,12 +159,12 @@ class GuardianWebController extends Controller
         }
 
         $this->leaveRequestService->create([
-            'student_id' => $validated['student_id'],
-            'guardian_id' => $guardian->id,
-            'category' => $validated['category'],
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'description' => $validated['description'] ?? null,
+            'student_id'   => $validated['student_id'],
+            'guardian_id'  => $guardian->id,
+            'category'     => $validated['category'],
+            'start_date'   => $validated['start_date'],
+            'end_date'     => $validated['end_date'] ?? $validated['start_date'],
+            'description'  => $validated['description'] ?? null,
             'document_url' => $documentUrl,
         ]);
 

@@ -23,7 +23,7 @@ interface PageProps {
 
 type GpsStatus = "idle" | "acquiring" | "locked" | "error";
 
-export default function LiveAttendance({ student, todayAttendance }: PageProps) {
+export default function LiveAttendance({ todayAttendance }: PageProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -71,7 +71,9 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         startCamera();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         startGps();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -126,7 +128,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
     };
 
     // ── Reusable: tombol submit ───────────────────────────────────────────────
-    const SubmitButton = ({ label }: { label: string }) => {
+    const renderSubmitButton = (label: string) => {
         if (todayAttendance) {
             return (
                 <div className="flex items-center justify-center gap-2 px-5 py-3 bg-success-bg border border-success-light rounded-xl text-success font-semibold text-[13px]">
@@ -283,7 +285,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
                         )}
                     </div>
 
-                    <SubmitButton label="KIRIM DATA PRESENSI" />
+                    {renderSubmitButton("KIRIM DATA PRESENSI")}
                 </div>
             </div>
 
@@ -375,7 +377,7 @@ export default function LiveAttendance({ student, todayAttendance }: PageProps) 
                         </div>
                     </div>
 
-                    <SubmitButton label="KIRIM KEHADIRAN" />
+                    {renderSubmitButton("KIRIM KEHADIRAN")}
                 </div>
             </div>
 
