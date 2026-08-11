@@ -29,16 +29,22 @@ class StudentController extends Controller
             request()->only(['search', 'class_id', 'status']),
         );
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, \App\Models\SchoolClass> $classes */
         $classes = $this->schoolClassService->findAll();
         $guardians = $this->guardianService->findAll();
+
+        $classOptions = $classes
+            ->map(static fn (\App\Models\SchoolClass $c): array => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])
+            ->values()
+            ->all();
 
         return Inertia::render('Admin/MasterData', [
             'activeTab' => 'siswa',
             'students' => $students,
-            'classOptions' => $classes->map(fn ($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-            ])->values(),
+            'classOptions' => $classOptions,
             'allGuardians' => $guardians,
             'filters' => request()->only(['search', 'class_id', 'status']),
         ]);

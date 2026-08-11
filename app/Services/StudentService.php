@@ -95,11 +95,12 @@ class StudentService
 
         DB::transaction(function () use ($ids, &$deleted) {
             foreach (array_unique($ids) as $id) {
-                $student = Student::find($id);
+                $student = Student::with('user')->find($id);
                 if (! $student) {
                     continue;
                 }
-                $student->user?->delete();
+                // Cascades student row via user relation (same as delete()).
+                $student->user->delete();
                 $deleted++;
             }
         });
