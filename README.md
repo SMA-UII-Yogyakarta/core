@@ -33,7 +33,7 @@ This repository is the **main backend** of the **SMART Absen SMA UII** system �
 
 ## Features
 
-- **SSO Identity Provider** — Single sign-on for the entire SMA UII ecosystem (Laravel Sanctum)
+- **SSO & Central IdP Hub** — Single Sign-On and Master Data / Dapodik terpusat untuk ekosistem SMA UII: Moodle (`elearning.smauiiyk.sch.id`), SLiMS Library (`library.smauiiyk.sch.id`), dan Digital Lab (`lab.smauiiyk.sch.id`). Lihat [Panduan Integrasi Ekosistem](docs/ECOSYSTEM-INTEGRATION-DAPODIK-SSO.md).
 - **Live Attendance** — Selfie + geolocation with client-side image compression (≤20 KB)
 - **Triple-Layer Validation** — Academic calendar + active day + time range checks
 - **Role-Based Access Control** — Admin, Student, Guardian, Homeroom Teacher, Duty Teacher

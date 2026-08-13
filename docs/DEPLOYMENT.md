@@ -30,6 +30,17 @@ Ketika backend dipisah nanti:
 
 > **Catatan:** `app.smauiiyk.sch.id` **tidak dipakai untuk preview** karena: (1) saat ini ditempati entry SvelteKit **Aksesekolah** (repo `aksesekolah`), dan (2) nama tersebut di-*reserve* untuk frontend SMAUII Core saat production. Preview memakai `preview.smauiiyk.sch.id` agar tidak mengklaim nama permanen.
 
+### 2.1. Ekosistem Terpadu Sekolah (Central IdP / Dapodik Hub)
+
+`smauii-core` berperan sebagai **Master Data & Identity Provider (IdP)** terpusat bagi seluruh platform digital SMA UII Yogyakarta di host ini. Detail lengkap arsitektur dan skema sinkronisasi dapat dibaca di [Panduan Integrasi Ekosistem & SSO](file:///home/dev/project/smauiiyk/core/docs/ECOSYSTEM-INTEGRATION-DAPODIK-SSO.md).
+
+| Layanan | Subdomain | Stack / Engine | Integrasi Data Master |
+|---|---|---|---|
+| **SMART Absen (Core)** | `preview.smauiiyk.sch.id` / `app.smauiiyk.sch.id` | Laravel 13 + React Inertia | Pusat data user, RBAC, rombel kelas, & presensi geolokasi |
+| **Moodle LMS** | `elearning.smauiiyk.sch.id` | Moodle (Container host) | SSO akun siswa/guru & auto-enrolment mata pelajaran |
+| **SLiMS Perpustakaan** | `library.smauiiyk.sch.id` | SLiMS (Container host) | Sinkronisasi data anggota perpustakaan (NIS/NIP) |
+| **Digital Lab** | `lab.smauiiyk.sch.id` | Lab Management Portal | Autentikasi workstation & jadwal praktikum TIK/IPA |
+
 ## 3. Struktur Docker Compose
 
 Compose dipecah menjadi **base + overlay** (tanpa duplikasi):
