@@ -45,7 +45,11 @@ class StorageService
 
     public function uploadDocument(UploadedFile $file, string $prefix = 'documents'): string
     {
-        $path = $file->store($prefix . '/' . now()->toDateString(), ['disk' => $this->disk]);
+        $path = $file->store($prefix . '/' . now()->toDateString(), $this->disk);
+
+        if (! $path) {
+            return '';
+        }
 
         return Storage::disk($this->disk)->url($path);
     }

@@ -70,6 +70,8 @@ class GuardianLeaveApplicationTest extends TestCase
 
     public function test_guardian_leave_application_accepts_document_upload(): void
     {
+        Storage::fake();
+        Storage::fake('s3');
         Storage::fake('public');
         [$user, , $student] = $this->guardianWithStudent();
 
