@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Button, Pagination } from "@/Components";
+import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
+import { holidaySchema } from "@/schemas";
+import { validateForm } from "@/utils/zodHelper";
 
 // ─── Types ───
 
@@ -54,13 +57,35 @@ const dayNames: Record<string, string> = {
 
 const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
+function formatIndonesianDate(dateStr: string): string {
+    if (!dateStr) return "";
+    try {
+        const cleanDateStr = dateStr.split(" ")[0].split("T")[0];
+        const date = new Date(cleanDateStr + "T00:00:00");
+
+        if (isNaN(date.getTime())) {
+            const fallbackDate = new Date(dateStr);
+            if (isNaN(fallbackDate.getTime())) return dateStr;
+            return fallbackDate.toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+        }
+
+        return date.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    } catch {
+        return dateStr;
+    }
+}
+
 // ─── Page ───
 
-export default function AturWaktuLibur({
-    timeSettings,
-    holidays,
-    filters,
-}: AturWaktuLiburProps) {
+export default function AturWaktuLibur({ timeSettings, holidays, filters }: AturWaktuLiburProps) {
     const [saving, setSaving] = useState(false);
     const normalizeTime = (value?: string | null, fallback = "06:30") => {
         if (!value) return fallback;
@@ -92,22 +117,28 @@ export default function AturWaktuLibur({
             const existing = timeSettings.find((ts) => ts.day === day);
             initial[day] = {
                 check_in_open: normalizeTime(existing?.check_in_open, "06:30"),
-                late_threshold: normalizeTime(
-                    existing?.late_threshold,
-                    "07:00",
-                ),
-                check_in_close: normalizeTime(
-                    existing?.check_in_close,
-                    "07:30",
-                ),
+                late_threshold: normalizeTime(existing?.late_threshold, "07:00"),
+                check_in_close: normalizeTime(existing?.check_in_close, "07:30"),
                 is_active: existing?.is_active ?? true,
             };
         }
         return initial;
     });
 
-    const [holidayDate, setHolidayDate] = useState("");
-    const [holidayDesc, setHolidayDesc] = useState("");
+    const {
+        data: holidayForm,
+        setData: setHolidayForm,
+        post: postHoliday,
+        processing: holidayProcessing,
+        errors: holidayErrors,
+        setError: setHolidayError,
+        clearErrors: clearHolidayErrors,
+        reset: resetHoliday,
+    } = useForm({
+        holiday_date: "",
+        description: "",
+        is_holiday: true,
+    });
     const [deleteHolidayId, setDeleteHolidayId] = useState<number | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
 
@@ -133,20 +164,23 @@ export default function AturWaktuLibur({
 
     const handleAddHoliday = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!holidayDate) return;
+        clearHolidayErrors();
 
-        router.post(
-            "/settings/holidays",
-            { holiday_date: holidayDate, description: holidayDesc },
-            {
-                preserveState: true,
-                onSuccess: () => {
-                    setHolidayDate("");
-                    setHolidayDesc("");
-                    setShowAddForm(false);
-                },
+        const valid = validateForm(holidaySchema, holidayForm);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                setHolidayError(key as any, msg);
+            }
+            return;
+        }
+
+        postHoliday("/settings/holidays", {
+            preserveState: true,
+            onSuccess: () => {
+                resetHoliday();
+                setShowAddForm(false);
             },
-        );
+        });
     };
 
     const handleDeleteHoliday = (id: number) => {
@@ -195,155 +229,113 @@ export default function AturWaktuLibur({
         { value: "12", label: "Desember" },
     ];
 
+    const timeColumns: Column<string>[] = [
+        {
+            key: "day",
+            header: "Hari",
+            className: "whitespace-nowrap",
+            render: (day) => <span className="font-bold text-text-primary">{dayNames[day] ?? day}</span>,
+        },
+        {
+            key: "is_active",
+            header: "Buka",
+            className: "text-center justify-center md:justify-center whitespace-nowrap",
+            render: (day) => (
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={form[day].is_active}
+                        onChange={(e) => handleDayToggle(day, e.target.checked)}
+                        className="sr-only peer"
+                        aria-label={`Buka presensi ${dayNames[day] ?? day}`}
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success relative cursor-pointer" />
+                </label>
+            ),
+        },
+        {
+            key: "check_in_open",
+            header: "Mulai Presensi",
+            className: "whitespace-nowrap",
+            render: (day) => (
+                <div className="relative max-w-[130px] w-full">
+                    <input
+                        type="time"
+                        value={form[day].check_in_open}
+                        disabled={!form[day].is_active}
+                        onChange={(e) => handleTimeChange(day, "check_in_open", e.target.value)}
+                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                    />
+                </div>
+            ),
+        },
+        {
+            key: "late_threshold",
+            header: "Terlambat",
+            className: "whitespace-nowrap",
+            render: (day) => (
+                <div className="relative max-w-[130px] w-full">
+                    <input
+                        type="time"
+                        value={form[day].late_threshold}
+                        disabled={!form[day].is_active}
+                        onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
+                        className={`border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed ${
+                            day === "Friday" ? "text-[#D97706]" : "text-warning"
+                        }`}
+                    />
+                </div>
+            ),
+        },
+        {
+            key: "check_in_close",
+            header: "Tutup Akses",
+            className: "whitespace-nowrap",
+            render: (day) => (
+                <div className="relative max-w-[130px] w-full">
+                    <input
+                        type="time"
+                        value={form[day].check_in_close}
+                        disabled={!form[day].is_active}
+                        onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
+                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                    />
+                </div>
+            ),
+        },
+    ];
+
     return (
         <AppShell title="Konfigurasi Jadwal & Waktu">
             {/* Page Header */}
-            <div className="mb-6">
-                <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">
-                    Konfigurasi Jadwal & Waktu
-                </h1>
-                <p className="text-[14px] text-text-secondary font-inter mt-1">
-                    Atur parameter gerbang digital presensi dan tetapkan hari libur akademik.
-                </p>
-            </div>
+            <PageHeader
+                title="Konfigurasi Jadwal & Waktu"
+                description="Atur parameter gerbang digital presensi dan tetapkan hari libur akademik."
+            />
 
             {/* Split Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                
                 {/* Column 1: Jam Operasional Harian (Left) */}
                 <div className="lg:col-span-3">
-                    <div className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col gap-6">
-                        <h2 className="text-[16px] font-bold text-primary font-inter border-b border-border pb-3 flex items-center gap-2">
-                            <i className="fas fa-business-time text-[15px] text-text-inactive" />
-                            Jam Operasional Harian
-                        </h2>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full border-collapse font-inter">
-                                <thead>
-                                    <tr className="bg-muted/40 border-b border-border">
-                                        <th className="px-4 py-3.5 text-left text-[13px] font-semibold text-text-muted">
-                                            Hari
-                                        </th>
-                                        <th className="px-4 py-3.5 text-center text-[13px] font-semibold text-text-muted w-20">
-                                            Buka
-                                        </th>
-                                        <th className="px-4 py-3.5 text-left text-[13px] font-semibold text-text-muted">
-                                            Mulai Presensi
-                                        </th>
-                                        <th className="px-4 py-3.5 text-left text-[13px] font-semibold text-text-muted">
-                                            Terlambat
-                                        </th>
-                                        <th className="px-4 py-3.5 text-left text-[13px] font-semibold text-text-muted">
-                                            Tutup Akses
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {daysOfWeek.map((day) => {
-                                        const dayActive = form[day].is_active;
-                                        return (
-                                        <tr
-                                            key={day}
-                                            className={`border-b border-border last:border-b-0 hover:bg-muted/10 transition-colors ${
-                                                !dayActive ? "opacity-55" : ""
-                                            }`}
-                                        >
-                                            <td className="px-4 py-4 text-[14px] font-bold text-text-primary">
-                                                {dayNames[day] ?? day}
-                                            </td>
-                                            <td className="px-4 py-4 text-center">
-                                                <label className="relative inline-flex items-center cursor-pointer select-none">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={dayActive}
-                                                        onChange={(e) =>
-                                                            handleDayToggle(
-                                                                day,
-                                                                e.target.checked,
-                                                            )
-                                                        }
-                                                        className="sr-only peer"
-                                                        aria-label={`Buka presensi ${dayNames[day] ?? day}`}
-                                                    />
-                                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success relative cursor-pointer" />
-                                                </label>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div className="relative max-w-[100px]">
-                                                    <input
-                                                        type="time"
-                                                        value={form[day].check_in_open}
-                                                        disabled={!dayActive}
-                                                        onChange={(e) =>
-                                                            handleTimeChange(
-                                                                day,
-                                                                "check_in_open",
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
-                                                    />
-                                                    <i className="far fa-clock absolute right-2.5 top-1/2 -translate-y-1/2 text-text-inactive text-[11px] pointer-events-none" />
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div className="relative max-w-[100px]">
-                                                    <input
-                                                        type="time"
-                                                        value={form[day].late_threshold}
-                                                        disabled={!dayActive}
-                                                        onChange={(e) =>
-                                                            handleTimeChange(
-                                                                day,
-                                                                "late_threshold",
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        className={`border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed ${
-                                                            day === "Friday" ? "text-[#D97706]" : "text-warning"
-                                                        }`}
-                                                    />
-                                                    <i className="far fa-clock absolute right-2.5 top-1/2 -translate-y-1/2 text-text-inactive text-[11px] pointer-events-none" />
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4">
-                                                <div className="relative max-w-[100px]">
-                                                    <input
-                                                        type="time"
-                                                        value={form[day].check_in_close}
-                                                        disabled={!dayActive}
-                                                        onChange={(e) =>
-                                                            handleTimeChange(
-                                                                day,
-                                                                "check_in_close",
-                                                                e.target.value,
-                                                            )
-                                                        }
-                                                        className="border border-border rounded-lg pl-3 pr-8 py-1.5 text-[13px] font-bold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
-                                                    />
-                                                    <i className="far fa-clock absolute right-2.5 top-1/2 -translate-y-1/2 text-text-inactive text-[11px] pointer-events-none" />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="mt-4 border-t border-border pt-4">
+                    <section className="flex flex-col gap-6">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
+                            <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
+                                <i className="fas fa-business-time text-[15px] text-text-inactive" />
+                                Jam Operasional Harian
+                            </h2>
                             <button
                                 onClick={handleSaveTimeSettings}
                                 disabled={saving}
-                                className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2.5 text-[13px] font-bold transition-colors cursor-pointer"
+                                className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
                                 type="button"
                             >
                                 <i className="fas fa-check text-[12px]" />
                                 <span>{saving ? "Menyimpan..." : "Simpan Aturan Waktu"}</span>
                             </button>
                         </div>
-                    </div>
+
+                        <Table columns={timeColumns} data={daysOfWeek} keyExtractor={(day) => day} />
+                    </section>
                 </div>
 
                 {/* Column 2: Libur Akademik (Right) */}
@@ -380,11 +372,15 @@ export default function AturWaktuLibur({
                                     </label>
                                     <input
                                         type="date"
-                                        value={holidayDate}
-                                        onChange={(e) => setHolidayDate(e.target.value)}
-                                        required
+                                        value={holidayForm.holiday_date}
+                                        onChange={(e) => setHolidayForm("holiday_date", e.target.value)}
                                         className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                                     />
+                                    {holidayErrors.holiday_date && (
+                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
+                                            {holidayErrors.holiday_date}
+                                        </p>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-[11px] text-text-muted font-inter mb-1">
@@ -392,26 +388,34 @@ export default function AturWaktuLibur({
                                     </label>
                                     <input
                                         type="text"
-                                        value={holidayDesc}
-                                        onChange={(e) => setHolidayDesc(e.target.value)}
+                                        value={holidayForm.description}
+                                        onChange={(e) => setHolidayForm("description", e.target.value)}
                                         placeholder="Contoh: Libur Nasional"
-                                        required
                                         className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary placeholder:text-text-placeholder bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                                     />
+                                    {holidayErrors.description && (
+                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
+                                            {holidayErrors.description}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex gap-2 justify-end mt-1">
                                     <button
                                         type="button"
-                                        onClick={() => setShowAddForm(false)}
+                                        onClick={() => {
+                                            resetHoliday();
+                                            setShowAddForm(false);
+                                        }}
                                         className="px-3 py-1.5 text-[12px] font-bold text-text-secondary hover:bg-slate-200/50 rounded-lg transition-colors cursor-pointer"
                                     >
                                         Batal
                                     </button>
                                     <button
                                         type="submit"
-                                        className="bg-primary hover:bg-primary/95 text-white px-4 py-1.5 rounded-lg text-[12px] font-bold transition-colors cursor-pointer"
+                                        disabled={holidayProcessing}
+                                        className="bg-primary hover:bg-primary/95 text-white px-4 py-1.5 rounded-lg text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-60"
                                     >
-                                        Simpan
+                                        {holidayProcessing ? "Menyimpan..." : "Simpan"}
                                     </button>
                                 </div>
                             </form>
@@ -419,7 +423,8 @@ export default function AturWaktuLibur({
 
                         {/* Month / Year Filters for Holidays */}
                         <div className="flex gap-3 mb-5 select-none">
-                            <select
+                            <NativeSelect
+                                className="w-1/2 sm:w-[140px]"
                                 value={filters.year ?? currentYear.toString()}
                                 onChange={(e) =>
                                     router.get(
@@ -428,18 +433,15 @@ export default function AturWaktuLibur({
                                         { preserveState: true },
                                     )
                                 }
-                                className="border border-border rounded-lg px-3 py-1.5 text-[12px] font-bold font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                             >
-                                {Array.from(
-                                    { length: 5 },
-                                    (_, i) => currentYear - 2 + i,
-                                ).map((year) => (
+                                {Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).map((year) => (
                                     <option key={year} value={year}>
                                         {year}
                                     </option>
                                 ))}
-                            </select>
-                            <select
+                            </NativeSelect>
+                            <NativeSelect
+                                className="w-1/2 sm:w-[140px]"
                                 value={filters.month ?? ""}
                                 onChange={(e) =>
                                     router.get(
@@ -448,7 +450,6 @@ export default function AturWaktuLibur({
                                         { preserveState: true },
                                     )
                                 }
-                                className="border border-border rounded-lg px-3 py-1.5 text-[12px] font-bold font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                             >
                                 <option value="">Semua Bulan</option>
                                 {months.map((m) => (
@@ -456,11 +457,11 @@ export default function AturWaktuLibur({
                                         {m.label}
                                     </option>
                                 ))}
-                            </select>
+                            </NativeSelect>
                         </div>
 
                         {/* Holiday List rendered as Cards (as per Figma) */}
-                        <div className="flex-1 flex flex-col gap-3.5">
+                        <div className="flex-1 flex flex-col gap-3.5 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin">
                             {holidays.data.length === 0 ? (
                                 <div className="py-12 text-center text-text-inactive font-inter text-[13px]">
                                     Belum ada hari libur.
@@ -468,7 +469,12 @@ export default function AturWaktuLibur({
                             ) : (
                                 holidays.data.map((h, index) => {
                                     // border left alternating colors like Figma (red, blue, green etc.)
-                                    const borderColors = ["border-l-danger", "border-l-primary", "border-l-success", "border-l-warning"];
+                                    const borderColors = [
+                                        "border-l-danger",
+                                        "border-l-primary",
+                                        "border-l-success",
+                                        "border-l-warning",
+                                    ];
                                     const borderColor = borderColors[index % borderColors.length];
                                     return (
                                         <div
@@ -481,7 +487,7 @@ export default function AturWaktuLibur({
                                                 </span>
                                                 <div className="flex items-center gap-1.5 text-[11px] text-text-secondary font-medium font-inter">
                                                     <i className="far fa-calendar text-text-inactive" />
-                                                    <span>{h.holiday_date}</span>
+                                                    <span>{formatIndonesianDate(h.holiday_date)}</span>
                                                 </div>
                                             </div>
                                             <button
@@ -523,22 +529,14 @@ export default function AturWaktuLibur({
             {/* Delete Confirmation Modal */}
             {deleteHolidayId !== null && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="fixed inset-0 bg-black/50"
-                        onClick={() => setDeleteHolidayId(null)}
-                    />
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteHolidayId(null)} />
                     <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-sm p-6 text-center">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2">
-                            Konfirmasi Hapus
-                        </h3>
+                        <h3 className="text-[16px] font-bold text-text-primary mb-2">Konfirmasi Hapus</h3>
                         <p className="text-[13px] text-text-muted mb-6">
                             Apakah Anda yakin ingin menghapus hari libur ini?
                         </p>
                         <div className="flex gap-3 justify-center">
-                            <Button
-                                variant="ghost"
-                                onClick={() => setDeleteHolidayId(null)}
-                            >
+                            <Button variant="ghost" onClick={() => setDeleteHolidayId(null)}>
                                 Batal
                             </Button>
                             <Button variant="danger" onClick={confirmDeleteHoliday}>

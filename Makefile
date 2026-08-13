@@ -1,50 +1,66 @@
-up:
-	docker compose up -d
+COMPOSE_DEV  := docker compose -f docker-compose.yml -f docker-compose.dev.yml
+COMPOSE_PROD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
+
+# ── Development ─────────────────────────────────────────────
+up: dev
+
+dev:
+	$(COMPOSE_DEV) up -d
 
 down:
-	docker compose down
+	$(COMPOSE_DEV) down
 
 build:
 	docker compose build app --no-cache
 
-restart: down up
+frontend-build:
+	bun run build
 
+restart: down dev
+
+# ── Production ──────────────────────────────────────────────
+prod-up:
+	rm -f public/hot
+	bun run build
+	$(COMPOSE_PROD) up -d --build
+
+prod-down:
+	$(COMPOSE_PROD) down
+
+prod-logs:
+	$(COMPOSE_PROD) logs -f app worker schedule
+
+# ── Tooling (dev stack) ─────────────────────────────────────
 artisan:
-	docker compose exec app php artisan $(cmd)
+	$(COMPOSE_DEV) exec app php artisan $(cmd)
 
 composer:
-	docker compose exec app composer $(cmd)
+	$(COMPOSE_DEV) exec app composer $(cmd)
 
 migrate:
-	docker compose exec app php artisan migrate
+	$(COMPOSE_DEV) exec app php artisan migrate
 
 fresh:
-	docker compose exec app php artisan migrate:fresh --seed
+	$(COMPOSE_DEV) exec app php artisan migrate:fresh --seed
 
 queue:
-	docker compose exec app php artisan queue:listen --tries=1 --timeout=0
+	$(COMPOSE_DEV) exec app php artisan queue:listen --tries=1 --timeout=0
 
 test:
-	docker compose exec app php artisan test
+	$(COMPOSE_DEV) exec app php artisan test
 
 bash:
-	docker compose exec app sh
+	$(COMPOSE_DEV) exec app sh
 
 logs:
-	docker compose logs -f app
+	$(COMPOSE_DEV) logs -f app
 
 psql:
-	docker compose exec pgsql psql -U sail -d smauii_core
+	$(COMPOSE_DEV) exec pgsql psql -U sail -d smauii_core
 
-npm:
-	bun $(cmd)
+setup: dev
+	$(COMPOSE_DEV) exec app composer install --no-interaction
+	$(COMPOSE_DEV) exec app php artisan key:generate --ansi
+	$(COMPOSE_DEV) exec app php artisan migrate --seed
 
-vite:
-	bun run dev
-
-setup: up
-	docker compose exec app composer install --no-interaction
-	docker compose exec app php artisan key:generate --ansi
-	docker compose exec app php artisan migrate --seed
-
-.PHONY: up down build restart artisan composer migrate fresh queue test bash logs psql npm vite setup
+.PHONY: up dev down build frontend-build restart prod-up prod-down prod-logs artisan composer migrate fresh queue test bash logs psql setup

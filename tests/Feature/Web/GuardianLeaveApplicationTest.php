@@ -17,6 +17,12 @@ class GuardianLeaveApplicationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     private function guardianWithStudent(): array
     {
         $user = User::factory()->create(['role' => 'guardian']);
@@ -64,6 +70,8 @@ class GuardianLeaveApplicationTest extends TestCase
 
     public function test_guardian_leave_application_accepts_document_upload(): void
     {
+        Storage::fake();
+        Storage::fake('s3');
         Storage::fake('public');
         [$user, , $student] = $this->guardianWithStudent();
 

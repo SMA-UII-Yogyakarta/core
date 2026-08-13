@@ -1,11 +1,6 @@
 import { Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import {
-    PageHeader,
-    Card,
-    SelectInput,
-    StatCard,
-} from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiDownload } from "react-icons/fi";
 
@@ -53,11 +48,16 @@ export default function DailyReport({
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case "Present": return "text-green-600 bg-green-50";
-            case "Late": return "text-amber-600 bg-amber-50";
-            case "Sick": return "text-blue-600 bg-blue-50";
-            case "Permission": return "text-purple-600 bg-purple-50";
-            default: return "text-red-600 bg-red-50";
+            case "Present":
+                return "text-green-600 bg-green-50";
+            case "Late":
+                return "text-amber-600 bg-amber-50";
+            case "Sick":
+                return "text-blue-600 bg-blue-50";
+            case "Permission":
+                return "text-purple-600 bg-purple-50";
+            default:
+                return "text-red-600 bg-red-50";
         }
     };
 
@@ -72,7 +72,9 @@ export default function DailyReport({
                     <div className="flex items-center gap-3">
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/daily?date=${selectedDate}&class_id=${value ?? ""}`}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/daily?date=${selectedDate}&class_id=${value ?? ""}`)
+                            }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
                                 ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
@@ -82,7 +84,9 @@ export default function DailyReport({
                         <input
                             type="date"
                             value={selectedDate}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => window.location.href = `/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                (window.location.href = `/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                            }
                             className="bg-surface border border-border rounded-lg px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                         <a
@@ -107,27 +111,22 @@ export default function DailyReport({
                         value={overview.present.toLocaleString("id-ID")}
                         color="green"
                     />
-                    <StatCard
-                        label={t("reports.late")}
-                        value={overview.late.toLocaleString("id-ID")}
-                        color="amber"
-                    />
-                    <StatCard
-                        label={t("reports.absent")}
-                        value={overview.absent.toLocaleString("id-ID")}
-                        color="red"
-                    />
+                    <StatCard label={t("reports.late")} value={overview.late.toLocaleString("id-ID")} color="amber" />
+                    <StatCard label={t("reports.absent")} value={overview.absent.toLocaleString("id-ID")} color="red" />
                 </div>
 
                 {classDetail && (
                     <Card>
                         <div className="p-6">
-<div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold text-text">
                                     {t("reports.classDetail").replace("{class}", classDetail.class.name)}
                                 </h3>
                                 <span className="text-sm text-text-inactive">
-                                    {t("reports.totalStudents").replace("{count}", classDetail.students.length.toString())}
+                                    {t("reports.totalStudents").replace(
+                                        "{count}",
+                                        classDetail.students.length.toString(),
+                                    )}
                                 </span>
                             </div>
                             <div className="overflow-x-auto">
@@ -142,11 +141,16 @@ export default function DailyReport({
                                     </thead>
                                     <tbody>
                                         {classDetail.students.map((student) => (
-                                            <tr key={student.id} className="border-b border-border/50 hover:bg-primary/5">
+                                            <tr
+                                                key={student.id}
+                                                className="border-b border-border/50 hover:bg-primary/5"
+                                            >
                                                 <td className="py-3 text-text-inactive">{student.nis}</td>
                                                 <td className="py-3 font-medium">{student.name}</td>
                                                 <td className="py-3 text-center">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}>
+                                                    <span
+                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}
+                                                    >
                                                         {student.status}
                                                     </span>
                                                 </td>
@@ -165,9 +169,7 @@ export default function DailyReport({
                 {/* All Classes Summary */}
                 <Card>
                     <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">
-                            {t("reports.allClassesSummary")}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.allClassesSummary")}</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -183,9 +185,10 @@ export default function DailyReport({
                                 </thead>
                                 <tbody>
                                     {overview.classes.map((cls) => {
-                                        const rate = cls.total > 0
-                                            ? ((cls.present + cls.late) / cls.total * 100).toFixed(1)
-                                            : "0.0";
+                                        const rate =
+                                            cls.total > 0
+                                                ? (((cls.present + cls.late) / cls.total) * 100).toFixed(1)
+                                                : "0.0";
                                         return (
                                             <tr key={cls.id} className="border-b border-border/50 hover:bg-primary/5">
                                                 <td className="py-3 font-medium">{cls.name}</td>

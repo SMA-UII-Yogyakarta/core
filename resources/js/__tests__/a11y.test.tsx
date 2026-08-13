@@ -10,7 +10,7 @@ describe("Accessibility Tests", () => {
                 <h1>404</h1>
                 <p>Page not found</p>
                 <a href="/">Back to Home</a>
-            </div>
+            </div>,
         );
 
         const results = await axe(container);
@@ -23,7 +23,7 @@ describe("Accessibility Tests", () => {
                 <h1>403</h1>
                 <p>Access denied</p>
                 <button>Back</button>
-            </div>
+            </div>,
         );
 
         const results = await axe(container);
@@ -41,7 +41,7 @@ describe("Accessibility Tests", () => {
                     <label htmlFor="test">Test Label</label>
                     <input id="test" type="text" />
                 </form>
-            </div>
+            </div>,
         );
 
         const results = await axe(container);

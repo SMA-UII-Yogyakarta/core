@@ -28,7 +28,7 @@ class ExportController extends Controller
 
         $classes = SchoolClass::select('id', 'name')->orderBy('name')->get();
 
-        return Inertia::render('Export', [
+        return Inertia::render('Reports/Export', [
             'classes' => $classes,
             'preview' => $this->exportService->previewData($period, $date, $month, $year, $semester, $classId),
             'selectedPeriod' => $period,

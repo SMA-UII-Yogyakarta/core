@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, Table } from "@/Components";
+import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 
@@ -73,17 +73,16 @@ export default function Monitoring({
     stats: initialStats,
     students: initialStudents,
 }: MonitoringProps) {
-    const [classId, setClassId] = useState<string>(
-        selectedClassId?.toString() ?? "",
-    );
+    const [classId, setClassId] = useState<string>(selectedClassId?.toString() ?? "");
     const [studentsState, setStudentsState] = useState(initialStudents);
     const [statsState, setStatsState] = useState(initialStats);
 
     // Real-time monitoring with Laravel Echo
     useState(() => {
-        if (typeof window !== 'undefined' && window.Echo && classId) {
-            window.Echo.channel(`monitoring.${classId}`)
-                .listen('.attendance.created', (data: {
+        if (typeof window !== "undefined" && window.Echo && classId) {
+            window.Echo.channel(`monitoring.${classId}`).listen(
+                ".attendance.created",
+                (data: {
                     student_id: number;
                     student_name: string;
                     status: string;
@@ -96,26 +95,24 @@ export default function Monitoring({
                         prev.map((s) =>
                             s.student.id === data.student_id
                                 ? {
-                                    ...s,
-                                    attendance: {
-                                        id: data.id,
-                                        check_in_time: data.check_in_time,
-                                        status: data.status,
-                                        latitude: data.latitude,
-                                        longitude: data.longitude,
-                                        photo_url: s.attendance?.photo_url ?? "",
-                                    },
-                                    status: data.status,
-                                }
+                                      ...s,
+                                      attendance: {
+                                          id: data.id,
+                                          check_in_time: data.check_in_time,
+                                          status: data.status,
+                                          latitude: data.latitude,
+                                          longitude: data.longitude,
+                                          photo_url: s.attendance?.photo_url ?? "",
+                                      },
+                                      status: data.status,
+                                  }
                                 : s,
                         ),
                     );
                     setStatsState((prev) => {
                         if (!prev) return prev;
                         const counts = { ...prev };
-                        const oldStatus = studentsState.find(
-                            (s) => s.student.id === data.student_id,
-                        )?.status;
+                        const oldStatus = studentsState.find((s) => s.student.id === data.student_id)?.status;
                         if (oldStatus && counts[oldStatus as keyof Stats] > 0) {
                             counts[oldStatus as keyof Stats]--;
                         }
@@ -128,21 +125,18 @@ export default function Monitoring({
                         }
                         return counts;
                     });
-                });
+                },
+            );
         }
         return () => {
-            if (typeof window !== 'undefined' && window.Echo && classId) {
+            if (typeof window !== "undefined" && window.Echo && classId) {
                 window.Echo.leaveChannel(`monitoring.${classId}`);
             }
         };
     });
 
     const handleFilter = () => {
-        router.get(
-            "/monitoring",
-            { class_id: classId || undefined },
-            { preserveState: true },
-        );
+        router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });
     };
 
     const columns: Column<AttendanceStudent>[] = [
@@ -165,10 +159,7 @@ export default function Monitoring({
         {
             key: "time",
             header: "Waktu",
-            render: (s) =>
-                s.attendance?.check_in_time
-                    ? `${s.attendance.check_in_time} WIB`
-                    : "-",
+            render: (s) => (s.attendance?.check_in_time ? `${s.attendance.check_in_time} WIB` : "-"),
         },
     ];
 
@@ -177,80 +168,45 @@ export default function Monitoring({
     return (
         <AppShell title="Monitoring Presensi">
             {/* Filter Section */}
-            <section className="bg-surface border border-border rounded-lg p-4 lg:p-6 mb-6">
-                <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
-                    <div>
-                        <label className="block text-[13px] text-text-muted font-inter mb-1">
-                            Filter Kelas
-                        </label>
-                        <select
-                            value={classId}
-                            onChange={(e) => setClassId(e.target.value)}
-                            className="w-full sm:w-auto border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/40 focus:outline-none"
-                        >
-                            <option value="">-- Pilih Kelas --</option>
-                            {classes.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}{" "}
-                                    {c.teacher ? `(${c.teacher.name})` : ""}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-[13px] text-text-muted font-inter mb-1">
-                            Tanggal
-                        </label>
-                        <input
-                            type="date"
-                            defaultValue={today}
-                            className="w-full sm:w-auto border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/40 focus:outline-none"
-                        />
-                    </div>
+            <Card className="mb-6">
+                <Card.Body className="p-4 lg:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
+                    <SelectInput
+                        label="Filter Kelas"
+                        value={classId}
+                        onChange={(val) => setClassId(String(val))}
+                        options={[
+                            { label: "-- Pilih Kelas --", value: "" },
+                            ...classes.map((c) => ({
+                                label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
+                                value: c.id.toString(),
+                            })),
+                        ]}
+                        className="w-full sm:w-[240px]"
+                    />
+                    <Input type="date" label="Tanggal" defaultValue={today} className="w-full sm:w-[200px]" />
                     <Button variant="primary" size="md" onClick={handleFilter}>
                         <i className="fas fa-search mr-2" />
                         Tampilkan
                     </Button>
-                </div>
-            </section>
+                </Card.Body>
+            </Card>
 
             {/* Stats Cards */}
             {statsState && (
                 <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-                    <StatCard
-                        label="Total Siswa"
-                        value={statsState.total}
-                        color="grey"
-                    />
-                    <StatCard
-                        label="Hadir"
-                        value={statsState.present}
-                        color="green"
-                    />
-                    <StatCard
-                        label="Terlambat"
-                        value={statsState.late}
-                        color="amber"
-                    />
-                    <StatCard
-                        label="Sakit / Izin"
-                        value={statsState.sick_permission}
-                        color="blue"
-                    />
-                    <StatCard
-                        label="Tidak Hadir"
-                        value={statsState.absent}
-                        color="red"
-                    />
+                    <StatCard label="Total Siswa" value={statsState.total} color="grey" />
+                    <StatCard label="Hadir" value={statsState.present} color="green" />
+                    <StatCard label="Terlambat" value={statsState.late} color="amber" />
+                    <StatCard label="Sakit / Izin" value={statsState.sick_permission} color="blue" />
+                    <StatCard label="Tidak Hadir" value={statsState.absent} color="red" />
                 </section>
             )}
 
             {/* Students Table */}
+            {/* Students Table */}
             {selectedClassId && (
-                <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                        Daftar Kehadiran Siswa
-                    </h2>
+                <section>
+                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Daftar Kehadiran Siswa</h2>
                     <Table
                         columns={columns}
                         data={studentsState}
@@ -261,12 +217,12 @@ export default function Monitoring({
             )}
 
             {!selectedClassId && (
-                <div className="bg-surface border border-border rounded-lg p-12 text-center">
+                <Card className="p-12 text-center flex flex-col items-center justify-center">
                     <i className="fas fa-chart-bar text-text-inactive text-4xl mb-3" />
                     <p className="text-text-muted font-inter text-[14px]">
                         Silakan pilih kelas untuk menampilkan data monitoring.
                     </p>
-                </div>
+                </Card>
             )}
         </AppShell>
     );

@@ -4,17 +4,21 @@ import {
     Card,
     Input,
     SelectInput,
+    StickyContainer,
     PageHeader,
     SearchBar,
     ActionButton,
+    Button,
     StatusBadge,
     Table,
     Pagination,
     ImportModal,
-    Modal,
+    Drawer,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
+import { studentSchema, teacherSchema, guardianSchema, schoolClassSchema } from "@/schemas";
+import { validateForm } from "@/utils/zodHelper";
 
 // ─── Shared Types ───
 
@@ -54,6 +58,7 @@ interface Guardian {
     id: number;
     name: string;
     phone: string | null;
+    address?: string | null;
     user: { email?: string } | null;
     students?: Student[];
 }
@@ -90,10 +95,10 @@ interface PageProps {
 }
 
 const tabRoutes: Record<string, string> = {
-    students: "/master-data",
-    teachers: "/master-data/teachers",
-    class: "/master-data/classes",
-    guardians: "/master-data/guardians",
+    students: "/master-data?tab=students",
+    teachers: "/master-data?tab=teachers",
+    class: "/master-data?tab=class",
+    guardians: "/master-data?tab=guardians",
 };
 
 const activeTabMap: Record<string, string> = {
@@ -122,35 +127,28 @@ export default function MasterData({
     activeTab,
     filters,
 }: PageProps) {
-    const [currentTab, setCurrentTab] = useState(
-        activeTabMap[activeTab ?? ""] ?? "students",
-    );
+    const [currentTab, setCurrentTab] = useState(activeTabMap[activeTab ?? ""] ?? "students");
     const [search, setSearch] = useState(filters.search ?? "");
     const [classFilter, setClassFilter] = useState(filters.class_id ?? "");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [showClassFilter, setShowClassFilter] = useState(false);
 
     const [importModalOpen, setImportModalOpen] = useState(false);
-    const [importEntity, setImportEntity] = useState<"students" | "teachers">(
-        "students",
-    );
+    const [importEntity, setImportEntity] = useState<"students" | "teachers">("students");
 
     // Student create / edit / detail
     type StudentModalMode = "create" | "edit" | "detail" | null;
     const [studentModal, setStudentModal] = useState<StudentModalMode>(null);
-    const [editingStudentId, setEditingStudentId] = useState<number | null>(
-        null,
-    );
+    const [editingStudentId, setEditingStudentId] = useState<number | null>(null);
 
-    const [allClasses] = useState<SchoolClass[]>(
-        () => searchConfig?.allData || [],
-    );
+    const [allClasses] = useState<SchoolClass[]>(() => searchConfig?.allData || []);
     const [filteredClasses, setFilteredClasses] = useState<SchoolClass[]>(
         () => searchConfig?.allData || schoolClasses?.data || [],
     );
 
     // Class form (create + edit)
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
+    const [isClassFormOpen, setIsClassFormOpen] = useState(true);
     const {
         data: formData,
         setData: setFormData,
@@ -158,6 +156,9 @@ export default function MasterData({
         patch,
         processing,
         reset,
+        setError: setClassError,
+        clearErrors: clearClassErrors,
+        errors: classErrors,
     } = useForm({
         name: "",
         teacher_id: null as number | null,
@@ -191,15 +192,54 @@ export default function MasterData({
         transform: transformStudent,
     } = studentFormHelper;
 
+    // Teacher form
+    type TeacherModalMode = "create" | "edit" | "detail" | null;
+    const [teacherModal, setTeacherModal] = useState<TeacherModalMode>(null);
+    const [editingTeacherId, setEditingTeacherId] = useState<number | null>(null);
+    const teacherFormHelper = useForm({
+        teacher_code: "",
+        name: "",
+        email: "",
+        password: "",
+    });
+    const {
+        data: teacherForm,
+        setData: setTeacherForm,
+        post: postTeacher,
+        patch: patchTeacher,
+        processing: teacherProcessing,
+        reset: resetTeacher,
+        errors: teacherErrors,
+        clearErrors: clearTeacherErrors,
+    } = teacherFormHelper;
+
+    // Guardian form
+    type GuardianModalMode = "create" | "edit" | "detail" | null;
+    const [guardianModal, setGuardianModal] = useState<GuardianModalMode>(null);
+    const [editingGuardianId, setEditingGuardianId] = useState<number | null>(null);
+    const guardianFormHelper = useForm({
+        name: "",
+        phone: "",
+        address: "",
+        email: "",
+        password: "",
+    });
+    const {
+        data: guardianForm,
+        setData: setGuardianForm,
+        post: postGuardian,
+        patch: patchGuardian,
+        processing: guardianProcessing,
+        reset: resetGuardian,
+        errors: guardianErrors,
+        clearErrors: clearGuardianErrors,
+    } = guardianFormHelper;
+
     const { errors } = usePage().props as { errors: Record<string, string> };
 
     const handleDeleteSelected = () => {
         if (selectedIds.length === 0) return;
-        if (
-            !confirm(
-                `Hapus ${selectedIds.length} siswa yang terpilih? Tindakan ini tidak dapat dibatalkan.`,
-            )
-        ) {
+        if (!confirm(`Hapus ${selectedIds.length} siswa yang terpilih? Tindakan ini tidak dapat dibatalkan.`)) {
             return;
         }
         router.post(
@@ -279,8 +319,139 @@ export default function MasterData({
         clearStudentErrors();
     };
 
+    const openCreateTeacher = () => {
+        resetTeacher();
+        clearTeacherErrors();
+        setEditingTeacherId(null);
+        setTeacherModal("create");
+    };
+
+    const openEditTeacher = (t: Teacher) => {
+        clearTeacherErrors();
+        setEditingTeacherId(t.id);
+        setTeacherForm({
+            teacher_code: t.teacher_code,
+            name: t.name,
+            email: t.user?.email ?? "",
+            password: "",
+        });
+        setTeacherModal("edit");
+    };
+
+    const openDetailTeacher = (t: Teacher) => {
+        setEditingTeacherId(t.id);
+        setTeacherForm({
+            teacher_code: t.teacher_code,
+            name: t.name,
+            email: t.user?.email ?? "",
+            password: "",
+        });
+        setTeacherModal("detail");
+    };
+
+    const closeTeacherModal = () => {
+        setTeacherModal(null);
+        setEditingTeacherId(null);
+        resetTeacher();
+        clearTeacherErrors();
+    };
+
+    const submitTeacher = () => {
+        if (teacherModal === "detail") return;
+        clearTeacherErrors();
+
+        const valid = validateForm(teacherSchema, teacherForm);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                teacherFormHelper.setError(key as any, msg);
+            }
+            return;
+        }
+
+        const opts = {
+            preserveScroll: true,
+            onSuccess: () => closeTeacherModal(),
+        };
+        if (teacherModal === "create") {
+            postTeacher("/master-data/teachers", opts);
+        } else if (teacherModal === "edit" && editingTeacherId) {
+            patchTeacher(`/master-data/teachers/${editingTeacherId}`, opts);
+        }
+    };
+
+    const openCreateGuardian = () => {
+        resetGuardian();
+        clearGuardianErrors();
+        setEditingGuardianId(null);
+        setGuardianModal("create");
+    };
+
+    const openEditGuardian = (g: Guardian) => {
+        clearGuardianErrors();
+        setEditingGuardianId(g.id);
+        setGuardianForm({
+            name: g.name,
+            phone: g.phone ?? "",
+            address: g.address ?? "",
+            email: g.user?.email ?? "",
+            password: "",
+        });
+        setGuardianModal("edit");
+    };
+
+    const openDetailGuardian = (g: Guardian) => {
+        setEditingGuardianId(g.id);
+        setGuardianForm({
+            name: g.name,
+            phone: g.phone ?? "",
+            address: g.address ?? "",
+            email: g.user?.email ?? "",
+            password: "",
+        });
+        setGuardianModal("detail");
+    };
+
+    const closeGuardianModal = () => {
+        setGuardianModal(null);
+        setEditingGuardianId(null);
+        resetGuardian();
+        clearGuardianErrors();
+    };
+
+    const submitGuardian = () => {
+        if (guardianModal === "detail") return;
+        clearGuardianErrors();
+
+        const valid = validateForm(guardianSchema, guardianForm);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                guardianFormHelper.setError(key as any, msg);
+            }
+            return;
+        }
+
+        const opts = {
+            preserveScroll: true,
+            onSuccess: () => closeGuardianModal(),
+        };
+        if (guardianModal === "create") {
+            postGuardian("/master-data/guardians", opts);
+        } else if (guardianModal === "edit" && editingGuardianId) {
+            patchGuardian(`/master-data/guardians/${editingGuardianId}`, opts);
+        }
+    };
+
     const submitStudent = () => {
         if (studentModal === "detail") return;
+        clearStudentErrors();
+
+        const valid = validateForm(studentSchema, studentForm);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                studentFormHelper.setError(key as any, msg);
+            }
+            return;
+        }
 
         transformStudent((data) => ({
             ...data,
@@ -309,6 +480,15 @@ export default function MasterData({
 
     const handleCreateClass = (e: React.FormEvent) => {
         e.preventDefault();
+        clearClassErrors();
+        const valid = validateForm(schoolClassSchema, formData);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                setClassError(key as any, msg);
+            }
+            return;
+        }
+
         if (editingClassId) {
             patch(`/master-data/classes/${editingClassId}`, {
                 onSuccess: () => {
@@ -333,6 +513,7 @@ export default function MasterData({
             capacity: String(c.capacity ?? ""),
             level: c.level || "X",
         });
+        setIsClassFormOpen(true);
     };
 
     const cancelEditClass = () => {
@@ -356,11 +537,7 @@ export default function MasterData({
     const switchTab = (tab: string) => {
         setCurrentTab(tab);
         setSelectedIds([]);
-        router.get(
-            tabRoutes[tab] ?? "/master-data",
-            {},
-            { preserveState: true },
-        );
+        router.get(tabRoutes[tab] ?? "/master-data", {}, { preserveState: true });
     };
 
     const handleSearch = (value: string) => {
@@ -370,9 +547,7 @@ export default function MasterData({
             const filtered = allClasses.filter(
                 (c) =>
                     c.name.toLowerCase().includes(value.toLowerCase()) ||
-                    c.teacher?.name
-                        ?.toLowerCase()
-                        .includes(value.toLowerCase()),
+                    c.teacher?.name?.toLowerCase().includes(value.toLowerCase()),
             );
             setFilteredClasses(filtered);
         } else {
@@ -438,12 +613,8 @@ export default function MasterData({
             header: "Identitas Nomor",
             render: (s) => (
                 <div>
-                    <div className="font-semibold text-text-primary">
-                        {s.nis}
-                    </div>
-                    <div className="text-[12px] font-medium text-text-inactive">
-                        NISN: {s.nisn}
-                    </div>
+                    <div className="font-semibold text-text-primary">{s.nis}</div>
+                    <div className="text-[12px] font-medium text-text-inactive">NISN: {s.nisn}</div>
                 </div>
             ),
         },
@@ -472,10 +643,7 @@ export default function MasterData({
             render: (s) => {
                 const isActive = s.status === "Active" || s.status === "active";
                 return (
-                    <StatusBadge
-                        variant={isActive ? "active" : "inactive"}
-                        label={isActive ? "AKTIF" : "NON-AKTIF"}
-                    />
+                    <StatusBadge variant={isActive ? "active" : "inactive"} label={isActive ? "AKTIF" : "NON-AKTIF"} />
                 );
             },
         },
@@ -484,20 +652,11 @@ export default function MasterData({
             header: "Aksi",
             render: (s) => (
                 <div className="flex gap-2">
-                    <ActionButton
-                        variant="detail"
-                        icon="fa-eye"
-                        label="Detail"
-                        onClick={() => openDetailStudent(s)}
-                    />
-                    <ActionButton
-                        variant="edit"
-                        icon="fa-edit"
-                        label="Edit"
-                        onClick={() => openEditStudent(s)}
-                    />
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailStudent(s)} />
+                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditStudent(s)} />
                 </div>
             ),
+            className: "w-px whitespace-nowrap",
         },
     ];
 
@@ -507,18 +666,12 @@ export default function MasterData({
         {
             key: "teacher_code",
             header: "Kode Guru",
-            render: (t) => (
-                <p className="font-semibold text-text-primary">
-                    {t.teacher_code}
-                </p>
-            ),
+            render: (t) => <p className="font-semibold text-text-primary">{t.teacher_code}</p>,
         },
         {
             key: "name",
             header: "Nama Guru",
-            render: (t) => (
-                <p className="font-semibold text-primary">{t.name}</p>
-            ),
+            render: (t) => <p className="font-semibold text-primary">{t.name}</p>,
         },
         {
             key: "email",
@@ -528,19 +681,15 @@ export default function MasterData({
         {
             key: "classes",
             header: "Kelas Diampu",
-            render: (t) =>
-                t.school_classes?.map((c) => c.name).join(", ") ?? "-",
+            render: (t) => t.school_classes?.map((c) => c.name).join(", ") ?? "-",
         },
         {
             key: "actions",
             header: "Aksi",
             render: (t) => (
                 <div className="flex gap-2">
-                    <ActionButton
-                        variant="detail"
-                        icon="fa-eye"
-                        label="Detail"
-                    />
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailTeacher(t)} />
+                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditTeacher(t)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
@@ -549,6 +698,7 @@ export default function MasterData({
                     />
                 </div>
             ),
+            className: "w-px whitespace-nowrap",
         },
     ];
 
@@ -558,9 +708,7 @@ export default function MasterData({
         {
             key: "name",
             header: "Nama Kelas",
-            render: (c) => (
-                <span className="font-semibold text-primary">{c.name}</span>
-            ),
+            render: (c) => <span className="font-semibold text-primary">{c.name}</span>,
         },
         {
             key: "teacher",
@@ -591,12 +739,7 @@ export default function MasterData({
             header: "Aksi",
             render: (c) => (
                 <div className="flex gap-2">
-                    <ActionButton
-                        variant="edit"
-                        icon="fa-edit"
-                        label="Edit"
-                        onClick={() => openEditClass(c)}
-                    />
+                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditClass(c)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
@@ -605,6 +748,7 @@ export default function MasterData({
                     />
                 </div>
             ),
+            className: "w-px whitespace-nowrap",
         },
     ];
 
@@ -632,11 +776,8 @@ export default function MasterData({
             header: "Aksi",
             render: (w) => (
                 <div className="flex gap-2">
-                    <ActionButton
-                        variant="detail"
-                        icon="fa-eye"
-                        label="Detail"
-                    />
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailGuardian(w)} />
+                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditGuardian(w)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
@@ -645,6 +786,7 @@ export default function MasterData({
                     />
                 </div>
             ),
+            className: "w-px whitespace-nowrap",
         },
     ];
 
@@ -653,32 +795,30 @@ export default function MasterData({
     return (
         <AppShell title="Manajemen Data Master">
             <div>
-                <div className="mb-6">
-                    <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">
-                        Manajemen Data Master
-                    </h1>
-                    <p className="text-[14px] text-text-secondary font-inter mt-1">
-                        Kelola entitas data utama institusi beserta akses kredensial SSO.
-                    </p>
-                </div>
+                <PageHeader
+                    title="Manajemen Data Master"
+                    description="Kelola entitas data utama institusi beserta akses kredensial SSO."
+                />
 
                 {/* Tabs */}
-                <div className="flex gap-8 border-b border-border mb-6 select-none">
-                    {tabs.map((t) => (
-                        <button
-                            key={t.key}
-                            onClick={() => switchTab(t.key)}
-                            className={`pb-3 text-[14px] font-semibold transition-colors border-b-2 -mb-px inline-flex items-center cursor-pointer ${
-                                currentTab === t.key
-                                    ? "text-primary border-primary font-bold"
-                                    : "text-text-inactive border-transparent hover:text-text-primary"
-                            }`}
-                            type="button"
-                        >
-                            {t.label}
-                        </button>
-                    ))}
-                </div>
+                <StickyContainer>
+                    <div className="flex gap-8 border-b border-border select-none">
+                        {tabs.map((t) => (
+                            <button
+                                key={t.key}
+                                onClick={() => switchTab(t.key)}
+                                className={`pb-2 text-[14px] font-semibold transition-colors border-b-2 -mb-px inline-flex items-center cursor-pointer ${
+                                    currentTab === t.key
+                                        ? "text-primary border-primary font-bold"
+                                        : "text-text-inactive border-transparent hover:text-text-primary"
+                                }`}
+                                type="button"
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
+                </StickyContainer>
 
                 {/* ── Siswa Tab ── */}
                 {currentTab === "students" && students?.data && (
@@ -693,9 +833,7 @@ export default function MasterData({
                             classFilter={classFilter}
                             classOptions={classOptions}
                             showClassFilter={showClassFilter}
-                            onToggleClassFilter={() =>
-                                setShowClassFilter((v) => !v)
-                            }
+                            onToggleClassFilter={() => setShowClassFilter((v) => !v)}
                             onApplyClassFilter={applyClassFilter}
                             onImport={() => {
                                 setImportEntity("students");
@@ -704,103 +842,9 @@ export default function MasterData({
                             onAdd={openCreateStudent}
                         />
 
-                        {/* Mobile card list (Figma) */}
-                        <div className="lg:hidden flex flex-col gap-3 mb-4">
-                            {students.data.length === 0 ? (
-                                <p className="text-center text-text-inactive text-[13px] py-10">
-                                    Belum ada data siswa.
-                                </p>
-                            ) : (
-                                students.data.map((s) => {
-                                    const isActive =
-                                        s.status === "Active" ||
-                                        s.status === "active";
-                                    return (
-                                        <article
-                                            key={s.id}
-                                            className="bg-surface border border-border rounded-xl p-4 shadow-sm"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <h3 className="text-[15px] font-bold text-primary font-inter">
-                                                        {s.name}
-                                                    </h3>
-                                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                                        NISN: {s.nisn}
-                                                        {s.class?.name
-                                                            ? ` · ${s.class.name}`
-                                                            : ""}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className="text-text-inactive hover:text-text-primary p-1"
-                                                    aria-label="Aksi"
-                                                    onClick={() =>
-                                                        openEditStudent(s)
-                                                    }
-                                                >
-                                                    <i className="fas fa-ellipsis-v" />
-                                                </button>
-                                            </div>
-                                            <div className="mt-3 space-y-1.5 text-[12px] text-text-secondary">
-                                                <p className="flex items-center gap-2">
-                                                    <i className="fas fa-id-badge text-text-inactive w-4" />
-                                                    @{s.user?.username ?? s.nis}
-                                                </p>
-                                                <p className="flex items-center gap-2">
-                                                    <i className="fas fa-envelope text-text-inactive w-4" />
-                                                    {s.user?.email ?? "—"}
-                                                </p>
-                                            </div>
-                                            <div className="mt-3 flex items-center justify-between">
-                                                <StatusBadge
-                                                    variant={
-                                                        isActive
-                                                            ? "active"
-                                                            : "inactive"
-                                                    }
-                                                    label={
-                                                        isActive
-                                                            ? "AKTIF"
-                                                            : "NON-AKTIF"
-                                                    }
-                                                />
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        type="button"
-                                                        className="text-[12px] font-semibold text-primary"
-                                                        onClick={() =>
-                                                            openDetailStudent(s)
-                                                        }
-                                                    >
-                                                        Detail
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="text-[12px] font-semibold text-warning"
-                                                        onClick={() =>
-                                                            openEditStudent(s)
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    );
-                                })
-                            )}
-                        </div>
-
-                        {/* Desktop table */}
-                        <div className="hidden lg:block bg-surface border border-border rounded-lg p-4 lg:p-6">
-                            <Table
-                                columns={studentColumns}
-                                data={students.data}
-                                keyExtractor={(s: Student) => s.id}
-                            />
-                        </div>
+                        <section className="mt-4">
+                            <Table columns={studentColumns} data={students.data} keyExtractor={(s: Student) => s.id} />
+                        </section>
 
                         {students.total > 0 && (
                             <div className="mt-3">
@@ -814,8 +858,8 @@ export default function MasterData({
                                             {
                                                 page,
                                                 search: search || undefined,
-                                                class_id:
-                                                    classFilter || undefined,
+                                                class_id: classFilter || undefined,
+                                                tab: "students",
                                             },
                                             { preserveState: true },
                                         )
@@ -848,166 +892,181 @@ export default function MasterData({
                                 setImportEntity("teachers");
                                 setImportModalOpen(true);
                             }}
-                            onAdd={() => alert("Tambah data guru baru")}
+                            onAdd={openCreateTeacher}
                         />
-                        <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                            <Table
-                                columns={teacherColumns}
-                                data={teachers.data}
-                                keyExtractor={(t: Teacher) => t.id}
-                            />
-                            {teachers.total > 0 && (
+                        <section className="mt-4">
+                            <Table columns={teacherColumns} data={teachers.data} keyExtractor={(t: Teacher) => t.id} />
+                        </section>
+                        {teachers.total > 0 && (
+                            <div className="mt-3">
                                 <Pagination
                                     currentPage={teachers.current_page}
                                     totalPages={teachers.last_page}
                                     totalItems={teachers.total}
                                     onPageChange={(page) =>
                                         router.get(
-                                            "/master-data/teachers",
+                                            "/master-data",
                                             {
                                                 page,
+                                                tab: "teachers",
                                             },
                                             { preserveState: true },
                                         )
                                     }
                                 />
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {/* ── Kelas Tab ── */}
                 {currentTab === "class" && schoolClasses?.data && (
-                    <div className="grid grid-cols-5 gap-3">
-                        <div className="col-span-3">
-                            <Card className="p-4 lg:p-6">
-                                <PageHeader>
-                                    <SearchBar
-                                        value={search}
-                                        onChange={setSearch}
-                                        onSearch={handleSearch}
-                                        autoSearch={
-                                            searchConfig?.mode !== "client"
+                    <div className="flex flex-col lg:flex-row gap-4 items-start relative overflow-hidden transition-all duration-300">
+                        <div className="flex-1 w-full min-w-0 transition-all duration-300">
+                            <section className="flex flex-col gap-4">
+                                <div className="mb-1 flex items-center justify-between gap-3">
+                                    <div className="flex-1">
+                                        <SearchBar
+                                            value={search}
+                                            onChange={setSearch}
+                                            onSearch={handleSearch}
+                                            autoSearch={searchConfig?.mode !== "client"}
+                                            debounceMs={300}
+                                            placeholder="Cari nama kelas..."
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant={isClassFormOpen ? "outline" : "primary"}
+                                        onClick={() => setIsClassFormOpen(!isClassFormOpen)}
+                                        icon={
+                                            <i
+                                                className={`fas ${isClassFormOpen ? "fa-eye-slash" : "fa-plus"} text-[12px]`}
+                                            />
                                         }
-                                        debounceMs={300}
-                                    />
-                                </PageHeader>
+                                    >
+                                        {isClassFormOpen ? "Sembunyikan Form" : "Buat Kelas Baru"}
+                                    </Button>
+                                </div>
                                 <Table
                                     columns={classColumns}
-                                    data={
-                                        searchConfig?.mode === "client"
-                                            ? filteredClasses
-                                            : schoolClasses.data
-                                    }
+                                    data={searchConfig?.mode === "client" ? filteredClasses : schoolClasses.data}
                                     keyExtractor={(c: SchoolClass) => c.id}
                                 />
-                                {searchConfig?.mode !== "client" &&
-                                    schoolClasses.total > 0 && (
-                                        <Pagination
-                                            currentPage={
-                                                schoolClasses.current_page
-                                            }
-                                            totalPages={schoolClasses.last_page}
-                                            totalItems={schoolClasses.total}
-                                            onPageChange={(page) =>
-                                                router.get(
-                                                    "/master-data/classes",
-                                                    {
-                                                        page,
-                                                    },
-                                                    { preserveState: true },
-                                                )
-                                            }
-                                        />
-                                    )}
-                            </Card>
-                        </div>
-                        <Card className="col-span-2 border-2 border-dashed border-border p-4 h-[480px] flex flex-col">
-                            <div className="text-primary py-2 text-lg font-semibold flex items-center justify-between">
-                                <span>
-                                    {editingClassId
-                                        ? "Edit Kelas"
-                                        : "Buat Kelas Baru"}
-                                </span>
-                                {editingClassId && (
-                                    <button
-                                        type="button"
-                                        onClick={cancelEditClass}
-                                        className="text-[12px] font-semibold text-text-muted hover:text-text-primary"
-                                    >
-                                        Batal
-                                    </button>
-                                )}
-                            </div>
-                            <form onSubmit={handleCreateClass} className="flex flex-col gap-2 flex-1">
-                                <div className="grid grid-cols-3 gap-2 py-2">
-                                    <SelectInput
-                                        label="Tingkat"
-                                        options={[
-                                            { value: "X", label: "X" },
-                                            { value: "XI", label: "XI" },
-                                            { value: "XII", label: "XII" },
-                                        ]}
-                                        value={formData.level}
-                                        onChange={(val) =>
-                                            setFormData("level", (val as string) ?? "X")
+                                {searchConfig?.mode !== "client" && schoolClasses.total > 0 && (
+                                    <Pagination
+                                        currentPage={schoolClasses.current_page}
+                                        totalPages={schoolClasses.last_page}
+                                        totalItems={schoolClasses.total}
+                                        onPageChange={(page) =>
+                                            router.get(
+                                                "/master-data",
+                                                {
+                                                    page,
+                                                    tab: "class",
+                                                },
+                                                { preserveState: true },
+                                            )
                                         }
-                                        className="col-span-1"
-                                        error={errors.level}
+                                    />
+                                )}
+                            </section>
+                        </div>
+                        <div
+                            className={`transition-all duration-300 ease-in-out shrink-0 ${
+                                isClassFormOpen
+                                    ? "w-full lg:w-[380px] max-h-[1000px] opacity-100 translate-x-0"
+                                    : "w-0 max-h-0 lg:max-h-none lg:w-0 opacity-0 translate-x-4 pointer-events-none overflow-hidden"
+                            }`}
+                        >
+                            <Card className="border-2 border-dashed border-border p-4 h-[480px] flex flex-col w-full">
+                                <div className="text-primary py-2 text-lg font-semibold flex items-center justify-between">
+                                    <span>{editingClassId ? "Edit Kelas" : "Buat Kelas Baru"}</span>
+                                    <div className="flex items-center gap-3">
+                                        {editingClassId && (
+                                            <button
+                                                type="button"
+                                                onClick={cancelEditClass}
+                                                className="text-[12px] font-semibold text-text-muted hover:text-text-primary"
+                                            >
+                                                Batal
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsClassFormOpen(false)}
+                                            className="text-text-muted hover:text-text-primary p-1"
+                                            title="Sembunyikan panel"
+                                        >
+                                            <i className="fas fa-times text-[14px]" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <form onSubmit={handleCreateClass} className="flex flex-col gap-2 flex-1">
+                                    <div className="grid grid-cols-3 gap-2 py-2">
+                                        <SelectInput
+                                            label="Tingkat"
+                                            options={[
+                                                { value: "X", label: "X" },
+                                                { value: "XI", label: "XI" },
+                                                { value: "XII", label: "XII" },
+                                            ]}
+                                            value={formData.level}
+                                            onChange={(val) => setFormData("level", (val as string) ?? "X")}
+                                            className="col-span-1"
+                                            error={errors.level}
+                                        />
+                                        <Input
+                                            label="Nama / Kode Kelas"
+                                            type="text"
+                                            id="kode_kelas"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData("name", e.target.value)}
+                                            description="Nama kelas harus unik."
+                                            className="col-span-2"
+                                            error={classErrors.name}
+                                        />
+                                    </div>
+                                    <SelectInput
+                                        label="Tugaskan Wali Kelas"
+                                        placeholder="-- Pilih Wali Kelas --"
+                                        description="Guru yang sudah menjadi Wali Kelas tidak akan muncul di sini."
+                                        options={(allTeachers || []).map((t) => ({
+                                            value: t.id,
+                                            label: t.name,
+                                        }))}
+                                        value={formData.teacher_id}
+                                        onChange={(val) =>
+                                            setFormData("teacher_id", typeof val === "number" ? val : null)
+                                        }
+                                        className="py-2"
+                                        error={classErrors.teacher_id}
                                     />
                                     <Input
-                                        label="Nama / Kode Kelas"
-                                        type="text"
-                                        id="kode_kelas"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData("name", e.target.value)}
-                                        description="Nama kelas harus unik."
-                                        className="col-span-2"
-                                        error={errors.name}
+                                        label="Kapasitas Maksimal"
+                                        type="number"
+                                        id="kapasitas"
+                                        min="0"
+                                        numeric
+                                        value={formData.capacity}
+                                        onChange={(e) => setFormData("capacity", e.target.value)}
+                                        className="py-2"
+                                        error={classErrors.capacity}
                                     />
-                                </div>
-                                <SelectInput
-                                    label="Tugaskan Wali Kelas"
-                                    placeholder="-- Pilih Wali Kelas --"
-                                    description="Guru yang sudah menjadi Wali Kelas tidak akan muncul di sini."
-                                    options={(allTeachers || []).map((t) => ({
-                                        value: t.id,
-                                        label: t.name,
-                                    }))}
-                                    value={formData.teacher_id}
-                                    onChange={(val) =>
-                                        setFormData(
-                                            "teacher_id",
-                                            typeof val === "number" ? val : null,
-                                        )
-                                    }
-                                    className="py-2"
-                                    error={errors.teacher_id}
-                                />
-                                <Input
-                                    label="Kapasitas Maksimal"
-                                    type="number"
-                                    id="kapasitas"
-                                    min="0"
-                                    numeric
-                                    value={formData.capacity}
-                                    onChange={(e) => setFormData("capacity", e.target.value)}
-                                    className="py-2"
-                                    error={errors.capacity}
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="w-full h-10 mt-auto rounded-lg bg-success hover:bg-success/90 text-white text-[13px] font-bold transition-colors disabled:opacity-60 cursor-pointer"
-                                >
-                                    {processing
-                                        ? "Menyimpan..."
-                                        : editingClassId
-                                          ? "✓ Simpan Perubahan"
-                                          : "✓ Simpan Kelas Baru"}
-                                </button>
-                            </form>
-                        </Card>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="w-full h-10 mt-auto rounded-lg bg-success hover:bg-success/90 text-white text-[13px] font-bold transition-colors disabled:opacity-60 cursor-pointer"
+                                    >
+                                        {processing
+                                            ? "Menyimpan..."
+                                            : editingClassId
+                                              ? "✓ Simpan Perubahan"
+                                              : "✓ Simpan Kelas Baru"}
+                                    </button>
+                                </form>
+                            </Card>
+                        </div>
                     </div>
                 )}
 
@@ -1019,41 +1078,40 @@ export default function MasterData({
                             setSearch={setSearch}
                             handleSearch={handleSearchSubmit}
                             placeholder="Cari nama wali murid..."
-                            onAdd={() => alert("Tambah data wali murid baru")}
+                            onAdd={openCreateGuardian}
                         />
-                        <div className="bg-surface border border-border rounded-lg p-4 lg:p-6">
+                        <section className="mt-4">
                             <Table
                                 columns={guardianColumns}
                                 data={guardians.data}
-                                keyExtractor={(w: Guardian) => w.id}
+                                keyExtractor={(g: Guardian) => g.id}
                             />
-                            {guardians.total > 0 && (
+                        </section>
+                        {guardians.total > 0 && (
+                            <div className="mt-3">
                                 <Pagination
                                     currentPage={guardians.current_page}
                                     totalPages={guardians.last_page}
                                     totalItems={guardians.total}
                                     onPageChange={(page) =>
                                         router.get(
-                                            "/master-data/guardians",
+                                            "/master-data",
                                             {
                                                 page,
+                                                tab: "guardians",
                                             },
                                             { preserveState: true },
                                         )
                                     }
                                 />
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
-                <ImportModal
-                    open={importModalOpen}
-                    onClose={() => setImportModalOpen(false)}
-                    entity={importEntity}
-                />
+                <ImportModal open={importModalOpen} onClose={() => setImportModalOpen(false)} entity={importEntity} />
 
-                {/* Student Create / Edit / Detail Modal */}
-                <Modal
+                {/* Student Create / Edit / Detail Drawer */}
+                <Drawer
                     open={studentModal !== null}
                     onClose={closeStudentModal}
                     title={
@@ -1063,251 +1121,228 @@ export default function MasterData({
                               ? "Edit Data Siswa"
                               : "Detail Siswa"
                     }
-                    width="lg"
-                    onSubmit={
-                        studentModal === "detail" ? undefined : submitStudent
-                    }
-                    submitLabel={
-                        studentModal === "create" ? "Simpan" : "Perbarui"
-                    }
+                    width="xl"
+                    onSubmit={studentModal === "detail" ? undefined : submitStudent}
+                    submitLabel={studentModal === "create" ? "Simpan" : "Perbarui"}
                     loading={studentProcessing}
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                NIS
-                            </label>
-                            <input
-                                type="text"
-                                value={studentForm.nis}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("nis", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                            {studentErrors.nis && (
-                                <p className="text-danger text-[11px] mt-1">
-                                    {studentErrors.nis}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                NISN
-                            </label>
-                            <input
-                                type="text"
-                                value={studentForm.nisn}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("nisn", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                            {studentErrors.nisn && (
-                                <p className="text-danger text-[11px] mt-1">
-                                    {studentErrors.nisn}
-                                </p>
-                            )}
-                        </div>
-                        <div className="sm:col-span-2">
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Nama Lengkap
-                            </label>
-                            <input
-                                type="text"
-                                value={studentForm.name}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("name", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                            {studentErrors.name && (
-                                <p className="text-danger text-[11px] mt-1">
-                                    {studentErrors.name}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Kelas
-                            </label>
-                            <select
-                                value={String(studentForm.class_id ?? "")}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("class_id", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            >
-                                <option value="">— Pilih Kelas —</option>
-                                {classOptions.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {studentErrors.class_id && (
-                                <p className="text-danger text-[11px] mt-1">
-                                    {studentErrors.class_id}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Tanggal Lahir
-                            </label>
-                            <input
-                                type="date"
-                                value={studentForm.birth_date}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm(
-                                        "birth_date",
-                                        e.target.value,
-                                    )
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                            {studentErrors.birth_date && (
-                                <p className="text-danger text-[11px] mt-1">
-                                    {studentErrors.birth_date}
-                                </p>
-                            )}
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Tahun Masuk
-                            </label>
-                            <input
-                                type="number"
-                                value={studentForm.enrollment_year}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm(
-                                        "enrollment_year",
-                                        Number(e.target.value),
-                                    )
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Status
-                            </label>
-                            <select
-                                value={studentForm.status}
-                                disabled={
-                                    studentModal === "detail" ||
-                                    studentModal === "create"
-                                }
-                                onChange={(e) =>
-                                    setStudentForm("status", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            >
-                                <option value="Active">Aktif</option>
-                                <option value="Inactive">Non-Aktif</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Wali Murid
-                            </label>
-                            <select
-                                value={String(studentForm.guardian_id ?? "")}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm(
-                                        "guardian_id",
-                                        e.target.value,
-                                    )
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            >
-                                <option value="">— Opsional —</option>
-                                {allGuardians.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                No. Telepon
-                            </label>
-                            <input
-                                type="text"
-                                value={studentForm.phone}
-                                disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("phone", e.target.value)
-                                }
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
-                            />
-                        </div>
+                        <Input
+                            label="NIS"
+                            value={studentForm.nis}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("nis", e.target.value)}
+                            error={studentErrors.nis}
+                        />
+                        <Input
+                            label="NISN"
+                            value={studentForm.nisn}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("nisn", e.target.value)}
+                            error={studentErrors.nisn}
+                        />
+                        <Input
+                            label="Nama Lengkap"
+                            value={studentForm.name}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("name", e.target.value)}
+                            error={studentErrors.name}
+                            className="sm:col-span-2"
+                        />
+                        <SelectInput
+                            label="Kelas"
+                            value={studentForm.class_id}
+                            disabled={studentModal === "detail"}
+                            onChange={(val) => setStudentForm("class_id", val as string)}
+                            options={classOptions.map((c) => ({ value: c.id, label: c.name }))}
+                            error={studentErrors.class_id}
+                        />
+                        <Input
+                            label="Tanggal Lahir"
+                            type="date"
+                            value={studentForm.birth_date}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("birth_date", e.target.value)}
+                            error={studentErrors.birth_date}
+                        />
+                        <Input
+                            label="Tahun Masuk"
+                            type="number"
+                            numeric
+                            value={studentForm.enrollment_year}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("enrollment_year", Number(e.target.value))}
+                        />
+                        <SelectInput
+                            label="Status"
+                            value={studentForm.status}
+                            disabled={studentModal === "detail" || studentModal === "create"}
+                            onChange={(val) => setStudentForm("status", val as string)}
+                            options={[
+                                { value: "Active", label: "Aktif" },
+                                { value: "Inactive", label: "Non-Aktif" },
+                            ]}
+                        />
+                        <SelectInput
+                            label="Wali Murid"
+                            value={studentForm.guardian_id}
+                            disabled={studentModal === "detail"}
+                            onChange={(val) => setStudentForm("guardian_id", val as string)}
+                            options={[
+                                { value: "", label: "— Opsional —" },
+                                ...allGuardians.map((g) => ({ value: g.id, label: g.name })),
+                            ]}
+                        />
+                        <Input
+                            label="No. Telepon"
+                            value={studentForm.phone}
+                            disabled={studentModal === "detail"}
+                            onChange={(e) => setStudentForm("phone", e.target.value)}
+                        />
                         {studentModal === "create" && (
                             <>
-                                <div>
-                                    <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                        Email (SSO)
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={studentForm.email}
-                                        onChange={(e) =>
-                                            setStudentForm(
-                                                "email",
-                                                e.target.value,
-                                            )
-                                        }
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px]"
-                                    />
-                                    {studentErrors.email && (
-                                        <p className="text-danger text-[11px] mt-1">
-                                            {studentErrors.email}
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                        Password Awal
-                                    </label>
-                                    <input
-                                        type="password"
-                                        value={studentForm.password}
-                                        onChange={(e) =>
-                                            setStudentForm(
-                                                "password",
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Default: password"
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px]"
-                                    />
-                                </div>
+                                <Input
+                                    label="Email (SSO)"
+                                    type="email"
+                                    value={studentForm.email}
+                                    onChange={(e) => setStudentForm("email", e.target.value)}
+                                    error={studentErrors.email}
+                                />
+                                <Input
+                                    label="Password Awal"
+                                    type="password"
+                                    value={studentForm.password}
+                                    onChange={(e) => setStudentForm("password", e.target.value)}
+                                    placeholder="Default: password"
+                                />
                             </>
                         )}
                         <div className="sm:col-span-2">
-                            <label className="block text-[12px] font-semibold text-text-muted mb-1">
-                                Alamat
-                            </label>
+                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">Alamat</label>
                             <textarea
                                 value={studentForm.address}
                                 disabled={studentModal === "detail"}
-                                onChange={(e) =>
-                                    setStudentForm("address", e.target.value)
-                                }
+                                onChange={(e) => setStudentForm("address", e.target.value)}
                                 rows={2}
-                                className="w-full border border-border rounded-lg px-3 py-2 text-[13px] disabled:bg-muted"
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-[14px] disabled:bg-muted font-inter bg-surface placeholder:text-text-inactive focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent"
                             />
                         </div>
                     </div>
-                </Modal>
+                </Drawer>
+
+                {/* Teacher Create / Edit / Detail Drawer */}
+                <Drawer
+                    open={teacherModal !== null}
+                    onClose={closeTeacherModal}
+                    title={
+                        teacherModal === "create"
+                            ? "Tambah Data Guru"
+                            : teacherModal === "edit"
+                              ? "Edit Data Guru"
+                              : "Detail Guru"
+                    }
+                    width="md"
+                    onSubmit={teacherModal === "detail" ? undefined : submitTeacher}
+                    submitLabel={teacherModal === "create" ? "Simpan" : "Perbarui"}
+                    loading={teacherProcessing}
+                >
+                    <div className="space-y-4">
+                        <Input
+                            label="Kode Guru"
+                            value={teacherForm.teacher_code}
+                            disabled={teacherModal === "detail"}
+                            onChange={(e) => setTeacherForm("teacher_code", e.target.value)}
+                            error={teacherErrors.teacher_code}
+                        />
+                        <Input
+                            label="Nama Guru"
+                            value={teacherForm.name}
+                            disabled={teacherModal === "detail"}
+                            onChange={(e) => setTeacherForm("name", e.target.value)}
+                            error={teacherErrors.name}
+                        />
+                        {teacherModal === "create" && (
+                            <>
+                                <Input
+                                    label="Email (SSO)"
+                                    type="email"
+                                    value={teacherForm.email}
+                                    onChange={(e) => setTeacherForm("email", e.target.value)}
+                                    error={teacherErrors.email}
+                                />
+                                <Input
+                                    label="Password Awal"
+                                    type="password"
+                                    value={teacherForm.password}
+                                    onChange={(e) => setTeacherForm("password", e.target.value)}
+                                    placeholder="Default: password"
+                                />
+                            </>
+                        )}
+                    </div>
+                </Drawer>
+
+                {/* Guardian Create / Edit / Detail Drawer */}
+                <Drawer
+                    open={guardianModal !== null}
+                    onClose={closeGuardianModal}
+                    title={
+                        guardianModal === "create"
+                            ? "Tambah Wali Murid"
+                            : guardianModal === "edit"
+                              ? "Edit Wali Murid"
+                              : "Detail Wali Murid"
+                    }
+                    width="md"
+                    onSubmit={guardianModal === "detail" ? undefined : submitGuardian}
+                    submitLabel={guardianModal === "create" ? "Simpan" : "Perbarui"}
+                    loading={guardianProcessing}
+                >
+                    <div className="space-y-4">
+                        <Input
+                            label="Nama Wali"
+                            value={guardianForm.name}
+                            disabled={guardianModal === "detail"}
+                            onChange={(e) => setGuardianForm("name", e.target.value)}
+                            error={guardianErrors.name}
+                        />
+                        <Input
+                            label="No. Telepon"
+                            value={guardianForm.phone}
+                            disabled={guardianModal === "detail"}
+                            onChange={(e) => setGuardianForm("phone", e.target.value)}
+                            error={guardianErrors.phone}
+                        />
+                        {guardianModal === "create" && (
+                            <>
+                                <Input
+                                    label="Email (SSO)"
+                                    type="email"
+                                    value={guardianForm.email}
+                                    onChange={(e) => setGuardianForm("email", e.target.value)}
+                                    error={guardianErrors.email}
+                                />
+                                <Input
+                                    label="Password Awal"
+                                    type="password"
+                                    value={guardianForm.password}
+                                    onChange={(e) => setGuardianForm("password", e.target.value)}
+                                    placeholder="Default: password"
+                                />
+                            </>
+                        )}
+                        <div>
+                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">Alamat</label>
+                            <textarea
+                                value={guardianForm.address}
+                                disabled={guardianModal === "detail"}
+                                onChange={(e) => setGuardianForm("address", e.target.value)}
+                                rows={3}
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-[14px] disabled:bg-muted font-inter bg-surface placeholder:text-text-inactive focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent"
+                            />
+                        </div>
+                    </div>
+                </Drawer>
             </div>
         </AppShell>
     );
@@ -1345,43 +1380,33 @@ function Toolbar({
     onApplyClassFilter?: (classId: string) => void;
 }) {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-            <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
-                {/* Search Bar */}
-                <div className="relative flex-1 max-w-[340px]">
-                    <i className="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder={placeholder}
-                        className="pl-10 pr-4 py-2 w-full border border-border rounded-lg text-[13px] font-inter bg-surface focus:outline-none focus:ring-2 focus:ring-primary/35 placeholder:text-text-placeholder"
-                    />
-                </div>
-                
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+            <div className="flex-1 w-full">
+                <SearchBar
+                    value={search}
+                    onChange={setSearch}
+                    onSearch={() => handleSearch(new Event("submit") as unknown as React.FormEvent)}
+                    placeholder={placeholder}
+                />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0">
                 {/* Filter Kelas */}
                 {onApplyClassFilter && (
-                    <div className="relative">
-                        <button
+                    <div className="relative w-full sm:w-auto">
+                        <Button
                             type="button"
+                            variant={classFilter ? "primary" : "outline"}
                             onClick={onToggleClassFilter}
-                            className={`flex items-center gap-2 border rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors cursor-pointer ${
-                                classFilter
-                                    ? "border-primary bg-primary-light text-primary"
-                                    : "border-border text-text-primary bg-surface hover:bg-slate-50"
-                            }`}
+                            icon={<i className="fas fa-filter text-[12px]" />}
+                            className="w-full sm:w-auto justify-center"
                         >
-                            <i className="fas fa-filter text-[12px]" />
-                            <span>
-                                {classFilter
-                                    ? classOptions?.find(
-                                          (c) => String(c.id) === classFilter,
-                                      )?.name ?? "Filter Kelas"
-                                    : "Filter Kelas"}
-                            </span>
-                        </button>
+                            {classFilter
+                                ? (classOptions?.find((c) => String(c.id) === classFilter)?.name ?? "Filter Kelas")
+                                : "Filter Kelas"}
+                        </Button>
                         {showClassFilter && (
-                            <div className="absolute z-20 top-full mt-1 left-0 min-w-[200px] bg-surface border border-border rounded-lg shadow-dropdown py-1 max-h-60 overflow-y-auto">
+                            <div className="absolute z-20 top-full mt-1 right-0 sm:right-auto sm:left-0 min-w-[200px] w-full sm:w-auto bg-surface border border-border rounded-lg shadow-dropdown py-1 max-h-60 overflow-y-auto">
                                 <button
                                     type="button"
                                     className="w-full text-left px-3 py-2 text-[13px] hover:bg-muted"
@@ -1398,9 +1423,7 @@ function Toolbar({
                                                 ? "bg-primary-light text-primary font-semibold"
                                                 : ""
                                         }`}
-                                        onClick={() =>
-                                            onApplyClassFilter(String(c.id))
-                                        }
+                                        onClick={() => onApplyClassFilter(String(c.id))}
                                     >
                                         {c.name}
                                     </button>
@@ -1409,42 +1432,42 @@ function Toolbar({
                         )}
                     </div>
                 )}
-            </form>
 
-            <div className="flex items-center gap-3">
                 {/* Bulk Delete Button */}
                 {selectedCount > 0 && (
-                    <button
+                    <Button
+                        variant="danger"
                         onClick={onDeleteSelected}
-                        className="flex items-center gap-2 bg-danger-bg hover:bg-danger-light border border-danger-light text-danger rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
-                        type="button"
+                        icon={<i className="fas fa-trash-alt text-[12px]" />}
+                        className="flex-1 sm:flex-none justify-center"
                     >
-                        <i className="fas fa-trash-alt text-[12px]" />
-                        <span>Hapus Terpilih ({selectedCount})</span>
-                    </button>
+                        Hapus Terpilih ({selectedCount})
+                    </Button>
                 )}
 
                 {/* Import Excel */}
                 {onImport && (
-                    <button
+                    <Button
+                        variant="secondary"
                         onClick={onImport}
-                        className="flex items-center gap-2 bg-accent hover:bg-accent/90 text-primary rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
-                        type="button"
+                        icon={<i className="fas fa-file-import text-[12px]" />}
+                        className="flex-1 sm:flex-none justify-center"
                     >
-                        <i className="fas fa-file-import text-[12px]" />
-                        <span>Import Excel</span>
-                    </button>
+                        Import Excel
+                    </Button>
                 )}
 
                 {/* Tambah Data Baru */}
-                <button
-                    onClick={onAdd}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/95 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
-                    type="button"
-                >
-                    <i className="fas fa-plus text-[12px]" />
-                    <span>Tambah Data Baru</span>
-                </button>
+                {onAdd && (
+                    <Button
+                        variant="primary"
+                        onClick={onAdd}
+                        icon={<i className="fas fa-plus text-[12px]" />}
+                        className="flex-1 sm:flex-none justify-center"
+                    >
+                        Tambah Data Baru
+                    </Button>
+                )}
             </div>
         </div>
     );

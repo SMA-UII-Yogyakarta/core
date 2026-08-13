@@ -1,6 +1,7 @@
-import { Head, Link } from "@inertiajs/react";
-import { useState } from "react";
+import { Head, Link, usePage, router } from "@inertiajs/react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
+import { motion } from "framer-motion";
 import {
     FiUsers,
     FiShield,
@@ -12,12 +13,107 @@ import {
     FiChevronRight,
     FiCode,
     FiSmartphone,
-    FiCpu
+    FiCpu,
 } from "react-icons/fi";
 
 export default function Welcome() {
+    const { auth } = usePage().props as unknown as {
+        auth: {
+            user: {
+                id?: number;
+                name?: string;
+                role?: string;
+                teacher?: { teacher_type?: string } | null;
+            } | null;
+        };
+    };
+    const isLoading = !!auth.user;
     const [showDevShortcuts, setShowDevShortcuts] = useState(false);
     const { locale, setLanguage, t } = useLanguage();
+
+    useEffect(() => {
+        if (auth.user) {
+            const userRole = auth.user.role;
+            const homeHref =
+                userRole === "admin"
+                    ? "/dashboard"
+                    : userRole === "student"
+                      ? "/student/dashboard"
+                      : userRole === "guardian"
+                        ? "/guardian"
+                        : userRole === "teacher"
+                          ? auth.user.teacher?.teacher_type === "wali"
+                              ? "/teacher/homeroom"
+                              : "/teacher/duty"
+                          : "/overview";
+
+            const timer = setTimeout(() => {
+                router.visit(homeHref);
+            }, 1800);
+
+            return () => clearTimeout(timer);
+        }
+    }, [auth.user]);
+
+    if (isLoading) {
+        return (
+            <>
+                <Head title="Loading - SMART Absen" />
+                <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+                    <div className="flex flex-col items-center max-w-sm text-center select-none">
+                        {/* Animated Logo */}
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="w-20 h-20 rounded-2xl bg-primary flex items-center justify-center text-accent font-bold text-3xl shadow-lg shadow-primary/30 mb-6"
+                        >
+                            UII
+                        </motion.div>
+
+                        {/* Title & Welcome message */}
+                        <motion.h2
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2, duration: 0.5 }}
+                            className="font-brand font-bold text-2xl text-text-primary tracking-tight"
+                        >
+                            SMART Absen
+                        </motion.h2>
+
+                        <motion.p
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
+                            className="text-text-inactive text-sm font-medium mt-2"
+                        >
+                            Selamat datang kembali,{" "}
+                            <span className="text-text-primary font-semibold">{auth.user?.name}</span>
+                        </motion.p>
+
+                        {/* Progress Bar Container */}
+                        <div className="w-48 h-1 bg-border rounded-full overflow-hidden mt-8 relative">
+                            <motion.div
+                                initial={{ width: "0%" }}
+                                animate={{ width: "100%" }}
+                                transition={{ duration: 1.5, ease: "easeInOut" }}
+                                className="h-full bg-primary"
+                            />
+                        </div>
+
+                        <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6, duration: 0.4 }}
+                            className="text-[11px] text-text-inactive uppercase tracking-widest font-bold mt-4 animate-pulse"
+                        >
+                            Mempersiapkan dasbor Anda...
+                        </motion.span>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     const roles = [
         {
@@ -27,7 +123,7 @@ export default function Welcome() {
             color: "border-blue-500/20 hover:border-blue-500 dark:hover:border-blue-400",
             iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400",
             link: "/login",
-            badge: t("welcome.roleStudentBadge")
+            badge: t("welcome.roleStudentBadge"),
         },
         {
             title: t("welcome.roleGuardianTitle"),
@@ -36,7 +132,7 @@ export default function Welcome() {
             color: "border-emerald-500/20 hover:border-emerald-500 dark:hover:border-emerald-400",
             iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400",
             link: "/login",
-            badge: t("welcome.roleGuardianBadge")
+            badge: t("welcome.roleGuardianBadge"),
         },
         {
             title: t("welcome.roleTeacherTitle"),
@@ -45,7 +141,7 @@ export default function Welcome() {
             color: "border-amber-500/20 hover:border-amber-500 dark:hover:border-amber-400",
             iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400",
             link: "/login",
-            badge: t("welcome.roleTeacherBadge")
+            badge: t("welcome.roleTeacherBadge"),
         },
         {
             title: t("welcome.roleAdminTitle"),
@@ -54,31 +150,31 @@ export default function Welcome() {
             color: "border-purple-500/20 hover:border-purple-500 dark:hover:border-purple-400",
             iconBg: "bg-purple-50 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400",
             link: "/login",
-            badge: t("welcome.roleAdminBadge")
-        }
+            badge: t("welcome.roleAdminBadge"),
+        },
     ];
 
     const features = [
         {
             title: t("welcome.featGeofencingTitle"),
             description: t("welcome.featGeofencingDesc"),
-            icon: FiMapPin
+            icon: FiMapPin,
         },
         {
             title: t("welcome.featBiometricTitle"),
             description: t("welcome.featBiometricDesc"),
-            icon: FiCamera
+            icon: FiCamera,
         },
         {
             title: t("welcome.featLeaveTitle"),
             description: t("welcome.featLeaveDesc"),
-            icon: FiFileText
+            icon: FiFileText,
         },
         {
             title: t("welcome.featMonitoringTitle"),
             description: t("welcome.featMonitoringDesc"),
-            icon: FiActivity
-        }
+            icon: FiActivity,
+        },
     ];
 
     return (
@@ -86,7 +182,6 @@ export default function Welcome() {
             <Head title={t("welcome.documentTitle")} />
 
             <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
-                
                 {/* --- HEADER --- */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-neutral-950/80 border-b border-slate-200/80 dark:border-neutral-900/80">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -133,7 +228,7 @@ export default function Welcome() {
                                     EN
                                 </button>
                             </div>
-                            
+
                             <Link
                                 href="/login"
                                 className="px-4 py-2 bg-primary hover:bg-primary/95 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 rounded-lg text-sm font-semibold transition-all shadow-sm"
@@ -178,7 +273,10 @@ export default function Welcome() {
                 </section>
 
                 {/* --- ROLE ACCESS SELECTOR --- */}
-                <section id="portal-masuk" className="py-16 bg-slate-50 dark:bg-neutral-900/40 border-y border-slate-200/50 dark:border-neutral-900/50">
+                <section
+                    id="portal-masuk"
+                    className="py-16 bg-slate-50 dark:bg-neutral-900/40 border-y border-slate-200/50 dark:border-neutral-900/50"
+                >
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-12">
                             <h2 className="font-brand font-bold text-2xl sm:text-3xl text-neutral-900 dark:text-white">
@@ -199,7 +297,9 @@ export default function Welcome() {
                                         className={`group relative flex flex-col p-6 bg-white dark:bg-neutral-900 border rounded-2xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${role.color}`}
                                     >
                                         <div className="flex justify-between items-start mb-5">
-                                            <div className={`p-3 rounded-xl ${role.iconBg} transition-transform group-hover:scale-110`}>
+                                            <div
+                                                className={`p-3 rounded-xl ${role.iconBg} transition-transform group-hover:scale-110`}
+                                            >
                                                 <IconComponent className="w-6 h-6" />
                                             </div>
                                             <span className="text-[10px] font-bold tracking-wider uppercase bg-slate-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded-md">
@@ -303,7 +403,6 @@ export default function Welcome() {
                         </div>
                     </div>
                 </footer>
-
             </div>
         </>
     );

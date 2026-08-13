@@ -60,6 +60,10 @@ class PermissionRegistry
             // Auth
             'logout' => ['*'],
 
+            // Notifications
+            'notifications' => ['*'],
+            'notifications.*' => ['*'],
+
             // Profile
             'profile' => ['*'],
             'profile.*' => ['*'], // covers session revoke
@@ -95,7 +99,7 @@ class PermissionRegistry
                     ['key' => 'guardian.leave-application', 'label' => 'Pengajuan Izin', 'icon' => 'fa-paper-plane', 'href' => '/guardian/leave-application', 'roles' => ['guardian']],
                     ['key' => 'guardian.history',           'label' => 'Riwayat',        'icon' => 'fa-history',      'href' => '/guardian/history',           'roles' => ['guardian']],
 
-                    ['key' => 'student.attendance', 'label' => 'Live Presensi',  'icon' => 'fa-clock',   'href' => '/student/attendance',   'roles' => ['student']],
+                    ['key' => 'student.attendance', 'label' => 'Live Presensi',  'icon' => 'fa-camera', 'href' => '/student/attendance',   'roles' => ['student']],
                     ['key' => 'student.history',    'label' => 'Riwayat',        'icon' => 'fa-history', 'href' => '/student/history',      'roles' => ['student']],
                 ],
             ],

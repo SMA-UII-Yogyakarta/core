@@ -26,7 +26,7 @@ class ExportPageTest extends TestCase
             ->get('/export')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Export')
+                ->component('Reports/Export')
                 ->has('classes')
                 ->has('preview')
                 ->where('selectedPeriod', 'bulanan')
@@ -45,7 +45,7 @@ class ExportPageTest extends TestCase
             ->get('/export?period=harian&date=2026-01-05&class_id=' . $class->id)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Export')
+                ->component('Reports/Export')
                 ->where('selectedPeriod', 'harian')
                 ->where('selectedDate', '2026-01-05')
                 ->where('selectedClassId', $class->id));
@@ -54,7 +54,7 @@ class ExportPageTest extends TestCase
             ->get('/export?period=semester&semester=2&year=2026')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Export')
+                ->component('Reports/Export')
                 ->where('selectedPeriod', 'semester')
                 ->where('selectedSemester', 2)
                 ->where('selectedYear', 2026));

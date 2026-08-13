@@ -27,35 +27,35 @@ export default function Table<T>({
     emptyMessage = "Tidak ada data.",
 }: TableProps<T>) {
     return (
-        <div className="w-full overflow-x-auto border border-border rounded-lg">
-            <table className="w-full border-collapse font-inter">
-                <thead>
+        <div className="w-full overflow-x-auto border border-border md:border md:rounded-lg">
+            <table className="w-full border-collapse font-inter block md:table">
+                <thead className="hidden md:table-header-group">
                     <tr className="bg-muted border-b border-border">
                         {columns.map((col) => (
                             <th
                                 key={col.key}
-                                className={`px-4 py-3 text-left text-[13px] font-semibold text-text-muted uppercase tracking-wide ${col.className ?? ""}`}
+                                className={`px-4 py-3 text-left text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap ${col.className ?? ""}`}
                             >
                                 {col.header}
                             </th>
                         ))}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="block md:table-row-group bg-surface md:bg-transparent">
                     {loading ? (
-                        <tr>
+                        <tr className="block md:table-row">
                             <td
                                 colSpan={columns.length}
-                                className="px-4 py-12 text-center text-text-inactive"
+                                className="block md:table-cell px-4 py-12 text-center text-text-inactive"
                             >
                                 Memuat data...
                             </td>
                         </tr>
                     ) : data.length === 0 ? (
-                        <tr>
+                        <tr className="block md:table-row">
                             <td
                                 colSpan={columns.length}
-                                className="px-4 py-12 text-center text-text-inactive"
+                                className="block md:table-cell px-4 py-12 text-center text-text-inactive"
                             >
                                 {emptyMessage}
                             </td>
@@ -64,21 +64,21 @@ export default function Table<T>({
                         data.map((item) => (
                             <tr
                                 key={keyExtractor(item)}
-                                className="border-b border-border last:border-b-0 hover:bg-muted transition-colors"
+                                className="block md:table-row border-b border-border md:border-b-border md:last:border-b-0 hover:bg-muted transition-colors mb-4 md:mb-0 p-4 md:p-0 bg-surface md:bg-transparent shadow-sm md:shadow-none"
                             >
                                 {columns.map((col) => (
                                     <td
                                         key={col.key}
-                                        className={`px-4 py-3 text-[14px] text-text-primary ${col.className ?? ""}`}
+                                        className={`flex md:table-cell items-center justify-between md:justify-start px-0 md:px-4 py-2 md:py-3 text-[14px] text-text-primary ${col.className ?? ""}`}
                                     >
-                                        {col.render
-                                            ? col.render(item)
-                                            : (((
-                                                  item as Record<
-                                                      string,
-                                                      unknown
-                                                  >
-                                              )[col.key] as ReactNode) ?? "-")}
+                                        <span className="md:hidden font-medium text-text-muted text-[13px] uppercase">
+                                            {col.header}
+                                        </span>
+                                        <div className="text-right md:text-left flex-1 flex justify-end md:justify-start overflow-hidden">
+                                            {col.render
+                                                ? col.render(item)
+                                                : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
@@ -86,69 +86,6 @@ export default function Table<T>({
                     )}
                 </tbody>
             </table>
-        </div>
-    );
-}
-
-// --- Pagination ---
-
-interface PaginationProps {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    perPage?: number;
-    onPageChange: (page: number) => void;
-}
-
-export function Pagination({
-    currentPage,
-    totalPages,
-    totalItems,
-    perPage = 10,
-    onPageChange,
-}: PaginationProps) {
-    const pages: number[] = [];
-    for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-    }
-
-    return (
-        <div className="flex items-center justify-between mt-4 text-[13px] text-text-muted font-inter">
-            <span>
-                Menampilkan data {perPage} dari total {totalItems}
-            </span>
-            <nav className="flex gap-1" aria-label="Pagination">
-                <button
-                    disabled={currentPage <= 1}
-                    onClick={() => onPageChange(currentPage - 1)}
-                    className="px-3 py-1 rounded border border-border disabled:opacity-40 hover:bg-background transition-colors"
-                    aria-label="Halaman sebelumnya"
-                >
-                    &laquo;
-                </button>
-                {pages.map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => onPageChange(p)}
-                        className={`px-3 py-1 rounded border transition-colors ${
-                            p === currentPage
-                                ? "bg-primary text-white border-primary"
-                                : "border-border hover:bg-background"
-                        }`}
-                        aria-current={p === currentPage ? "page" : undefined}
-                    >
-                        {p}
-                    </button>
-                ))}
-                <button
-                    disabled={currentPage >= totalPages}
-                    onClick={() => onPageChange(currentPage + 1)}
-                    className="px-3 py-1 rounded border border-border disabled:opacity-40 hover:bg-background transition-colors"
-                    aria-label="Halaman selanjutnya"
-                >
-                    &raquo;
-                </button>
-            </nav>
         </div>
     );
 }

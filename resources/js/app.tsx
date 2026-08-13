@@ -14,16 +14,12 @@ const queryClient = new QueryClient({
             staleTime: 1000 * 60 * 5,
             refetchOnWindowFocus: false,
         },
-    }
+    },
 });
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.tsx`,
-            import.meta.glob("./Pages/**/*.tsx"),
-        ),
+    resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob("./Pages/**/*.tsx")),
     setup({ el, App, props }) {
         const rootElement = (
             <QueryClientProvider client={queryClient}>
@@ -39,7 +35,7 @@ createInertiaApp({
             </QueryClientProvider>
         );
 
-        if (import.meta.env.DEV) {
+        if (import.meta.env.DEV || !el.hasChildNodes()) {
             createRoot(el).render(rootElement);
             return;
         }

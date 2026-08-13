@@ -47,11 +47,7 @@ export default function Toggle({
             >
                 {checked && <FaCheck className="text-[10px]" />}
             </span>
-            {label && (
-                <span className="text-[13px] text-text-primary font-inter font-medium">
-                    {label}
-                </span>
-            )}
+            {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}
         </label>
     );
 }

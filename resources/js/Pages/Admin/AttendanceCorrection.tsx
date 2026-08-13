@@ -1,235 +1,289 @@
-import { router } from '@inertiajs/react'
-import { useState } from 'react'
+import { useState } from "react";
+import { router, useForm } from "@inertiajs/react";
+import AppShell from "@/Layouts/AppShell";
+import { PageHeader, Card, Table, StatusBadge, ActionButton, Drawer, SelectInput, Input, Button } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
+import type { StatusVariant } from "@/types/component";
+import { attendanceCorrectionSchema } from "@/schemas";
+import { validateForm } from "@/utils/zodHelper";
 
 interface Student {
-  id: number
-  nis: string
-  name: string
-  class: string
-  original_status: string
-  overridden_status: string | null
-  current_status: string
-  override_id: number | null
-  check_in_time: string | null
+    id: number;
+    nis: string;
+    name: string;
+    class: string;
+    original_status: string;
+    overridden_status: string | null;
+    current_status: string;
+    override_id: number | null;
+    check_in_time: string | null;
 }
 
 interface SchoolClass {
-  id: number
-  name: string
+    id: number;
+    name: string;
 }
 
 interface Props {
-  students: Student[]
-  classes: SchoolClass[]
-  filters: { date: string; class_id: number | null }
+    students: Student[];
+    classes: SchoolClass[];
+    filters: { date: string; class_id: number | null };
 }
 
+const statusToVariant: Record<string, StatusVariant> = {
+    Present: "present",
+    Late: "late",
+    Absent: "absent",
+    Sick: "sick",
+    Permit: "permission",
+};
+
+const statusOptions = [
+    { value: "Present", label: "Hadir (Present)" },
+    { value: "Late", label: "Terlambat (Late)" },
+    { value: "Absent", label: "Alpa (Absent)" },
+    { value: "Sick", label: "Sakit (Sick)" },
+    { value: "Permit", label: "Izin (Permit)" },
+];
+
 export default function KoreksiAbsensi({ students, classes, filters }: Props) {
-  const [selectedDate, setSelectedDate] = useState(filters.date)
-  const [selectedClass, setSelectedClass] = useState(filters.class_id ?? '')
-  const [modal, setModal] = useState<{
-    open: boolean
-    student: Student | null
-    newStatus: string
-    reason: string
-  }>({ open: false, student: null, newStatus: 'Present', reason: '' })
+    const [selectedDate, setSelectedDate] = useState(filters.date);
+    const [selectedClass, setSelectedClass] = useState(filters.class_id ? String(filters.class_id) : "");
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  function applyFilter() {
-    router.get('/attendance-correction', {
-      date: selectedDate,
-      class_id: selectedClass || undefined,
-    })
-  }
+    const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        student_id: 0,
+        date: filters.date,
+        new_status: "Present",
+        reason: "",
+    });
 
-  function openModal(student: Student) {
-    setModal({
-      open: true,
-      student,
-      newStatus: student.current_status,
-      reason: '',
-    })
-  }
+    const applyFilter = () => {
+        router.get(
+            "/attendance-correction",
+            {
+                date: selectedDate,
+                class_id: selectedClass || undefined,
+            },
+            { preserveState: true },
+        );
+    };
 
-  function submitOverride() {
-    if (!modal.student || !modal.reason.trim()) return
-    router.post('/attendance-correction', {
-      student_id: modal.student.id,
-      date: selectedDate,
-      new_status: modal.newStatus,
-      reason: modal.reason,
-    })
-    setModal({ open: false, student: null, newStatus: 'Present', reason: '' })
-  }
+    const openCorrectionDrawer = (student: Student) => {
+        clearErrors();
+        setSelectedStudent(student);
+        setData({
+            student_id: student.id,
+            date: selectedDate,
+            new_status: student.current_status || "Present",
+            reason: "",
+        });
+        setIsDrawerOpen(true);
+    };
 
-  function deleteOverride(overrideId: number) {
-    if (!confirm('Hapus override ini?')) return
-    router.delete(`/attendance-correction/${overrideId}`)
-  }
+    const closeDrawer = () => {
+        setIsDrawerOpen(false);
+        setSelectedStudent(null);
+        reset();
+        clearErrors();
+    };
 
-  const statusBadge = (status: string) => {
-    const colors: Record<string, string> = {
-      Present: 'bg-green-100 text-green-800',
-      Late: 'bg-yellow-100 text-yellow-800',
-      Absent: 'bg-red-100 text-red-800',
-      Sick: 'bg-blue-100 text-blue-800',
-      Permit: 'bg-purple-100 text-purple-800',
-    }
+    const submitOverride = () => {
+        clearErrors();
+        const valid = validateForm(attendanceCorrectionSchema, data);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                setError(key as any, msg);
+            }
+            return;
+        }
+
+        post("/attendance-correction", {
+            preserveScroll: true,
+            onSuccess: () => closeDrawer(),
+        });
+    };
+
+    const deleteOverride = (overrideId: number) => {
+        if (!confirm("Hapus koreksi absensi ini dan kembalikan ke status asli?")) return;
+        router.delete(`/attendance-correction/${overrideId}`, {
+            preserveScroll: true,
+        });
+    };
+
+    const columns: Column<Student>[] = [
+        {
+            key: "nis",
+            header: "NIS",
+            render: (s) => <span className="font-semibold text-text-primary">{s.nis}</span>,
+            className: "w-28",
+        },
+        {
+            key: "name",
+            header: "Nama Siswa",
+            render: (s) => (
+                <div>
+                    <p className="font-bold text-text-primary">{s.name}</p>
+                    <p className="text-[12px] text-text-muted">{s.class}</p>
+                </div>
+            ),
+        },
+        {
+            key: "check_in_time",
+            header: "Jam Masuk",
+            render: (s) => (
+                <span className="text-[13px] font-medium text-text-secondary">{s.check_in_time ?? "—"}</span>
+            ),
+        },
+        {
+            key: "original_status",
+            header: "Status Asli",
+            render: (s) => {
+                const variant = statusToVariant[s.original_status] ?? "absent";
+                return <StatusBadge variant={variant} />;
+            },
+            className: "text-center",
+        },
+        {
+            key: "current_status",
+            header: "Status Saat Ini",
+            render: (s) => {
+                const variant = statusToVariant[s.current_status] ?? "absent";
+                return (
+                    <div className="flex items-center gap-1.5 justify-center">
+                        <StatusBadge variant={variant} />
+                        {s.override_id && (
+                            <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                Koreksi
+                            </span>
+                        )}
+                    </div>
+                );
+            },
+            className: "text-center",
+        },
+        {
+            key: "actions",
+            header: "Aksi",
+            render: (s) => (
+                <div className="flex items-center gap-2 justify-end">
+                    <ActionButton
+                        variant="edit"
+                        icon="fa-pen"
+                        label="Koreksi"
+                        onClick={() => openCorrectionDrawer(s)}
+                    />
+                    {s.override_id && (
+                        <ActionButton
+                            variant="delete"
+                            icon="fa-undo"
+                            label="Reset"
+                            onClick={() => deleteOverride(s.override_id!)}
+                        />
+                    )}
+                </div>
+            ),
+            className: "w-px whitespace-nowrap text-right",
+        },
+    ];
+
     return (
-      <span
-        className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors[status] ?? 'bg-gray-100 text-gray-800'}`}
-      >
-        {status}
-      </span>
-    )
-  }
+        <AppShell title="Koreksi Absensi">
+            <div className="space-y-6">
+                <PageHeader
+                    title="Koreksi Absensi"
+                    description="Sesuaikan atau ubah status absensi siswa harian secara manual dengan pencatatan alasan resmi."
+                />
 
-  return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Koreksi Absensi</h1>
+                {/* Filter Toolbar */}
+                <Card>
+                    <div className="p-4 flex flex-wrap gap-4 items-end">
+                        <div className="w-full sm:w-48">
+                            <Input
+                                label="Tanggal Absensi"
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                            />
+                        </div>
+                        <div className="w-full sm:w-56">
+                            <SelectInput
+                                label="Pilih Kelas"
+                                value={selectedClass}
+                                onChange={(val) => setSelectedClass(val as string)}
+                                options={[
+                                    { value: "", label: "Semua Kelas" },
+                                    ...classes.map((c) => ({ value: String(c.id), label: c.name })),
+                                ]}
+                            />
+                        </div>
+                        <Button variant="primary" onClick={applyFilter} className="h-10">
+                            <i className="fas fa-filter mr-2 text-[12px]" />
+                            Terapkan Filter
+                        </Button>
+                    </div>
+                </Card>
 
-      <div className="flex gap-4 mb-6 items-end">
-        <div>
-          <label className="block text-sm font-medium mb-1">Tanggal</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Kelas</label>
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value ? Number(e.target.value) : '')}
-            className="border rounded px-3 py-2"
-          >
-            <option value="">Semua Kelas</option>
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          onClick={applyFilter}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Tampilkan
-        </button>
-      </div>
+                {/* Student Table */}
+                <Card>
+                    <Table
+                        columns={columns}
+                        data={students}
+                        keyExtractor={(s) => s.id}
+                        emptyMessage="Tidak ada data siswa untuk tanggal dan kelas yang dipilih."
+                    />
+                </Card>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="text-left px-3 py-2 border">No</th>
-              <th className="text-left px-3 py-2 border">NIS</th>
-              <th className="text-left px-3 py-2 border">Nama</th>
-              <th className="text-left px-3 py-2 border">Kelas</th>
-              <th className="text-left px-3 py-2 border">Jam Masuk</th>
-              <th className="text-center px-3 py-2 border">Status Asli</th>
-              <th className="text-center px-3 py-2 border">Status Saat Ini</th>
-              <th className="text-center px-3 py-2 border">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((s, i) => (
-              <tr key={s.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 border">{i + 1}</td>
-                <td className="px-3 py-2 border">{s.nis}</td>
-                <td className="px-3 py-2 border">{s.name}</td>
-                <td className="px-3 py-2 border">{s.class}</td>
-                <td className="px-3 py-2 border">{s.check_in_time ?? '-'}</td>
-                <td className="px-3 py-2 border text-center">
-                  {statusBadge(s.original_status)}
-                </td>
-                <td className="px-3 py-2 border text-center">
-                  {statusBadge(s.current_status)}
-                </td>
-                <td className="px-3 py-2 border text-center">
-                  <button
-                    onClick={() => openModal(s)}
-                    className="text-blue-600 hover:underline text-sm mr-2"
-                  >
-                    Ubah
-                  </button>
-                  {s.override_id && (
-                    <button
-                      onClick={() => deleteOverride(s.override_id!)}
-                      className="text-red-600 hover:underline text-sm"
-                    >
-                      Hapus
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                {/* Correction Drawer */}
+                <Drawer
+                    open={isDrawerOpen}
+                    onClose={closeDrawer}
+                    title={`Koreksi Absensi: ${selectedStudent?.name ?? ""}`}
+                    width="md"
+                    onSubmit={submitOverride}
+                    submitLabel="Simpan Koreksi"
+                    loading={processing}
+                >
+                    <div className="space-y-4">
+                        <div className="p-3 bg-muted/50 rounded-lg text-[13px] text-text-secondary space-y-1">
+                            <p>
+                                <strong>NIS:</strong> {selectedStudent?.nis}
+                            </p>
+                            <p>
+                                <strong>Kelas:</strong> {selectedStudent?.class}
+                            </p>
+                            <p>
+                                <strong>Status Terakhir:</strong> {selectedStudent?.current_status}
+                            </p>
+                        </div>
 
-      {modal.open && modal.student && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4">
-              Koreksi — {modal.student.name}
-            </h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <select
-                value={modal.newStatus}
-                onChange={(e) =>
-                  setModal({ ...modal, newStatus: e.target.value })
-                }
-                className="border rounded px-3 py-2 w-full"
-              >
-                <option value="Present">Present</option>
-                <option value="Late">Late</option>
-                <option value="Absent">Absent</option>
-                <option value="Sick">Sick</option>
-                <option value="Permit">Permit</option>
-              </select>
+                        <SelectInput
+                            label="Status Kehadiran Baru"
+                            value={data.new_status}
+                            onChange={(val) => setData("new_status", val as string)}
+                            options={statusOptions}
+                            error={errors.new_status}
+                        />
+
+                        <div>
+                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
+                                Alasan Koreksi
+                            </label>
+                            <textarea
+                                value={data.reason}
+                                onChange={(e) => setData("reason", e.target.value)}
+                                rows={4}
+                                placeholder="Contoh: Kesalahan sistem perekaman, izin disampaikan via telepon, dispensasi lomba..."
+                                className="w-full border border-border rounded-lg px-4 py-2.5 text-[14px] font-inter bg-surface placeholder:text-text-inactive focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent resize-none"
+                            />
+                            {errors.reason && (
+                                <p className="mt-1 text-[11px] text-danger font-medium font-inter">{errors.reason}</p>
+                            )}
+                        </div>
+                    </div>
+                </Drawer>
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">
-                Alasan
-              </label>
-              <textarea
-                value={modal.reason}
-                onChange={(e) =>
-                  setModal({ ...modal, reason: e.target.value })
-                }
-                className="border rounded px-3 py-2 w-full"
-                rows={3}
-                placeholder="Alasan perubahan..."
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() =>
-                  setModal({
-                    open: false,
-                    student: null,
-                    newStatus: 'Present',
-                    reason: '',
-                  })
-                }
-                className="px-4 py-2 border rounded hover:bg-gray-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={submitOverride}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Simpan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+        </AppShell>
+    );
 }

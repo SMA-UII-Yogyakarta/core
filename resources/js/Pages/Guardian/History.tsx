@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AttendanceChart from "@/Components/AttendanceChart";
+import AttendanceChart from "@/Components/features/AttendanceChart";
 import { StatCard, StatusBadge, FilterBar, Button } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 
@@ -93,9 +93,7 @@ export default function History({
         <AppShell title="Riwayat Anak">
             {/* Child Selector */}
             <section className="bg-surface border border-border rounded-xl p-5 mb-6">
-                <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                    Pilih Anak
-                </h2>
+                <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Pilih Anak</h2>
                 <div className="flex flex-wrap gap-2">
                     {students.map((s) => (
                         <button
@@ -129,9 +127,7 @@ export default function History({
                                 {selectedStudent.name.charAt(0)}
                             </div>
                             <div>
-                                <h2 className="text-[16px] font-bold text-text-primary">
-                                    {selectedStudent.name}
-                                </h2>
+                                <h2 className="text-[16px] font-bold text-text-primary">{selectedStudent.name}</h2>
                                 <p className="text-[12px] text-text-muted">
                                     {selectedStudent.class?.name ?? "-"} — NIS: {selectedStudent.nis}
                                 </p>
@@ -141,22 +137,10 @@ export default function History({
 
                     {/* Stats */}
                     <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                        <StatCard
-                            label="Hari Tercatat"
-                            value={stats?.total_days ?? 0}
-                            color="grey"
-                        />
+                        <StatCard label="Hari Tercatat" value={stats?.total_days ?? 0} color="grey" />
                         <StatCard label="Hadir" value={stats?.present ?? 0} color="green" />
-                        <StatCard
-                            label="Terlambat"
-                            value={stats?.late ?? 0}
-                            color="amber"
-                        />
-                        <StatCard
-                            label="Tidak Hadir"
-                            value={stats?.absent ?? 0}
-                            color="red"
-                        />
+                        <StatCard label="Terlambat" value={stats?.late ?? 0} color="amber" />
+                        <StatCard label="Tidak Hadir" value={stats?.absent ?? 0} color="red" />
                     </section>
 
                     {/* Monthly Trend Chart */}
@@ -200,9 +184,7 @@ export default function History({
                             Detail Kehadiran — {MONTH_NAMES[month - 1]} {year}
                         </h2>
                         {attendances.length === 0 ? (
-                            <p className="text-text-muted text-[13px] text-center py-8">
-                                Belum ada data kehadiran.
-                            </p>
+                            <p className="text-text-muted text-[13px] text-center py-8">Belum ada data kehadiran.</p>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse font-inter">
@@ -233,11 +215,7 @@ export default function History({
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <StatusBadge
-                                                        variant={
-                                                            att.status === "Present"
-                                                                ? "present"
-                                                                : "late"
-                                                        }
+                                                        variant={att.status === "Present" ? "present" : "late"}
                                                     />
                                                 </td>
                                             </tr>
@@ -250,13 +228,9 @@ export default function History({
 
                     {/* Leave Requests */}
                     <section className="bg-surface border border-border rounded-xl p-5">
-                        <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                            Riwayat Izin
-                        </h2>
+                        <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Riwayat Izin</h2>
                         {leaveRequests.length === 0 ? (
-                            <p className="text-text-muted text-[13px] text-center py-4">
-                                Belum ada pengajuan izin.
-                            </p>
+                            <p className="text-text-muted text-[13px] text-center py-4">Belum ada pengajuan izin.</p>
                         ) : (
                             <div className="space-y-2">
                                 {leaveRequests.map((lr) => (
@@ -277,8 +251,8 @@ export default function History({
                                                 lr.approval_status === "Approved"
                                                     ? "approved"
                                                     : lr.approval_status === "Rejected"
-                                                    ? "rejected"
-                                                    : "pending"
+                                                      ? "rejected"
+                                                      : "pending"
                                             }
                                         />
                                     </div>
@@ -288,9 +262,7 @@ export default function History({
                     </section>
                 </>
             ) : (
-                <p className="text-text-muted text-[13px] text-center py-8">
-                    Tidak ada data untuk ditampilkan.
-                </p>
+                <p className="text-text-muted text-[13px] text-center py-8">Tidak ada data untuk ditampilkan.</p>
             )}
         </AppShell>
     );

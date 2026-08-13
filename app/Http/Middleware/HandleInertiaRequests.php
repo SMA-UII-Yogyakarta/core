@@ -45,6 +45,24 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user
                     ? $user->only('id', 'name', 'email', 'role', 'teacher')
                     : null,
+                'unreadCount' => $user
+                    ? \App\Models\Notification::where(function ($query) use ($user) {
+                        $query->where('recipient_id', $user->id)
+                              ->orWhere(function ($q) use ($user) {
+                                  $q->whereNull('recipient_id')
+                                    ->where(function ($sub) use ($user) {
+                                        $sub->where('target_group', 'all')
+                                            ->orWhere('target_group', $user->role);
+                                    });
+                              });
+                    })
+                    ->whereNotIn('id', function ($query) use ($user) {
+                        $query->select('notification_id')
+                              ->from('notification_reads')
+                              ->where('user_id', $user->id);
+                    })
+                    ->count()
+                    : 0,
             ],
             'navSections' => $user ? PermissionRegistry::getNavFor($user) : [],
             // Flash Messages untuk Toast component

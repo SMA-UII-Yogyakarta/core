@@ -13,14 +13,10 @@ export default function Forbidden() {
                     <div className="w-20 h-20 mx-auto mb-4 bg-danger-bg border border-danger-light rounded-2xl flex items-center justify-center">
                         <FiAlertTriangle className="text-3xl text-danger" />
                     </div>
-                    
+
                     <div>
-                        <h1 className="text-5xl font-bold text-text-primary font-inter mb-2">
-                            403
-                        </h1>
-                        <h2 className="text-xl font-semibold text-text-primary mb-4">
-                            {t("errors.forbidden.title")}
-                        </h2>
+                        <h1 className="text-5xl font-bold text-text-primary font-inter mb-2">403</h1>
+                        <h2 className="text-xl font-semibold text-text-primary mb-4">{t("errors.forbidden.title")}</h2>
                         <p className="text-text-muted text-base mb-8 max-w-sm mx-auto">
                             {t("errors.forbidden.description")}
                         </p>
@@ -66,9 +62,7 @@ export default function Forbidden() {
                         </div>
                     </div>
 
-                    <p className="text-sm text-text-muted mt-8">
-                        {t("errors.forbidden.helpText")}
-                    </p>
+                    <p className="text-sm text-text-muted mt-8">{t("errors.forbidden.helpText")}</p>
                 </div>
             </div>
         </PublicLayout>

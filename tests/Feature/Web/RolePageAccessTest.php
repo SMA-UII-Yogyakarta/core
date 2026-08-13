@@ -51,11 +51,17 @@ class RolePageAccessTest extends TestCase
         return $user;
     }
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     public static function adminAllowedPages(): array
     {
         return [
-            '/dashboard', '/overview', '/monitoring',
-            '/master-data', '/master-data/teachers', '/master-data/classes', '/master-data/guardians',
+            '/overview', '/monitoring',
+            '/master-data',
             '/class-enrolment', '/settings',
             '/leave-requests', '/leave-requests/verification',
             '/attendance-correction', '/reports/daily', '/reports/monthly', '/reports/semester',

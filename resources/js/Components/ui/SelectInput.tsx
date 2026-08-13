@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Label from "./Label";
+import FormError from "./FormError";
 
 interface SelectOption {
     value: string | number;
@@ -39,10 +41,7 @@ export default function SelectInput({
     const selectedOption = options.find((opt) => opt.value === value);
 
     const filteredOptions = useMemo(
-        () =>
-            options.filter((opt) =>
-                opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
-            ),
+        () => options.filter((opt) => opt.label.toLowerCase().includes(searchQuery.toLowerCase())),
         [options, searchQuery],
     );
 
@@ -60,10 +59,7 @@ export default function SelectInput({
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(e.target as Node)
-            ) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 close();
             }
         };
@@ -129,11 +125,7 @@ export default function SelectInput({
 
     return (
         <div className={`w-full ${className}`} ref={containerRef}>
-            {label && (
-                <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
-                    {label}
-                </label>
-            )}
+            {label && <Label>{label}</Label>}
             <div className="relative">
                 <button
                     type="button"
@@ -146,11 +138,7 @@ export default function SelectInput({
                         ${error ? "border-danger ring-1 ring-danger/40" : "border-border"}
                         ${isOpen ? "ring-2 ring-primary/40 border-transparent" : ""}`}
                 >
-                    <span
-                        className={
-                            selectedOption ? "text-text-primary" : "text-text-inactive"
-                        }
-                    >
+                    <span className={selectedOption ? "text-text-primary" : "text-text-inactive"}>
                         {selectedOption?.label || placeholder}
                     </span>
                     <div className="flex items-center gap-1">
@@ -168,12 +156,7 @@ export default function SelectInput({
                             stroke="currentColor"
                             viewBox="0 0 24 24"
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                            />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
                 </button>
@@ -194,10 +177,7 @@ export default function SelectInput({
                                 className="w-full bg-transparent text-[14px] text-text-primary placeholder:text-text-inactive focus:outline-none font-inter"
                             />
                         </div>
-                        <div
-                            ref={optionsRef}
-                            className="max-h-60 overflow-auto py-1"
-                        >
+                        <div ref={optionsRef} className="max-h-60 overflow-auto py-1">
                             {filteredOptions.length === 0 ? (
                                 <div className="px-3 py-2 text-[14px] text-text-inactive font-inter">
                                     Tidak ada data
@@ -222,14 +202,8 @@ export default function SelectInput({
                     </div>
                 )}
             </div>
-            {description && !error && (
-                <p className="mt-1 text-[12px] text-text-muted font-inter">
-                    {description}
-                </p>
-            )}
-            {error && (
-                <p className="mt-1 text-[12px] text-danger font-inter">{error}</p>
-            )}
+            {description && !error && <p className="mt-1 text-[12px] text-text-muted font-inter">{description}</p>}
+            <FormError message={error} />
         </div>
     );
 }

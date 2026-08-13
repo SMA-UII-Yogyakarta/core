@@ -2,40 +2,21 @@ import type { ReactNode } from "react";
 
 interface PageHeaderProps {
     title?: string;
+    description?: string;
     children?: ReactNode;
     className?: string;
 }
 
-function PageHeader({ title, children, className = "" }: PageHeaderProps) {
+export default function PageHeader({ title, description, children, className = "" }: PageHeaderProps) {
     return (
-        <div
-            className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 ${className}`}
-        >
-            {title && (
-                <h2 className="text-lg font-semibold text-primary font-inter">
-                    {title}
-                </h2>
-            )}
+        <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 ${className}`}>
+            <div>
+                {title && <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">{title}</h1>}
+                {description && <p className="text-[14px] text-text-secondary font-inter mt-1">{description}</p>}
+            </div>
             {children && (
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    {children}
-                </div>
+                <div className="flex flex-wrap items-center gap-3 self-start md:self-auto shrink-0">{children}</div>
             )}
         </div>
     );
 }
-
-interface PageHeaderFilterProps {
-    children?: ReactNode;
-    className?: string;
-}
-
-function PageHeaderFilter({ children, className = "" }: PageHeaderFilterProps) {
-    return (
-        <div className={`flex items-center gap-2 ${className}`}>{children}</div>
-    );
-}
-
-PageHeader.Filter = PageHeaderFilter;
-
-export default PageHeader;

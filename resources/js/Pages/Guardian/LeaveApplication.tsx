@@ -1,17 +1,13 @@
-import { useState } from "react";
-import { router, usePage } from "@inertiajs/react";
-import { Button, StatusBadge } from "@/Components";
+import { useState, useRef } from "react";
+import { useForm, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
+import { leaveApplicationSchema } from "@/schemas";
+import { validateForm } from "@/utils/zodHelper";
 
 interface Student {
     id: number;
     name: string;
-}
-
-interface Guardian {
-    id: number;
-    name: string;
-    students: Student[];
+    class: { id: number; name: string } | null;
 }
 
 interface LeaveRequestRecord {
@@ -24,7 +20,7 @@ interface LeaveRequestRecord {
 }
 
 interface PageProps {
-    guardian: Guardian;
+    guardian: { id: number; name: string };
     students: Student[];
     leaveRequests: {
         data: LeaveRequestRecord[];
@@ -34,264 +30,295 @@ interface PageProps {
     };
 }
 
-export default function WaliPengajuanIzin({
-    guardian: _guardian,
-    students,
-    leaveRequests,
-}: PageProps) {
-    const [showForm, setShowForm] = useState(false);
-    const [studentId, setStudentId] = useState(
-        students[0]?.id.toString() ?? "",
-    );
-    const [category, setCategory] = useState("Sick");
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [description, setDescription] = useState("");
-    const [document, setDocument] = useState<File | null>(null);
-    const [loading, setLoading] = useState(false);
-    const { errors } = usePage().props as { errors?: Record<string, string> };
+const CATEGORY_OPTIONS = [
+    { value: "Sick", label: "Sakit" },
+    { value: "Event", label: "Kegiatan Keluarga" },
+    { value: "Competition", label: "Lomba" },
+    { value: "Other", label: "Lainnya" },
+];
+
+function approvalColor(status: string): string {
+    const s = status.toLowerCase();
+    if (s === "approved") return "#10B981";
+    if (s === "rejected") return "#EF4444";
+    return "#F59E0B";
+}
+
+function approvalLabel(status: string): string {
+    const s = status.toLowerCase();
+    if (s === "approved") return "Disetujui";
+    if (s === "rejected") return "Ditolak";
+    return "Menunggu";
+}
+
+const inputCls =
+    "w-full border border-border rounded-lg px-3 py-2.5 text-[13px] text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-primary/20";
+
+export default function LeaveApplication({ students, leaveRequests }: PageProps) {
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        student_id: students[0]?.id.toString() ?? "",
+        category: "Sick",
+        start_date: "",
+        end_date: "",
+        description: "",
+        document: null as File | null,
+    });
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] ?? null;
+        setData("document", file);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-            const formData = new FormData();
-            formData.append("student_id", studentId);
-            formData.append("category", category);
-            formData.append("start_date", startDate);
-            formData.append("end_date", endDate);
-            formData.append("description", description);
-            if (document) {
-                formData.append("document", document);
-            }
+        clearErrors();
+        setSuccessMsg(null);
 
-            router.post("/guardian/leave-application", formData, {
-                preserveState: true,
-                headers: { "Content-Type": "multipart/form-data" },
-                onSuccess: () => {
-                    setShowForm(false);
-                    setStartDate("");
-                    setEndDate("");
-                    setDescription("");
-                    setDocument(null);
-                    setLoading(false);
-                },
-                onError: () => setLoading(false),
-            });
+        // 1. Zod client validation
+        const valid = validateForm(leaveApplicationSchema, data);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                setError(key as any, msg);
+            }
+            return;
+        }
+
+        // 2. Submit to server
+        post("/guardian/leave-application", {
+            preserveState: true,
+            forceFormData: true,
+            onSuccess: () => {
+                reset("start_date", "end_date", "description", "document");
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                setSuccessMsg("Pengajuan izin berhasil dikirim ke wali kelas.");
+            },
+        });
     };
 
     return (
         <AppShell title="Pengajuan Izin">
-            {/* Header Actions */}
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[18px] font-bold text-text-primary">
-                    Riwayat Pengajuan Izin
-                </h2>
-                <Button onClick={() => setShowForm(true)}>+ Ajukan Izin</Button>
+            {/* Page header */}
+            <div className="mb-6 flex items-center gap-3">
+                <Link href="/guardian" className="lg:hidden text-white/80 hover:text-white" aria-label="Kembali">
+                    <i className="fas fa-arrow-left text-text-muted text-[16px]" />
+                </Link>
+                <div>
+                    <h1 className="text-[22px] font-bold text-text-primary font-inter">Pengajuan Izin</h1>
+                    <p className="text-[13px] text-text-muted font-inter mt-0.5">
+                        Ajukan izin ketidakhadiran anak Anda.
+                    </p>
+                </div>
             </div>
 
-            {/* Form Modal */}
-            {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="fixed inset-0 bg-black/50"
-                        onClick={() => setShowForm(false)}
-                    />
-                    <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-5 border-b border-border">
-                            <h3 className="text-[16px] font-bold text-text-primary">
-                                Ajukan Izin Baru
-                            </h3>
-                            <button
-                                onClick={() => setShowForm(false)}
-                                className="text-text-muted hover:text-text-primary text-xl"
-                                type="button"
-                            >
-                                &times;
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-                            <div>
-                                <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                    Anak
-                                </label>
-                                <select
-                                    value={studentId}
-                                    onChange={(e) =>
-                                        setStudentId(e.target.value)
-                                    }
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                                    required
-                                >
-                                    {students.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors?.student_id && (
-                                    <p className="text-[11px] text-danger mt-1">
-                                        {errors.student_id}
-                                    </p>
-                                )}
-                            </div>
-                            <div>
-                                <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                    Jenis Izin
-                                </label>
-                                <select
-                                    value={category}
-                                    onChange={(e) =>
-                                        setCategory(e.target.value)
-                                    }
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                                    required
-                                >
-                                    <option value="Sick">Sakit</option>
-                                    <option value="Event">
-                                        Kegiatan Keluarga
-                                    </option>
-                                    <option value="Competition">Lomba</option>
-                                    <option value="Other">Lainnya</option>
-                                </select>
-                                {errors?.category && (
-                                    <p className="text-[11px] text-danger mt-1">
-                                        {errors.category}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                        Tanggal Mulai
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) =>
-                                            setStartDate(e.target.value)
-                                        }
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                                        required
-                                    />
-                                    {errors?.start_date && (
-                                        <p className="text-[11px] text-danger mt-1">
-                                            {errors.start_date}
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                        Tanggal Selesai
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) =>
-                                            setEndDate(e.target.value)
-                                        }
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                                        required
-                                    />
-                                    {errors?.end_date && (
-                                        <p className="text-[11px] text-danger mt-1">
-                                            {errors.end_date}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                    Keterangan (opsional)
-                                </label>
-                                {errors?.description && (
-                                    <p className="text-[11px] text-danger mt-1">
-                                        {errors.description}
-                                    </p>
-                                )}
-                                <textarea
-                                    value={description}
-                                    onChange={(e) =>
-                                        setDescription(e.target.value)
-                                    }
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none min-h-20"
-                                    rows={3}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[13px] text-text-muted font-inter mb-1">
-                                    Lampiran (opsional)
-                                </label>
-                                <input
-                                    type="file"
-                                    accept=".jpg,.jpeg,.png,.pdf"
-                                    onChange={(e) =>
-                                        setDocument(e.target.files?.[0] ?? null)
-                                    }
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[14px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-3 file:py-1 file:px-3 file:border-0 file:bg-primary/10 file:text-primary file:font-semibold file:text-[13px] file:rounded-md"
-                                />
-                                {errors?.document && (
-                                    <p className="text-[11px] text-danger mt-1">
-                                        {errors.document}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="flex justify-end gap-3 pt-2">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={() => setShowForm(false)}
-                                >
-                                    Batal
-                                </Button>
-                                <Button type="submit" loading={loading}>
-                                    Kirim Pengajuan
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
+            {/* ── Success banner ── */}
+            {successMsg && (
+                <div className="mb-5 px-4 py-3 bg-success-bg border border-success-light rounded-lg text-[13px] text-success flex items-center gap-2">
+                    <i className="fas fa-check-circle" />
+                    <span>{successMsg}</span>
                 </div>
             )}
 
-            {/* Leave Requests List */}
-            <section className="bg-surface border border-border rounded-xl p-5">
-                {leaveRequests.data.length === 0 ? (
-                    <p className="text-text-muted text-[13px] text-center py-8">
-                        Belum ada pengajuan izin.
-                    </p>
-                ) : (
-                    <div className="space-y-3">
-                        {leaveRequests.data.map((lr) => (
+            {/* ── FORM INLINE ── */}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-8">
+                {/* Pilih Anak */}
+                <div>
+                    <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                        Pilih Anak
+                    </label>
+                    <div className="relative">
+                        <select
+                            value={data.student_id}
+                            onChange={(e) => setData("student_id", e.target.value)}
+                            className="w-full appearance-none rounded-lg px-3 py-2.5 text-[13px] font-bold font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
+                            style={{
+                                border: "1px solid #2E3391",
+                                color: "#2E3391",
+                                background: "#FFFFFF",
+                                boxShadow: "0px 2px 5px rgba(46,51,145,0.05)",
+                            }}
+                            required
+                        >
+                            {students.map((s) => (
+                                <option key={s.id} value={s.id.toString()}>
+                                    {s.name} ({s.class?.name ?? "-"})
+                                </option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                            <i className="fas fa-chevron-down text-[12px]" style={{ color: "#94A3B8" }} />
+                        </div>
+                    </div>
+                    {errors?.student_id && <p className="text-[11px] text-danger mt-1">{errors.student_id}</p>}
+                </div>
+
+                {/* Kategori Izin */}
+                <div>
+                    <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                        Kategori Izin
+                    </label>
+                    <select
+                        value={data.category}
+                        onChange={(e) => setData("category", e.target.value)}
+                        className={inputCls}
+                        required
+                    >
+                        {CATEGORY_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                    {errors?.category && <p className="text-[11px] text-danger mt-1">{errors.category}</p>}
+                </div>
+
+                {/* Tanggal — 2 kolom */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                            Tgl Mulai
+                        </label>
+                        <input
+                            type="date"
+                            value={data.start_date}
+                            onChange={(e) => setData("start_date", e.target.value)}
+                            className={inputCls}
+                            required
+                        />
+                        {errors?.start_date && <p className="text-[11px] text-danger mt-1">{errors.start_date}</p>}
+                    </div>
+                    <div>
+                        <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                            Selesai (Opsional)
+                        </label>
+                        <input
+                            type="date"
+                            value={data.end_date}
+                            onChange={(e) => setData("end_date", e.target.value)}
+                            className={inputCls}
+                        />
+                    </div>
+                </div>
+
+                {/* Keterangan */}
+                <div>
+                    <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                        Keterangan
+                    </label>
+                    <textarea
+                        value={data.description}
+                        onChange={(e) => setData("description", e.target.value)}
+                        placeholder="Tulis alasan sakit/izin..."
+                        rows={3}
+                        className={`${inputCls} resize-none`}
+                        style={{ color: data.description ? "#1E293B" : "#757575" }}
+                    />
+                    {errors?.description && <p className="text-[11px] text-danger mt-1">{errors.description}</p>}
+                </div>
+
+                {/* Unggah Bukti */}
+                <div>
+                    <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
+                        Unggah Bukti
+                    </label>
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded-xl transition-colors cursor-pointer"
+                        style={{
+                            background: "#EFF6FF",
+                            border: "2px dashed #2E3391",
+                        }}
+                    >
+                        {data.document ? (
+                            <>
+                                <i className="fas fa-file-check text-[28px]" style={{ color: "#10B981" }} />
+                                <span className="text-[13px] font-bold font-inter" style={{ color: "#10B981" }}>
+                                    {data.document.name}
+                                </span>
+                                <span className="text-[11px] text-text-muted">Klik untuk ganti file</span>
+                            </>
+                        ) : (
+                            <>
+                                <i className="fas fa-camera text-[28px]" style={{ color: "#2E3391" }} />
+                                <span className="text-[13px] font-bold font-inter" style={{ color: "#2E3391" }}>
+                                    Ambil Foto Surat
+                                </span>
+                                <span className="text-[11px] text-text-muted">Maks. 2MB (Langsung via Kamera HP)</span>
+                            </>
+                        )}
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.pdf"
+                        capture="environment"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                    {errors?.document && <p className="text-[11px] text-danger mt-1">{errors.document}</p>}
+                </div>
+
+                {/* Submit */}
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg font-bold text-[15px] text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                    style={{ background: "#10B981" }}
+                >
+                    {processing ? (
+                        <>
+                            <i className="fas fa-spinner fa-spin" />
+                            <span>Mengirim...</span>
+                        </>
+                    ) : (
+                        <>
+                            <i className="fas fa-paper-plane" />
+                            <span>KIRIM KE WALI KELAS</span>
+                        </>
+                    )}
+                </button>
+            </form>
+
+            {/* ── Riwayat Pengajuan ── */}
+            {leaveRequests.data.length > 0 && (
+                <div>
+                    <h2 className="text-[15px] font-bold text-text-primary font-inter mb-3">Riwayat Pengajuan</h2>
+                    <div className="bg-white border border-border rounded-xl overflow-hidden">
+                        {leaveRequests.data.map((lr, idx) => (
                             <div
                                 key={lr.id}
-                                className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-background transition-colors"
+                                className={`flex items-center justify-between px-4 py-3 gap-3 ${
+                                    idx !== leaveRequests.data.length - 1 ? "border-b border-border" : ""
+                                }`}
                             >
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[14px] font-semibold text-text-primary">
-                                            {lr.student.name}
+                                <div className="min-w-0">
+                                    <p className="text-[13px] font-bold text-text-primary truncate">
+                                        {lr.student.name}
+                                        <span className="font-normal text-text-muted ml-1.5">
+                                            —{" "}
+                                            {CATEGORY_OPTIONS.find((c) => c.value === lr.category)?.label ??
+                                                lr.category}
                                         </span>
-                                        <span className="text-[12px] text-text-muted">
-                                            — {lr.category}
-                                        </span>
-                                    </div>
-                                    <p className="text-[12px] text-text-muted mt-1">
-                                        {lr.start_date} — {lr.end_date}
+                                    </p>
+                                    <p className="text-[11px] text-text-muted mt-0.5">
+                                        {lr.start_date}
+                                        {lr.end_date !== lr.start_date ? ` — ${lr.end_date}` : ""}
                                     </p>
                                 </div>
-                                <StatusBadge
-                                    variant={
-                                        lr.approval_status === "Approved"
-                                            ? "approved"
-                                            : lr.approval_status === "Rejected"
-                                              ? "rejected"
-                                              : "pending"
-                                    }
-                                />
+                                <span
+                                    className="text-[11px] font-bold shrink-0"
+                                    style={{ color: approvalColor(lr.approval_status) }}
+                                >
+                                    {approvalLabel(lr.approval_status)}
+                                </span>
                             </div>
                         ))}
                     </div>
-                )}
-            </section>
+                </div>
+            )}
         </AppShell>
     );
 }

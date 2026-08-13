@@ -9,17 +9,18 @@ use App\Http\Controllers\Web\DailyReportController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
-use App\Http\Controllers\Web\GuardianWebController;
+use App\Http\Controllers\Web\GuardianPortalController;
 use App\Http\Controllers\Web\LeaveRequestController;
 use App\Http\Controllers\Web\MonthlyReportController;
+use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OverviewController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SchoolClassController;
 use App\Http\Controllers\Web\SemesterReportController;
 use App\Http\Controllers\Web\StudentController;
-use App\Http\Controllers\Web\StudentWebController;
+use App\Http\Controllers\Web\StudentPortalController;
 use App\Http\Controllers\Web\TeacherController;
-use App\Http\Controllers\Web\TeacherWebController;
+use App\Http\Controllers\Web\TeacherPortalController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -49,13 +50,13 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::patch('/master-data/students/{id}', [StudentController::class, 'update'])->name('master-data.students.update');
     Route::post('/master-data/students/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('master-data.students.bulk-destroy');
     Route::patch('/master-data/students/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('master-data.students.toggle');
-    Route::get('/master-data/teachers', [TeacherController::class, 'index'])->name('master-data.teachers');
+    Route::get('/master-data/teachers', fn () => redirect()->route('master-data', ['tab' => 'teachers']));
     Route::post('/master-data/teachers', [TeacherController::class, 'store'])->name('master-data.teachers.store');
     Route::patch('/master-data/teachers/{id}', [TeacherController::class, 'update'])->name('master-data.teachers.update');
-    Route::get('/master-data/classes', [SchoolClassController::class, 'index'])->name('master-data.classes');
+    Route::get('/master-data/classes', fn () => redirect()->route('master-data', ['tab' => 'class']));
     Route::post('/master-data/classes', [SchoolClassController::class, 'store'])->name('master-data.classes.store');
     Route::patch('/master-data/classes/{id}', [SchoolClassController::class, 'update'])->name('master-data.classes.update');
-    Route::get('/master-data/guardians', [GuardianController::class, 'index'])->name('master-data.guardians');
+    Route::get('/master-data/guardians', fn () => redirect()->route('master-data', ['tab' => 'guardians']));
     Route::post('/master-data/guardians', [GuardianController::class, 'store'])->name('master-data.guardians.store');
     Route::patch('/master-data/guardians/{id}', [GuardianController::class, 'update'])->name('master-data.guardians.update');
     Route::delete('/master-data/students/{id}', [StudentController::class, 'destroy'])->name('master-data.students.destroy');
@@ -110,26 +111,33 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
     // Teacher Dashboards
     Route::prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/duty', [TeacherWebController::class, 'dutyDashboard'])->name('duty')->middleware('teacher.type:piket');
-        Route::get('/homeroom', [TeacherWebController::class, 'homeroomDashboard'])->name('homeroom')->middleware('teacher.type:wali');
+        Route::get('/duty', [TeacherPortalController::class, 'dutyDashboard'])->name('duty')->middleware('teacher.type:piket');
+        Route::get('/homeroom', [TeacherPortalController::class, 'homeroomDashboard'])->name('homeroom')->middleware('teacher.type:wali');
     });
 
     // Guardian
     Route::prefix('guardian')->name('guardian.')->group(function () {
-        Route::get('/', [GuardianWebController::class, 'dashboard'])->name('dashboard');
-        Route::get('/leave-application', [GuardianWebController::class, 'leaveApplication'])->name('leave-application');
-        Route::post('/leave-application', [GuardianWebController::class, 'storeLeaveApplication'])->name('leave-application.store');
-        Route::get('/history', [GuardianWebController::class, 'history'])->name('history');
+        Route::get('/', [GuardianPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/leave-application', [GuardianPortalController::class, 'leaveApplication'])->name('leave-application');
+        Route::post('/leave-application', [GuardianPortalController::class, 'storeLeaveApplication'])->name('leave-application.store');
+        Route::get('/history', [GuardianPortalController::class, 'history'])->name('history');
     });
 
     // Student
     Route::prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [StudentWebController::class, 'dashboard'])->name('dashboard');
-        Route::get('/attendance', [StudentWebController::class, 'liveAttendance'])->name('attendance');
-        Route::post('/attendance/check-in', [StudentWebController::class, 'checkIn'])->name('attendance.check-in')
+        Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/attendance', [StudentPortalController::class, 'liveAttendance'])->name('attendance');
+        Route::post('/attendance/check-in', [StudentPortalController::class, 'checkIn'])->name('attendance.check-in')
             ->middleware('throttle:attendance-checkin');
-        Route::get('/history', [StudentWebController::class, 'history'])->name('history');
+        Route::get('/history', [StudentPortalController::class, 'history'])->name('history');
     });
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/store', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::post('/notifications/read/all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read.all');
+    Route::post('/notifications/read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');

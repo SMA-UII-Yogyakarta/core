@@ -6,7 +6,8 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.badge": "⚡ Terintegrasi & Biometrik",
         "welcome.titleLine1": "Portal Kehadiran Digital",
         "welcome.titleLine2": "SMA UII Yogyakarta",
-        "welcome.subtitle": "Aplikasi presensi modern yang menghubungkan Siswa, Orang Tua, dan Guru Piket secara real-time dengan akurasi GPS dan keamanan biometrik kamera.",
+        "welcome.subtitle":
+            "Aplikasi presensi modern yang menghubungkan Siswa, Orang Tua, dan Guru Piket secara real-time dengan akurasi GPS dan keamanan biometrik kamera.",
         "welcome.ctaButton": "Pilih Portal Akses",
         "welcome.portalTitle": "Masuk ke Portal Peran Anda",
         "welcome.portalSubtitle": "Silakan pilih tipe akun Anda untuk mulai menggunakan sistem presensi terpadu",
@@ -23,7 +24,8 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.roleAdminTitle": "Portal Administrator",
         "welcome.roleAdminDesc": "Manajemen data master, kalender akademik, & konfigurasi sistem presensi.",
         "welcome.featuresTitle": "Keunggulan Sistem SMART Absen",
-        "welcome.featuresSubtitle": "Menggabungkan kemudahan akses mobilitas dengan standar keamanan verifikasi kehadiran akademis",
+        "welcome.featuresSubtitle":
+            "Menggabungkan kemudahan akses mobilitas dengan standar keamanan verifikasi kehadiran akademis",
         "welcome.featGeofencingTitle": "Validasi Geofencing",
         "welcome.featGeofencingDesc": "Verifikasi presensi berdasarkan radius GPS koordinat sekolah secara real-time.",
         "welcome.featBiometricTitle": "Biometrik Kamera",
@@ -171,7 +173,8 @@ export const translations: Record<string, Record<string, string>> = {
         "profile.never": "Tidak pernah",
         "profile.revoke": "Cabut",
         "profile.revokeTitle": "Cabut Sesi",
-        "profile.revokeDescription": "Apakah Anda yakin ingin mencabut sesi ini? Perangkat tersebut akan diminta masuk ulang.",
+        "profile.revokeDescription":
+            "Apakah Anda yakin ingin mencabut sesi ini? Perangkat tersebut akan diminta masuk ulang.",
         "reports.dailyTitle": "Rekap Harian",
         "reports.allClasses": "Semua Kelas",
         "reports.export": "Export",
@@ -233,7 +236,8 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.badge": "⚡ Integrated & Biometric",
         "welcome.titleLine1": "Digital Attendance Portal",
         "welcome.titleLine2": "SMA UII Yogyakarta",
-        "welcome.subtitle": "A modern attendance application connecting Students, Parents, and Duty Teachers in real-time with GPS accuracy and camera biometric security.",
+        "welcome.subtitle":
+            "A modern attendance application connecting Students, Parents, and Duty Teachers in real-time with GPS accuracy and camera biometric security.",
         "welcome.ctaButton": "Choose Access Portal",
         "welcome.portalTitle": "Login to Your Role Portal",
         "welcome.portalSubtitle": "Please select your account type to start using the unified attendance system",
@@ -242,7 +246,8 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.roleStudentDesc": "Self attendance via selfie & GPS and monitor daily attendance history.",
         "welcome.roleGuardianBadge": "Parent/Guardian",
         "welcome.roleGuardianTitle": "Parent/Guardian Portal",
-        "welcome.roleGuardianDesc": "Submit digital leave applications, upload documents, & monitor child's attendance.",
+        "welcome.roleGuardianDesc":
+            "Submit digital leave applications, upload documents, & monitor child's attendance.",
         "welcome.roleTeacherBadge": "Teacher/Staff",
         "welcome.roleTeacherTitle": "Teacher & Staff Portal",
         "welcome.roleTeacherDesc": "Access duty teacher, homeroom teacher, & verify leave requests in real-time.",
@@ -250,11 +255,13 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.roleAdminTitle": "Administrator Portal",
         "welcome.roleAdminDesc": "Manage master data, academic calendar, & configure attendance system.",
         "welcome.featuresTitle": "SMART Absen Key Features",
-        "welcome.featuresSubtitle": "Combining ease of mobility access with academic attendance verification security standards",
+        "welcome.featuresSubtitle":
+            "Combining ease of mobility access with academic attendance verification security standards",
         "welcome.featGeofencingTitle": "Geofencing Validation",
         "welcome.featGeofencingDesc": "Verify attendance based on real-time GPS coordinate radius of the school.",
         "welcome.featBiometricTitle": "Camera Biometrics",
-        "welcome.featBiometricDesc": "Selfie verification with smart compression <=20 KB for storage bandwidth savings.",
+        "welcome.featBiometricDesc":
+            "Selfie verification with smart compression <=20 KB for storage bandwidth savings.",
         "welcome.featLeaveTitle": "Digital Leave & Sick Request",
         "welcome.featLeaveDesc": "Unified submission of sick/leave notes directly to the homeroom teacher's dashboard.",
         "welcome.featMonitoringTitle": "Real-Time Monitoring",
@@ -398,7 +405,8 @@ export const translations: Record<string, Record<string, string>> = {
         "profile.never": "Never",
         "profile.revoke": "Revoke",
         "profile.revokeTitle": "Revoke Session",
-        "profile.revokeDescription": "Are you sure you want to revoke this session? That device will be asked to sign in again.",
+        "profile.revokeDescription":
+            "Are you sure you want to revoke this session? That device will be asked to sign in again.",
         "reports.dailyTitle": "Daily Recap",
         "reports.allClasses": "All Classes",
         "reports.export": "Export",
