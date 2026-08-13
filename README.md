@@ -107,7 +107,10 @@ CACHE_STORE=database
 
 ### Access Application
 
-Open `http://smauii-core.test` in your browser.
+Open `http://smauii-core.test` (or `http://localhost:8800`) in your browser.
+
+> 📖 **Testing & QA Reference Guide:**  
+> Untuk kredensial akun uji coba (Admin, Guru Piket, Wali Kelas, Wali Murid, Siswa) dan skenario UAT lengkap, baca **[Panduan Data Seeding & Kredensial Pengujian (QA & UAT Testing Guide)](docs/SEED-DATA-TESTING-GUIDE.md)**.
 
 ### Docker (recommended on Linux/VPS)
 
