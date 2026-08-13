@@ -1,0 +1,21 @@
+# Development overlay — HMR via Vite (bun) + port host untuk app.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  app:
+    ports:
+      - "127.0.0.1:${APP_PORT:-8800}:8000"
+
+  bun:
+    build:
+      context: .
+      dockerfile: docker/bun/Dockerfile
+    command: bun run dev
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "127.0.0.1:5173:5173"
+    restart: unless-stopped
+    ulimits:
+      core: 0
+    networks:
+      - smauii

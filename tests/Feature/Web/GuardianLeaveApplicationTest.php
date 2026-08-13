@@ -17,6 +17,12 @@ class GuardianLeaveApplicationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     private function guardianWithStudent(): array
     {
         $user = User::factory()->create(['role' => 'guardian']);

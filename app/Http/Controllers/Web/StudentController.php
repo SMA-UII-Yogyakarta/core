@@ -23,6 +23,60 @@ class StudentController extends Controller
 
     public function index(): Response
     {
+        $tab = request()->query('tab', 'students');
+
+        if ($tab === 'teachers') {
+            $this->authorize('viewAny', \App\Models\Teacher::class);
+            $teachers = resolve(\App\Services\TeacherService::class)->paginate(
+                request()->only(['search']),
+            );
+            return Inertia::render('Admin/MasterData', [
+                'activeTab' => 'guru',
+                'teachers' => $teachers,
+                'filters' => request()->only(['search', 'tab']),
+            ]);
+        }
+
+        if ($tab === 'class') {
+            $this->authorize('viewAny', \App\Models\SchoolClass::class);
+            $classes = $this->schoolClassService->paginate(
+                request()->only(['search']),
+            );
+            $assignedTeacherIds = \App\Models\SchoolClass::whereNotNull('teacher_id')
+                ->pluck('teacher_id')
+                ->unique();
+            $availableTeachers = \App\Models\Teacher::whereNotIn('id', $assignedTeacherIds)
+                ->select(['id', 'name'])
+                ->orderBy('name')
+                ->get();
+            $total = $classes->total();
+            $isClientMode = $total <= 100;
+
+            return Inertia::render('Admin/MasterData', [
+                'activeTab' => 'classes',
+                'schoolClasses' => $classes,
+                'allTeachers' => $availableTeachers,
+                'searchConfig' => [
+                    'mode' => $isClientMode ? 'client' : 'server',
+                    'allData' => $isClientMode ? $classes->all() : null,
+                ],
+                'filters' => request()->only(['search', 'tab']),
+            ]);
+        }
+
+        if ($tab === 'guardians') {
+            $this->authorize('viewAny', \App\Models\Guardian::class);
+            $guardians = $this->guardianService->paginate(
+                request()->only(['search']),
+            );
+            return Inertia::render('Admin/MasterData', [
+                'activeTab' => 'wali',
+                'guardians' => $guardians,
+                'filters' => request()->only(['search', 'tab']),
+            ]);
+        }
+
+        // Default: students
         $this->authorize('viewAny', Student::class);
 
         $students = $this->studentService->paginate(
@@ -46,7 +100,7 @@ class StudentController extends Controller
             'students' => $students,
             'classOptions' => $classOptions,
             'allGuardians' => $guardians,
-            'filters' => request()->only(['search', 'class_id', 'status']),
+            'filters' => request()->only(['search', 'class_id', 'status', 'tab']),
         ]);
     }
 

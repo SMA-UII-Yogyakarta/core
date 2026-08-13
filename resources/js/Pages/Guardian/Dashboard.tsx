@@ -90,12 +90,7 @@ function getStatusInfo(att: TodayAttendance | null): StatusInfo {
     };
 }
 
-export default function GuardianDashboard({
-    students,
-    selectedStudentId,
-    todayAttendance,
-    semesterStats,
-}: PageProps) {
+export default function GuardianDashboard({ students, selectedStudentId, todayAttendance, semesterStats }: PageProps) {
     const handleSelectStudent = (val: string) => {
         router.get("/guardian", { student_id: val }, { preserveState: true });
     };
@@ -106,9 +101,7 @@ export default function GuardianDashboard({
         <AppShell title="Dashboard">
             {/* Desktop title */}
             <div className="hidden lg:block mb-7">
-                <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                    Portal Orang Tua
-                </h1>
+                <h1 className="text-[22px] font-bold text-text-primary font-inter">Portal Orang Tua</h1>
                 <p className="text-[13px] text-text-muted font-inter mt-1">
                     Pantau kehadiran dan izin anak Anda secara real-time.
                 </p>
@@ -131,9 +124,7 @@ export default function GuardianDashboard({
                             boxShadow: "0px 4px 10px rgba(46,51,145,0.05)",
                         }}
                     >
-                        {students.length === 0 && (
-                            <option value="">Tidak ada data anak</option>
-                        )}
+                        {students.length === 0 && <option value="">Tidak ada data anak</option>}
                         {students.map((s) => (
                             <option key={s.id} value={s.id.toString()}>
                                 {s.name} ({s.class?.name ?? "-"})
@@ -141,10 +132,7 @@ export default function GuardianDashboard({
                         ))}
                     </select>
                     <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-                        <i
-                            className="fas fa-chevron-down text-[14px]"
-                            style={{ color: "#94A3B8" }}
-                        />
+                        <i className="fas fa-chevron-down text-[14px]" style={{ color: "#94A3B8" }} />
                     </div>
                 </div>
             </div>
@@ -161,16 +149,11 @@ export default function GuardianDashboard({
                 <p className="text-[12px] font-bold text-text-muted uppercase tracking-wide font-inter mb-1">
                     STATUS HARI INI ({todayLabel()})
                 </p>
-                <i
-                    className={`${info.iconClass} text-[45px] my-2`}
-                    style={{ color: info.iconColor }}
-                />
+                <i className={`${info.iconClass} text-[45px] my-2`} style={{ color: info.iconColor }} />
                 <h2 className="text-[20px] font-bold text-text-primary font-inter text-center leading-tight">
                     {info.title}
                 </h2>
-                <p className="text-[13px] text-text-muted font-inter text-center mt-1">
-                    {info.subtitle}
-                </p>
+                <p className="text-[13px] text-text-muted font-inter text-center mt-1">{info.subtitle}</p>
             </div>
 
             {/* ── 2 Tombol Aksi ── */}
@@ -179,14 +162,8 @@ export default function GuardianDashboard({
                     href="/guardian/history"
                     className="flex flex-col items-center justify-center gap-2 py-4 px-3 rounded-xl bg-white border border-border hover:bg-background transition-colors"
                 >
-                    <i
-                        className="fas fa-history text-[20px]"
-                        style={{ color: "#2E3391" }}
-                    />
-                    <span
-                        className="text-[12px] font-bold font-inter"
-                        style={{ color: "#2E3391" }}
-                    >
+                    <i className="fas fa-history text-[20px]" style={{ color: "#2E3391" }} />
+                    <span className="text-[12px] font-bold font-inter" style={{ color: "#2E3391" }}>
                         Riwayat Lengkap
                     </span>
                 </Link>
@@ -199,14 +176,8 @@ export default function GuardianDashboard({
                         boxShadow: "0px 4px 10px rgba(250,230,42,0.3)",
                     }}
                 >
-                    <i
-                        className="fas fa-file-medical text-[20px]"
-                        style={{ color: "#2E3391" }}
-                    />
-                    <span
-                        className="text-[12px] font-bold font-inter"
-                        style={{ color: "#2E3391" }}
-                    >
+                    <i className="fas fa-file-medical text-[20px]" style={{ color: "#2E3391" }} />
+                    <span className="text-[12px] font-bold font-inter" style={{ color: "#2E3391" }}>
                         Ajukan Izin
                     </span>
                 </Link>
@@ -214,26 +185,16 @@ export default function GuardianDashboard({
 
             {/* ── Ringkasan Semester Ini ── */}
             <div>
-                <p className="text-[13px] font-bold text-text-primary font-inter mb-3">
-                    RINGKASAN SEMESTER INI
-                </p>
+                <p className="text-[13px] font-bold text-text-primary font-inter mb-3">RINGKASAN SEMESTER INI</p>
                 <div className="grid grid-cols-3 gap-2.5">
                     <div className="bg-white border border-border rounded-xl p-3 flex flex-col items-center gap-1.5">
-                        <span
-                            className="text-[18px] font-bold leading-none"
-                            style={{ color: "#10B981" }}
-                        >
+                        <span className="text-[18px] font-bold leading-none" style={{ color: "#10B981" }}>
                             {semesterStats?.present ?? 0}
                         </span>
-                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide">
-                            HADIR
-                        </span>
+                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide">HADIR</span>
                     </div>
                     <div className="bg-white border border-border rounded-xl p-3 flex flex-col items-center gap-1.5">
-                        <span
-                            className="text-[18px] font-bold leading-none"
-                            style={{ color: "#2E3391" }}
-                        >
+                        <span className="text-[18px] font-bold leading-none" style={{ color: "#2E3391" }}>
                             {semesterStats?.sick_permit ?? 0}
                         </span>
                         <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide">
@@ -241,15 +202,10 @@ export default function GuardianDashboard({
                         </span>
                     </div>
                     <div className="bg-white border border-border rounded-xl p-3 flex flex-col items-center gap-1.5">
-                        <span
-                            className="text-[18px] font-bold leading-none"
-                            style={{ color: "#EF4444" }}
-                        >
+                        <span className="text-[18px] font-bold leading-none" style={{ color: "#EF4444" }}>
                             {semesterStats?.absent ?? 0}
                         </span>
-                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide">
-                            ALPA
-                        </span>
+                        <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide">ALPA</span>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
-import { router, usePage, Link } from "@inertiajs/react";
+import { useForm, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
+import { leaveApplicationSchema } from "@/schemas";
+import { validateForm } from "@/utils/zodHelper";
 
 interface Student {
     id: number;
@@ -52,55 +54,47 @@ function approvalLabel(status: string): string {
 const inputCls =
     "w-full border border-border rounded-lg px-3 py-2.5 text-[13px] text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-primary/20";
 
-export default function LeaveApplication({
-    students,
-    leaveRequests,
-}: PageProps) {
-    const [studentId, setStudentId] = useState(
-        students[0]?.id.toString() ?? "",
-    );
-    const [category, setCategory] = useState("Sick");
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [description, setDescription] = useState("");
-    const [document, setDocument] = useState<File | null>(null);
-    const [loading, setLoading] = useState(false);
+export default function LeaveApplication({ students, leaveRequests }: PageProps) {
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { errors } = usePage().props as { errors?: Record<string, string> };
+    const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        student_id: students[0]?.id.toString() ?? "",
+        category: "Sick",
+        start_date: "",
+        end_date: "",
+        description: "",
+        document: null as File | null,
+    });
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0] ?? null;
-        setDocument(file);
+        setData("document", file);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        clearErrors();
         setSuccessMsg(null);
 
-        const formData = new FormData();
-        formData.append("student_id", studentId);
-        formData.append("category", category);
-        formData.append("start_date", startDate);
-        if (endDate) formData.append("end_date", endDate);
-        formData.append("description", description);
-        if (document) formData.append("document", document);
+        // 1. Zod client validation
+        const valid = validateForm(leaveApplicationSchema, data);
+        if (!valid.success) {
+            for (const [key, msg] of Object.entries(valid.errors)) {
+                setError(key as any, msg);
+            }
+            return;
+        }
 
-        router.post("/guardian/leave-application", formData, {
+        // 2. Submit to server
+        post("/guardian/leave-application", {
             preserveState: true,
-            headers: { "Content-Type": "multipart/form-data" },
+            forceFormData: true,
             onSuccess: () => {
-                setStartDate("");
-                setEndDate("");
-                setDescription("");
-                setDocument(null);
+                reset("start_date", "end_date", "description", "document");
                 if (fileInputRef.current) fileInputRef.current.value = "";
                 setSuccessMsg("Pengajuan izin berhasil dikirim ke wali kelas.");
-                setLoading(false);
             },
-            onError: () => setLoading(false),
         });
     };
 
@@ -108,17 +102,11 @@ export default function LeaveApplication({
         <AppShell title="Pengajuan Izin">
             {/* Page header */}
             <div className="mb-6 flex items-center gap-3">
-                <Link
-                    href="/guardian"
-                    className="lg:hidden text-white/80 hover:text-white"
-                    aria-label="Kembali"
-                >
+                <Link href="/guardian" className="lg:hidden text-white/80 hover:text-white" aria-label="Kembali">
                     <i className="fas fa-arrow-left text-text-muted text-[16px]" />
                 </Link>
                 <div>
-                    <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                        Pengajuan Izin
-                    </h1>
+                    <h1 className="text-[22px] font-bold text-text-primary font-inter">Pengajuan Izin</h1>
                     <p className="text-[13px] text-text-muted font-inter mt-0.5">
                         Ajukan izin ketidakhadiran anak Anda.
                     </p>
@@ -133,9 +121,8 @@ export default function LeaveApplication({
                 </div>
             )}
 
-            {/* ── FORM INLINE (bukan modal) ── */}
+            {/* ── FORM INLINE ── */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-8">
-
                 {/* Pilih Anak */}
                 <div>
                     <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
@@ -143,8 +130,8 @@ export default function LeaveApplication({
                     </label>
                     <div className="relative">
                         <select
-                            value={studentId}
-                            onChange={(e) => setStudentId(e.target.value)}
+                            value={data.student_id}
+                            onChange={(e) => setData("student_id", e.target.value)}
                             className="w-full appearance-none rounded-lg px-3 py-2.5 text-[13px] font-bold font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
                             style={{
                                 border: "1px solid #2E3391",
@@ -164,9 +151,7 @@ export default function LeaveApplication({
                             <i className="fas fa-chevron-down text-[12px]" style={{ color: "#94A3B8" }} />
                         </div>
                     </div>
-                    {errors?.student_id && (
-                        <p className="text-[11px] text-danger mt-1">{errors.student_id}</p>
-                    )}
+                    {errors?.student_id && <p className="text-[11px] text-danger mt-1">{errors.student_id}</p>}
                 </div>
 
                 {/* Kategori Izin */}
@@ -175,8 +160,8 @@ export default function LeaveApplication({
                         Kategori Izin
                     </label>
                     <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        value={data.category}
+                        onChange={(e) => setData("category", e.target.value)}
                         className={inputCls}
                         required
                     >
@@ -186,9 +171,7 @@ export default function LeaveApplication({
                             </option>
                         ))}
                     </select>
-                    {errors?.category && (
-                        <p className="text-[11px] text-danger mt-1">{errors.category}</p>
-                    )}
+                    {errors?.category && <p className="text-[11px] text-danger mt-1">{errors.category}</p>}
                 </div>
 
                 {/* Tanggal — 2 kolom */}
@@ -199,14 +182,12 @@ export default function LeaveApplication({
                         </label>
                         <input
                             type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            value={data.start_date}
+                            onChange={(e) => setData("start_date", e.target.value)}
                             className={inputCls}
                             required
                         />
-                        {errors?.start_date && (
-                            <p className="text-[11px] text-danger mt-1">{errors.start_date}</p>
-                        )}
+                        {errors?.start_date && <p className="text-[11px] text-danger mt-1">{errors.start_date}</p>}
                     </div>
                     <div>
                         <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
@@ -214,8 +195,8 @@ export default function LeaveApplication({
                         </label>
                         <input
                             type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
+                            value={data.end_date}
+                            onChange={(e) => setData("end_date", e.target.value)}
                             className={inputCls}
                         />
                     </div>
@@ -227,19 +208,17 @@ export default function LeaveApplication({
                         Keterangan
                     </label>
                     <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        value={data.description}
+                        onChange={(e) => setData("description", e.target.value)}
                         placeholder="Tulis alasan sakit/izin..."
                         rows={3}
                         className={`${inputCls} resize-none`}
-                        style={{ color: description ? "#1E293B" : "#757575" }}
+                        style={{ color: data.description ? "#1E293B" : "#757575" }}
                     />
-                    {errors?.description && (
-                        <p className="text-[11px] text-danger mt-1">{errors.description}</p>
-                    )}
+                    {errors?.description && <p className="text-[11px] text-danger mt-1">{errors.description}</p>}
                 </div>
 
-                {/* Unggah Bukti — dashed border navy */}
+                {/* Unggah Bukti */}
                 <div>
                     <label className="block text-[12px] font-bold text-text-muted uppercase tracking-wide mb-2 font-inter">
                         Unggah Bukti
@@ -247,43 +226,27 @@ export default function LeaveApplication({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded-xl transition-colors"
+                        className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded-xl transition-colors cursor-pointer"
                         style={{
                             background: "#EFF6FF",
                             border: "2px dashed #2E3391",
                         }}
                     >
-                        {document ? (
+                        {data.document ? (
                             <>
-                                <i
-                                    className="fas fa-file-check text-[28px]"
-                                    style={{ color: "#10B981" }}
-                                />
-                                <span
-                                    className="text-[13px] font-bold font-inter"
-                                    style={{ color: "#10B981" }}
-                                >
-                                    {document.name}
+                                <i className="fas fa-file-check text-[28px]" style={{ color: "#10B981" }} />
+                                <span className="text-[13px] font-bold font-inter" style={{ color: "#10B981" }}>
+                                    {data.document.name}
                                 </span>
-                                <span className="text-[11px] text-text-muted">
-                                    Klik untuk ganti file
-                                </span>
+                                <span className="text-[11px] text-text-muted">Klik untuk ganti file</span>
                             </>
                         ) : (
                             <>
-                                <i
-                                    className="fas fa-camera text-[28px]"
-                                    style={{ color: "#2E3391" }}
-                                />
-                                <span
-                                    className="text-[13px] font-bold font-inter"
-                                    style={{ color: "#2E3391" }}
-                                >
+                                <i className="fas fa-camera text-[28px]" style={{ color: "#2E3391" }} />
+                                <span className="text-[13px] font-bold font-inter" style={{ color: "#2E3391" }}>
                                     Ambil Foto Surat
                                 </span>
-                                <span className="text-[11px] text-text-muted">
-                                    Maks. 2MB (Langsung via Kamera HP)
-                                </span>
+                                <span className="text-[11px] text-text-muted">Maks. 2MB (Langsung via Kamera HP)</span>
                             </>
                         )}
                     </button>
@@ -295,19 +258,17 @@ export default function LeaveApplication({
                         onChange={handleFileChange}
                         className="hidden"
                     />
-                    {errors?.document && (
-                        <p className="text-[11px] text-danger mt-1">{errors.document}</p>
-                    )}
+                    {errors?.document && <p className="text-[11px] text-danger mt-1">{errors.document}</p>}
                 </div>
 
                 {/* Submit */}
                 <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg font-bold text-[15px] text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+                    disabled={processing}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg font-bold text-[15px] text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                     style={{ background: "#10B981" }}
                 >
-                    {loading ? (
+                    {processing ? (
                         <>
                             <i className="fas fa-spinner fa-spin" />
                             <span>Mengirim...</span>
@@ -324,31 +285,27 @@ export default function LeaveApplication({
             {/* ── Riwayat Pengajuan ── */}
             {leaveRequests.data.length > 0 && (
                 <div>
-                    <h2 className="text-[15px] font-bold text-text-primary font-inter mb-3">
-                        Riwayat Pengajuan
-                    </h2>
+                    <h2 className="text-[15px] font-bold text-text-primary font-inter mb-3">Riwayat Pengajuan</h2>
                     <div className="bg-white border border-border rounded-xl overflow-hidden">
                         {leaveRequests.data.map((lr, idx) => (
                             <div
                                 key={lr.id}
                                 className={`flex items-center justify-between px-4 py-3 gap-3 ${
-                                    idx !== leaveRequests.data.length - 1
-                                        ? "border-b border-border"
-                                        : ""
+                                    idx !== leaveRequests.data.length - 1 ? "border-b border-border" : ""
                                 }`}
                             >
                                 <div className="min-w-0">
                                     <p className="text-[13px] font-bold text-text-primary truncate">
                                         {lr.student.name}
                                         <span className="font-normal text-text-muted ml-1.5">
-                                            — {lr.category}
+                                            —{" "}
+                                            {CATEGORY_OPTIONS.find((c) => c.value === lr.category)?.label ??
+                                                lr.category}
                                         </span>
                                     </p>
                                     <p className="text-[11px] text-text-muted mt-0.5">
                                         {lr.start_date}
-                                        {lr.end_date !== lr.start_date
-                                            ? ` — ${lr.end_date}`
-                                            : ""}
+                                        {lr.end_date !== lr.start_date ? ` — ${lr.end_date}` : ""}
                                     </p>
                                 </div>
                                 <span

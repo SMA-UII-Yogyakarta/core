@@ -1,6 +1,6 @@
-import type { User } from '@/types';
+import type { User } from "@/types";
 
-declare module '@inertiajs/react' {
+declare module "@inertiajs/react" {
     interface PageProps {
         auth: {
             user: User | null;

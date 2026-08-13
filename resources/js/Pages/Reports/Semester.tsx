@@ -1,12 +1,6 @@
 import { Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import {
-    PageHeader,
-    Card,
-    SelectInput,
-    StatCard,
-    AttendanceChart,
-} from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, AttendanceChart } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiDownload } from "react-icons/fi";
 
@@ -30,13 +24,21 @@ export default function SemesterReport({
     const { t } = useLanguage();
 
     const monthNames = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
     ];
 
-    const filteredMonths = monthlyStats.months.filter((m) =>
-        semesterMonths.includes(monthNames.indexOf(m.label) + 1)
-    );
+    const filteredMonths = monthlyStats.months.filter((m) => semesterMonths.includes(monthNames.indexOf(m.label) + 1));
 
     return (
         <AppShell title="Rekap Semester">
@@ -49,13 +51,20 @@ export default function SemesterReport({
                     <div className="flex items-center gap-3">
                         <SelectInput
                             value={selectedYear.toString()}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/semester?year=${value ?? ""}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                            options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({ value: y.toString(), label: y.toString() }))}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/semester?year=${value ?? ""}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                            }
+                            options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
+                                value: y.toString(),
+                                label: y.toString(),
+                            }))}
                             className="w-28"
                         />
                         <SelectInput
                             value={selectedSemester.toString()}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/semester?year=${selectedYear}&semester=${value ?? ""}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/semester?year=${selectedYear}&semester=${value ?? ""}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                            }
                             options={[
                                 { value: "1", label: t("reports.semester1") },
                                 { value: "2", label: t("reports.semester2") },
@@ -64,7 +73,9 @@ export default function SemesterReport({
                         />
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/semester?year=${selectedYear}&semester=${selectedSemester}&class_id=${value ?? ""}`}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/semester?year=${selectedYear}&semester=${selectedSemester}&class_id=${value ?? ""}`)
+                            }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
                                 ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
@@ -84,14 +95,8 @@ export default function SemesterReport({
                 {/* Semester Trend Chart */}
                 <Card>
                     <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">
-                            {t("reports.semesterTrend")}
-                        </h3>
-                        <AttendanceChart
-                            data={filteredMonths}
-                            type="bar"
-                            height={300}
-                        />
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.semesterTrend")}</h3>
+                        <AttendanceChart data={filteredMonths} type="bar" height={300} />
                     </div>
                 </Card>
 
@@ -117,9 +122,7 @@ export default function SemesterReport({
                 {/* Semester Breakdown Table */}
                 <Card>
                     <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">
-                            {t("reports.semesterBreakdown")}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.semesterBreakdown")}</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -134,11 +137,15 @@ export default function SemesterReport({
                                 <tbody>
                                     {filteredMonths.map((month) => {
                                         const total = month.present + month.late + month.absent;
-                                        const rate = total > 0
-                                            ? ((month.present + month.late) / total * 100).toFixed(1)
-                                            : "0.0";
+                                        const rate =
+                                            total > 0
+                                                ? (((month.present + month.late) / total) * 100).toFixed(1)
+                                                : "0.0";
                                         return (
-                                            <tr key={month.label} className="border-b border-border/50 hover:bg-primary/5">
+                                            <tr
+                                                key={month.label}
+                                                className="border-b border-border/50 hover:bg-primary/5"
+                                            >
                                                 <td className="py-3 font-medium">{month.label}</td>
                                                 <td className="py-3 text-center text-green-600">{month.present}</td>
                                                 <td className="py-3 text-center text-amber-600">{month.late}</td>

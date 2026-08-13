@@ -32,7 +32,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const setLanguage = (lang: Language) => {
         // 1. Set cookie so Laravel backend can read it on next request
         document.cookie = `app_locale=${lang}; path=/; max-age=31536000; SameSite=Lax`;
-        
+
         // 2. Update local state
         setLocaleState(lang);
 
@@ -48,11 +48,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return dict[key] || key;
     };
 
-    return (
-        <LanguageContext.Provider value={{ locale, setLanguage, t }}>
-            {children}
-        </LanguageContext.Provider>
-    );
+    return <LanguageContext.Provider value={{ locale, setLanguage, t }}>{children}</LanguageContext.Provider>;
 };
 
 export const useLanguage = () => {

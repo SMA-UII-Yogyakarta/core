@@ -43,6 +43,7 @@ publish.txt
 .env.bak
 .lerd.yaml
 .php-version
+/core
 smauii_core
 package-lock.json
 compose.yaml

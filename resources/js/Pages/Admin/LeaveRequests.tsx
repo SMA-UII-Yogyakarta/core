@@ -2,11 +2,15 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import {
     StatusBadge,
-    Button,
+    ActionButton,
     Table,
     Pagination,
     FilterBar,
     TabSwitcher,
+    StickyContainer,
+    PageHeader,
+    Drawer,
+    Card,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
@@ -17,6 +21,7 @@ interface LeaveRequest {
     category: string;
     start_date: string;
     end_date: string;
+    description?: string | null;
     document_url: string | null;
     approval_status: string;
     student: {
@@ -25,7 +30,7 @@ interface LeaveRequest {
         name: string;
         class: { id: number; name: string } | null;
     };
-    guardian: { id: number; name: string } | null;
+    guardian: { id: number; name: string; phone?: string | null } | null;
     created_at: string;
 }
 
@@ -64,10 +69,9 @@ const categoryLabels: Record<string, string> = {
 
 export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
     const [statusTab, setStatusTab] = useState(filters.status ?? "");
-    const [categoryFilter, setCategoryFilter] = useState(
-        filters.category ?? "",
-    );
+    const [categoryFilter, setCategoryFilter] = useState(filters.category ?? "");
     const [search, setSearch] = useState(filters.search ?? "");
+    const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
 
     const handleFilter = (extra?: Record<string, string | undefined>) => {
         router.get(
@@ -88,12 +92,8 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
             header: "Nama Siswa",
             render: (lr) => (
                 <div>
-                    <div className="font-semibold text-text-primary">
-                        {lr.student.name}
-                    </div>
-                    <div className="text-[12px] text-text-muted">
-                        NISN: {lr.student.nisn}
-                    </div>
+                    <div className="font-semibold text-text-primary">{lr.student.name}</div>
+                    <div className="text-[12px] text-text-muted">NISN: {lr.student.nisn}</div>
                 </div>
             ),
         },
@@ -106,7 +106,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
             key: "category",
             header: "Kategori",
             render: (lr) => (
-                <span className="inline-block px-2 py-0.5 bg-primary-light text-primary rounded-md text-[12px] font-semibold">
+                <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary rounded-md text-[12px] font-bold">
                     {categoryLabels[lr.category] ?? lr.category}
                 </span>
             ),
@@ -125,37 +125,34 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
             key: "status",
             header: "Status",
             render: (lr) => {
-                const variant =
-                    statusToVariant[lr.approval_status] ?? "pending";
+                const variant = statusToVariant[lr.approval_status] ?? "pending";
                 return <StatusBadge variant={variant} />;
             },
         },
         {
             key: "actions",
             header: "Aksi",
-            render: () => (
-                <Button variant="outline" size="sm">
-                    Detail
-                </Button>
+            render: (lr) => (
+                <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => setSelectedRequest(lr)} />
             ),
+            className: "w-px whitespace-nowrap text-right",
         },
     ];
 
     return (
         <AppShell title="Pengajuan Izin">
-            <h1 className="text-[18px] font-bold text-text-primary font-inter mb-6">
-                Pengajuan Izin
-            </h1>
+            <PageHeader title="Pengajuan Izin" description="Kelola permohonan dispensasi dan ketidakhadiran siswa." />
 
-            <TabSwitcher
-                tabs={statusTabs}
-                activeKey={statusTab}
-                onChange={(key) => {
-                    setStatusTab(key);
-                    handleFilter({ status: key || undefined });
-                }}
-                className="mb-6"
-            />
+            <StickyContainer>
+                <TabSwitcher
+                    tabs={statusTabs}
+                    activeKey={statusTab}
+                    onChange={(key) => {
+                        setStatusTab(key);
+                        handleFilter({ status: key || undefined });
+                    }}
+                />
+            </StickyContainer>
 
             <FilterBar className="mb-6">
                 <FilterBar.Select
@@ -165,6 +162,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                         { value: "Sick", label: "Sakit" },
                         { value: "Event", label: "Kegiatan" },
                         { value: "Competition", label: "Lomba" },
+                        { value: "Other", label: "Lainnya" },
                     ]}
                     value={categoryFilter}
                     onChange={(e) => {
@@ -179,17 +177,19 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                         e.preventDefault();
                         handleFilter();
                     }}
-                    placeholder="Cari siswa..."
+                    placeholder="Cari nama siswa..."
                 />
             </FilterBar>
 
-            <section className="bg-surface border border-border rounded-lg p-4 lg:p-6">
-                <Table
-                    columns={columns}
-                    data={leaveRequests.data}
-                    keyExtractor={(lr) => lr.id}
-                    emptyMessage="Tidak ada pengajuan izin."
-                />
+            <section className="flex flex-col gap-4">
+                <Card>
+                    <Table
+                        columns={columns}
+                        data={leaveRequests.data}
+                        keyExtractor={(lr) => lr.id}
+                        emptyMessage="Tidak ada pengajuan izin."
+                    />
+                </Card>
                 <Pagination
                     currentPage={leaveRequests.current_page}
                     totalPages={leaveRequests.last_page}
@@ -208,6 +208,104 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                     }
                 />
             </section>
+
+            {/* Detail Drawer */}
+            <Drawer
+                open={selectedRequest !== null}
+                onClose={() => setSelectedRequest(null)}
+                title="Detail Pengajuan Izin"
+                width="lg"
+            >
+                {selectedRequest && (
+                    <div className="space-y-5 font-inter text-text-primary text-[14px]">
+                        {/* Status Badge header */}
+                        <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
+                            <div>
+                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block">
+                                    Status Pengajuan
+                                </span>
+                                <span className="font-bold text-[15px]">{selectedRequest.approval_status}</span>
+                            </div>
+                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] ?? "pending"} />
+                        </div>
+
+                        {/* Student Info */}
+                        <div className="border border-border/80 rounded-xl p-4 space-y-2">
+                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
+                                Informasi Siswa
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3 text-[13px]">
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">Nama Siswa</span>
+                                    <span className="font-semibold">{selectedRequest.student.name}</span>
+                                </div>
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">NISN</span>
+                                    <span className="font-semibold">{selectedRequest.student.nisn}</span>
+                                </div>
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">Kelas</span>
+                                    <span className="font-semibold">{selectedRequest.student.class?.name ?? "-"}</span>
+                                </div>
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">Wali Murid</span>
+                                    <span className="font-semibold">{selectedRequest.guardian?.name ?? "—"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Leave Detail */}
+                        <div className="border border-border/80 rounded-xl p-4 space-y-3">
+                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
+                                Detail Ketidakhadiran
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3 text-[13px]">
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">Kategori</span>
+                                    <span className="font-bold text-primary">
+                                        {categoryLabels[selectedRequest.category] ?? selectedRequest.category}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-text-muted block text-[11px]">Rentang Tanggal</span>
+                                    <span className="font-semibold">
+                                        {selectedRequest.start_date} s/d {selectedRequest.end_date}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <span className="text-text-muted block text-[11px] mb-1">Keterangan / Alasan</span>
+                                <div className="bg-muted/30 p-3 rounded-lg text-text-secondary text-[13px] leading-relaxed">
+                                    {selectedRequest.description || "Tidak ada keterangan tertulis."}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Document Attachment */}
+                        {selectedRequest.document_url && (
+                            <div className="border border-border/80 rounded-xl p-4 space-y-2">
+                                <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
+                                    Dokumen Lampiran
+                                </h3>
+                                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <span className="text-[13px] font-medium truncate max-w-[200px]">
+                                        Surat_Keterangan.pdf / Dokumen Bukti
+                                    </span>
+                                    <a
+                                        href={selectedRequest.document_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-primary hover:underline text-[12px] font-bold"
+                                    >
+                                        <i className="fas fa-external-link-alt" />
+                                        <span>Buka Dokumen</span>
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Drawer>
         </AppShell>
     );
 }

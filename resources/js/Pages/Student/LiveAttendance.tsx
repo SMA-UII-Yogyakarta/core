@@ -117,10 +117,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                 }
             },
             onError: (err) => {
-                const msg =
-                    typeof err === "string"
-                        ? err
-                        : Object.values(err as Record<string, string>).join(", ");
+                const msg = typeof err === "string" ? err : Object.values(err as Record<string, string>).join(", ");
                 setError(msg || "Terjadi kesalahan. Silakan coba lagi.");
                 setLoading(false);
             },
@@ -163,12 +160,9 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <AppShell title="Live Presensi">
-
             {/* Page header */}
             <div className="mb-6">
-                <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                    Ambil Foto &amp; Lokasi Presensi
-                </h1>
+                <h1 className="text-[22px] font-bold text-text-primary font-inter">Ambil Foto &amp; Lokasi Presensi</h1>
                 <p className="text-[13px] text-text-muted font-inter mt-1">
                     Pastikan wajah Anda berada di dalam lingkaran dan GPS aktif.
                 </p>
@@ -184,16 +178,13 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
             {/* ══ DESKTOP: 2 kolom ══════════════════════════════════════════ */}
             <div className="hidden lg:grid lg:grid-cols-2 gap-5">
-
                 {/* Kiri — Webcam */}
                 <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
                     {/* LIVE badge */}
                     {cameraReady && !todayAttendance && (
                         <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60">
                             <span className="w-2 h-2 rounded-full bg-danger animate-pulse" />
-                            <span className="text-white text-[11px] font-bold tracking-wider">
-                                LIVE WEBCAM
-                            </span>
+                            <span className="text-white text-[11px] font-bold tracking-wider">LIVE WEBCAM</span>
                         </div>
                     )}
 
@@ -251,26 +242,30 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                         {gpsStatus === "locked" ? (
                             <div className="text-center">
                                 <i className="fas fa-map-marker-alt text-[36px] mb-2" style={{ color: "#EF4444" }} />
-                                <p className="text-[12px]" style={{ color: "#64748B" }}>Lokasi terdeteksi</p>
+                                <p className="text-[12px]" style={{ color: "#64748B" }}>
+                                    Lokasi terdeteksi
+                                </p>
                             </div>
                         ) : gpsStatus === "acquiring" ? (
                             <div className="text-center">
                                 <i className="fas fa-spinner fa-spin text-[30px] mb-2" style={{ color: "#94A3B8" }} />
-                                <p className="text-[12px]" style={{ color: "#64748B" }}>Mengambil lokasi...</p>
+                                <p className="text-[12px]" style={{ color: "#64748B" }}>
+                                    Mengambil lokasi...
+                                </p>
                             </div>
                         ) : (
                             <div className="text-center">
                                 <i className="fas fa-map text-[36px] mb-2" style={{ color: "#EF4444" }} />
-                                <p className="text-[12px]" style={{ color: "#64748B" }}>GPS tidak tersedia</p>
+                                <p className="text-[12px]" style={{ color: "#64748B" }}>
+                                    GPS tidak tersedia
+                                </p>
                             </div>
                         )}
                     </div>
 
                     {/* Info lokasi */}
                     <div className="bg-white border border-border rounded-b-xl px-4 py-3 mb-3">
-                        <p className="text-[13px] font-bold text-text-primary">
-                            Lokasi Terkunci: SMA UII Yogyakarta
-                        </p>
+                        <p className="text-[13px] font-bold text-text-primary">Lokasi Terkunci: SMA UII Yogyakarta</p>
                         {coords ? (
                             <p className="text-[11px] text-text-muted mt-0.5">
                                 Lat: {coords.lat.toFixed(4)} | Long: {coords.lng.toFixed(4)}
@@ -291,12 +286,8 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
             {/* ══ MOBILE: full-screen style ══════════════════════════════════ */}
             <div className="lg:hidden flex flex-col">
-
                 {/* Kamera area */}
-                <div
-                    className="relative w-full rounded-t-xl overflow-hidden bg-black"
-                    style={{ minHeight: 340 }}
-                >
+                <div className="relative w-full rounded-t-xl overflow-hidden bg-black" style={{ minHeight: 340 }}>
                     {/* LIVE badge */}
                     {cameraReady && !todayAttendance && (
                         <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60">
@@ -371,8 +362,8 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                                 {gpsStatus === "locked"
                                     ? "Lokasi Sesuai Radius"
                                     : gpsStatus === "acquiring"
-                                    ? "Mengambil lokasi..."
-                                    : "Lokasi tidak tersedia"}
+                                      ? "Mengambil lokasi..."
+                                      : "Lokasi tidak tersedia"}
                             </p>
                         </div>
                     </div>

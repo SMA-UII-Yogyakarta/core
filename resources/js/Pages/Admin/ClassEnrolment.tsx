@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table } from "@/Components";
+import { Button, Table, PageHeader } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -88,12 +88,12 @@ export default function EnrolmentKelas({
         {
             key: "nisn",
             header: "NISN",
-            render: (s) => <span className="font-semibold text-text-primary">{s.nisn}</span>
+            render: (s) => <span className="font-semibold text-text-primary">{s.nisn}</span>,
         },
         {
             key: "name",
             header: "Nama Lengkap",
-            render: (s) => <span className="text-text-primary">{s.name}</span>
+            render: (s) => <span className="text-text-primary">{s.name}</span>,
         },
         {
             key: "actions",
@@ -115,14 +115,10 @@ export default function EnrolmentKelas({
     return (
         <AppShell title="Manajemen & Enrolment Kelas">
             {/* Page Header */}
-            <div className="mb-6">
-                <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">
-                    Manajemen & Enrolment Kelas
-                </h1>
-                <p className="text-[14px] text-text-secondary font-inter mt-1">
-                    Petakan rombongan belajar dan tetapkan Wali Kelas untuk tahun ajaran aktif.
-                </p>
-            </div>
+            <PageHeader
+                title="Manajemen & Enrolment Kelas"
+                description="Petakan rombongan belajar dan tetapkan Wali Kelas untuk tahun ajaran aktif."
+            />
 
             {saveNotice && (
                 <div className="mb-4 rounded-lg bg-success-bg border border-success/30 text-success px-4 py-2.5 text-[13px] font-medium">
@@ -133,7 +129,6 @@ export default function EnrolmentKelas({
 
             {/* Split Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                
                 {/* Column 1: Konfigurasi Kelas (Left) */}
                 <div className="lg:col-span-2">
                     <div className="bg-surface border border-border rounded-xl p-6 flex flex-col gap-6 shadow-card min-h-[440px]">
@@ -154,7 +149,7 @@ export default function EnrolmentKelas({
                                     router.get(
                                         "/class-enrolment",
                                         { class_id: nextId || undefined },
-                                        { preserveState: true }
+                                        { preserveState: true },
                                     );
                                 }}
                                 className="border border-border rounded-lg px-3.5 py-2.5 text-[14px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-full"
@@ -188,8 +183,8 @@ export default function EnrolmentKelas({
                 {/* Column 2: Daftar Siswa Terdaftar (Right) */}
                 <div className="lg:col-span-3">
                     {selectedClass ? (
-                        <div className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
-                            {/* Card Header */}
+                        <section className="flex flex-col min-h-[440px]">
+                            {/* Header */}
                             <div className="flex items-center justify-between mb-4 pb-2">
                                 <h2 className="text-[16px] font-bold text-text-primary font-inter">
                                     Daftar Siswa Terdaftar
@@ -225,10 +220,7 @@ export default function EnrolmentKelas({
                                         setSaveNotice(
                                             "Perubahan enrolment sudah tersimpan otomatis saat tambah/hapus siswa.",
                                         );
-                                        window.setTimeout(
-                                            () => setSaveNotice(null),
-                                            3500,
-                                        );
+                                        window.setTimeout(() => setSaveNotice(null), 3500);
                                     }}
                                     className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
                                     type="button"
@@ -238,7 +230,7 @@ export default function EnrolmentKelas({
                                     <span>Simpan Pembaruan</span>
                                 </button>
                             </div>
-                        </div>
+                        </section>
                     ) : (
                         <div className="bg-surface border border-border rounded-xl p-12 text-center shadow-card flex flex-col items-center justify-center min-h-[440px]">
                             <i className="fas fa-school text-text-inactive text-4xl mb-4" />
@@ -253,10 +245,7 @@ export default function EnrolmentKelas({
             {/* Add Student Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="fixed inset-0 bg-black/50"
-                        onClick={() => setShowAddModal(false)}
-                    />
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
                     <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-lg max-h-[80vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-5 border-b border-border">
                             <h3 className="text-[16px] font-bold text-text-primary font-inter">
@@ -293,25 +282,11 @@ export default function EnrolmentKelas({
                                         </thead>
                                         <tbody>
                                             {unassignedStudents.map((s) => (
-                                                <tr
-                                                    key={s.id}
-                                                    className="border-b border-border last:border-b-0"
-                                                >
-                                                    <td className="px-3 py-2 text-[13px]">
-                                                        {s.nis}
-                                                    </td>
-                                                    <td className="px-3 py-2 text-[13px] font-medium">
-                                                        {s.name}
-                                                    </td>
+                                                <tr key={s.id} className="border-b border-border last:border-b-0">
+                                                    <td className="px-3 py-2 text-[13px]">{s.nis}</td>
+                                                    <td className="px-3 py-2 text-[13px] font-medium">{s.name}</td>
                                                     <td className="px-3 py-2 text-center">
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                handleAssign(
-                                                                    s.id,
-                                                                )
-                                                            }
-                                                        >
+                                                        <Button size="sm" onClick={() => handleAssign(s.id)}>
                                                             Tambah
                                                         </Button>
                                                     </td>
@@ -329,22 +304,14 @@ export default function EnrolmentKelas({
             {/* Delete Confirmation Modal */}
             {removeConfirmId !== null && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div
-                        className="fixed inset-0 bg-black/50"
-                        onClick={() => setRemoveConfirmId(null)}
-                    />
+                    <div className="fixed inset-0 bg-black/50" onClick={() => setRemoveConfirmId(null)} />
                     <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-sm p-6 text-center">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2">
-                            Konfirmasi Hapus
-                        </h3>
+                        <h3 className="text-[16px] font-bold text-text-primary mb-2">Konfirmasi Hapus</h3>
                         <p className="text-[13px] text-text-muted mb-6">
                             Apakah Anda yakin ingin menghapus siswa dari kelas ini?
                         </p>
                         <div className="flex gap-3 justify-center">
-                            <Button
-                                variant="ghost"
-                                onClick={() => setRemoveConfirmId(null)}
-                            >
+                            <Button variant="ghost" onClick={() => setRemoveConfirmId(null)}>
                                 Batal
                             </Button>
                             <Button variant="danger" onClick={confirmRemove}>

@@ -41,7 +41,7 @@ This repository is the **main backend** of the **SMART Absen SMA UII** system �
 - **Leave Submission & Verification** — Digital permission with document upload
 - **Real-Time Monitoring** — Duty Teacher dashboard with class filter
 - **Export Reports** — PDF & Excel (daily/monthly/semester)
-- **Object Storage** — Media files stored in S3-compatible storage, not in the database
+- **Object Storage** — Media files stored in S3-compatible storage (RustFS for native Lerd dev & self-hosted preview, AWS S3 / Cloudflare R2 for production)
 - **100% Mobile Responsive** — Tailwind CSS 4 + Vite
 
 ---
@@ -109,6 +109,25 @@ CACHE_STORE=database
 
 Open `http://smauii-core.test` in your browser.
 
+### Docker (recommended on Linux/VPS)
+
+Docker is the recommended way to run the stack on Linux/VPS. Compose is split into a base file plus environment overlays:
+
+| File | Purpose |
+|---|---|
+| `docker-compose.yml` | Base stack — `app`, `pgsql`, `redis`, `rustfs`, `mailpit` |
+| `docker-compose.dev.yml` | Dev overlay — host port + Vite HMR (`bun`) |
+| `docker-compose.prod.yml` | Prod overlay — production env, queue `worker` + `schedule` |
+
+```bash
+make dev       # development (http://localhost:8800, HMR :5173)
+make prod-up   # production (build assets, then up base+prod)
+```
+
+> Docker Compose is an **alternative** to [`lerd`](https://github.com/lerd/lerd) (the team's Podman-based dev environment — `composer setup` / `composer dev`). Both are containerized and functionally equivalent for development; lerd is the team/CI standard, Docker Compose is convenient on hosts that already run Docker and is required for production via the `prod` overlay.
+
+Subdomain strategy, deploy steps (DNS/certbot/nginx), and the roadmap to a split backend (`app.` frontend / `api.smauiiyk.sch.id/{v0,v1,…}` backend) are documented in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
 ---
 
 ## Architecture
@@ -130,7 +149,7 @@ Developers can clone `core.git` directly into Laragon for daily development. Mon
 | **PHP** | 8.4.22 NTS (VS17 x64) |
 | **Database** | PostgreSQL 16 (NeonDB) |
 | **Cache & Queue** | Redis / Database driver |
-| **Object Storage** | S3-compatible (Wasabi / MinIO) |
+| **Object Storage** | S3-compatible (**RustFS** / MinIO / Cloudflare R2 / AWS S3) |
 | **Web Server** | Apache 2.4 (dev) / Nginx (prod) |
 | **Frontend** | InertiaJS 3 + React 19 + TypeScript + Tailwind CSS 4 + Vite 8 |
 | **Package Manager** | [Bun](https://bun.sh) |

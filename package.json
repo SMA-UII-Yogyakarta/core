@@ -7,7 +7,12 @@
         "dev": "vite",
         "serve": "vite preview",
         "lint": "eslint ./resources/js/**/*.{ts,tsx}",
+        "lint:fix": "eslint ./resources/js/**/*.{ts,tsx} --fix",
+        "biome:check": "biome check ./resources/js",
+        "biome:fix": "biome check --write ./resources/js",
+        "format": "biome format --write ./resources/js",
         "typecheck": "tsc --noEmit",
+        "types:generate": "php artisan typescript:transform",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:ui": "vitest --ui",
@@ -19,6 +24,7 @@
     "devDependencies": {
         "@axe-core/playwright": "^4.12.1",
         "@axe-core/react": "^4.12.1",
+        "@biomejs/biome": "^2.5.8",
         "@eslint/js": "^10.0.1",
         "@inertiajs/react": "^2.3.27",
         "@lhci/cli": "^0.15.1",
@@ -53,6 +59,7 @@
         "laravel-echo": "^2.4.0",
         "pusher-js": "^8.6.0",
         "react-icons": "^5.7.0",
+        "zod": "^4.4.3",
         "zustand": "^5.0.14"
     },
     "overrides": {

@@ -5,10 +5,7 @@ interface StatusBadgeProps {
     label?: string;
 }
 
-const config: Record<
-    StatusVariant,
-    { bg: string; text: string; defaultLabel: string }
-> = {
+const config: Record<StatusVariant, { bg: string; text: string; defaultLabel: string }> = {
     present: {
         bg: "bg-success-light",
         text: "text-success",
@@ -60,9 +57,7 @@ const config: Record<
 export default function StatusBadge({ variant, label }: StatusBadgeProps) {
     const { bg, text, defaultLabel } = config[variant];
     return (
-        <span
-            className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text}`}
-        >
+        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text}`}>
             {label ?? defaultLabel}
         </span>
     );

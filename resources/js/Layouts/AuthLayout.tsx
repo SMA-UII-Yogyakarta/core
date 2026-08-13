@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Head } from '@inertiajs/react';
+import type { ReactNode } from "react";
+import { Head } from "@inertiajs/react";
 
 interface AuthLayoutProps {
     title?: string;
@@ -11,9 +11,7 @@ export default function AuthLayout({ title, children }: AuthLayoutProps) {
         <>
             {title && <Head title={title} />}
 
-            <div className="min-h-dvh bg-background flex p-0 lg:p-6 lg:items-center lg:justify-center">
-                {children}
-            </div>
+            <div className="min-h-dvh bg-background flex p-0 lg:p-6 lg:items-center lg:justify-center">{children}</div>
         </>
     );
 }

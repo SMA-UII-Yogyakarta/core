@@ -22,32 +22,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $guardian_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Attendance> $attendances
- * @property-read int|null $attendances_count
  * @property-read \App\Models\SchoolClass|null $class
  * @property-read \App\Models\Guardian|null $guardian
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LeaveRequest> $leaveRequests
- * @property-read int|null $leave_requests_count
  * @property-read \App\Models\User $user
- * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereAddress($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereBirthDate($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereClassId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereEnrollmentYear($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereGuardianId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereNis($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereNisn($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student wherePhone($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Student whereUserId($value)
- * @mixin \Eloquent
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Attendance> $attendances
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LeaveRequest> $leaveRequests
  */
 class Student extends Model
 {

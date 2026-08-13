@@ -1,7 +1,17 @@
 import { cn } from "@/utils/helpers";
 
 interface SkeletonProps {
-    variant?: "text" | "card" | "table-row" | "circle" | "avatar" | "button" | "input" | "stat-card" | "table-header" | "card-header";
+    variant?:
+        | "text"
+        | "card"
+        | "table-row"
+        | "circle"
+        | "avatar"
+        | "button"
+        | "input"
+        | "stat-card"
+        | "table-header"
+        | "card-header";
     count?: number;
     className?: string;
     width?: string | number;
@@ -23,13 +33,7 @@ const variants: Record<string, string> = {
     "card-header": "h-8 w-full",
 };
 
-export default function Skeleton({
-    variant = "text",
-    count = 1,
-    className = "",
-    width,
-    height,
-}: SkeletonProps) {
+export default function Skeleton({ variant = "text", count = 1, className = "", width, height }: SkeletonProps) {
     const baseClasses = cn(base, variants[variant] || variants.text, className);
     const style = { width, height };
 

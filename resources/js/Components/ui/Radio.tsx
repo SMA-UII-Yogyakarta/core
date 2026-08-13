@@ -1,5 +1,7 @@
 import type { InputHTMLAttributes } from "react";
 import { FaCircle } from "react-icons/fa";
+import Label from "./Label";
+import FormError from "./FormError";
 
 interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
     label?: string;
@@ -42,11 +44,7 @@ export default function Radio({
             >
                 {checked && <FaCircle className="text-[8px]" />}
             </span>
-            {label && (
-                <span className="text-[13px] text-text-primary font-inter font-medium">
-                    {label}
-                </span>
-            )}
+            {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}
         </label>
     );
 }
@@ -60,6 +58,8 @@ interface RadioOption<T extends string> {
 
 interface RadioGroupProps<T extends string> {
     name: string;
+    label?: string;
+    error?: string;
     options: RadioOption<T>[];
     value: T;
     onChange: (value: T) => void;
@@ -70,6 +70,8 @@ interface RadioGroupProps<T extends string> {
 
 export function RadioGroup<T extends string>({
     name,
+    label,
+    error,
     options,
     value,
     onChange,
@@ -78,22 +80,26 @@ export function RadioGroup<T extends string>({
     className = "",
 }: RadioGroupProps<T>) {
     return (
-        <div
-            className={`inline-flex gap-3 ${
-                direction === "vertical" ? "flex-col" : "flex-row flex-wrap"
-            } ${className}`}
-        >
-            {options.map((opt) => (
-                <Radio
-                    key={opt.value}
-                    name={name}
-                    value={opt.value}
-                    checked={value === opt.value}
-                    onChange={() => onChange(opt.value)}
-                    label={opt.label}
-                    disabled={disabled}
-                />
-            ))}
+        <div className="w-full">
+            {label && <Label>{label}</Label>}
+            <div
+                className={`inline-flex gap-3 ${
+                    direction === "vertical" ? "flex-col" : "flex-row flex-wrap"
+                } ${className}`}
+            >
+                {options.map((opt) => (
+                    <Radio
+                        key={opt.value}
+                        name={name}
+                        value={opt.value}
+                        checked={value === opt.value}
+                        onChange={() => onChange(opt.value)}
+                        label={opt.label}
+                        disabled={disabled}
+                    />
+                ))}
+            </div>
+            <FormError message={error} />
         </div>
     );
 }

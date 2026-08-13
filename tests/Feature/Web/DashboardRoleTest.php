@@ -22,7 +22,7 @@ class DashboardRoleTest extends TestCase
         $response = $this->actingAs($admin)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertInertia(fn (Assert $page) => $page->component('Dashboard'));
+        $response->assertInertia(fn (Assert $page) => $page->component('Admin/Dashboard'));
     }
 
     public function test_teacher_dashboard_redirects_to_homeroom(): void

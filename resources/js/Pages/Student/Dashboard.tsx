@@ -30,38 +30,22 @@ interface PageProps {
     stats: Stats;
 }
 
-export default function StudentDashboard({
-    student,
-    todayAttendance,
-    stats,
-}: PageProps) {
+export default function StudentDashboard({ student, todayAttendance, stats }: PageProps) {
     const alpa = stats.absent ?? 0;
     const className = student.class?.name ?? "-";
 
     return (
         <AppShell title="Dashboard Siswa">
-
             {/* ══════════════════════════════════════════════════
                 MOBILE LAYOUT  (lg:hidden)
                 Card sapaan navy + tombol kuning + rekap 3 kolom
             ══════════════════════════════════════════════════ */}
             <div className="lg:hidden flex flex-col gap-4">
-
                 {/* Card sapaan — navy background */}
-                <div
-                    className="rounded-xl px-5 py-5"
-                    style={{ background: "#2E3391" }}
-                >
-                    <p className="text-white/80 text-[11px] font-normal font-inter">
-                        Selamat Pagi,
-                    </p>
-                    <p className="text-white text-[16px] font-bold font-inter mt-0.5">
-                        {student.name}
-                    </p>
-                    <p
-                        className="text-[11px] font-normal font-inter mt-1"
-                        style={{ color: "#FAE62A" }}
-                    >
+                <div className="rounded-xl px-5 py-5" style={{ background: "#2E3391" }}>
+                    <p className="text-white/80 text-[11px] font-normal font-inter">Selamat Pagi,</p>
+                    <p className="text-white text-[16px] font-bold font-inter mt-0.5">{student.name}</p>
+                    <p className="text-[11px] font-normal font-inter mt-1" style={{ color: "#FAE62A" }}>
                         Kelas {className} (Reguler)
                     </p>
                 </div>
@@ -90,16 +74,11 @@ export default function StudentDashboard({
 
                 {/* Rekap bulan ini — 3 kolom */}
                 <div>
-                    <p className="text-[12px] font-bold text-text-primary font-inter mb-2">
-                        REKAP BULAN INI
-                    </p>
+                    <p className="text-[12px] font-bold text-text-primary font-inter mb-2">REKAP BULAN INI</p>
                     <div className="grid grid-cols-3 gap-2.5">
                         {/* Hadir */}
                         <div className="bg-white border border-border rounded-xl p-2.5 flex flex-col items-center gap-1">
-                            <span
-                                className="text-[18px] font-bold leading-none"
-                                style={{ color: "#10B981" }}
-                            >
+                            <span className="text-[18px] font-bold leading-none" style={{ color: "#10B981" }}>
                                 {stats.present}
                             </span>
                             <span className="text-[9px] font-bold text-text-inactive uppercase tracking-wide">
@@ -108,10 +87,7 @@ export default function StudentDashboard({
                         </div>
                         {/* Telat */}
                         <div className="bg-white border border-border rounded-xl p-2.5 flex flex-col items-center gap-1">
-                            <span
-                                className="text-[18px] font-bold leading-none"
-                                style={{ color: "#F59E0B" }}
-                            >
+                            <span className="text-[18px] font-bold leading-none" style={{ color: "#F59E0B" }}>
                                 {stats.late}
                             </span>
                             <span className="text-[9px] font-bold text-text-inactive uppercase tracking-wide">
@@ -120,9 +96,7 @@ export default function StudentDashboard({
                         </div>
                         {/* Alpa */}
                         <div className="bg-white border border-border rounded-xl p-2.5 flex flex-col items-center gap-1">
-                            <span className="text-[18px] font-bold leading-none text-text-primary">
-                                {alpa}
-                            </span>
+                            <span className="text-[18px] font-bold leading-none text-text-primary">{alpa}</span>
                             <span className="text-[9px] font-bold text-text-inactive uppercase tracking-wide">
                                 ALPA
                             </span>
@@ -136,7 +110,6 @@ export default function StudentDashboard({
                 Header text + 3 stat cards + CTA card besar
             ══════════════════════════════════════════════════ */}
             <div className="hidden lg:block">
-
                 {/* Header */}
                 <div className="mb-7">
                     <h1 className="text-[22px] font-bold text-text-primary font-inter mb-1.5">
@@ -203,10 +176,7 @@ export default function StudentDashboard({
                             >
                                 <i className="fas fa-check-circle" />
                             </div>
-                            <h2
-                                className="text-[18px] font-bold font-inter mb-2"
-                                style={{ color: "#2E3391" }}
-                            >
+                            <h2 className="text-[18px] font-bold font-inter mb-2" style={{ color: "#2E3391" }}>
                                 Sudah Presensi Masuk
                             </h2>
                             <p className="text-[13px] text-text-muted font-inter text-center">
@@ -222,10 +192,7 @@ export default function StudentDashboard({
                             >
                                 <i className="fas fa-camera" />
                             </div>
-                            <h2
-                                className="text-[18px] font-bold font-inter mb-2"
-                                style={{ color: "#2E3391" }}
-                            >
+                            <h2 className="text-[18px] font-bold font-inter mb-2" style={{ color: "#2E3391" }}>
                                 Belum Presensi Masuk
                             </h2>
                             <p className="text-[13px] text-text-muted font-inter text-center mb-7">

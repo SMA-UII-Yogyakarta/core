@@ -1,4 +1,6 @@
 import type { InputHTMLAttributes, KeyboardEvent, ReactNode } from "react";
+import Label from "./Label";
+import FormError from "./FormError";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -20,6 +22,8 @@ const allowedNumericKeys = [
     "ArrowRight",
     "ArrowUp",
     "ArrowDown",
+    ".",
+    "-",
 ];
 
 export default function Input({
@@ -32,6 +36,7 @@ export default function Input({
     className = "",
     inputClassName = "",
     onKeyDown,
+    id,
     ...props
 }: InputProps) {
     const handleNumericKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -45,11 +50,7 @@ export default function Input({
 
     return (
         <div className={`w-full ${className}`}>
-            {label && (
-                <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
-                    {label}
-                </label>
-            )}
+            {label && <Label htmlFor={id}>{label}</Label>}
             <div className="relative">
                 {icon && (
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none">
@@ -57,6 +58,7 @@ export default function Input({
                     </span>
                 )}
                 <input
+                    id={id}
                     className={`w-full px-4 py-2.5 border border-border rounded-lg
                         text-[14px] text-text-primary font-inter bg-surface
                         placeholder:text-text-inactive
@@ -74,16 +76,8 @@ export default function Input({
                     </span>
                 )}
             </div>
-            {description && !error && (
-                <p className="mt-1 text-[12px] text-text-muted font-inter">
-                    {description}
-                </p>
-            )}
-            {error && (
-                <p className="mt-1 text-[12px] text-danger font-inter">
-                    {error}
-                </p>
-            )}
+            {description && !error && <p className="mt-1 text-[12px] text-text-muted font-inter">{description}</p>}
+            <FormError message={error} />
         </div>
     );
 }

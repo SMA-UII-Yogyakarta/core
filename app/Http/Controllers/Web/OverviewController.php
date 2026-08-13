@@ -22,7 +22,7 @@ class OverviewController extends Controller
         $monthlyTrend = $this->analyticsService->monthlyTrend();
         $weeklyTrend = $this->analyticsService->weeklyTrend();
 
-        return Inertia::render('Overview', [
+        return Inertia::render('Admin/Overview', [
             'overview' => $overview,
             'monthlyTrend' => $monthlyTrend,
             'weeklyTrend' => $weeklyTrend,

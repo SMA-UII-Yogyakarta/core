@@ -1,12 +1,6 @@
 import { Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import {
-    PageHeader,
-    Card,
-    SelectInput,
-    StatCard,
-    AttendanceChart,
-} from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, AttendanceChart } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiDownload } from "react-icons/fi";
 
@@ -28,8 +22,18 @@ export default function MonthlyReport({
     const { t } = useLanguage();
 
     const monthNames = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
     ];
 
     return (
@@ -43,19 +47,28 @@ export default function MonthlyReport({
                     <div className="flex items-center gap-3">
                         <SelectInput
                             value={selectedMonth.toString()}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/monthly?month=${value ?? ""}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/monthly?month=${value ?? ""}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                            }
                             options={monthNames.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
                             className="w-40"
                         />
                         <SelectInput
                             value={selectedYear.toString()}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/monthly?month=${selectedMonth}&year=${value ?? ""}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                            options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({ value: y.toString(), label: y.toString() }))}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/monthly?month=${selectedMonth}&year=${value ?? ""}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                            }
+                            options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
+                                value: y.toString(),
+                                label: y.toString(),
+                            }))}
                             className="w-28"
                         />
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
-                            onChange={(value: string | number | null) => window.location.href = `/reports/monthly?month=${selectedMonth}&year=${selectedYear}&class_id=${value ?? ""}`}
+                            onChange={(value: string | number | null) =>
+                                (window.location.href = `/reports/monthly?month=${selectedMonth}&year=${selectedYear}&class_id=${value ?? ""}`)
+                            }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
                                 ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
@@ -75,14 +88,8 @@ export default function MonthlyReport({
                 {/* Monthly Trend Chart */}
                 <Card>
                     <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">
-                            {t("reports.monthlyTrend")}
-                        </h3>
-                        <AttendanceChart
-                            data={monthlyStats.months}
-                            type="bar"
-                            height={300}
-                        />
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.monthlyTrend")}</h3>
+                        <AttendanceChart data={monthlyStats.months} type="bar" height={300} />
                     </div>
                 </Card>
 
@@ -108,9 +115,7 @@ export default function MonthlyReport({
                 {/* Monthly Breakdown Table */}
                 <Card>
                     <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">
-                            {t("reports.monthlyBreakdown")}
-                        </h3>
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.monthlyBreakdown")}</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -125,11 +130,15 @@ export default function MonthlyReport({
                                 <tbody>
                                     {monthlyStats.months.map((month) => {
                                         const total = month.present + month.late + month.absent;
-                                        const rate = total > 0
-                                            ? ((month.present + month.late) / total * 100).toFixed(1)
-                                            : "0.0";
+                                        const rate =
+                                            total > 0
+                                                ? (((month.present + month.late) / total) * 100).toFixed(1)
+                                                : "0.0";
                                         return (
-                                            <tr key={month.label} className="border-b border-border/50 hover:bg-primary/5">
+                                            <tr
+                                                key={month.label}
+                                                className="border-b border-border/50 hover:bg-primary/5"
+                                            >
                                                 <td className="py-3 font-medium">{month.label}</td>
                                                 <td className="py-3 text-center text-green-600">{month.present}</td>
                                                 <td className="py-3 text-center text-amber-600">{month.late}</td>

@@ -25,8 +25,18 @@ interface PageProps {
 }
 
 const MONTH_NAMES = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
 ];
 
 const DAY_LABELS = ["M", "S", "S", "R", "K", "J", "S"];
@@ -77,8 +87,8 @@ function mobileStatusIcon(status: string): string {
 function mobileStatusColors(status: string): { iconBg: string; iconColor: string; rowBg: string } {
     const s = status.toLowerCase();
     if (s === "present") return { iconBg: "#DCFCE7", iconColor: "#10B981", rowBg: "#FFFFFF" };
-    if (s === "late")    return { iconBg: "#FEF3C7", iconColor: "#F59E0B", rowBg: "#FFFDEB" };
-    return                       { iconBg: "#FEE2E2", iconColor: "#EF4444", rowBg: "#FFFAFA" };
+    if (s === "late") return { iconBg: "#FEF3C7", iconColor: "#F59E0B", rowBg: "#FFFDEB" };
+    return { iconBg: "#FEE2E2", iconColor: "#EF4444", rowBg: "#FFFAFA" };
 }
 
 function dayFromDate(dateStr: string): number {
@@ -95,12 +105,7 @@ function formatLongDate(dateStr: string): string {
     });
 }
 
-export default function AttendanceHistory({
-    student: _student,
-    attendances,
-    month,
-    year,
-}: PageProps) {
+export default function AttendanceHistory({ student: _student, attendances, month, year }: PageProps) {
     const [monthVal, setMonthVal] = useState(month.toString());
     const [yearVal, setYearVal] = useState(year.toString());
     const [photoModal, setPhotoModal] = useState<{ url: string; date: string } | null>(null);
@@ -127,12 +132,9 @@ export default function AttendanceHistory({
 
     return (
         <AppShell title="Riwayat Kehadiran">
-
             {/* Page header */}
             <div className="mb-6">
-                <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                    Riwayat Kehadiran
-                </h1>
+                <h1 className="text-[22px] font-bold text-text-primary font-inter">Riwayat Kehadiran</h1>
                 <p className="text-[13px] text-text-muted font-inter mt-1">
                     Pantau rekapitulasi kehadiran Anda setiap bulannya.
                 </p>
@@ -146,7 +148,9 @@ export default function AttendanceHistory({
                     className="border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
                     {MONTH_NAMES.map((name, i) => (
-                        <option key={i} value={(i + 1).toString()}>{name}</option>
+                        <option key={i} value={(i + 1).toString()}>
+                            {name}
+                        </option>
                     ))}
                 </select>
                 <select
@@ -155,7 +159,9 @@ export default function AttendanceHistory({
                     className="border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30"
                 >
                     {["2024", "2025", "2026", "2027"].map((y) => (
-                        <option key={y} value={y}>{y}</option>
+                        <option key={y} value={y}>
+                            {y}
+                        </option>
                     ))}
                 </select>
                 <button
@@ -170,7 +176,6 @@ export default function AttendanceHistory({
 
             {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
             <div className="hidden lg:grid lg:grid-cols-[1fr_1.5fr] gap-5">
-
                 {/* Kiri — Kalender visual */}
                 <div className="bg-surface border border-border rounded-xl p-5">
                     <h2 className="text-[15px] font-bold text-text-primary font-inter mb-4">
@@ -180,7 +185,10 @@ export default function AttendanceHistory({
                     {/* Day headers */}
                     <div className="grid grid-cols-7 mb-1">
                         {DAY_LABELS.map((d, i) => (
-                            <div key={i} className="flex items-center justify-center text-[11px] font-bold text-text-muted py-1">
+                            <div
+                                key={i}
+                                className="flex items-center justify-center text-[11px] font-bold text-text-muted py-1"
+                            >
                                 {d}
                             </div>
                         ))}
@@ -244,25 +252,41 @@ export default function AttendanceHistory({
                         <table className="w-full border-collapse font-inter">
                             <thead>
                                 <tr className="border-b border-border bg-background">
-                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">Tanggal</th>
-                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">Waktu</th>
-                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">Status</th>
-                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">Aksi</th>
+                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+                                        Tanggal
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+                                        Waktu
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {attendances.map((att) => (
-                                    <tr key={att.id} className="border-b border-border last:border-b-0 hover:bg-background transition-colors">
+                                    <tr
+                                        key={att.id}
+                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
+                                    >
                                         <td className="px-4 py-3 text-[13px] font-semibold text-text-primary">
                                             {att.attendance_date}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-secondary">
-                                            {att.check_in_time
-                                                ? `${att.check_in_time} WIB`
-                                                : <span className="text-text-muted">—</span>}
+                                            {att.check_in_time ? (
+                                                `${att.check_in_time} WIB`
+                                            ) : (
+                                                <span className="text-text-muted">—</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="text-[12px] font-bold" style={{ color: statusColor(att.status) }}>
+                                            <span
+                                                className="text-[12px] font-bold"
+                                                style={{ color: statusColor(att.status) }}
+                                            >
                                                 {statusLabel(att.status)}
                                             </span>
                                         </td>
@@ -270,7 +294,12 @@ export default function AttendanceHistory({
                                             {att.photo_url ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setPhotoModal({ url: att.photo_url!, date: att.attendance_date })}
+                                                    onClick={() =>
+                                                        setPhotoModal({
+                                                            url: att.photo_url!,
+                                                            date: att.attendance_date,
+                                                        })
+                                                    }
                                                     className="text-[12px] font-medium hover:underline"
                                                     style={{ color: "#2E3391" }}
                                                 >
@@ -324,7 +353,9 @@ export default function AttendanceHistory({
                                     <div className="flex-1 min-w-0">
                                         <p
                                             className="text-[13px] font-bold leading-tight"
-                                            style={{ color: att.status.toLowerCase() === "present" ? "#000000" : iconColor }}
+                                            style={{
+                                                color: att.status.toLowerCase() === "present" ? "#000000" : iconColor,
+                                            }}
                                         >
                                             {mobileStatusLabel(att.status)}
                                         </p>

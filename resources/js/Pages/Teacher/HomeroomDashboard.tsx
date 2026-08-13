@@ -71,11 +71,11 @@ function getRowStatus(s: Student): RowStatus {
 
 type BadgeDef = { label: string; bg: string; color: string };
 const BADGE: Record<RowStatus, BadgeDef> = {
-    alpa:       { label: "ALPA",         bg: "#FFE4E6", color: "#EF4444" },
-    terlambat:  { label: "TERLAMBAT",    bg: "#FEF3C7", color: "#F59E0B" },
-    pending:    { label: "PENDING IZIN", bg: "#E0E7FF", color: "#2E3391" },
-    diizinkan:  { label: "DIIZINKAN",    bg: "#DCFCE7", color: "#10B981" },
-    hadir:      { label: "HADIR",        bg: "#DCFCE7", color: "#10B981" },
+    alpa: { label: "ALPA", bg: "#FFE4E6", color: "#EF4444" },
+    terlambat: { label: "TERLAMBAT", bg: "#FEF3C7", color: "#F59E0B" },
+    pending: { label: "PENDING IZIN", bg: "#E0E7FF", color: "#2E3391" },
+    diizinkan: { label: "DIIZINKAN", bg: "#DCFCE7", color: "#10B981" },
+    hadir: { label: "HADIR", bg: "#DCFCE7", color: "#10B981" },
 };
 
 function rowNote(s: Student): string {
@@ -101,22 +101,17 @@ export default function HomeroomDashboard({
             <AppShell title="Dashboard Wali Kelas">
                 <div className="bg-surface border border-border rounded-xl p-12 text-center">
                     <i className="fas fa-chalkboard-teacher text-[40px] text-text-muted mb-4 block" />
-                    <p className="text-text-muted text-[14px]">
-                        Anda belum ditugaskan sebagai wali kelas.
-                    </p>
+                    <p className="text-text-muted text-[14px]">Anda belum ditugaskan sebagai wali kelas.</p>
                 </div>
             </AppShell>
         );
     }
 
     // Split students: "perhatian khusus" = bukan hadir tepat waktu
-    const attentionStudents = students.filter(
-        (s) => getRowStatus(s) !== "hadir",
-    );
+    const attentionStudents = students.filter((s) => getRowStatus(s) !== "hadir");
 
     return (
         <AppShell title="Dashboard Wali Kelas">
-
             {/* ── Page header ─────────────────────────────────── */}
             <div className="flex items-start justify-between mb-6 flex-wrap gap-2">
                 <div>
@@ -139,10 +134,10 @@ export default function HomeroomDashboard({
             {stats && (
                 <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                     {[
-                        { label: "HADIR / TEPAT WAKTU", value: stats.present,           border: "#10B981", color: "#10B981" },
-                        { label: "TERLAMBAT",            value: stats.late,              border: "#F59E0B", color: "#F59E0B" },
-                        { label: "SAKIT / IZIN",         value: stats.pending_leave ?? 0, border: "#2E3391", color: "#2E3391" },
-                        { label: "TANPA KETERANGAN",     value: stats.absent,            border: "#EF4444", color: "#EF4444" },
+                        { label: "HADIR / TEPAT WAKTU", value: stats.present, border: "#10B981", color: "#10B981" },
+                        { label: "TERLAMBAT", value: stats.late, border: "#F59E0B", color: "#F59E0B" },
+                        { label: "SAKIT / IZIN", value: stats.pending_leave ?? 0, border: "#2E3391", color: "#2E3391" },
+                        { label: "TANPA KETERANGAN", value: stats.absent, border: "#EF4444", color: "#EF4444" },
                     ].map(({ label, value, border, color }) => (
                         <div
                             key={label}
@@ -163,32 +158,36 @@ export default function HomeroomDashboard({
             {/* ── DESKTOP: Tabel Perhatian Khusus ─────────────── */}
             <section className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
                 <div className="px-5 py-4 border-b border-border">
-                    <h2 className="text-[15px] font-bold text-text-primary font-inter">
-                        Perhatian Khusus Hari Ini
-                    </h2>
+                    <h2 className="text-[15px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h2>
                 </div>
                 {attentionStudents.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">
-                        Semua siswa hadir tepat waktu ✓
-                    </div>
+                    <div className="py-12 text-center text-text-muted text-[13px]">Semua siswa hadir tepat waktu ✓</div>
                 ) : (
                     <table className="w-full border-collapse font-inter">
                         <thead>
                             <tr className="bg-background border-b border-border">
-                                {["NISN", "Nama Siswa", "Status Hari Ini", "Waktu / Keterangan", "Tindakan"].map((h) => (
-                                    <th key={h} className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide">
-                                        {h}
-                                    </th>
-                                ))}
+                                {["NISN", "Nama Siswa", "Status Hari Ini", "Waktu / Keterangan", "Tindakan"].map(
+                                    (h) => (
+                                        <th
+                                            key={h}
+                                            className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide"
+                                        >
+                                            {h}
+                                        </th>
+                                    ),
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {attentionStudents.map((s) => {
                                 const status = getRowStatus(s);
-                                const badge  = BADGE[status];
-                                const note   = rowNote(s);
+                                const badge = BADGE[status];
+                                const note = rowNote(s);
                                 return (
-                                    <tr key={s.id} className="border-b border-border last:border-b-0 hover:bg-background transition-colors">
+                                    <tr
+                                        key={s.id}
+                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
+                                    >
                                         <td className="px-4 py-3 text-[13px] font-bold text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.name}</td>
                                         <td className="px-4 py-3">
@@ -199,8 +198,10 @@ export default function HomeroomDashboard({
                                                 {badge.label}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-[13px]"
-                                            style={{ color: status === "terlambat" ? "#F59E0B" : "#64748B" }}>
+                                        <td
+                                            className="px-4 py-3 text-[13px]"
+                                            style={{ color: status === "terlambat" ? "#F59E0B" : "#64748B" }}
+                                        >
                                             {note}
                                         </td>
                                         <td className="px-4 py-3">
@@ -236,9 +237,7 @@ export default function HomeroomDashboard({
                 {/* Summary card navy */}
                 <div className="rounded-xl px-5 py-5" style={{ background: "#2E3391" }}>
                     <p className="text-white/70 text-[11px] font-inter">Ringkasan Hari Ini</p>
-                    <p className="text-white text-[20px] font-bold font-inter mt-1">
-                        {todayFormatted()}
-                    </p>
+                    <p className="text-white text-[20px] font-bold font-inter mt-1">{todayFormatted()}</p>
                     <div className="flex gap-4 mt-3">
                         <div>
                             <p className="text-white/70 text-[10px] uppercase tracking-wide">Total Siswa</p>
@@ -246,7 +245,9 @@ export default function HomeroomDashboard({
                         </div>
                         <div>
                             <p className="text-white/70 text-[10px] uppercase tracking-wide">Hadir</p>
-                            <p className="font-bold text-[16px]" style={{ color: "#10B981" }}>{stats?.present ?? 0}</p>
+                            <p className="font-bold text-[16px]" style={{ color: "#10B981" }}>
+                                {stats?.present ?? 0}
+                            </p>
                         </div>
                         <div>
                             <p className="text-white/70 text-[10px] uppercase tracking-wide">Absen/Telat</p>
@@ -258,23 +259,22 @@ export default function HomeroomDashboard({
                 </div>
 
                 {/* Section title */}
-                <p className="text-[14px] font-bold text-text-primary font-inter">
-                    Perhatian Khusus Hari Ini
-                </p>
+                <p className="text-[14px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</p>
 
                 {attentionStudents.length === 0 ? (
-                    <p className="text-text-muted text-[13px] text-center py-6">
-                        Semua siswa hadir tepat waktu ✓
-                    </p>
+                    <p className="text-text-muted text-[13px] text-center py-6">Semua siswa hadir tepat waktu ✓</p>
                 ) : (
                     attentionStudents.map((s) => {
                         const status = getRowStatus(s);
-                        const badge  = BADGE[status];
-                        const note   = rowNote(s);
+                        const badge = BADGE[status];
+                        const note = rowNote(s);
                         // Border kiri warna per status
                         const leftBorder: Record<RowStatus, string> = {
-                            alpa: "#EF4444", terlambat: "#F59E0B",
-                            pending: "#2E3391", diizinkan: "#10B981", hadir: "#10B981",
+                            alpa: "#EF4444",
+                            terlambat: "#F59E0B",
+                            pending: "#2E3391",
+                            diizinkan: "#10B981",
+                            hadir: "#10B981",
                         };
                         return (
                             <div
@@ -329,11 +329,11 @@ export default function HomeroomDashboard({
                         href="/leave-requests/verification"
                         className="flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-white"
                     >
-                        <span className="text-[13px] font-semibold text-text-primary">
-                            Verifikasi Izin
-                        </span>
-                        <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold"
-                            style={{ background: "#EF4444" }}>
+                        <span className="text-[13px] font-semibold text-text-primary">Verifikasi Izin</span>
+                        <span
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold"
+                            style={{ background: "#EF4444" }}
+                        >
                             {pendingLeaveCount}
                         </span>
                     </Link>

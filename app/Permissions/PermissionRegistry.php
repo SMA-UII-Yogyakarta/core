@@ -60,6 +60,10 @@ class PermissionRegistry
             // Auth
             'logout' => ['*'],
 
+            // Notifications
+            'notifications' => ['*'],
+            'notifications.*' => ['*'],
+
             // Profile
             'profile' => ['*'],
             'profile.*' => ['*'], // covers session revoke

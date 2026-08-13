@@ -1,0 +1,51 @@
+# Production overlay — di belakang nginx-proxy via network nginx-net (external).
+# Aset JS di-build di host dulu (bun run build), public/hot dihapus.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  app:
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: https://preview.smauiiyk.sch.id
+      LOG_LEVEL: warning
+      MAIL_MAILER: log
+    volumes:
+      - ./env/.env.production:/var/www/html/.env:ro
+
+  worker:
+    image: core-app
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      APP_ENV: production
+    volumes:
+      - .:/var/www/html
+      - ./env/.env.production:/var/www/html/.env:ro
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    ulimits:
+      core: 0
+    networks:
+      - smauii
+
+  schedule:
+    image: core-app
+    command: php artisan schedule:work
+    environment:
+      APP_ENV: production
+    volumes:
+      - .:/var/www/html
+      - ./env/.env.production:/var/www/html/.env:ro
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    ulimits:
+      core: 0
+    networks:
+      - smauii
