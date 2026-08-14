@@ -80,9 +80,9 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
         // 1. Zod client validation
         const valid = validateForm(leaveApplicationSchema, data);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                setError(key as any, msg);
-            }
+            Object.entries(valid.errors).forEach(([key, msg]) => {
+                if (msg) setError(key as keyof typeof data, msg);
+            });
             return;
         }
 

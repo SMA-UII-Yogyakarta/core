@@ -14,6 +14,7 @@ services:
       - .:/var/www/html
     ports:
       - "127.0.0.1:5173:5173"
+      - "127.0.0.1:6006:6006"
     restart: unless-stopped
     ulimits:
       core: 0

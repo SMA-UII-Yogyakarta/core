@@ -30,6 +30,13 @@ export default function AppShell({ title, children }: AppShellProps) {
         auth?: {
             user?: { role?: string; teacher?: { teacher_type?: string }; name?: string };
             unreadCount?: number;
+            recentNotifications?: {
+                id: number;
+                title: string;
+                content: string;
+                created_at: string | null;
+                is_read: boolean;
+            }[];
         };
         navSections?: NavSection[];
     }>();
@@ -211,6 +218,7 @@ export default function AppShell({ title, children }: AppShellProps) {
                         onLogout={handleLogout}
                         onSearchClick={() => setCommandPaletteOpen(true)}
                         unreadCount={pageProps.auth?.unreadCount ?? 0}
+                        notifications={pageProps.auth?.recentNotifications ?? []}
                     />
                 </div>
 

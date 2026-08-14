@@ -14,6 +14,8 @@ import {
     Pagination,
     ImportModal,
     Drawer,
+    FAB,
+    Avatar,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
@@ -362,9 +364,10 @@ export default function MasterData({
 
         const valid = validateForm(teacherSchema, teacherForm);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                teacherFormHelper.setError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof teacherForm)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) teacherFormHelper.setError(key, msg);
+            });
             return;
         }
 
@@ -424,9 +427,10 @@ export default function MasterData({
 
         const valid = validateForm(guardianSchema, guardianForm);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                guardianFormHelper.setError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof guardianForm)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) guardianFormHelper.setError(key, msg);
+            });
             return;
         }
 
@@ -447,9 +451,10 @@ export default function MasterData({
 
         const valid = validateForm(studentSchema, studentForm);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                studentFormHelper.setError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof studentForm)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) studentFormHelper.setError(key, msg);
+            });
             return;
         }
 
@@ -483,9 +488,10 @@ export default function MasterData({
         clearClassErrors();
         const valid = validateForm(schoolClassSchema, formData);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                setClassError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof formData)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) setClassError(key, msg);
+            });
             return;
         }
 
@@ -622,7 +628,8 @@ export default function MasterData({
             key: "name",
             header: "Nama Siswa",
             render: (s) => (
-                <div>
+                <div className="flex items-center gap-2.5">
+                    <Avatar name={s.name} size="xs" variant="primary" />
                     <div className="font-semibold text-primary">{s.name}</div>
                 </div>
             ),
@@ -671,7 +678,12 @@ export default function MasterData({
         {
             key: "name",
             header: "Nama Guru",
-            render: (t) => <p className="font-semibold text-primary">{t.name}</p>,
+            render: (t) => (
+                <div className="flex items-center gap-2.5">
+                    <Avatar name={t.name} size="xs" variant="accent" />
+                    <p className="font-semibold text-primary">{t.name}</p>
+                </div>
+            ),
         },
         {
             key: "email",
@@ -869,14 +881,12 @@ export default function MasterData({
                         )}
 
                         {/* Mobile FAB */}
-                        <button
-                            type="button"
+                        <FAB
                             onClick={openCreateStudent}
-                            className="lg:hidden fixed bottom-20 right-5 z-20 w-14 h-14 rounded-full bg-accent text-primary shadow-lg flex items-center justify-center text-xl font-bold"
-                            aria-label="Tambah siswa"
-                        >
-                            <i className="fas fa-plus" />
-                        </button>
+                            label="Tambah Siswa"
+                            dusk="fab-create-student"
+                            className="lg:hidden"
+                        />
                     </div>
                 )}
 

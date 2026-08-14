@@ -93,9 +93,10 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
         clearErrors();
         const valid = validateForm(attendanceCorrectionSchema, data);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                setError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof data)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) setError(key, msg);
+            });
             return;
         }
 

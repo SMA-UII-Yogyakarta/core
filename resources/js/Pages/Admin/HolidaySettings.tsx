@@ -168,9 +168,10 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
 
         const valid = validateForm(holidaySchema, holidayForm);
         if (!valid.success) {
-            for (const [key, msg] of Object.entries(valid.errors)) {
-                setHolidayError(key as any, msg);
-            }
+            (Object.keys(valid.errors) as (keyof typeof holidayForm)[]).forEach((key) => {
+                const msg = valid.errors[key];
+                if (msg) setHolidayError(key, msg);
+            });
             return;
         }
 

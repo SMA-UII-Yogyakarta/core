@@ -1,49 +1,83 @@
 import { render } from "@testing-library/react";
 import { axe, toHaveNoViolations } from "jest-axe";
+import { describe, expect, test } from "vitest";
+import {
+    Avatar,
+    Button,
+    LiveBadge,
+    MetricPill,
+    StatusBadge,
+    StatCard,
+    AttendanceCalendar,
+    ExportButtonGroup,
+} from "@/Components";
 
 expect.extend(toHaveNoViolations);
 
-describe("Accessibility Tests", () => {
-    test("404 page has no accessibility violations", async () => {
-        const { container } = render(
-            <div>
-                <h1>404</h1>
-                <p>Page not found</p>
-                <a href="/">Back to Home</a>
-            </div>,
-        );
-
+describe("Accessibility (A11y) Tests", () => {
+    test("Button component passes axe audit", async () => {
+        const { container } = render(<Button variant="primary">Tombol Akses</Button>);
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });
 
-    test("403 page has no accessibility violations", async () => {
-        const { container } = render(
-            <div>
-                <h1>403</h1>
-                <p>Access denied</p>
-                <button>Back</button>
-            </div>,
-        );
-
+    test("StatusBadge component passes axe audit", async () => {
+        const { container } = render(<StatusBadge variant="Present" />);
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });
 
-    test("basic HTML structure has no accessibility violations", async () => {
+    test("StatCard component passes axe audit", async () => {
         const { container } = render(
-            <div>
-                <h1>Test Page</h1>
-                <button>Test Button</button>
-                <a href="/test">Test Link</a>
-                <img src="/test.png" alt="Test image" />
-                <form>
-                    <label htmlFor="test">Test Label</label>
-                    <input id="test" type="text" />
-                </form>
-            </div>,
+            <StatCard
+                label="Kehadiran"
+                value="98%"
+                subtitle="Bulan ini"
+                color="blue"
+            />,
         );
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
 
+    test("Avatar component passes axe audit", async () => {
+        const { container } = render(<Avatar name="Ahmad Dahlan" size="md" />);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+
+    test("LiveBadge component passes axe audit", async () => {
+        const { container } = render(<LiveBadge label="LIVE" variant="success" />);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+
+    test("MetricPill component passes axe audit", async () => {
+        const { container } = render(<MetricPill label="HADIR" value={20} variant="success" />);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+
+    test("AttendanceCalendar component passes axe audit", async () => {
+        const { container } = render(
+            <AttendanceCalendar
+                month={8}
+                year={2026}
+                attendances={[]}
+            />,
+        );
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+
+    test("ExportButtonGroup component passes axe audit", async () => {
+        const { container } = render(
+            <ExportButtonGroup
+                onExportExcel={() => {}}
+                onExportPdf={() => {}}
+                onPrint={() => {}}
+            />,
+        );
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });

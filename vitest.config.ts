@@ -9,6 +9,11 @@ export default defineConfig({
         environment: "jsdom",
         setupFiles: ["./resources/js/__tests__/setup.ts"],
         include: ["**/__tests__/**/*.test.{ts,tsx}"],
+        server: {
+            deps: {
+                inline: ["zod"],
+            },
+        },
         coverage: {
             provider: "v8",
             reporter: ["text", "json", "html"],
@@ -16,7 +21,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@": path.resolve(__dirname, "./resources/js"),
+            "@": path.resolve(import.meta.dirname, "./resources/js"),
         },
     },
 });

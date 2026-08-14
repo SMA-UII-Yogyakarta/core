@@ -1,19 +1,20 @@
-import { ElementType, ReactNode, forwardRef } from "react";
+import type { ElementType, ReactNode, ComponentPropsWithRef } from "react";
 import type { ButtonVariant, ButtonSize } from "@/types/component";
 
-type PolymorphicProps<E extends ElementType> = React.PropsWithChildren<
-    React.ComponentPropsWithoutRef<E> & {
-        as?: E;
-    }
->;
-
-export type ButtonProps<E extends ElementType = "button"> = PolymorphicProps<E> & {
+export type ButtonProps<E extends ElementType = "button"> = {
+    as?: E;
     variant?: ButtonVariant | "success";
     size?: ButtonSize;
     loading?: boolean;
     icon?: ReactNode;
     disabled?: boolean;
-};
+    dusk?: string;
+    className?: string;
+    children?: ReactNode;
+} & Omit<
+    ComponentPropsWithRef<E>,
+    "as" | "variant" | "size" | "loading" | "icon" | "disabled" | "className" | "children"
+>;
 
 const variantStyles: Record<ButtonVariant | "success", string> = {
     primary: "bg-primary text-white hover:bg-primary/90",
@@ -30,61 +31,53 @@ const sizeStyles: Record<ButtonSize, string> = {
     lg: "px-6 py-3 text-[16px]",
 };
 
-export const Button = forwardRef(
-    <E extends ElementType = "button">(
-        {
-            as,
-            variant = "primary",
-            size = "md",
-            loading = false,
-            disabled = false,
-            className = "",
-            children,
-            icon,
-            ...props
-        }: ButtonProps<E>,
-        ref: React.Ref<any>,
-    ) => {
-        const Component = as || "button";
+export function Button<E extends ElementType = "button">({
+    as,
+    variant = "primary",
+    size = "md",
+    loading = false,
+    disabled = false,
+    className = "",
+    children,
+    icon,
+    ...props
+}: ButtonProps<E>) {
+    const Component = as || "button";
+    const isDisabled = disabled || loading;
 
-        // If it's a link but it's disabled, we might still want to apply visual disabling
-        const isDisabled = disabled || loading;
-
-        return (
-            <Component
-                ref={ref}
-                className={`inline-flex items-center justify-center gap-2 font-inter font-semibold rounded-lg transition-colors duration-150 text-center
-                    ${variantStyles[variant]}
-                    ${sizeStyles[size]}
-                    ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}
-                    ${className}`}
-                disabled={isDisabled && Component === "button" ? true : undefined}
-                {...props}
-            >
-                {loading ? (
-                    <span className="inline-flex items-center gap-2">
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                            <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                            />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                        </svg>
-                        Loading...
-                    </span>
-                ) : (
-                    <>
-                        {icon}
-                        {children}
-                    </>
-                )}
-            </Component>
-        );
-    },
-) as <E extends ElementType = "button">(props: ButtonProps<E> & { ref?: React.Ref<Element> }) => React.ReactElement;
+    return (
+        <Component
+            className={`inline-flex items-center justify-center gap-2 font-inter font-semibold rounded-lg transition-colors duration-150 text-center
+                ${variantStyles[variant]}
+                ${sizeStyles[size]}
+                ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}
+                ${className}`}
+            disabled={isDisabled && Component === "button" ? true : undefined}
+            {...props}
+        >
+            {loading ? (
+                <span className="inline-flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    Loading...
+                </span>
+            ) : (
+                <>
+                    {icon}
+                    {children}
+                </>
+            )}
+        </Component>
+    );
+}
 
 export default Button;

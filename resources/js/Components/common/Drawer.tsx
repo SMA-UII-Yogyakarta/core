@@ -85,6 +85,8 @@ export default function Drawer({
                                 className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                                 type="button"
                                 aria-label="Tutup"
+                                dusk="drawer-close-btn"
+                                data-testid="drawer-close-btn"
                             >
                                 <FaTimes className="w-4 h-4" />
                             </button>
@@ -96,10 +98,21 @@ export default function Drawer({
                                 <div className="flex-1 overflow-y-auto p-5 space-y-4">{children}</div>
                                 {/* Drawer Footer */}
                                 <div className="flex items-center justify-end gap-3 p-5 border-t border-border select-none shrink-0 bg-surface">
-                                    <Button type="button" variant="ghost" onClick={onClose}>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={onClose}
+                                        dusk="drawer-cancel-btn"
+                                        data-testid="drawer-cancel-btn"
+                                    >
                                         Batal
                                     </Button>
-                                    <Button type="submit" loading={loading}>
+                                    <Button
+                                        type="submit"
+                                        loading={loading}
+                                        dusk="drawer-submit-btn"
+                                        data-testid="drawer-submit-btn"
+                                    >
                                         {submitLabel}
                                     </Button>
                                 </div>
