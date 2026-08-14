@@ -242,16 +242,45 @@ git push origin feature/feature-name
 # Create Pull Request to develop branch
 ```
 
-### Running Tests
+### Running Tests & Quality Assurance
 
 ```bash
+# 1. Backend PHPUnit Tests (160 tests)
 php artisan test
+
+# 2. Fast TypeScript Schema Tests (Bun Test)
+bun run test:bun
+
+# 3. Component & Accessibility Tests (Vitest + Axe-Core)
+bun run test
+
+# 4. Playwright E2E Browser Testing (Virtual Camera & GPS Geofence)
+bun run test:e2e
+
+# 5. Typecheck & Linting
+bun run typecheck
+bun run lint
 ```
+
+📖 **Detailed Testing Manual:** See [`docs/TESTING-GUIDE.md`](docs/TESTING-GUIDE.md) and [`docs/SEED-DATA-TESTING-GUIDE.md`](docs/SEED-DATA-TESTING-GUIDE.md).
+
+### Design System & Storybook (WCAG 2.1 AA)
+
+```bash
+# Run Storybook Component Explorer (Port 6006)
+bun run storybook
+
+# Build Production Storybook Static Assets
+bun run build-storybook
+```
+
+🎨 **Design System & Architecture Guide:** See [`docs/DESIGN-SYSTEM-STORYBOOK.md`](docs/DESIGN-SYSTEM-STORYBOOK.md).
 
 ### Coding Style
 
 ```bash
 ./vendor/bin/pint  # Laravel Pint (PSR-12)
+bun run format     # Biome Formatter
 ```
 
 ---

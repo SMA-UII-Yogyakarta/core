@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { PageHeader, Card, Button } from "@/Components";
+import { PageHeader, Card, ExportButtonGroup } from "@/Components";
 
 interface ExportRow {
     no: number;
@@ -148,24 +148,14 @@ export default function ExportPage({
                         </select>
 
                         {/* PDF + Excel */}
-                        <div className="grid grid-cols-2 gap-3 w-full lg:w-auto lg:flex">
-                            <Button
-                                as="a"
-                                href={pdfHref}
-                                variant="danger"
-                                icon={<i className="fas fa-file-pdf text-[13px]" />}
-                            >
-                                PDF
-                            </Button>
-                            <Button
-                                as="a"
-                                href={excelHref}
-                                variant="success"
-                                icon={<i className="fas fa-file-excel text-[13px]" />}
-                            >
-                                Excel
-                            </Button>
-                        </div>
+                        <ExportButtonGroup
+                            onExportExcel={() => {
+                                window.location.href = excelHref;
+                            }}
+                            onExportPdf={() => {
+                                window.location.href = pdfHref;
+                            }}
+                        />
                     </div>
                 </div>
 

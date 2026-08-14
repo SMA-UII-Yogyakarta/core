@@ -61,8 +61,11 @@ export default function Modal({
                     <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
                     <button
                         onClick={onClose}
-                        className="text-text-muted hover:text-text-primary transition-colors"
+                        className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                         type="button"
+                        aria-label="Tutup"
+                        dusk="modal-close-btn"
+                        data-testid="modal-close-btn"
                     >
                         <FaTimes className="w-4 h-4" />
                     </button>
@@ -70,10 +73,20 @@ export default function Modal({
                 <div className="p-5">{children}</div>
                 {onSubmit && (
                     <div className="flex items-center justify-end gap-3 p-5 border-t border-border">
-                        <Button variant="ghost" onClick={onClose}>
+                        <Button
+                            variant="ghost"
+                            onClick={onClose}
+                            dusk="modal-cancel-btn"
+                            data-testid="modal-cancel-btn"
+                        >
                             Batal
                         </Button>
-                        <Button onClick={() => onSubmit?.()} loading={loading}>
+                        <Button
+                            onClick={() => onSubmit?.()}
+                            loading={loading}
+                            dusk="modal-submit-btn"
+                            data-testid="modal-submit-btn"
+                        >
                             {submitLabel}
                         </Button>
                     </div>

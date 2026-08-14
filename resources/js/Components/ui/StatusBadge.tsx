@@ -1,7 +1,19 @@
 import type { StatusVariant } from "@/types/component";
 
+export type StatusInput =
+    | StatusVariant
+    | "hadir"
+    | "terlambat"
+    | "sakit"
+    | "izin"
+    | "alpa"
+    | "alpha"
+    | "permit"
+    | "leave"
+    | string;
+
 interface StatusBadgeProps {
-    variant: StatusVariant;
+    variant: StatusInput;
     label?: string;
 }
 
@@ -54,8 +66,24 @@ const config: Record<StatusVariant, { bg: string; text: string; defaultLabel: st
     },
 };
 
+export function resolveStatusVariant(status: string): StatusVariant {
+    const s = status.toLowerCase().trim();
+    if (s === "present" || s === "hadir") return "present";
+    if (s === "late" || s === "terlambat") return "late";
+    if (s === "absent" || s === "alpa" || s === "alpha" || s === "tidak hadir") return "absent";
+    if (s === "sick" || s === "sakit") return "sick";
+    if (s === "permission" || s === "izin" || s === "permit" || s === "leave") return "permission";
+    if (s === "active" || s === "aktif") return "active";
+    if (s === "inactive" || s === "non-aktif" || s === "nonaktif") return "inactive";
+    if (s === "pending" || s === "menunggu") return "pending";
+    if (s === "approved" || s === "disetujui") return "approved";
+    if (s === "rejected" || s === "ditolak") return "rejected";
+    return "pending";
+}
+
 export default function StatusBadge({ variant, label }: StatusBadgeProps) {
-    const { bg, text, defaultLabel } = config[variant];
+    const resolved = resolveStatusVariant(variant);
+    const { bg, text, defaultLabel } = config[resolved] ?? config.pending;
     return (
         <span className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text}`}>
             {label ?? defaultLabel}

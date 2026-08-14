@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "@inertiajs/react";
+import Avatar from "../ui/Avatar";
+import NotificationPopover, { NotificationItem } from "./NotificationPopover";
 
 interface NavbarProps {
     brand: string;
@@ -9,6 +11,7 @@ interface NavbarProps {
     onLogout?: () => void;
     onSearchClick?: () => void;
     unreadCount?: number;
+    notifications?: NotificationItem[];
 }
 
 export default function Navbar({
@@ -19,6 +22,7 @@ export default function Navbar({
     onLogout,
     onSearchClick,
     unreadCount = 0,
+    notifications = [],
 }: NavbarProps) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -37,9 +41,7 @@ export default function Navbar({
         <header className="flex items-center justify-between px-6 sm:px-10 py-4 bg-primary h-[70px] w-full shrink-0">
             {/* Left — Brand */}
             <div className="flex items-center gap-3">
-                <div className="w-[38px] h-[38px] rounded-full bg-accent flex items-center justify-center text-primary font-extrabold text-[11px] font-inter shrink-0 select-none">
-                    UII
-                </div>
+                <Avatar name="SMA UII" size="sm" variant="accent" alt="SMA UII Logo" />
                 <span className="text-white font-bold text-[16px] font-inter tracking-wide hidden sm:block">
                     {brand}
                 </span>
@@ -55,18 +57,13 @@ export default function Navbar({
                 >
                     <i className="fas fa-search" />
                 </button>
-                <Link
-                    href="/notifications"
-                    className="text-white/80 hover:text-white transition-colors text-[16px] relative"
-                    aria-label="Notifikasi"
-                >
-                    <i className="fas fa-bell" />
-                    {unreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-1.5 bg-danger text-white text-[9px] font-bold w-[15px] h-[15px] flex items-center justify-center rounded-full border border-primary shrink-0 select-none">
-                            {unreadCount}
-                        </span>
-                    )}
-                </Link>
+
+                {/* Facebook-style Desktop Notification Popover */}
+                <NotificationPopover
+                    unreadCount={unreadCount}
+                    notifications={notifications}
+                    dusk="desktop-notification-popover"
+                />
 
                 {/* Vertical Divider */}
                 <div className="h-6 w-[1px] bg-white/20 mx-1" />
@@ -74,20 +71,19 @@ export default function Navbar({
                 {/* Mobile: Simple Link to Profile */}
                 <Link
                     href="/profile"
-                    className="sm:hidden w-8 h-8 bg-accent rounded-full flex items-center justify-center text-primary font-bold text-[12px] shrink-0"
+                    className="sm:hidden shrink-0"
+                    aria-label="Profil Pengguna"
                 >
-                    {userInitial}
+                    <Avatar name={username || userInitial} size="sm" variant="accent" />
                 </Link>
 
                 {/* Desktop/Tablet: Profile Dropdown */}
                 <div className="hidden sm:block relative" ref={dropdownRef}>
                     <button
                         onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/10 p-1.5 pr-4 rounded-full transition-colors focus:outline-none"
+                        className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/10 p-1.5 pr-4 rounded-full transition-colors focus:outline-none cursor-pointer"
                     >
-                        <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-primary font-extrabold text-[10px] font-inter shrink-0 select-none">
-                            {userInitial}
-                        </div>
+                        <Avatar name={username || userInitial} size="xs" variant="accent" />
                         <span className="text-white/90 text-[13px] font-medium font-inter">{username}</span>
                         <i
                             className={`fas fa-chevron-down text-[10px] text-white/70 ml-1 transition-transform ${

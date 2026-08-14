@@ -26,14 +26,14 @@ interface CommandItem {
     title: string;
     description: string;
     category: string;
-    icon: React.ComponentType<any>;
+    icon: React.ComponentType<{ className?: string }>;
     action: () => void;
     roles?: string[];
 }
 
 export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
-    const { auth } = usePage().props as any;
-    const userRole = auth.user?.role;
+    const { auth } = usePage().props as { auth?: { user?: { role?: string } } };
+    const userRole = auth?.user?.role;
     const { setLanguage } = useLanguage();
     const [search, setSearch] = useState("");
     const [activeIndex, setActiveIndex] = useState(0);
@@ -182,7 +182,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
         // Filter based on user roles
         return list.filter((cmd) => {
             if (!cmd.roles) return true;
-            return cmd.roles.includes(userRole);
+            return userRole ? cmd.roles.includes(userRole) : false;
         });
     }, [userRole, setLanguage]);
 
