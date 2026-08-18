@@ -73,13 +73,32 @@ class AnalyticsService
             ->get()
             ->keyBy('student_id');
 
-        $studentStats = $students->map(fn ($s) => [
-            'id' => $s->id,
-            'name' => $s->name,
-            'nis' => $s->nis,
-            'status' => $attendances->get($s->id)->status ?? 'Absent',
-            'check_in_time' => $attendances->get($s->id)?->check_in_time,
-        ]);
+        $pendingLeaves = LeaveRequest::whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->where('approval_status', 'Pending')
+            ->whereIn('student_id', $students->pluck('id'))
+            ->pluck('student_id')
+            ->flip();
+
+        $studentStats = $students->map(function ($s) use ($attendances, $pendingLeaves) {
+            $attendance = $attendances->get($s->id);
+
+            if ($attendance) {
+                $status = $attendance->status;
+            } elseif ($pendingLeaves->has($s->id)) {
+                $status = 'Pending';
+            } else {
+                $status = 'Absent';
+            }
+
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'nis' => $s->nis,
+                'status' => $status,
+                'check_in_time' => $attendance?->check_in_time?->format('H:i:s'),
+            ];
+        });
 
         return [
             'class' => ['id' => $class->id, 'name' => $class->name],
@@ -307,6 +326,62 @@ class AnalyticsService
         }
 
         return $weekly;
+    }
+
+    public function classMonthlyRecap(int $classId, int $month, int $year): array
+    {
+        $startOfMonth = now()->setDate($year, $month, 1)->startOfMonth();
+        $endOfMonth = now()->setDate($year, $month, 1)->endOfMonth();
+
+        $students = Student::where('class_id', $classId)
+            ->where('status', 'Active')
+            ->get();
+
+        $attendances = Attendance::whereIn('student_id', $students->pluck('id'))
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month)
+            ->get()
+            ->groupBy('student_id');
+
+        $leaveRequests = LeaveRequest::whereIn('student_id', $students->pluck('id'))
+            ->whereDate('start_date', '<=', $endOfMonth)
+            ->whereDate('end_date', '>=', $startOfMonth)
+            ->whereIn('approval_status', ['Approved', 'Pending'])
+            ->get()
+            ->groupBy('student_id');
+
+        $recap = $students->map(function ($student) use ($attendances, $leaveRequests, $startOfMonth) {
+            $studentAttendances = $attendances->get($student->id, collect());
+            $studentLeaves = $leaveRequests->get($student->id, collect());
+
+            $present = $studentAttendances->where('status', 'Present')->count();
+            $late = $studentAttendances->where('status', 'Late')->count();
+            $masuk = $present + $late;
+
+            $izin = $studentLeaves->where('category', 'Permission')->count();
+            $sakit = $studentLeaves->where('category', 'Sick')->count();
+
+            $totalRecords = $studentAttendances->count() + $studentLeaves->count();
+            $daysInMonth = (int) $startOfMonth->daysInMonth;
+            $alpha = max(0, $daysInMonth - $totalRecords);
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'nis' => $student->nis,
+                'masuk' => $masuk,
+                'izin' => $izin,
+                'sakit' => $sakit,
+                'alpha' => $alpha,
+            ];
+        });
+
+        return [
+            'class' => ['id' => $classId, 'name' => SchoolClass::find($classId)->name],
+            'month' => $month,
+            'year' => $year,
+            'students' => $recap,
+        ];
     }
 
     public function kelasPerbandingan(?string $date = null): Collection

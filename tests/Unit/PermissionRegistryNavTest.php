@@ -82,6 +82,7 @@ class PermissionRegistryNavTest extends TestCase
             '/teacher/duty',
             '/export',
             '/leave-requests',
+            '/reports?tab=daily',
         ], $this->navHrefs('piket'));
     }
 
@@ -91,6 +92,7 @@ class PermissionRegistryNavTest extends TestCase
             '/teacher/homeroom',
             '/export',
             '/leave-requests/verification',
+            '/reports',
         ], $this->navHrefs('wali'));
     }
 

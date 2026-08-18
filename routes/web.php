@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianPortalController;
+use App\Http\Controllers\Web\HomeroomReportController;
 use App\Http\Controllers\Web\LeaveRequestController;
 use App\Http\Controllers\Web\MonthlyReportController;
 use App\Http\Controllers\Web\NotificationController;
@@ -134,6 +135,9 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::get('/attendance-correction', [AttendanceOverrideController::class, 'index'])->name('attendance-correction');
     Route::post('/attendance-correction', [AttendanceOverrideController::class, 'store'])->name('attendance-correction.store');
     Route::delete('/attendance-correction/{id}', [AttendanceOverrideController::class, 'destroy'])->name('attendance-correction.destroy');
+
+    // Homeroom Teacher Reports (tabbed: daily, monthly, semester)
+    Route::get('/reports', [HomeroomReportController::class, '__invoke'])->name('reports')->middleware('teacher.type:wali');
 
     // Teacher Dashboards
     Route::prefix('teacher')->name('teacher.')->group(function () {

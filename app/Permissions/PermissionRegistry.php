@@ -54,6 +54,9 @@ class PermissionRegistry
             'teacher.duty' => ['teacher:piket'],
             'teacher.homeroom' => ['teacher:wali'],
 
+            // Homeroom Teacher Reports
+            'reports' => ['teacher:piket', 'teacher:wali'],
+
             // Guardian
             'guardian.dashboard' => ['guardian'],
             'guardian.leave-application' => ['guardian'],
@@ -99,6 +102,9 @@ class PermissionRegistry
 
                     ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:piket']],
                     ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:wali']],
+
+                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:wali']],
+                    ['key' => 'reports.daily',      'label' => 'Rekap Harian',      'icon' => 'fa-history',           'href' => '/reports?tab=daily',    'roles' => ['teacher:piket']],
 
                     ['key' => 'guardian.leave-application', 'label' => 'Pengajuan Izin', 'icon' => 'fa-paper-plane', 'href' => '/guardian/leave-application', 'roles' => ['guardian']],
                     ['key' => 'guardian.history',           'label' => 'Riwayat',        'icon' => 'fa-history',      'href' => '/guardian/history',           'roles' => ['guardian']],
