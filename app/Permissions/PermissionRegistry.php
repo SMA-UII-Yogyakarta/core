@@ -57,6 +57,7 @@ class PermissionRegistry
 
             // Student
             'student.dashboard' => ['student'],
+            'student.overview' => ['student'],
             'student.history' => ['student'],
 
             // Auth
@@ -81,10 +82,10 @@ class PermissionRegistry
                 'label' => 'Utama',
                 'items' => [
                     ['key' => 'dashboard-admin',    'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/dashboard',               'roles' => ['admin']],
-                    ['key' => 'dashboard-piket',    'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:piket']],
-                    ['key' => 'dashboard-wali',     'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:wali']],
-                    ['key' => 'dashboard-guardian', 'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/guardian',                'roles' => ['guardian']],
-                    ['key' => 'dashboard-siswa',    'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/student/dashboard',       'roles' => ['student']],
+                    ['key' => 'dashboard-piket',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:piket']],
+                    ['key' => 'dashboard-wali',     'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:wali']],
+                    ['key' => 'dashboard-guardian', 'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/guardian',                'roles' => ['guardian']],
+                    ['key' => 'dashboard-siswa',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/student/dashboard',       'roles' => ['student']],
 
                     ['key' => 'master-data',        'label' => 'Data Master',       'icon' => 'fa-database',          'href' => '/master-data',          'roles' => ['admin']],
                     ['key' => 'class-enrolment',    'label' => 'Enrolment Kelas',   'icon' => 'fa-chalkboard-teacher','href' => '/class-enrolment',      'roles' => ['admin']],

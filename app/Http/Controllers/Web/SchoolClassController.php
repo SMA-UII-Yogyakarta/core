@@ -24,12 +24,7 @@ class SchoolClassController extends Controller
             request()->only(['search']),
         );
 
-        $assignedTeacherIds = SchoolClass::whereNotNull('teacher_id')
-            ->pluck('teacher_id')
-            ->unique();
-
-        $availableTeachers = Teacher::whereNotIn('id', $assignedTeacherIds)
-            ->select(['id', 'name'])
+        $allTeachers = Teacher::select(['id', 'name'])
             ->orderBy('name')
             ->get();
 
@@ -39,7 +34,8 @@ class SchoolClassController extends Controller
         return Inertia::render('Admin/MasterData', [
             'activeTab' => 'classes',
             'schoolClasses' => $classes,
-            'allTeachers' => $availableTeachers,
+            'allTeachers' => $allTeachers,
+            'classOptions' => $classes->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->all(),
             'searchConfig' => [
                 'mode' => $isClientMode ? 'client' : 'server',
                 'allData' => $isClientMode ? $classes->all() : null,

@@ -85,5 +85,37 @@ class DashboardRoleTest extends TestCase
         $this->actingAs($user)->get('/student/dashboard')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->component('Student/Dashboard'));
+
+        $this->actingAs($user)->get('/student/overview')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('Student/Dashboard'));
+    }
+
+    public function test_overview_route_dispatches_smartly_per_role(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)->get('/overview')
+            ->assertRedirect(route('dashboard'));
+
+        $waliUser = User::factory()->create(['role' => 'teacher']);
+        Teacher::factory()->create(['user_id' => $waliUser->id, 'teacher_type' => 'wali']);
+        $this->actingAs($waliUser)->get('/overview')
+            ->assertRedirect(route('teacher.homeroom'));
+
+        $piketUser = User::factory()->create(['role' => 'teacher']);
+        Teacher::factory()->create(['user_id' => $piketUser->id, 'teacher_type' => 'piket']);
+        $this->actingAs($piketUser)->get('/overview')
+            ->assertRedirect(route('teacher.duty'));
+
+        $guardianUser = User::factory()->create(['role' => 'guardian']);
+        Guardian::factory()->create(['user_id' => $guardianUser->id]);
+        $this->actingAs($guardianUser)->get('/overview')
+            ->assertRedirect(route('guardian.dashboard'));
+
+        $studentUser = User::factory()->create(['role' => 'student']);
+        $schoolClass = SchoolClass::factory()->create();
+        Student::factory()->create(['user_id' => $studentUser->id, 'class_id' => $schoolClass->id]);
+        $this->actingAs($studentUser)->get('/overview')
+            ->assertRedirect(route('student.dashboard'));
     }
 }
