@@ -318,13 +318,15 @@ export default function History({
                         </FilterBar>
 
                         {/* Attendance Table */}
-                        <Card className="p-5 border-border">
-                            <h3 className="text-[16px] font-bold text-text-primary font-inter mb-4 flex items-center justify-between">
-                                <span>Detail Presensi — {MONTH_NAMES[month - 1]} {year}</span>
-                                <span className="text-[12px] font-normal text-text-muted">
+                        <section className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-[16px] font-bold text-text-primary font-inter">
+                                    Detail Presensi — {MONTH_NAMES[month - 1]} {year}
+                                </h3>
+                                <span className="text-[12px] font-normal text-text-muted font-inter">
                                     Total: {attendances.length} Rekam Data
                                 </span>
-                            </h3>
+                            </div>
 
                             {attendances.length === 0 ? (
                                 <EmptyState
@@ -338,16 +340,18 @@ export default function History({
                                     keyExtractor={(item: AttendanceRecord) => item.id}
                                 />
                             )}
-                        </Card>
+                        </section>
 
                         {/* Leave Requests Table */}
-                        <Card className="p-5 border-border">
-                            <h3 className="text-[16px] font-bold text-text-primary font-inter mb-4 flex items-center justify-between">
-                                <span>Riwayat Permohonan Izin / Sakit</span>
-                                <span className="text-[12px] font-normal text-text-muted">
+                        <section className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-[16px] font-bold text-text-primary font-inter">
+                                    Riwayat Permohonan Izin / Sakit
+                                </h3>
+                                <span className="text-[12px] font-normal text-text-muted font-inter">
                                     Total: {leaveRequests.length} Pengajuan
                                 </span>
-                            </h3>
+                            </div>
 
                             {leaveRequests.length === 0 ? (
                                 <EmptyState
@@ -361,7 +365,7 @@ export default function History({
                                     keyExtractor={(item: LeaveRequest) => item.id}
                                 />
                             )}
-                        </Card>
+                        </section>
                     </>
                 ) : (
                     <EmptyState

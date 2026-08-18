@@ -333,16 +333,16 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                 </Card>
 
                 {/* Submitted Leave Applications History */}
-                <Card className="p-6 border-border">
-                    <h3 className="text-[16px] font-bold text-text-primary mb-4 flex items-center justify-between font-inter">
-                        <span className="flex items-center gap-2">
+                <section className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-[16px] font-bold text-text-primary flex items-center gap-2 font-inter">
                             <FiClock className="w-5 h-5 text-primary" />
                             <span>Riwayat Pengajuan Izin Saya</span>
-                        </span>
-                        <span className="text-[12px] font-normal text-text-muted">
+                        </h3>
+                        <span className="text-[12px] font-normal text-text-muted font-inter">
                             Total: {leaveRequests.total ?? leaveRequests.data.length} Pengajuan
                         </span>
-                    </h3>
+                    </div>
 
                     {leaveRequests.data.length === 0 ? (
                         <EmptyState
@@ -356,7 +356,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                             keyExtractor={(item: LeaveRequestRecord) => item.id}
                         />
                     )}
-                </Card>
+                </section>
             </div>
         </AppShell>
     );
