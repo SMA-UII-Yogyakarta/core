@@ -13,6 +13,24 @@ class StorageService
     public function __construct()
     {
         $this->disk = (string) config('filesystems.default', 'local');
+        $this->ensureBucketExists();
+    }
+
+    public function ensureBucketExists(): void
+    {
+        if ($this->disk !== 's3') {
+            return;
+        }
+
+        try {
+            $client = Storage::disk('s3')->getClient();
+            $bucket = (string) config('filesystems.disks.s3.bucket');
+            if ($bucket && ! $client->doesBucketExistV2($bucket)) {
+                $client->createBucket(['Bucket' => $bucket]);
+            }
+        } catch (\Throwable) {
+            // Ignore if bucket already exists or permissions restricted
+        }
     }
 
     public function uploadAttendancePhoto(UploadedFile $file, int $studentId): string

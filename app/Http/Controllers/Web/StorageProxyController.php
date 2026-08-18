@@ -13,13 +13,17 @@ class StorageProxyController extends Controller
         $diskName = (string) config('filesystems.default', 's3');
         $disk = Storage::disk($diskName);
 
-        if (! $disk->exists($path)) {
+        try {
+            if (! $disk->exists($path)) {
+                abort(404, 'File not found');
+            }
+
+            $mimeType = $disk->mimeType($path) ?: 'image/jpeg';
+            $size = $disk->size($path);
+            $stream = $disk->readStream($path);
+        } catch (\Throwable) {
             abort(404, 'File not found');
         }
-
-        $mimeType = $disk->mimeType($path) ?: 'image/jpeg';
-        $size = $disk->size($path);
-        $stream = $disk->readStream($path);
 
         return response()->stream(function () use ($stream) {
             if (is_resource($stream)) {
