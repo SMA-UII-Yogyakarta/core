@@ -52,7 +52,7 @@ function approvalLabel(status: string): string {
 }
 
 const inputCls =
-    "w-full border border-border rounded-lg px-3 py-2.5 text-[13px] text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-primary/20";
+    "w-full h-10 border border-border rounded-lg px-3 text-[13px] text-text-primary bg-white focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 export default function LeaveApplication({ students, leaveRequests }: PageProps) {
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -132,7 +132,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                         <select
                             value={data.student_id}
                             onChange={(e) => setData("student_id", e.target.value)}
-                            className="w-full appearance-none rounded-lg px-3 py-2.5 text-[13px] font-bold font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
+                            className="w-full h-10 appearance-none rounded-lg px-3 text-[13px] font-bold font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8"
                             style={{
                                 border: "1px solid #2E3391",
                                 color: "#2E3391",

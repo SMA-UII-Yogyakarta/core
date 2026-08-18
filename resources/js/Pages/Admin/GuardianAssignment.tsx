@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Avatar, Modal, SearchBar } from "@/Components";
+import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -39,20 +39,64 @@ export default function GuardianAssignment({
 }: PageProps) {
     const [guardianId, setGuardianId] = useState(selectedGuardianId?.toString() ?? "");
     const [guardianSearch, setGuardianSearch] = useState("");
+    const [guardianPage, setGuardianPage] = useState(1);
+    const guardianPageSize = 10;
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [modalTab, setModalTab] = useState<"unassigned" | "all">("unassigned");
     const [studentSearch, setStudentSearch] = useState("");
+    const [modalPage, setModalPage] = useState(1);
+    const modalPageSize = 10;
+
+    const [linkedPage, setLinkedPage] = useState(1);
+    const linkedPageSize = 10;
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
 
-    const filteredGuardians = guardians.filter(
-        (g) =>
-            g.name.toLowerCase().includes(guardianSearch.toLowerCase()) ||
-            (g.phone && g.phone.includes(guardianSearch)) ||
-            (g.user?.email && g.user.email.toLowerCase().includes(guardianSearch.toLowerCase())),
-    );
+    const filteredGuardians = useMemo(() => {
+        return guardians.filter(
+            (g) =>
+                g.name.toLowerCase().includes(guardianSearch.toLowerCase()) ||
+                (g.phone && g.phone.includes(guardianSearch)) ||
+                (g.user?.email && g.user.email.toLowerCase().includes(guardianSearch.toLowerCase())),
+        );
+    }, [guardians, guardianSearch]);
+
+    const guardianTotalPages = Math.ceil(filteredGuardians.length / guardianPageSize) || 1;
+    const guardianSafePage = Math.min(Math.max(1, guardianPage), guardianTotalPages);
+    const paginatedGuardians = useMemo(() => {
+        const start = (guardianSafePage - 1) * guardianPageSize;
+        return filteredGuardians.slice(start, start + guardianPageSize);
+    }, [filteredGuardians, guardianSafePage, guardianPageSize]);
+
+    const linkedTotalPages = Math.ceil(linkedStudents.length / linkedPageSize) || 1;
+    const linkedSafePage = Math.min(Math.max(1, linkedPage), linkedTotalPages);
+    const paginatedLinked = useMemo(() => {
+        const start = (linkedSafePage - 1) * linkedPageSize;
+        return linkedStudents.slice(start, start + linkedPageSize);
+    }, [linkedStudents, linkedSafePage, linkedPageSize]);
+
+    const modalStudents = useMemo(() => {
+        const list = modalTab === "unassigned" ? unassignedStudents : allStudents;
+        if (!studentSearch.trim()) return list;
+        const q = studentSearch.toLowerCase();
+        return list.filter(
+            (s) =>
+                s.name.toLowerCase().includes(q) ||
+                s.nis.toLowerCase().includes(q) ||
+                s.nisn.toLowerCase().includes(q),
+        );
+    }, [modalTab, unassignedStudents, allStudents, studentSearch]);
+
+    const modalTotalPages = Math.ceil(modalStudents.length / modalPageSize) || 1;
+    const modalSafePage = Math.min(Math.max(1, modalPage), modalTotalPages);
+    const paginatedModalStudents = useMemo(() => {
+        const start = (modalSafePage - 1) * modalPageSize;
+        return modalStudents.slice(start, start + modalPageSize);
+    }, [modalStudents, modalSafePage, modalPageSize]);
 
     const handleSelectGuardian = (id: string) => {
         setGuardianId(id);
+        setLinkedPage(1);
         router.get(
             "/guardian-assignment",
             { guardian_id: id },
@@ -94,35 +138,37 @@ export default function GuardianAssignment({
             key: "avatar",
             header: "",
             render: (s) => <Avatar name={s.name} size="sm" variant="accent" />,
-            className: "w-12",
+            className: "w-12 whitespace-nowrap",
         },
         {
             key: "name",
             header: "Nama Siswa",
+            className: "w-full min-w-0",
             render: (s) => (
-                <div>
-                    <p className="font-semibold text-primary">{s.name}</p>
-                    <p className="text-[12px] text-text-secondary">NIS: {s.nis} · NISN: {s.nisn}</p>
+                <div className="min-w-0 max-w-[200px] sm:max-w-none">
+                    <p className="font-semibold text-primary truncate" title={s.name}>{s.name}</p>
+                    <p className="text-[12px] text-text-secondary truncate">NIS: {s.nis} · NISN: {s.nisn}</p>
                 </div>
             ),
         },
         {
             key: "class",
             header: "Kelas",
+            className: "w-1 whitespace-nowrap text-center",
             render: (s) => (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-surface-raised border border-border text-text-primary">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-surface-raised border border-border text-text-primary whitespace-nowrap shrink-0">
                     {s.class?.name ?? "Belum Masuk Kelas"}
                 </span>
             ),
         },
         {
             key: "actions",
-            header: "Aksi",
-            className: "w-20 text-center",
+            header: <div className="text-center w-full">Aksi</div>,
+            className: "w-16 text-center whitespace-nowrap",
             render: (s) => (
                 <button
                     onClick={() => handleRemove(s.id)}
-                    className="text-danger hover:text-danger/80 transition-colors p-1.5 rounded-lg hover:bg-danger/10 cursor-pointer"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
                     type="button"
                     title="Lepas hubungan wali"
                     aria-label={`Lepas hubungan ${s.name}`}
@@ -133,13 +179,6 @@ export default function GuardianAssignment({
             ),
         },
     ];
-
-    const modalStudents = (modalTab === "unassigned" ? unassignedStudents : allStudents).filter(
-        (s) =>
-            s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-            s.nis.includes(studentSearch) ||
-            s.nisn.includes(studentSearch),
-    );
 
     return (
         <AppShell title="Relasi Wali Murid & Siswa">
@@ -159,13 +198,16 @@ export default function GuardianAssignment({
 
                     <SearchBar
                         value={guardianSearch}
-                        onChange={setGuardianSearch}
-                        onSearch={() => {}}
+                        onChange={(val) => {
+                            setGuardianSearch(val);
+                            setGuardianPage(1);
+                        }}
+                        onSearch={() => setGuardianPage(1)}
                         placeholder="Cari nama atau telepon wali..."
                     />
 
                     <div className="flex flex-col gap-2 max-h-[520px] overflow-y-auto pr-1">
-                        {filteredGuardians.map((g) => {
+                        {paginatedGuardians.map((g) => {
                             const isSelected = g.id.toString() === guardianId;
                             return (
                                 <button
@@ -200,6 +242,18 @@ export default function GuardianAssignment({
                             );
                         })}
                     </div>
+
+                    {filteredGuardians.length > guardianPageSize && (
+                        <div className="pt-2 border-t border-border">
+                            <Pagination
+                                currentPage={guardianSafePage}
+                                totalPages={guardianTotalPages}
+                                totalItems={filteredGuardians.length}
+                                perPage={guardianPageSize}
+                                onPageChange={setGuardianPage}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Column: Daftar Siswa Terhubung */}
@@ -219,8 +273,10 @@ export default function GuardianAssignment({
                             <Button
                                 onClick={() => {
                                     setStudentSearch("");
+                                    setModalPage(1);
                                     setShowAddModal(true);
                                 }}
+                                className="shrink-0 whitespace-nowrap"
                                 data-testid="btn-add-student"
                             >
                                 <i className="fas fa-user-plus mr-1.5" />
@@ -231,12 +287,23 @@ export default function GuardianAssignment({
 
                     {selectedGuardian ? (
                         linkedStudents.length > 0 ? (
-                            <div className="mt-2">
+                            <div className="mt-2 flex flex-col gap-3">
                                 <Table
                                     columns={columns}
-                                    data={linkedStudents}
+                                    data={paginatedLinked}
                                     keyExtractor={(s: Student) => s.id}
                                 />
+                                {linkedStudents.length > linkedPageSize && (
+                                    <div className="pt-2 border-t border-border">
+                                        <Pagination
+                                            currentPage={linkedSafePage}
+                                            totalPages={linkedTotalPages}
+                                            totalItems={linkedStudents.length}
+                                            perPage={linkedPageSize}
+                                            onPageChange={setLinkedPage}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center py-12 border-2 border-dashed border-border/80 rounded-xl my-auto">
@@ -247,7 +314,13 @@ export default function GuardianAssignment({
                                 <p className="text-[13px] text-text-secondary max-w-sm mx-auto mt-1 mb-4">
                                     Wali murid ini belum memiliki hubungan dengan data siswa di database.
                                 </p>
-                                <Button onClick={() => setShowAddModal(true)}>
+                                <Button
+                                    onClick={() => {
+                                        setStudentSearch("");
+                                        setModalPage(1);
+                                        setShowAddModal(true);
+                                    }}
+                                >
                                     <i className="fas fa-plus mr-1.5" />
                                     Hubungkan Siswa Sekarang
                                 </Button>
@@ -273,7 +346,10 @@ export default function GuardianAssignment({
                     <div className="flex border-b border-border">
                         <button
                             type="button"
-                            onClick={() => setModalTab("unassigned")}
+                            onClick={() => {
+                                setModalTab("unassigned");
+                                setModalPage(1);
+                            }}
                             className={`pb-2.5 px-4 text-[13px] font-bold border-b-2 transition-colors cursor-pointer ${
                                 modalTab === "unassigned"
                                     ? "border-primary text-primary"
@@ -284,7 +360,10 @@ export default function GuardianAssignment({
                         </button>
                         <button
                             type="button"
-                            onClick={() => setModalTab("all")}
+                            onClick={() => {
+                                setModalTab("all");
+                                setModalPage(1);
+                            }}
                             className={`pb-2.5 px-4 text-[13px] font-bold border-b-2 transition-colors cursor-pointer ${
                                 modalTab === "all"
                                     ? "border-primary text-primary"
@@ -297,23 +376,26 @@ export default function GuardianAssignment({
 
                     <SearchBar
                         value={studentSearch}
-                        onChange={setStudentSearch}
-                        onSearch={() => {}}
+                        onChange={(val) => {
+                            setStudentSearch(val);
+                            setModalPage(1);
+                        }}
+                        onSearch={() => setModalPage(1)}
                         placeholder="Cari nama, NIS, atau NISN siswa..."
                     />
 
                     <div className="flex flex-col gap-2 max-h-[380px] overflow-y-auto pr-1">
-                        {modalStudents.length > 0 ? (
-                            modalStudents.map((s) => (
+                        {paginatedModalStudents.length > 0 ? (
+                            paginatedModalStudents.map((s) => (
                                 <div
                                     key={s.id}
                                     className="p-3 border border-border rounded-lg flex items-center justify-between hover:bg-surface-raised transition-colors"
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1 mr-3">
                                         <Avatar name={s.name} size="sm" variant="accent" />
-                                        <div>
-                                            <p className="text-[13px] font-bold text-text-primary">{s.name}</p>
-                                            <p className="text-[11px] text-text-secondary">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[13px] font-bold text-text-primary truncate" title={s.name}>{s.name}</p>
+                                            <p className="text-[11px] text-text-secondary truncate">
                                                 NIS: {s.nis} · {s.class?.name ?? "Tanpa Kelas"}
                                             </p>
                                         </div>
@@ -333,6 +415,18 @@ export default function GuardianAssignment({
                             </p>
                         )}
                     </div>
+
+                    {modalStudents.length > modalPageSize && (
+                        <div className="pt-3 border-t border-border">
+                            <Pagination
+                                currentPage={modalSafePage}
+                                totalPages={modalTotalPages}
+                                totalItems={modalStudents.length}
+                                perPage={modalPageSize}
+                                onPageChange={setModalPage}
+                            />
+                        </div>
+                    )}
                 </div>
             </Modal>
 

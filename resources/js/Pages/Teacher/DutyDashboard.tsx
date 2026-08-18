@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { router } from "@inertiajs/react";
+import { useState, useMemo } from "react";
+import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Drawer, ActionButton } from "@/Components";
+import { Drawer, ActionButton, Pagination, SearchBar } from "@/Components";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
 
 interface Teacher {
@@ -74,6 +74,7 @@ function rowNote(s: AttentionStudent): string {
 }
 
 export default function DutyDashboard({
+    teacher: _teacher,
     isScheduled: _isScheduled,
     today: _today,
     classStats,
@@ -90,6 +91,29 @@ export default function DutyDashboard({
     const [mobileTab, setMobileTab] = useState<MobileTab>(initialMobileTab);
     const [selectedStudent, setSelectedStudent] = useState<AttentionStudent | null>(null);
 
+    // Desktop search & pagination
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const filteredAttention = useMemo(() => {
+        if (!search.trim()) return attentionStudents;
+        const q = search.toLowerCase();
+        return attentionStudents.filter(
+            (s) =>
+                s.name.toLowerCase().includes(q) ||
+                s.nis.toLowerCase().includes(q) ||
+                s.class.toLowerCase().includes(q),
+        );
+    }, [attentionStudents, search]);
+
+    const totalPages = Math.ceil(filteredAttention.length / pageSize) || 1;
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedAttention = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredAttention.slice(start, start + pageSize);
+    }, [filteredAttention, safePage, pageSize]);
+
     // ── Live Polling ──────────────────────────────────────────────────────────
     const {
         enabled: isPolling,
@@ -101,6 +125,24 @@ export default function DutyDashboard({
         only: ["classStats", "attentionStudents", "totals"],
         intervalMs: 10000,
     });
+
+    const handleClassChange = (newClass: string) => {
+        setClassVal(newClass);
+        router.get(
+            "/teacher/duty",
+            { class_id: newClass || undefined, date: dateVal, tab: mobileTab },
+            { preserveState: true },
+        );
+    };
+
+    const handleDateChange = (newDate: string) => {
+        setDateVal(newDate);
+        router.get(
+            "/teacher/duty",
+            { class_id: classVal || undefined, date: newDate, tab: mobileTab },
+            { preserveState: true },
+        );
+    };
 
     const handleFilter = () => {
         router.get(
@@ -177,7 +219,7 @@ export default function DutyDashboard({
     );
 
     return (
-        <AppShell title="Dashboard Guru Piket">
+        <AppShell title="Overview Guru Piket">
             {/* ── DESKTOP ──────────────────────────────────────── */}
             <div className="hidden lg:block">
                 {/* Monitoring Live card */}
@@ -234,7 +276,7 @@ export default function DutyDashboard({
                                     setClassVal(e.target.value);
                                     handleFilter();
                                 }}
-                                className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[140px]"
+                                className="h-10 border border-border rounded-lg px-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 min-w-[140px]"
                             >
                                 <option value="">Semua Kelas</option>
                                 {classes.map((c) => (
@@ -261,7 +303,7 @@ export default function DutyDashboard({
                                     setDateVal(e.target.value);
                                 }}
                                 onBlur={handleFilter}
-                                className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                className="h-10 border border-border rounded-lg px-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                         </div>
                     </div>
@@ -297,13 +339,26 @@ export default function DutyDashboard({
 
                     {/* Tabel */}
                     <div className="border border-border rounded-xl overflow-hidden">
-                        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-                            <h2 className="text-[14px] font-bold text-text-primary font-inter">
-                                Perhatian Khusus Hari Ini
-                            </h2>
-                            <span className="text-[11px] text-text-muted font-medium">
-                                Total {attentionStudents.length} siswa terpantau
-                            </span>
+                        <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-4">
+                            <div>
+                                <h2 className="text-[14px] font-bold text-text-primary font-inter">
+                                    Perhatian Khusus Hari Ini
+                                </h2>
+                                <span className="text-[11px] text-text-muted font-medium">
+                                    Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau
+                                </span>
+                            </div>
+                            <div className="w-56">
+                                <SearchBar
+                                    value={search}
+                                    onChange={(val) => {
+                                        setSearch(val);
+                                        setCurrentPage(1);
+                                    }}
+                                    onSearch={() => setCurrentPage(1)}
+                                    placeholder="Cari nama / NIS / kelas..."
+                                />
+                            </div>
                         </div>
                         <table className="w-full border-collapse font-inter">
                             <thead>
@@ -320,98 +375,262 @@ export default function DutyDashboard({
                                     )}
                                 </tr>
                             </thead>
-                            <tbody>{renderTableRows(attentionStudents)}</tbody>
+                            <tbody>{renderTableRows(paginatedAttention)}</tbody>
                         </table>
+
+                        {filteredAttention.length > pageSize && (
+                            <div className="p-3 border-t border-border bg-surface">
+                                <Pagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={filteredAttention.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* ── MOBILE ───────────────────────────────────────── */}
-            <div className="block lg:hidden">
-                <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-[20px] font-bold text-text-primary font-inter">Guru Piket</h1>
-                    <button
-                        type="button"
-                        onClick={togglePolling}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            isPolling ? "bg-success/10 text-success" : "bg-muted text-text-muted"
-                        }`}
-                    >
-                        <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                                isPolling ? "bg-success animate-pulse" : "bg-text-inactive"
-                            }`}
+            {/* ── MOBILE (lg:hidden) — Figma: Mobile Guru Kelas Guru Piket ──────────────────────────── */}
+            <div className="block lg:hidden flex flex-col gap-4 font-inter">
+                {/* 1. Filter Bar 2 Kolom (Figma: Class Selector & Date Picker) */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="relative">
+                        <select
+                            value={classVal}
+                            onChange={(e) => handleClassChange(e.target.value)}
+                            className="w-full h-11 appearance-none rounded-xl px-3.5 text-[13px] font-bold text-primary bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 pr-8 cursor-pointer shadow-xs"
+                        >
+                            <option value="">Semua Kelas</option>
+                            {classes.map((c) => (
+                                <option key={c.id} value={c.id.toString()}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-primary text-[12px]">
+                            <i className="fas fa-chevron-down" />
+                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <input
+                            type="date"
+                            value={dateVal}
+                            onChange={(e) => handleDateChange(e.target.value)}
+                            className="w-full h-11 rounded-xl px-3.5 text-[13px] font-bold text-primary bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-xs"
                         />
-                        {isPolling ? "Live 10s" : "Paused"}
-                    </button>
-                </div>
-
-                {/* 5 mini stats */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-surface border border-border rounded-xl p-3 text-center">
-                        <span className="text-[22px] font-bold text-primary block">{summary.total}</span>
-                        <span className="text-[10px] font-bold text-text-muted uppercase">Total</span>
-                    </div>
-                    <div className="bg-surface border border-[#10B981] rounded-xl p-3 text-center">
-                        <span className="text-[22px] font-bold text-[#10B981] block">{summary.present}</span>
-                        <span className="text-[10px] font-bold text-text-muted uppercase">Hadir</span>
-                    </div>
-                    <div className="bg-surface border border-[#F59E0B] rounded-xl p-3 text-center">
-                        <span className="text-[22px] font-bold text-[#F59E0B] block">{summary.late}</span>
-                        <span className="text-[10px] font-bold text-text-muted uppercase">Telat</span>
                     </div>
                 </div>
 
-                {/* Tab selector */}
-                <div className="flex bg-muted p-1 rounded-xl mb-4 select-none">
+                {/* 2. Tab Switcher with Yellow Gold Underline (Figma: ANOMALI ABSEN / DATA IZIN) */}
+                <div className="flex border-b border-border bg-surface rounded-t-xl overflow-hidden shadow-xs">
                     <button
                         type="button"
                         onClick={() => setMobileTab("anomali")}
-                        className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-colors ${
-                            mobileTab === "anomali" ? "bg-surface text-primary shadow-sm" : "text-text-muted"
+                        className={`flex-1 py-3 text-[13px] font-extrabold transition-all text-center cursor-pointer border-b-2 ${
+                            mobileTab === "anomali"
+                                ? "border-accent text-primary bg-accent/5"
+                                : "border-transparent text-text-muted hover:text-text-primary"
                         }`}
                     >
-                        Anomali ({anomali.length})
+                        ANOMALI ABSEN
                     </button>
                     <button
                         type="button"
                         onClick={() => setMobileTab("izin")}
-                        className={`flex-1 py-2 rounded-lg text-[13px] font-bold transition-colors ${
-                            mobileTab === "izin" ? "bg-surface text-primary shadow-sm" : "text-text-muted"
+                        className={`flex-1 py-3 text-[13px] font-bold transition-all text-center cursor-pointer border-b-2 flex items-center justify-center gap-1.5 ${
+                            mobileTab === "izin"
+                                ? "border-accent text-primary bg-accent/5"
+                                : "border-transparent text-text-muted hover:text-text-primary"
                         }`}
                     >
-                        Izin ({izinList.length})
+                        <span>DATA IZIN</span>
+                        <i className="fas fa-lock text-[11px] text-text-muted" />
                     </button>
                 </div>
 
-                {/* Card list */}
-                <div className="space-y-3">
-                    {(mobileTab === "anomali" ? anomali : izinList).map((s) => {
-                        const badge = BADGE[s.status];
-                        return (
-                            <div
-                                key={s.id}
-                                className="bg-surface border border-border rounded-xl p-4 flex items-center justify-between"
-                                style={{ borderLeftWidth: "4px", borderLeftColor: LEFT_BORDER[s.status] }}
-                                onClick={() => setSelectedStudent(s)}
-                            >
-                                <div>
-                                    <h2 className="text-[14px] font-bold text-text-primary">{s.name}</h2>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        {s.nis} • {s.class}
-                                    </p>
-                                    <p className="text-[11px] text-text-secondary mt-1">{rowNote(s)}</p>
-                                </div>
-                                <span
-                                    className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0"
-                                    style={{ background: badge.bg, color: badge.color }}
-                                >
-                                    {badge.label}
+                {/* 3. 4 Metric Cards in a Row (Figma: TOTAL, HADIR, TELAT, ALPA) */}
+                <div className="grid grid-cols-4 gap-2">
+                    <div className="bg-surface border border-border rounded-xl p-2.5 text-center shadow-xs">
+                        <span className="text-[20px] font-bold text-text-primary block leading-none">
+                            {summary.total}
+                        </span>
+                        <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider mt-1 block">
+                            TOTAL
+                        </span>
+                    </div>
+                    <div className="bg-surface border border-emerald-300 rounded-xl p-2.5 text-center shadow-xs">
+                        <span className="text-[20px] font-bold text-emerald-600 block leading-none">
+                            {summary.present}
+                        </span>
+                        <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-wider mt-1 block">
+                            HADIR
+                        </span>
+                    </div>
+                    <div className="bg-surface border border-amber-300 rounded-xl p-2.5 text-center shadow-xs">
+                        <span className="text-[20px] font-bold text-amber-600 block leading-none">
+                            {summary.late}
+                        </span>
+                        <span className="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1 block">
+                            TELAT
+                        </span>
+                    </div>
+                    <div className="bg-surface border border-red-300 rounded-xl p-2.5 text-center shadow-xs">
+                        <span className="text-[20px] font-bold text-danger block leading-none">
+                            {summary.absent}
+                        </span>
+                        <span className="text-[9px] font-bold text-danger uppercase tracking-wider mt-1 block">
+                            ALPA
+                        </span>
+                    </div>
+                </div>
+
+                {/* 3. Menu Utama Grid (2x2) */}
+                <div>
+                    <h3 className="text-[14px] font-bold text-text-primary mb-3">Menu utama</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link
+                            href="/leave-requests"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-file-signature" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Pantauan Izin
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Izin & dispensasi siswa
                                 </span>
                             </div>
-                        );
-                    })}
+                        </Link>
+
+                        <Link
+                            href="/reports/daily"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-calendar-alt" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Rekap Harian
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Laporan per kelas
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/export"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-file-alt" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Ekspor Rekap
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Unduh Excel / PDF
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/profile"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-user" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Profil Guru
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Data akun piket
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
                 </div>
+
+                {/* 4. Siswa Perlu Perhatian Section */}
+                <div className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card">
+                    <div className="flex items-center justify-between mb-3">
+                        <p className="text-[12px] font-bold text-text-primary uppercase tracking-wider">
+                            Perlu Perhatian ({attentionStudents.length})
+                        </p>
+                    </div>
+
+                    {/* Tab selector */}
+                    <div className="flex bg-muted p-1 rounded-xl mb-3 select-none">
+                        <button
+                            type="button"
+                            onClick={() => setMobileTab("anomali")}
+                            className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
+                                mobileTab === "anomali" ? "bg-surface text-primary shadow-xs" : "text-text-muted"
+                            }`}
+                        >
+                            Anomali ({anomali.length})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setMobileTab("izin")}
+                            className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
+                                mobileTab === "izin" ? "bg-surface text-primary shadow-xs" : "text-text-muted"
+                            }`}
+                        >
+                            Izin ({izinList.length})
+                        </button>
+                    </div>
+
+                    {/* Card list */}
+                    <div className="space-y-2.5">
+                        {(mobileTab === "anomali" ? anomali : izinList).map((s) => {
+                            const badge = BADGE[s.status];
+                            return (
+                                <div
+                                    key={s.id}
+                                    className="bg-background border border-border rounded-xl p-3 flex items-center justify-between cursor-pointer hover:border-primary/30 transition-colors"
+                                    style={{ borderLeftWidth: "4px", borderLeftColor: LEFT_BORDER[s.status] }}
+                                    onClick={() => setSelectedStudent(s)}
+                                >
+                                    <div className="min-w-0 pr-2">
+                                        <h4 className="text-[13px] font-bold text-text-primary truncate">{s.name}</h4>
+                                        <p className="text-[11px] text-text-muted mt-0.5">
+                                            {s.nis} • {s.class}
+                                        </p>
+                                        <p className="text-[10px] text-text-secondary mt-0.5 truncate">{rowNote(s)}</p>
+                                    </div>
+                                    <span
+                                        className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                                        style={{ background: badge.bg, color: badge.color }}
+                                    >
+                                        {badge.label}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                        {(mobileTab === "anomali" ? anomali : izinList).length === 0 && (
+                            <p className="text-center text-[12px] text-text-muted py-4">
+                                Tidak ada data siswa untuk kategori ini.
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer Branding */}
+                <p className="text-center text-[11px] text-text-muted/60 py-4 font-inter">
+                    SMART Absen · SMA UII Yogyakarta
+                </p>
             </div>
 
             {/* Student Detail Drawer */}

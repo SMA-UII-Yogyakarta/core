@@ -77,7 +77,7 @@ export default function MonthlyReport({
                         />
                         <a
                             href={`/export/monthly-recap?month=${selectedMonth}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                            className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+                            className="h-10 inline-flex items-center gap-2 bg-primary text-white px-4 rounded-lg hover:bg-primary/90 text-[14px] font-semibold transition-colors shrink-0"
                         >
                             <FiDownload className="text-[14px]" />
                             {t("reports.export")}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { MetricPill, Avatar } from "@/Components";
+import { Avatar } from "@/Components";
 
 interface Student {
     id: number;
@@ -64,90 +64,146 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
     }, []);
 
     return (
-        <AppShell title="Dashboard Siswa">
+        <AppShell title="Overview Siswa">
             {/* ══════════════════════════════════════════════════
-                MOBILE LAYOUT (lg:hidden)
+                MOBILE LAYOUT (lg            {/* ══════════════════════════════════════════════════
+                MOBILE LAYOUT (lg:hidden) — Native App Experience
             ══════════════════════════════════════════════════ */}
             <div className="lg:hidden flex flex-col gap-4 font-inter">
-                {/* Card sapaan personal */}
+                {/* 1. Hero Greeting Card (Figma: Mobile Siswa Dashboard) */}
                 <div
-                    className="rounded-2xl p-5 bg-primary text-white shadow-card flex items-center justify-between gap-3"
+                    className="bg-primary text-white rounded-2xl p-5 shadow-card overflow-hidden"
                     dusk="student-greeting-card"
                     data-testid="student-greeting-card"
                 >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                        <Avatar name={student.name} size="lg" variant="accent" />
+                    <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                            <p className="text-white/75 text-[11px] font-medium">Selamat Datang,</p>
-                            <h2 className="text-white text-[16px] font-bold truncate leading-snug">
+                            <p className="text-white/80 text-[13px] font-medium">
+                                Selamat Pagi,
+                            </p>
+                            <h2 className="text-white text-[20px] font-bold leading-tight mt-0.5 truncate">
                                 {student.name}
                             </h2>
-                            <p className="text-[11px] font-semibold text-accent mt-0.5">
-                                Kelas {className} • NIS: {student.nis}
+                            <p className="text-accent text-[13px] font-semibold mt-1">
+                                Kelas {className}
+                            </p>
+                        </div>
+
+                        {/* Digital Clock Badge */}
+                        <div className="text-right shrink-0 bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-3 py-1.5">
+                            <p className="text-[18px] font-extrabold font-mono text-white leading-none">
+                                {currentTime ? currentTime.replace(" WIB", "") : "--:--"}
+                            </p>
+                            <p className="text-[9px] font-bold text-accent uppercase tracking-widest mt-0.5">
+                                WIB
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Date & Time pill */}
-                <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-surface border border-border text-[12px] font-medium text-text-secondary shadow-sm">
-                    <span className="flex items-center gap-1.5 font-semibold text-text-primary">
-                        <i className="far fa-calendar-alt text-primary" />
-                        {currentDate || "Hari Ini"}
-                    </span>
-                    <span className="font-mono font-bold text-primary">{currentTime}</span>
-                </div>
-
-                {/* Tombol CTA Presensi */}
+                {/* 2. Primary Action Button (Figma: PRESENSI MASUK SEKARANG) */}
                 {todayAttendance ? (
                     <div
-                        className="rounded-2xl px-4 py-4 flex items-center justify-center gap-2.5 bg-success-bg border border-success-light shadow-sm"
+                        className="rounded-xl px-4 py-3.5 flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 shadow-xs"
                         dusk="today-attendance-done"
                         data-testid="today-attendance-done"
                     >
-                        <i className="fas fa-check-circle text-success text-[18px]" />
-                        <div>
-                            <p className="text-success font-bold text-[13px] leading-tight">
-                                SUDAH PRESENSI MASUK
-                            </p>
-                            <p className="text-success/80 text-[11px] font-mono mt-0.5">
-                                Pukul {todayAttendance.check_in_time} WIB ({todayAttendance.status})
-                            </p>
-                        </div>
+                        <i className="fas fa-check-circle text-[16px] text-emerald-600" />
+                        <span className="font-bold text-[13px]">
+                            Sudah Presensi Masuk ({todayAttendance.check_in_time} WIB)
+                        </span>
                     </div>
                 ) : (
                     <Link
                         href="/student/attendance"
-                        className="rounded-2xl flex items-center justify-center gap-2 py-4 font-extrabold text-[14px] tracking-wide bg-accent text-primary active:scale-[0.98] transition-transform shadow-md cursor-pointer"
+                        className="w-full rounded-xl flex items-center justify-center gap-2 py-3.5 font-extrabold text-[14px] bg-accent text-primary hover:bg-accent-light active:scale-[0.98] transition-all shadow-md shadow-accent/30 cursor-pointer"
                         dusk="btn-presensi-mobile"
                         data-testid="btn-presensi-mobile"
                     >
-                        <i className="fas fa-camera text-[16px]" />
+                        <i className="fas fa-camera text-[15px]" />
                         <span>PRESENSI MASUK SEKARANG</span>
                     </Link>
                 )}
 
-                {/* Rekap bulan ini */}
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-card">
-                    <div className="flex items-center justify-between mb-3">
-                        <p className="text-[12px] font-bold text-text-primary uppercase tracking-wider">
-                            Rekap Bulan Ini
-                        </p>
-                        <Link
-                            href="/student/history"
-                            className="text-[12px] font-bold text-primary hover:underline flex items-center gap-1"
-                        >
-                            <span>Lihat Riwayat</span>
-                            <i className="fas fa-chevron-right text-[10px]" />
-                        </Link>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2.5">
-                        <MetricPill label="HADIR" value={stats.present} variant="success" dusk="stat-hadir" />
-                        <MetricPill label="TELAT" value={stats.late} variant="warning" dusk="stat-telat" />
-                        <MetricPill label="ALPA" value={alpa} variant="danger" dusk="stat-alpa" />
+                {/* 3. REKAP BULAN INI (Figma: 3 white cards with green/amber/dark numbers) */}
+                <div>
+                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-2.5">
+                        REKAP BULAN INI
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-surface border border-border rounded-xl p-3.5 text-center shadow-xs">
+                            <span className="text-[24px] font-bold text-success block leading-none" dusk="stat-hadir">
+                                {stats.present}
+                            </span>
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1.5 block">
+                                HADIR
+                            </span>
+                        </div>
+                        <div className="bg-surface border border-border rounded-xl p-3.5 text-center shadow-xs">
+                            <span className="text-[24px] font-bold text-warning block leading-none" dusk="stat-terlambat">
+                                {stats.late}
+                            </span>
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1.5 block">
+                                TELAT
+                            </span>
+                        </div>
+                        <div className="bg-surface border border-border rounded-xl p-3.5 text-center shadow-xs">
+                            <span className="text-[24px] font-bold text-text-primary block leading-none" dusk="stat-alpa">
+                                {alpa}
+                            </span>
+                            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1.5 block">
+                                ALPA
+                            </span>
+                        </div>
                     </div>
                 </div>
+
+                {/* 4. Menu Utama Navigasi Grid (Mobile: 2x2 || Tablet: 4x1) */}
+                <div>
+                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-2.5">
+                        Menu Utama
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                        <Link
+                            href="/student/attendance"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-camera" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Live Presensi
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Kamera selfie & GPS
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/student/history"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-calendar-alt" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Riwayat Absensi
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Rekap log bulanan
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Footer Branding */}
+                <p className="text-center text-[11px] text-text-muted/60 py-4 font-inter">
+                    SMART Absen · SMA UII Yogyakarta
+                </p>
             </div>
 
             {/* ══════════════════════════════════════════════════

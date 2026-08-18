@@ -103,11 +103,11 @@ export default function DailyReport({
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 (window.location.href = `/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
                             }
-                            className="bg-surface border border-border rounded-lg px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="h-10 bg-surface border border-border rounded-lg px-3.5 text-[14px] text-text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                         />
                         <a
                             href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                            className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+                            className="h-10 inline-flex items-center gap-2 bg-primary text-white px-4 rounded-lg hover:bg-primary/90 text-[14px] font-semibold transition-colors"
                         >
                             <FiDownload className="text-[14px]" />
                             {t("reports.export")}
@@ -162,10 +162,10 @@ export default function DailyReport({
                                 <table className="w-full">
                                     <thead>
                                         <tr className="text-left text-text-inactive text-sm border-b border-border">
-                                            <th className="pb-3 font-medium">{t("reports.nis")}</th>
+                                            <th className="pb-3 font-medium whitespace-nowrap">{t("reports.nis")}</th>
                                             <th className="pb-3 font-medium">{t("reports.name")}</th>
-                                            <th className="pb-3 font-medium text-center">{t("reports.status")}</th>
-                                            <th className="pb-3 font-medium text-center">{t("reports.checkInTime")}</th>
+                                            <th className="pb-3 font-medium text-center whitespace-nowrap">{t("reports.status")}</th>
+                                            <th className="pb-3 font-medium text-center whitespace-nowrap">{t("reports.checkInTime")}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -174,16 +174,16 @@ export default function DailyReport({
                                                 key={student.id}
                                                 className="border-b border-border/50 hover:bg-primary/5"
                                             >
-                                                <td className="py-3 text-text-inactive">{student.nis}</td>
+                                                <td className="py-3 text-text-inactive whitespace-nowrap">{student.nis}</td>
                                                 <td className="py-3 font-medium">{student.name}</td>
-                                                <td className="py-3 text-center">
+                                                <td className="py-3 text-center whitespace-nowrap">
                                                     <span
                                                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}
                                                     >
                                                         {student.status}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 text-center text-text-inactive">
+                                                <td className="py-3 text-center text-text-inactive whitespace-nowrap">
                                                     {student.check_in_time ? student.check_in_time.slice(0, 5) : "-"}
                                                 </td>
                                             </tr>

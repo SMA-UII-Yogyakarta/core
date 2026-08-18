@@ -13,6 +13,7 @@ import {
     Drawer,
     Card,
     ActionButton,
+    Checkbox,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
@@ -89,10 +90,12 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
     const [statusFilter, setStatusFilter] = useState(filters.status ?? "");
     const [categoryFilter, setCategoryFilter] = useState(filters.category ?? "");
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+    const [selectedLeaveIds, setSelectedLeaveIds] = useState<number[]>([]);
 
     const handleFilter = (status?: string, category?: string) => {
         const s = status ?? statusFilter;
         const c = category ?? categoryFilter;
+        setSelectedLeaveIds([]);
         router.get(
             "/leave-requests/verification",
             { status: s || undefined, category: c || undefined },
@@ -104,7 +107,10 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
         if (confirm("Setujui permohonan izin ini?")) {
             router.patch(`/leave-requests/${id}/approve`, undefined, {
                 preserveState: true,
-                onSuccess: () => setSelectedRequest(null),
+                onSuccess: () => {
+                    setSelectedRequest(null);
+                    setSelectedLeaveIds((prev) => prev.filter((i) => i !== id));
+                },
             });
         }
     };
@@ -113,12 +119,94 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
         if (confirm("Tolak permohonan izin ini?")) {
             router.patch(`/leave-requests/${id}/reject`, undefined, {
                 preserveState: true,
-                onSuccess: () => setSelectedRequest(null),
+                onSuccess: () => {
+                    setSelectedRequest(null);
+                    setSelectedLeaveIds((prev) => prev.filter((i) => i !== id));
+                },
             });
         }
     };
 
+    const handleBulkApprove = () => {
+        if (selectedLeaveIds.length === 0) return;
+        if (!confirm(`Setujui ${selectedLeaveIds.length} permohonan izin terpilih sekaligus?`)) {
+            return;
+        }
+        router.post(
+            "/leave-requests/bulk-verify",
+            {
+                ids: selectedLeaveIds,
+                status: "Approved",
+            },
+            {
+                preserveState: true,
+                onSuccess: () => setSelectedLeaveIds([]),
+            },
+        );
+    };
+
+    const handleBulkReject = () => {
+        if (selectedLeaveIds.length === 0) return;
+        if (!confirm(`Tolak ${selectedLeaveIds.length} permohonan izin terpilih sekaligus?`)) {
+            return;
+        }
+        router.post(
+            "/leave-requests/bulk-verify",
+            {
+                ids: selectedLeaveIds,
+                status: "Rejected",
+            },
+            {
+                preserveState: true,
+                onSuccess: () => setSelectedLeaveIds([]),
+            },
+        );
+    };
+
+    // Selection math
+    const pendingList = leaveRequests.data.filter((lr) => lr.approval_status === "Pending");
+    const allPendingSelected =
+        pendingList.length > 0 && pendingList.every((lr) => selectedLeaveIds.includes(lr.id));
+    const somePendingSelected =
+        pendingList.some((lr) => selectedLeaveIds.includes(lr.id)) && !allPendingSelected;
+
     const columns: Column<LeaveRequest>[] = [
+        {
+            key: "select",
+            header: (
+                <Checkbox
+                    checked={allPendingSelected}
+                    indeterminate={somePendingSelected}
+                    disabled={pendingList.length === 0}
+                    onChange={(e) => {
+                        const ids = pendingList.map((lr) => lr.id);
+                        if (e.target.checked) {
+                            setSelectedLeaveIds((prev) => Array.from(new Set([...prev, ...ids])));
+                        } else {
+                            const set = new Set(ids);
+                            setSelectedLeaveIds((prev) => prev.filter((id) => !set.has(id)));
+                        }
+                    }}
+                />
+            ),
+            render: (lr) => {
+                const isPending = lr.approval_status === "Pending";
+                if (!isPending) return null;
+                return (
+                    <Checkbox
+                        checked={selectedLeaveIds.includes(lr.id)}
+                        onChange={(e) => {
+                            if (e.target.checked) {
+                                setSelectedLeaveIds((prev) => [...prev, lr.id]);
+                            } else {
+                                setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
+                            }
+                        }}
+                    />
+                );
+            },
+            className: "w-10 text-center",
+        },
         {
             key: "student",
             header: "Nama Siswa",
@@ -217,19 +305,51 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                 />
             </StickyContainer>
 
-            <FilterBar className="mb-6">
-                <FilterBar.Select
-                    label="Kategori"
-                    options={categoryFilters.map((cf) => ({
-                        label: cf.label,
-                        value: cf.key,
-                    }))}
-                    value={categoryFilter}
-                    onChange={(e) => {
-                        setCategoryFilter(e.target.value);
-                        handleFilter(undefined, e.target.value);
-                    }}
-                />
+            <FilterBar className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
+                    {categoryFilters.map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => {
+                                setCategoryFilter(tab.key);
+                                handleFilter(undefined, tab.key);
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors cursor-pointer ${
+                                categoryFilter === tab.key
+                                    ? "bg-primary text-white"
+                                    : "bg-surface border border-border text-text-muted hover:text-text-primary"
+                            }`}
+                            type="button"
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Bulk Action Controls */}
+                {selectedLeaveIds.length > 0 && (
+                    <div className="flex items-center gap-2 shrink-0 bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-lg">
+                        <span className="text-[13px] font-bold text-primary mr-1">
+                            {selectedLeaveIds.length} dipilih:
+                        </span>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleBulkApprove}
+                            icon={<i className="fas fa-check-double text-[11px]" />}
+                        >
+                            Setujui Semua
+                        </Button>
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleBulkReject}
+                            icon={<i className="fas fa-times-circle text-[11px]" />}
+                        >
+                            Tolak Semua
+                        </Button>
+                    </div>
+                )}
             </FilterBar>
 
             {/* Table */}

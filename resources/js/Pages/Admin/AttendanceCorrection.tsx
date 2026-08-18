@@ -1,7 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { PageHeader, Card, Table, StatusBadge, ActionButton, Drawer, SelectInput, Input, Button } from "@/Components";
+import {
+    PageHeader,
+    Card,
+    Table,
+    StatusBadge,
+    ActionButton,
+    Drawer,
+    SelectInput,
+    Input,
+    Button,
+    Pagination,
+    SearchBar,
+} from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 import { attendanceCorrectionSchema } from "@/schemas";
@@ -51,6 +63,27 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
     const [selectedClass, setSelectedClass] = useState(filters.class_id ? String(filters.class_id) : "");
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const filteredStudents = useMemo(() => {
+        if (!search.trim()) return students;
+        const q = search.toLowerCase();
+        return students.filter(
+            (s) =>
+                s.name.toLowerCase().includes(q) ||
+                s.nis.toLowerCase().includes(q) ||
+                s.class.toLowerCase().includes(q),
+        );
+    }, [students, search]);
+
+    const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedStudents = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredStudents.slice(start, start + pageSize);
+    }, [filteredStudents, safePage, pageSize]);
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
         student_id: 0,
@@ -166,7 +199,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (s) => (
                 <div className="flex items-center gap-2 justify-end">
                     <ActionButton
@@ -223,6 +256,17 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                             <i className="fas fa-filter mr-2 text-[12px]" />
                             Terapkan Filter
                         </Button>
+                        <div className="w-full sm:w-64 sm:ml-auto">
+                            <SearchBar
+                                value={search}
+                                onChange={(val) => {
+                                    setSearch(val);
+                                    setCurrentPage(1);
+                                }}
+                                onSearch={() => setCurrentPage(1)}
+                                placeholder="Cari nama, NIS, kelas..."
+                            />
+                        </div>
                     </div>
                 </Card>
 
@@ -230,10 +274,21 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                 <Card>
                     <Table
                         columns={columns}
-                        data={students}
+                        data={paginatedStudents}
                         keyExtractor={(s) => s.id}
-                        emptyMessage="Tidak ada data siswa untuk tanggal dan kelas yang dipilih."
+                        emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
                     />
+                    {filteredStudents.length > pageSize && (
+                        <div className="p-4 border-t border-border bg-surface">
+                            <Pagination
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredStudents.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
+                    )}
                 </Card>
 
                 {/* Correction Drawer */}

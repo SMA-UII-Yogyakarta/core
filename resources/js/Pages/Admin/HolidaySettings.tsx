@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
+import { Button, Pagination, Table, PageHeader, NativeSelect, StickyContainer } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
@@ -55,7 +55,7 @@ const dayNames: Record<string, string> = {
     Sunday: "Minggu",
 };
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 function formatIndonesianDate(dateStr: string): string {
     if (!dateStr) return "";
@@ -87,6 +87,7 @@ function formatIndonesianDate(dateStr: string): string {
 
 export default function AturWaktuLibur({ timeSettings, holidays, filters }: AturWaktuLiburProps) {
     const [saving, setSaving] = useState(false);
+    const [activeSettingTab, setActiveSettingTab] = useState<"time" | "holiday">("time");
     const normalizeTime = (value?: string | null, fallback = "06:30") => {
         if (!value) return fallback;
         // Backend may cast as H:i:s
@@ -115,11 +116,12 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
         > = {};
         for (const day of daysOfWeek) {
             const existing = timeSettings.find((ts) => ts.day === day);
+            const isSaturday = day === "Saturday";
             initial[day] = {
-                check_in_open: normalizeTime(existing?.check_in_open, "06:30"),
-                late_threshold: normalizeTime(existing?.late_threshold, "07:00"),
-                check_in_close: normalizeTime(existing?.check_in_close, "07:30"),
-                is_active: existing?.is_active ?? true,
+                check_in_open: normalizeTime(existing?.check_in_open, isSaturday ? "07:00" : "06:30"),
+                late_threshold: normalizeTime(existing?.late_threshold, isSaturday ? "07:30" : "07:00"),
+                check_in_close: normalizeTime(existing?.check_in_close, isSaturday ? "08:00" : "07:30"),
+                is_active: existing?.is_active !== undefined ? Boolean(existing.is_active) : (isSaturday ? false : true),
             };
         }
         return initial;
@@ -314,10 +316,40 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                 description="Atur parameter gerbang digital presensi dan tetapkan hari libur akademik."
             />
 
+            {/* Mobile & Tablet Tab Switcher (Sticky On Top) */}
+            <StickyContainer className="lg:hidden">
+                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs">
+                    <button
+                        type="button"
+                        onClick={() => setActiveSettingTab("time")}
+                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            activeSettingTab === "time"
+                                ? "bg-primary text-white shadow-sm font-bold"
+                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
+                        }`}
+                    >
+                        <i className="fas fa-business-time text-[14px]" />
+                        <span>Jam Operasional</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveSettingTab("holiday")}
+                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            activeSettingTab === "holiday"
+                                ? "bg-primary text-white shadow-sm font-bold"
+                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
+                        }`}
+                    >
+                        <i className="far fa-calendar-times text-[14px]" />
+                        <span>Libur Akademik</span>
+                    </button>
+                </div>
+            </StickyContainer>
+
             {/* Split Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                 {/* Column 1: Jam Operasional Harian (Left) */}
-                <div className="lg:col-span-3">
+                <div className={`lg:col-span-3 ${activeSettingTab === "time" ? "block" : "hidden lg:block"}`}>
                     <section className="flex flex-col gap-6">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
@@ -340,7 +372,7 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                 </div>
 
                 {/* Column 2: Libur Akademik (Right) */}
-                <div className="lg:col-span-2 flex flex-col gap-6">
+                <div className={`lg:col-span-2 flex flex-col gap-6 ${activeSettingTab === "holiday" ? "block" : "hidden lg:flex"}`}>
                     <div className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
                         {/* Card Header */}
                         <div className="flex items-center justify-between mb-6 pb-2 border-b border-border/60">
@@ -493,7 +525,7 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteHoliday(h.id)}
-                                                className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
+                                                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
                                                 type="button"
                                                 aria-label="Hapus hari libur"
                                             >

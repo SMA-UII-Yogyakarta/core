@@ -131,11 +131,13 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (lr) => (
-                <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => setSelectedRequest(lr)} />
+                <div className="flex justify-center">
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => setSelectedRequest(lr)} />
+                </div>
             ),
-            className: "w-px whitespace-nowrap text-right",
+            className: "w-px whitespace-nowrap text-center",
         },
     ];
 

@@ -1,5 +1,5 @@
 import { router, useForm, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     Card,
     Input,
@@ -16,11 +16,13 @@ import {
     Drawer,
     FAB,
     Avatar,
+    Checkbox,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 import { studentSchema, teacherSchema, guardianSchema, schoolClassSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import { useScrollFabTrigger } from "@/hooks/useScrollFabTrigger";
 
 // ─── Shared Types ───
 
@@ -129,7 +131,18 @@ export default function MasterData({
     activeTab,
     filters,
 }: PageProps) {
+    const { triggerRef, showFab } = useScrollFabTrigger();
     const [currentTab, setCurrentTab] = useState(activeTabMap[activeTab ?? ""] ?? "students");
+    const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+
+    if (activeTab !== prevActiveTab) {
+        setPrevActiveTab(activeTab);
+        const matchedTab = activeTabMap[activeTab ?? ""];
+        if (matchedTab) {
+            setCurrentTab(matchedTab);
+        }
+    }
+
     const [search, setSearch] = useState(filters.search ?? "");
     const [classFilter, setClassFilter] = useState(filters.class_id ?? "");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -143,10 +156,19 @@ export default function MasterData({
     const [studentModal, setStudentModal] = useState<StudentModalMode>(null);
     const [editingStudentId, setEditingStudentId] = useState<number | null>(null);
 
-    const [allClasses] = useState<SchoolClass[]>(() => searchConfig?.allData || []);
-    const [filteredClasses, setFilteredClasses] = useState<SchoolClass[]>(
-        () => searchConfig?.allData || schoolClasses?.data || [],
-    );
+    const allClasses = useMemo(() => searchConfig?.allData || [], [searchConfig?.allData]);
+
+    const filteredClasses = useMemo(() => {
+        if (searchConfig?.mode === "client") {
+            const q = search.toLowerCase();
+            return allClasses.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(q) ||
+                    c.teacher?.name?.toLowerCase().includes(q),
+            );
+        }
+        return schoolClasses?.data || [];
+    }, [allClasses, search, searchConfig?.mode, schoolClasses?.data]);
 
     // Class form (create + edit)
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
@@ -549,14 +571,7 @@ export default function MasterData({
     const handleSearch = (value: string) => {
         setSearch(value);
 
-        if (searchConfig?.mode === "client" && currentTab === "class") {
-            const filtered = allClasses.filter(
-                (c) =>
-                    c.name.toLowerCase().includes(value.toLowerCase()) ||
-                    c.teacher?.name?.toLowerCase().includes(value.toLowerCase()),
-            );
-            setFilteredClasses(filtered);
-        } else {
+        if (searchConfig?.mode !== "client" || currentTab !== "class") {
             router.get(
                 tabRoutes[currentTab] ?? "/master-data",
                 { search: value || undefined },
@@ -580,14 +595,15 @@ export default function MasterData({
     // ─── Student Columns ───
 
     const allSelected = students?.data?.length > 0 && selectedIds.length === students.data.length;
+    const someSelected = students?.data?.length > 0 && selectedIds.length > 0 && !allSelected;
 
     const studentColumns: Column<Student>[] = [
         {
             key: "select",
             header: (
-                <input
-                    type="checkbox"
+                <Checkbox
                     checked={allSelected}
+                    indeterminate={someSelected}
                     onChange={(e) => {
                         if (e.target.checked) {
                             setSelectedIds(students.data.map((s) => s.id));
@@ -595,12 +611,10 @@ export default function MasterData({
                             setSelectedIds([]);
                         }
                     }}
-                    className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                 />
             ),
             render: (s) => (
-                <input
-                    type="checkbox"
+                <Checkbox
                     checked={selectedIds.includes(s.id)}
                     onChange={(e) => {
                         if (e.target.checked) {
@@ -609,10 +623,9 @@ export default function MasterData({
                             setSelectedIds((prev) => prev.filter((id) => id !== s.id));
                         }
                     }}
-                    className="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                 />
             ),
-            className: "w-8",
+            className: "w-10",
         },
         {
             key: "identity",
@@ -628,21 +641,32 @@ export default function MasterData({
             key: "name",
             header: "Nama Siswa",
             render: (s) => (
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar name={s.name} size="xs" variant="primary" />
-                    <div className="font-semibold text-primary">{s.name}</div>
+                    <div className="font-semibold text-primary truncate whitespace-nowrap max-w-[220px] sm:max-w-[300px]" title={s.name}>
+                        {s.name}
+                    </div>
                 </div>
             ),
+            className: "whitespace-nowrap min-w-[200px]",
         },
         {
             key: "class",
             header: "Kelas",
             render: (s) => (
-                <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-                    <i className="fas fa-chalkboard-teacher text-[13px] text-text-inactive" />
-                    {s.class?.name ?? "-"}
-                </span>
+                s.class?.name ? (
+                    <span className="flex items-center gap-1.5 font-medium text-text-secondary whitespace-nowrap">
+                        <i className="fas fa-chalkboard-teacher text-[13px] text-primary/70" />
+                        {s.class.name}
+                    </span>
+                ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
+                        <i className="fas fa-exclamation-circle text-[10px] text-amber-500" />
+                        Belum Ada Kelas
+                    </span>
+                )
             ),
+            className: "whitespace-nowrap",
         },
         {
             key: "status",
@@ -656,9 +680,9 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (s) => (
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                     <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailStudent(s)} />
                     <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditStudent(s)} />
                     <ActionButton
@@ -669,7 +693,7 @@ export default function MasterData({
                     />
                 </div>
             ),
-            className: "w-px whitespace-nowrap",
+            className: "text-center whitespace-nowrap w-px",
         },
     ];
 
@@ -685,11 +709,12 @@ export default function MasterData({
             key: "name",
             header: "Nama Guru",
             render: (t) => (
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar name={t.name} size="xs" variant="accent" />
-                    <p className="font-semibold text-primary">{t.name}</p>
+                    <p className="font-semibold text-primary truncate whitespace-nowrap max-w-[220px] sm:max-w-[300px]" title={t.name}>{t.name}</p>
                 </div>
             ),
+            className: "whitespace-nowrap min-w-[200px]",
         },
         {
             key: "email",
@@ -703,9 +728,9 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (t) => (
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                     <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailTeacher(t)} />
                     <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditTeacher(t)} />
                     <ActionButton
@@ -716,7 +741,7 @@ export default function MasterData({
                     />
                 </div>
             ),
-            className: "w-px whitespace-nowrap",
+            className: "text-center whitespace-nowrap w-px",
         },
     ];
 
@@ -754,9 +779,9 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (c) => (
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                     <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditClass(c)} />
                     <ActionButton
                         variant="delete"
@@ -766,14 +791,24 @@ export default function MasterData({
                     />
                 </div>
             ),
-            className: "w-px whitespace-nowrap",
+            className: "text-center whitespace-nowrap w-px",
         },
     ];
 
     // ─── Guardian Columns ───
 
     const guardianColumns: Column<Guardian>[] = [
-        { key: "name", header: "Nama Wali" },
+        {
+            key: "name",
+            header: "Nama Wali",
+            render: (w) => (
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar name={w.name} size="xs" variant="accent" />
+                    <p className="font-semibold text-primary truncate whitespace-nowrap max-w-[220px] sm:max-w-[300px]" title={w.name}>{w.name}</p>
+                </div>
+            ),
+            className: "whitespace-nowrap min-w-[200px]",
+        },
         {
             key: "phone",
             header: "No. Telepon",
@@ -791,9 +826,9 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: "Aksi",
+            header: <div className="text-center w-full">Aksi</div>,
             render: (w) => (
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-center">
                     <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailGuardian(w)} />
                     <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditGuardian(w)} />
                     <ActionButton
@@ -804,7 +839,7 @@ export default function MasterData({
                     />
                 </div>
             ),
-            className: "w-px whitespace-nowrap",
+            className: "text-center whitespace-nowrap w-px",
         },
     ];
 
@@ -820,15 +855,15 @@ export default function MasterData({
 
                 {/* Tabs */}
                 <StickyContainer>
-                    <div className="flex gap-8 border-b border-border select-none">
+                    <div className="flex gap-2 sm:gap-3 border-b border-border select-none overflow-x-auto no-scrollbar scrollbar-none">
                         {tabs.map((t) => (
                             <button
                                 key={t.key}
                                 onClick={() => switchTab(t.key)}
-                                className={`pb-2 text-[14px] font-semibold transition-colors border-b-2 -mb-px inline-flex items-center cursor-pointer ${
+                                className={`px-4 sm:px-5 py-2.5 text-[13px] sm:text-[14px] font-semibold transition-all border-b-2 -mb-px inline-flex items-center justify-center cursor-pointer whitespace-nowrap shrink-0 rounded-t-lg focus:outline-none focus:ring-0 ${
                                     currentTab === t.key
-                                        ? "text-primary border-primary font-bold"
-                                        : "text-text-inactive border-transparent hover:text-text-primary"
+                                        ? "text-primary border-primary font-bold bg-primary/5"
+                                        : "text-text-inactive border-transparent hover:text-text-primary hover:bg-muted/50"
                                 }`}
                                 type="button"
                             >
@@ -842,6 +877,7 @@ export default function MasterData({
                 {currentTab === "students" && students?.data && (
                     <div>
                         <Toolbar
+                            triggerRef={triggerRef}
                             search={search}
                             setSearch={setSearch}
                             handleSearch={handleSearchSubmit}
@@ -886,12 +922,13 @@ export default function MasterData({
                             </div>
                         )}
 
-                        {/* Mobile FAB */}
+                        {/* Mobile FAB - only visible when toolbar action button has scrolled off-screen */}
                         <FAB
                             onClick={openCreateStudent}
                             label="Tambah Siswa"
                             dusk="fab-create-student"
                             className="lg:hidden"
+                            show={showFab}
                         />
                     </div>
                 )}
@@ -1385,10 +1422,11 @@ export default function MasterData({
 // ─── Toolbar ───
 
 function Toolbar({
+    triggerRef,
     search,
     setSearch,
     handleSearch,
-    placeholder = "Cari data...",
+    placeholder = "Cari...",
     selectedCount = 0,
     onDeleteSelected,
     onImport,
@@ -1399,6 +1437,7 @@ function Toolbar({
     onToggleClassFilter,
     onApplyClassFilter,
 }: {
+    triggerRef?: React.Ref<HTMLDivElement>;
     search: string;
     setSearch: (v: string) => void;
     handleSearch: (e: React.FormEvent) => void;
@@ -1414,8 +1453,8 @@ function Toolbar({
     onApplyClassFilter?: (classId: string) => void;
 }) {
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
-            <div className="flex-1 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div className="flex-1 w-full min-w-0">
                 <SearchBar
                     value={search}
                     onChange={setSearch}
@@ -1424,16 +1463,16 @@ function Toolbar({
                 />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto shrink-0">
+            <div className="flex flex-row flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
                 {/* Filter Kelas */}
                 {onApplyClassFilter && (
-                    <div className="relative w-full sm:w-auto">
+                    <div className="relative flex-1 sm:flex-initial">
                         <Button
                             type="button"
                             variant={classFilter ? "primary" : "outline"}
                             onClick={onToggleClassFilter}
                             icon={<i className="fas fa-filter text-[12px]" />}
-                            className="w-full sm:w-auto justify-center"
+                            className="w-full justify-center"
                         >
                             {classFilter
                                 ? (classOptions?.find((c) => String(c.id) === classFilter)?.name ?? "Filter Kelas")
@@ -1475,7 +1514,7 @@ function Toolbar({
                         icon={<i className="fas fa-trash-alt text-[12px]" />}
                         className="flex-1 sm:flex-none justify-center"
                     >
-                        Hapus Terpilih ({selectedCount})
+                        Hapus ({selectedCount})
                     </Button>
                 )}
 
@@ -1487,20 +1526,22 @@ function Toolbar({
                         icon={<i className="fas fa-file-import text-[12px]" />}
                         className="flex-1 sm:flex-none justify-center"
                     >
-                        Import Excel
+                        Import
                     </Button>
                 )}
 
                 {/* Tambah Data Baru */}
                 {onAdd && (
-                    <Button
-                        variant="primary"
-                        onClick={onAdd}
-                        icon={<i className="fas fa-plus text-[12px]" />}
-                        className="flex-1 sm:flex-none justify-center"
-                    >
-                        Tambah Data Baru
-                    </Button>
+                    <div ref={triggerRef}>
+                        <Button
+                            variant="primary"
+                            onClick={onAdd}
+                            icon={<i className="fas fa-plus text-[12px]" />}
+                            className="inline-flex justify-center"
+                        >
+                            Tambah
+                        </Button>
+                    </div>
                 )}
             </div>
         </div>
