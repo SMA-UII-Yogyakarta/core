@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
+import PublicLayout from "@/Layouts/PublicLayout";
 import { motion } from "framer-motion";
 import {
     FiUsers,
@@ -178,9 +179,7 @@ export default function Welcome() {
     ];
 
     return (
-        <>
-            <Head title={t("welcome.documentTitle")} />
-
+        <PublicLayout title={t("welcome.documentTitle")}>
             <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
                 {/* --- HEADER --- */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-neutral-950/80 border-b border-slate-200/80 dark:border-neutral-900/80">
@@ -404,6 +403,6 @@ export default function Welcome() {
                     </div>
                 </footer>
             </div>
-        </>
+        </PublicLayout>
     );
 }
