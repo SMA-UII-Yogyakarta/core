@@ -120,18 +120,7 @@ export default function AppShell({ title, children }: AppShellProps) {
             <div className="fixed inset-0 flex flex-col bg-primary overflow-hidden">
                 <Toast />
 
-                {/* Mobile Header (lg:hidden) */}
-                <MobileHeader
-                    title={title}
-                    mobileBrand={mobileBrand}
-                    userRole={userRole}
-                    userInitial={userInitial}
-                    unreadCount={pageProps.auth?.unreadCount ?? 0}
-                    onOpenSidebar={() => setMobileSidebarOpen(true)}
-                    onOpenSearch={() => setCommandPaletteOpen(true)}
-                />
-
-                {/* Desktop Navbar (hidden on mobile) */}
+                {/* Desktop Navbar (lg:block - full width top bar matching Figma Dekstop Dashboard.png & Siswa Dashboard.png) */}
                 <div className="hidden lg:block shrink-0">
                     <Navbar
                         brand="SMA UII YOGYAKARTA"
@@ -144,20 +133,35 @@ export default function AppShell({ title, children }: AppShellProps) {
                     />
                 </div>
 
+                {/* Main Body Layout Below Desktop Header / Mobile Header Container */}
                 <div className="flex flex-1 min-h-0">
-                    {/* Tablet Icon Sidebar (visible on tablet sm to lg) */}
+                    {/* Tablet Icon Sidebar (visible sm to lg) */}
                     <TabletIconSidebar navSections={navSections} activeItemKey={activeItem?.key} />
 
-                    {/* Desktop Sidebar (visible on desktop lg+) */}
+                    {/* Desktop Sidebar (visible lg+) */}
                     <DesktopSidebar navSections={navSections} activeItemKey={activeItem?.key} />
 
-                    {/* Main Content Area */}
-                    <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
-                        <main className="flex-1 min-h-0 overflow-y-auto">
-                            <div className="p-4 sm:p-6 pb-20 sm:pb-6 lg:pb-6">
-                                <ErrorBoundary>{children}</ErrorBoundary>
-                            </div>
-                        </main>
+                    {/* Right Column: Mobile Header (lg:hidden) + Main Content Area */}
+                    <div className="flex-1 flex flex-col min-w-0 min-h-0">
+                        {/* Mobile Header (lg:hidden) */}
+                        <MobileHeader
+                            title={title}
+                            mobileBrand={mobileBrand}
+                            userRole={userRole}
+                            userInitial={userInitial}
+                            unreadCount={pageProps.auth?.unreadCount ?? 0}
+                            onOpenSidebar={() => setMobileSidebarOpen(true)}
+                            onOpenSearch={() => setCommandPaletteOpen(true)}
+                        />
+
+                        {/* Main Content Card Container */}
+                        <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
+                            <main className="flex-1 min-h-0 overflow-y-auto">
+                                <div className="p-4 sm:p-6 pb-20 sm:pb-6 lg:pb-6">
+                                    <ErrorBoundary>{children}</ErrorBoundary>
+                                </div>
+                            </main>
+                        </div>
                     </div>
                 </div>
 
