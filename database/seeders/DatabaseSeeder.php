@@ -420,9 +420,11 @@ class DatabaseSeeder extends Seeder
                 $uName = 'siswa_' . $studentCounter;
                 if ($cIdx === 0 && $i === 1) {
                     $uName = 'ahmad';
+                    $fullName = 'Ahmad Pratama';
                 }
                 if ($cIdx === 0 && $i === 2) {
                     $uName = 'clara';
+                    $fullName = 'Clara Salsabila';
                 }
 
                 $nis = $nisPrefix . str_pad((string)$studentCounter, 4, '0', STR_PAD_LEFT);
