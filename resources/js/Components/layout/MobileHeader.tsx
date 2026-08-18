@@ -13,44 +13,31 @@ interface MobileHeaderProps {
 export default function MobileHeader({
     title,
     mobileBrand,
-    userRole,
     userInitial,
     unreadCount,
     onOpenSidebar,
     onOpenSearch,
 }: MobileHeaderProps) {
-    const isAdmin = userRole === "admin";
-
     return (
-        <header
-            className={`lg:hidden flex items-center justify-between h-[50px] px-4 sm:px-6 shrink-0 transition-all duration-200 ${
-                isAdmin
-                    ? "bg-primary text-white shadow-md"
-                    : "bg-surface text-text-primary border-b border-border shadow-sm"
-            }`}
-        >
+        <header className="lg:hidden flex items-center justify-between h-[50px] px-4 sm:px-6 bg-primary text-white shrink-0 shadow-md transition-all duration-200">
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                 <button
                     onClick={onOpenSidebar}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all shrink-0 ${
-                        isAdmin ? "text-white/90 hover:text-white" : "text-text-secondary hover:text-text-primary"
-                    }`}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all shrink-0 cursor-pointer"
                     type="button"
                     aria-label="Buka menu"
                 >
                     <i className="fas fa-bars text-[18px]" />
                 </button>
 
-                <h1 className="text-[14px] font-bold tracking-wide truncate text-left font-brand leading-none ml-0.5">
+                <h1 className="text-[14px] font-bold tracking-wide truncate text-left font-brand leading-none ml-0.5 text-white">
                     {title || mobileBrand}
                 </h1>
             </div>
             <div className="flex items-center gap-3 shrink-0">
                 <button
                     onClick={onOpenSearch}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all ${
-                        isAdmin ? "text-white/90 hover:text-white" : "text-text-secondary hover:text-text-primary"
-                    }`}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
                     aria-label="Cari"
                     type="button"
                 >
@@ -58,9 +45,7 @@ export default function MobileHeader({
                 </button>
                 <Link
                     href="/notifications"
-                    className={`w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all relative ${
-                        isAdmin ? "text-white/90 hover:text-white" : "text-text-secondary hover:text-text-primary"
-                    }`}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative"
                     aria-label="Notifikasi"
                 >
                     <i className="fas fa-bell text-[14px]" />
@@ -72,7 +57,7 @@ export default function MobileHeader({
                 </Link>
                 <Link
                     href="/profile"
-                    className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-primary font-bold text-[11px] shrink-0 shadow-sm border border-primary/10"
+                    className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-primary font-bold text-[11px] shrink-0 shadow-sm border border-primary/10 hover:scale-105 transition-transform"
                 >
                     {userInitial}
                 </Link>
