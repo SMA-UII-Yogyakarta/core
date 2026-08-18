@@ -158,15 +158,35 @@ class AnalyticsService
         $months = [];
         for ($m = 1; $m <= 12; $m++) {
             $start = now()->setDate($year, $m, 1)->startOfMonth();
-            $bucket = $buckets[$m] ?? ['total' => 0, 'present' => 0, 'late' => 0];
+            $bucket = $buckets[$m] ?? null;
 
-            $months[] = [
-                'month' => $start->translatedFormat('M'),
-                'label' => $start->translatedFormat('M'),
-                'present' => $bucket['present'],
-                'late' => $bucket['late'],
-                'absent' => max(0, $bucket['total'] - $bucket['present'] - $bucket['late']),
-            ];
+            if ($bucket !== null && ($bucket['days'] ?? 0) > 0) {
+                $days = $bucket['days'];
+                $present = $bucket['present'];
+                $late = $bucket['late'];
+                $absent = max(0, $days - $present - $late);
+                $rate = round((($present + $late) / max(1, $days)) * 1000) / 10;
+
+                $months[] = [
+                    'month' => $start->translatedFormat('M'),
+                    'label' => $start->translatedFormat('M'),
+                    'present' => $present,
+                    'late' => $late,
+                    'absent' => $absent,
+                    'total' => $days,
+                    'rate' => $rate,
+                ];
+            } else {
+                $months[] = [
+                    'month' => $start->translatedFormat('M'),
+                    'label' => $start->translatedFormat('M'),
+                    'present' => 0,
+                    'late' => 0,
+                    'absent' => 0,
+                    'total' => 0,
+                    'rate' => null,
+                ];
+            }
         }
 
         return $months;
@@ -175,17 +195,38 @@ class AnalyticsService
     private function buildMonthlyTrend(int $year): array
     {
         $buckets = $this->monthlyBuckets($year);
+        $totalActiveStudents = Student::where('status', 'Active')->count();
 
         $months = [];
         for ($m = 1; $m <= 12; $m++) {
             $start = now()->setDate($year, $m, 1)->startOfMonth();
-            $bucket = $buckets[$m] ?? ['total' => 0, 'present' => 0, 'late' => 0];
+            $bucket = $buckets[$m] ?? null;
 
-            $months[] = [
-                'label' => $start->translatedFormat('M'),
-                'present' => $bucket['present'],
-                'late' => $bucket['late'],
-            ];
+            if ($bucket !== null && ($bucket['days'] ?? 0) > 0 && $totalActiveStudents > 0) {
+                $expectedTotal = $totalActiveStudents * $bucket['days'];
+                $present = $bucket['present'];
+                $late = $bucket['late'];
+                $absent = max(0, $expectedTotal - $present - $late);
+                $rate = round((($present + $late) / max(1, $expectedTotal)) * 1000) / 10;
+
+                $months[] = [
+                    'label' => $start->translatedFormat('M'),
+                    'present' => $present,
+                    'late' => $late,
+                    'absent' => $absent,
+                    'total' => $expectedTotal,
+                    'rate' => $rate,
+                ];
+            } else {
+                $months[] = [
+                    'label' => $start->translatedFormat('M'),
+                    'present' => 0,
+                    'late' => 0,
+                    'absent' => 0,
+                    'total' => 0,
+                    'rate' => null,
+                ];
+            }
         }
 
         return $months;
@@ -208,6 +249,7 @@ class AnalyticsService
 
         foreach ($query->get() as $row) {
             $month = (int) substr((string) ($row->d ?? ''), 5, 2);
+            $buckets[$month]['days'] = ($buckets[$month]['days'] ?? 0) + 1;
             $buckets[$month]['total'] = ($buckets[$month]['total'] ?? 0) + (int) ($row->total ?? 0);
             $buckets[$month]['present'] = ($buckets[$month]['present'] ?? 0) + (int) ($row->present ?? 0);
             $buckets[$month]['late'] = ($buckets[$month]['late'] ?? 0) + (int) ($row->late ?? 0);

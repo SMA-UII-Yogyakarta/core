@@ -13,6 +13,7 @@ use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -578,84 +579,93 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 11. Attendances (Presensi Realistis 30 Hari Terakhir di SMA UII)
+        // 11. Attendances (Presensi Realistis Sepanjang Tahun Berjalan di SMA UII)
         // ─────────────────────────────────────────────────────────────
-        // Koordinat SMA UII Yogyakarta (Sorowajan Baru, Banguntapan, Bantul):
         $schoolLat = -7.797061;
         $schoolLng = 110.399583;
+        $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
 
-        // Loop 30 hari ke belakang
-        for ($daysAgo = 29; $daysAgo >= 0; $daysAgo--) {
-            $date = now()->subDays($daysAgo);
-            $dayName = $date->format('l');
+        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga hari ini
+        $startDate = Carbon::create(now()->year, 1, 5);
+        $endDate = now();
+        $assignedStudents = $students->filter(fn ($s) => $s->class_id !== null)->values();
 
-            // Hanya hari sekolah aktif (Senin - Jumat)
-            if (in_array($dayName, ['Saturday', 'Sunday'])) {
+        $attendanceBatch = [];
+        $approvedLeaves = LeaveRequest::where('approval_status', 'Approved')->get();
+        $approvedLeaveMap = [];
+        foreach ($approvedLeaves as $leave) {
+            $curL = Carbon::parse($leave->start_date);
+            $endL = Carbon::parse($leave->end_date);
+            while ($curL->lte($endL)) {
+                $approvedLeaveMap[$leave->student_id . '_' . $curL->format('Y-m-d')] = true;
+                $curL->addDay();
+            }
+        }
+
+        for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
+            if ($current->isWeekend()) {
                 continue;
             }
 
-            $dateString = $date->format('Y-m-d');
+            $dateString = $current->format('Y-m-d');
+            $dayOfYear = $current->dayOfYear;
 
-            // Presensi untuk seluruh 230 siswa yang terdaftar di kelas
-            foreach ($students as $idx => $student) {
-                if ($student->class_id === null) {
-                    continue; // Siswa belum masuk kelas belum memiliki presensi
-                }
+            $monthVariance = [1 => 2, 2 => 4, 3 => 1, 4 => 5, 5 => 3, 6 => 6, 7 => 2, 8 => 4][$current->month] ?? 3;
+            $presentCutoff = 84 + $monthVariance;
+            $lateCutoff = min(96, $presentCutoff + 6);
 
-                // Pola probabilistik kehadiran realistis:
-                // 82% Hadir Tepat Waktu (Present), 10% Terlambat (Late), 8% Sakit/Izin/Alpha
-                $prob = ($idx * 7 + $daysAgo * 13) % 100;
+            foreach ($assignedStudents as $idx => $student) {
+                // Pola probabilistik kehadiran realistis bulanan:
+                $prob = ($idx * 7 + $dayOfYear * 13) % 100;
 
-                // Cek apakah siswa sedang izin/sakit pada tanggal ini
-                $hasApprovedLeave = LeaveRequest::where('student_id', $student->id)
-                    ->where('approval_status', 'Approved')
-                    ->whereDate('start_date', '<=', $dateString)
-                    ->whereDate('end_date', '>=', $dateString)
-                    ->exists();
-
-                if ($hasApprovedLeave) {
+                if (isset($approvedLeaveMap[$student->id . '_' . $dateString])) {
                     continue;
                 }
 
-                if ($prob < 85) {
+                if ($prob < $presentCutoff) {
                     // HADIR TEPAT WAKTU (06:35 - 06:55)
                     $minute = str_pad((string) (35 + ($idx % 20)), 2, '0', STR_PAD_LEFT);
                     $second = str_pad((string) (($idx * 11) % 60), 2, '0', STR_PAD_LEFT);
 
-                    Attendance::updateOrCreate(
-                        [
-                            'student_id' => $student->id,
-                            'attendance_date' => $dateString,
-                        ],
-                        [
-                            'check_in_time' => "06:{$minute}:{$second}",
-                            'latitude' => (string) ($schoolLat + (fake()->numberBetween(-15, 15) / 100000)),
-                            'longitude' => (string) ($schoolLng + (fake()->numberBetween(-15, 15) / 100000)),
-                            'photo_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80',
-                            'status' => 'Present',
-                        ],
-                    );
-                } elseif ($prob < 95) {
+                    $attendanceBatch[] = [
+                        'student_id' => $student->id,
+                        'attendance_date' => $dateString,
+                        'check_in_time' => "06:{$minute}:{$second}",
+                        'latitude' => (string) ($schoolLat + ((($idx * 3 + $dayOfYear) % 30) - 15) / 100000),
+                        'longitude' => (string) ($schoolLng + ((($idx * 5 + $dayOfYear) % 30) - 15) / 100000),
+                        'photo_url' => $photoUrl,
+                        'status' => 'Present',
+                        'created_at' => "{$dateString} 06:{$minute}:{$second}",
+                        'updated_at' => "{$dateString} 06:{$minute}:{$second}",
+                    ];
+                } elseif ($prob < $lateCutoff) {
                     // TERLAMBAT (07:05 - 07:22)
                     $minute = str_pad((string) (5 + ($idx % 18)), 2, '0', STR_PAD_LEFT);
                     $second = str_pad((string) (($idx * 13) % 60), 2, '0', STR_PAD_LEFT);
 
-                    Attendance::updateOrCreate(
-                        [
-                            'student_id' => $student->id,
-                            'attendance_date' => $dateString,
-                        ],
-                        [
-                            'check_in_time' => "07:{$minute}:{$second}",
-                            'latitude' => (string) ($schoolLat + (fake()->numberBetween(-15, 15) / 100000)),
-                            'longitude' => (string) ($schoolLng + (fake()->numberBetween(-15, 15) / 100000)),
-                            'photo_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80',
-                            'status' => 'Late',
-                        ],
-                    );
+                    $attendanceBatch[] = [
+                        'student_id' => $student->id,
+                        'attendance_date' => $dateString,
+                        'check_in_time' => "07:{$minute}:{$second}",
+                        'latitude' => (string) ($schoolLat + ((($idx * 3 + $dayOfYear) % 30) - 15) / 100000),
+                        'longitude' => (string) ($schoolLng + ((($idx * 5 + $dayOfYear) % 30) - 15) / 100000),
+                        'photo_url' => $photoUrl,
+                        'status' => 'Late',
+                        'created_at' => "{$dateString} 07:{$minute}:{$second}",
+                        'updated_at' => "{$dateString} 07:{$minute}:{$second}",
+                    ];
                 }
-                // Sisanya (prob >= 95) tidak memiliki record presensi -> Terhitung Absent (Alpa) secara otomatis
+                // Sisanya (prob >= 94) tidak memiliki record presensi -> Terhitung Absent (Alpa) secara otomatis
+
+                if (count($attendanceBatch) >= 1000) {
+                    Attendance::insert($attendanceBatch);
+                    $attendanceBatch = [];
+                }
             }
+        }
+
+        if (! empty($attendanceBatch)) {
+            Attendance::insert($attendanceBatch);
         }
 
         // ─────────────────────────────────────────────────────────────

@@ -105,11 +105,18 @@ function chartTitle(period: Period, date: string): string {
 }
 
 function toRatePoints(
-    points: Array<{ label: string; present: number; late: number; total?: number; absent?: number }>,
+    points: Array<{ label: string; present: number; late: number; total?: number; absent?: number; rate?: number | null }>,
 ): ChartDataPoint[] {
     return points.map((p) => {
-        const total = typeof p.total === "number" ? p.total : p.present + p.late + (p.absent ?? 0);
-        const rate = total > 0 ? Math.round(((p.present + p.late) / total) * 1000) / 10 : 0;
+        let rate: number | undefined;
+        if (typeof p.rate === "number") {
+            rate = p.rate;
+        } else if (p.rate === null) {
+            rate = undefined;
+        } else {
+            const total = typeof p.total === "number" ? p.total : p.present + p.late + (p.absent ?? 0);
+            rate = total > 0 ? Math.round(((p.present + p.late) / total) * 1000) / 10 : undefined;
+        }
         return {
             label: p.label,
             present: p.present,
