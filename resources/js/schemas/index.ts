@@ -5,5 +5,6 @@ export * from "./schoolClass.schema";
 export * from "./attendance.schema";
 export * from "./leaveRequest.schema";
 export * from "./holiday.schema";
+export * from "./locationSetting.schema";
 export * from "./notification.schema";
 export * from "./profile.schema";
