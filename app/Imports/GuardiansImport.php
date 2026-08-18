@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Guardian;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
@@ -11,6 +12,7 @@ use OpenSpout\Reader\Common\Creator\ReaderFactory;
 class GuardiansImport
 {
     private array $errors = [];
+
     private array $success = [];
 
     public function import(string $filePath): array
@@ -20,17 +22,21 @@ class GuardiansImport
 
         $isFirstRow = true;
         $headers = [];
+        $currentRowIndex = 0;
 
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
+                $currentRowIndex++;
+
                 $cells = [];
                 foreach ($row->getCells() as $cell) {
-                    $cells[] = (string) $cell->getValue();
+                    $cells[] = trim((string) $cell->getValue());
                 }
 
                 if ($isFirstRow) {
                     $headers = $cells;
                     $isFirstRow = false;
+
                     continue;
                 }
 
@@ -43,7 +49,17 @@ class GuardiansImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $msg = $e->getMessage();
+                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                        if (str_contains($msg, 'users_email_unique')) {
+                            $msg = 'Email wali murid sudah terdaftar untuk akun lain.';
+                        } elseif (str_contains($msg, 'users_username_unique')) {
+                            $msg = 'Username wali murid sudah terdaftar di sistem.';
+                        } else {
+                            $msg = 'Data wali murid sudah terdaftar di sistem (duplicate entry).';
+                        }
+                    }
+                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
                 }
             }
         }
@@ -75,8 +91,45 @@ class GuardiansImport
                 $username = ! empty($phone) ? 'wali_' . preg_replace('/[^0-9]/', '', $phone) : 'wali_' . fake()->unique()->numerify('#####');
             }
 
-            if (User::where('username', $username)->exists()) {
-                $username = $username . '_' . rand(10, 99);
+            $existingUser = User::where('username', $username)->first();
+
+            // Check email uniqueness if email provided
+            if (! empty($email)) {
+                $emailUser = User::where('email', $email)->first();
+                if ($emailUser && (! $existingUser || $emailUser->id !== $existingUser->id)) {
+                    throw new \RuntimeException("Email '{$email}' sudah terdaftar untuk pengguna lain ({$emailUser->name}).");
+                }
+            }
+
+            if ($existingUser && $existingUser->guardian) {
+                $existingUser->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $existingUser->email,
+                ]);
+                $existingUser->guardian->update([
+                    'name' => $name,
+                    'phone' => ! empty($phone) ? $phone : $existingUser->guardian->phone,
+                    'address' => ! empty($address) ? $address : $existingUser->guardian->address,
+                ]);
+                $this->success[] = "{$name} - Diperbarui";
+
+                return;
+            }
+
+            if ($existingUser) {
+                $existingUser->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $existingUser->email,
+                ]);
+                Guardian::create([
+                    'user_id' => $existingUser->id,
+                    'name' => $name,
+                    'phone' => ! empty($phone) ? $phone : null,
+                    'address' => ! empty($address) ? $address : null,
+                ]);
+                $this->success[] = "{$name}";
+
+                return;
             }
 
             $user = User::create([
