@@ -1,6 +1,7 @@
+import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { PageHeader, Card, ExportButtonGroup } from "@/Components";
+import { PageHeader, Card, ExportButtonGroup, Pagination, SearchBar, StickyContainer, NativeSelect } from "@/Components";
 
 interface ExportRow {
     no: number;
@@ -56,6 +57,25 @@ export default function ExportPage({
     selectedSemester,
     selectedClassId,
 }: ExportPageProps) {
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const filteredPreview = useMemo(() => {
+        if (!search.trim()) return preview;
+        const s = search.toLowerCase();
+        return preview.filter(
+            (r) => r.name.toLowerCase().includes(s) || r.class.toLowerCase().includes(s),
+        );
+    }, [preview, search]);
+
+    const totalPages = Math.ceil(filteredPreview.length / pageSize) || 1;
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedPreview = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredPreview.slice(start, start + pageSize);
+    }, [filteredPreview, safePage, pageSize]);
+
     const buildQuery = (period: Period) => {
         const q: Record<string, string | number | null | undefined> = {
             period,
@@ -74,7 +94,11 @@ export default function ExportPage({
     };
 
     const navigate = (period: Period, overrides: Record<string, string | number | null | undefined> = {}) => {
-        router.get("/export", { ...buildQuery(period), ...overrides }, { preserveScroll: true, replace: true });
+        router.get(
+            "/export",
+            { ...buildQuery(period), ...overrides },
+            { preserveScroll: true, replace: true, preserveState: true },
+        );
     };
 
     const qCommon = { class_id: selectedClassId ? String(selectedClassId) : null };
@@ -96,59 +120,44 @@ export default function ExportPage({
               ? `/export/monthly-recap-pdf?${bulananQuery}`
               : `/export/semester-recap-pdf?${semesterQuery}`;
 
-    const selectClassName =
-        "h-[40px] w-full px-[19px] pr-[31px] rounded-lg text-[13.8px] font-inter text-text-primary bg-muted focus:outline-none focus:ring-2 focus:ring-primary/30 border-transparent focus:border-transparent";
-
     return (
         <AppShell title="Laporan Rekap">
-            <div className="space-y-6">
+            <div className="space-y-4 pb-20 lg:pb-8">
                 {/* Page Header */}
                 <PageHeader
                     title="Laporan & Ekspor Global"
                     description="Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas."
                 />
 
-                {/* Filter Bar — Flat & Seamless */}
-                <div className="flex flex-col lg:flex-row lg:items-center flex-wrap gap-4">
-                    {/* Period Segmented Control */}
-                    <div className="flex w-full lg:w-auto p-1 bg-muted rounded-[10px] h-[40px] items-center">
-                        {PERIODS.map((p) => {
-                            const isActive = selectedPeriod === p.key;
-                            return (
-                                <button
-                                    key={p.key}
-                                    type="button"
-                                    onClick={() => navigate(p.key)}
-                                    className={`flex-1 lg:flex-none h-[32px] px-3 lg:px-6 rounded-md text-[13px] font-semibold font-inter transition-all cursor-pointer ${
-                                        isActive
-                                            ? "bg-surface text-primary shadow-sm font-bold border border-border/10"
-                                            : "bg-transparent text-text-muted hover:text-text-primary"
-                                    }`}
-                                >
-                                    {p.label}
-                                </button>
-                            );
-                        })}
-                    </div>
+                {/* Sticky Filter Bar & Period Tabs */}
+                <StickyContainer>
+                    {/* Top Row: Period Tabs + Unduh Laporan Button */}
+                    <div className="flex items-center justify-between gap-2 mb-1 lg:mb-2">
+                        {/* Period Segmented Control */}
+                        <div className="flex p-1 bg-muted rounded-xl h-11 items-center flex-1 max-w-[280px] sm:max-w-sm">
+                            {PERIODS.map((p) => {
+                                const isActive = selectedPeriod === p.key;
+                                return (
+                                    <button
+                                        key={p.key}
+                                        type="button"
+                                        onClick={() => navigate(p.key)}
+                                        className={`flex-1 h-9 px-2 sm:px-5 rounded-lg text-[12px] sm:text-[14px] font-semibold font-inter transition-all cursor-pointer whitespace-nowrap ${
+                                            isActive
+                                                ? "bg-surface text-primary shadow-sm font-bold border border-border/10"
+                                                : "bg-transparent text-text-muted hover:text-text-primary"
+                                        }`}
+                                    >
+                                        {p.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    {/* Right Side: Class Filter + Export Buttons */}
-                    <div className="flex flex-col lg:flex-row w-full lg:w-auto gap-4 lg:gap-3 lg:ml-auto">
-                        {/* Class Filter */}
-                        <select
-                            value={selectedClassId ?? ""}
-                            onChange={(e) => navigate(selectedPeriod, { class_id: e.target.value || null })}
-                            className={`${selectClassName} w-full lg:w-[200px]`}
-                        >
-                            <option value="">Semua Kelas</option>
-                            {classes.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* PDF + Excel */}
+                        {/* Export Button Inline Next to Tabs */}
                         <ExportButtonGroup
+                            className="shrink-0"
+                            size="md"
                             onExportExcel={() => {
                                 window.location.href = excelHref;
                             }}
@@ -157,82 +166,114 @@ export default function ExportPage({
                             }}
                         />
                     </div>
-                </div>
+
+                    {/* Toolbar: Search Input + Class Filter (Side-by-side on mobile & desktop) */}
+                    <div className="flex items-center justify-between gap-2.5 pb-1 mb-1">
+                        {/* Search Input */}
+                        <div className="flex-1 min-w-0">
+                            <SearchBar
+                                value={search}
+                                onChange={(val) => {
+                                    setSearch(val);
+                                    setCurrentPage(1);
+                                }}
+                                onSearch={() => setCurrentPage(1)}
+                                placeholder="Cari nama atau kelas..."
+                            />
+                        </div>
+
+                        {/* Class Filter */}
+                        <div className="w-[135px] sm:w-[180px] shrink-0">
+                            <NativeSelect
+                                value={selectedClassId ?? ""}
+                                onChange={(e) => navigate(selectedPeriod, { class_id: e.target.value || null })}
+                                className="w-full"
+                            >
+                                <option value="">Semua Kelas</option>
+                                {classes.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+                    </div>
+                </StickyContainer>
 
                 {/* Preview Table */}
-                <Card className="rounded-2xl shadow-dropdown border border-border">
-                    <div className="max-h-[350px] overflow-auto">
-                        <table className="w-full font-inter">
-                            <thead className="sticky top-0">
-                                <tr className="bg-muted">
-                                    <th className="px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-[50px]">
+                <Card className="rounded-2xl shadow-dropdown border border-border overflow-hidden">
+                    <div className="w-full overflow-x-auto">
+                        <table className="w-full font-inter min-w-[560px]">
+                            <thead>
+                                <tr className="bg-muted border-b border-border">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-10 whitespace-nowrap">
                                         No
                                     </th>
-                                    <th className="px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Nama Lengkap
                                     </th>
-                                    <th className="px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted w-[130px]">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Kelas
                                     </th>
-                                    <th className="px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-[90px]">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Masuk
                                     </th>
-                                    <th className="hidden md:table-cell px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-[80px]">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Izin
                                     </th>
-                                    <th className="hidden md:table-cell px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-[80px]">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Sakit
                                     </th>
-                                    <th className="hidden md:table-cell px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-[80px]">
+                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
                                         Alpha
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {preview.length === 0 ? (
+                                {paginatedPreview.length === 0 ? (
                                     <tr>
                                         <td
                                             colSpan={7}
                                             className="px-4 py-12 text-center text-text-inactive text-[14px]"
                                         >
-                                            Tidak ada data.
+                                            {search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data."}
                                         </td>
                                     </tr>
                                 ) : (
-                                    preview.map((row) => (
+                                    paginatedPreview.map((row) => (
                                         <tr
                                             key={row.no}
                                             className="border-t border-border hover:bg-muted/50 transition-colors"
                                         >
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary">
+                                            <td className="px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] text-text-primary whitespace-nowrap">
                                                 {row.no}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-[14px] font-bold text-text-primary">
+                                            <td className="px-3 sm:px-[15px] py-[11px] text-[13px] sm:text-[14px] font-bold text-text-primary whitespace-nowrap" title={row.name}>
                                                 {row.name}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-[14px] text-text-primary">
+                                            <td className="px-3 sm:px-[15px] py-[11px] text-[13px] sm:text-[14px] text-text-primary whitespace-nowrap">
                                                 {row.class}
                                             </td>
-                                            <td className="px-[15px] py-[11px] text-center text-[14px] text-text-primary font-medium">
+                                            <td className="px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] text-text-primary font-medium whitespace-nowrap">
                                                 {row.masuk}
                                             </td>
                                             <td
-                                                className={`hidden md:table-cell px-[15px] py-[11px] text-center text-[14px] font-medium ${
-                                                    row.izin > 0 ? "text-primary" : "text-text-primary"
+                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
+                                                    row.izin > 0 ? "text-primary font-bold" : "text-text-primary"
                                                 }`}
                                             >
                                                 {row.izin}
                                             </td>
                                             <td
-                                                className={`hidden md:table-cell px-[15px] py-[11px] text-center text-[14px] font-medium ${
-                                                    row.sakit > 0 ? "text-warning" : "text-text-primary"
+                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
+                                                    row.sakit > 0 ? "text-warning font-bold" : "text-text-primary"
                                                 }`}
                                             >
                                                 {row.sakit}
                                             </td>
                                             <td
-                                                className={`hidden md:table-cell px-[15px] py-[11px] text-center text-[14px] font-medium ${
-                                                    row.alpha > 0 ? "text-danger" : "text-text-primary"
+                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
+                                                    row.alpha > 0 ? "text-danger font-bold" : "text-text-primary"
                                                 }`}
                                             >
                                                 {row.alpha}
@@ -243,9 +284,26 @@ export default function ExportPage({
                             </tbody>
                         </table>
                     </div>
-                    <Card.Footer className="bg-white flex items-center gap-2 text-[#94A3B8] text-[12px] font-inter">
-                        <i className="fas fa-info-circle"></i>
-                        Tampilan kolom akan menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
+
+                    {/* Pagination Bar */}
+                    {filteredPreview.length > pageSize && (
+                        <div className="p-4 border-t border-border bg-surface">
+                            <Pagination
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredPreview.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
+                    )}
+
+                    <Card.Footer className="bg-white flex items-center justify-between gap-2 text-[#94A3B8] text-[12px] font-inter">
+                        <div className="flex items-center gap-2">
+                            <i className="fas fa-info-circle"></i>
+                            <span>Tampilan kolom menyesuaikan otomatis berdasarkan filter periode.</span>
+                        </div>
+                        <span>Menampilkan {paginatedPreview.length} dari {filteredPreview.length} siswa</span>
                     </Card.Footer>
                 </Card>
             </div>

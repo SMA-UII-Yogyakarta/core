@@ -58,4 +58,21 @@ class LeaveRequestController extends Controller
         $this->leaveRequestService->verify($id, 'Rejected');
         return redirect()->back()->with('success', 'Leave request rejected.');
     }
+
+    public function bulkVerify(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:leave_requests,id',
+            'status' => 'required|string|in:Approved,Rejected',
+        ]);
+
+        /** @var 'Approved'|'Rejected' $status */
+        $status = $validated['status'];
+        $count = $this->leaveRequestService->bulkVerify($validated['ids'], $status);
+
+        $statusText = $status === 'Approved' ? 'disetujui' : 'ditolak';
+
+        return redirect()->back()->with('success', $count . ' permohonan izin berhasil ' . $statusText . '.');
+    }
 }

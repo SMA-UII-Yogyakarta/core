@@ -1,5 +1,7 @@
+import { useState, useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
+import { Pagination, SearchBar } from "@/Components";
 
 interface Teacher {
     id: number;
@@ -94,11 +96,29 @@ export default function HomeroomDashboard({
     class: kelas,
     students,
     stats,
-    pendingLeaveCount = 0,
+    pendingLeaveCount: _pendingLeaveCount = 0,
 }: PageProps) {
+    const [search, setSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    // Split students: "perhatian khusus" = bukan hadir tepat waktu
+    const attentionStudents = useMemo(() => {
+        const raw = students.filter((s) => getRowStatus(s) !== "hadir");
+        if (!search.trim()) return raw;
+        const q = search.toLowerCase();
+        return raw.filter((s) => s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q));
+    }, [students, search]);
+
+    const totalPages = Math.ceil(attentionStudents.length / pageSize) || 1;
+    const paginatedAttention = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return attentionStudents.slice(start, start + pageSize);
+    }, [attentionStudents, currentPage, pageSize]);
+
     if (!kelas) {
         return (
-            <AppShell title="Dashboard Wali Kelas">
+            <AppShell title="Overview Wali Kelas">
                 <div className="bg-surface border border-border rounded-xl p-12 text-center">
                     <i className="fas fa-chalkboard-teacher text-[40px] text-text-muted mb-4 block" />
                     <p className="text-text-muted text-[14px]">Anda belum ditugaskan sebagai wali kelas.</p>
@@ -107,19 +127,16 @@ export default function HomeroomDashboard({
         );
     }
 
-    // Split students: "perhatian khusus" = bukan hadir tepat waktu
-    const attentionStudents = students.filter((s) => getRowStatus(s) !== "hadir");
-
     return (
-        <AppShell title="Dashboard Wali Kelas">
+        <AppShell title="Overview Wali Kelas">
             {/* ── Page header ─────────────────────────────────── */}
             <div className="flex items-start justify-between mb-6 flex-wrap gap-2">
                 <div>
                     <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                        Dasbor Wali Kelas: {kelas.name}
+                        Overview Wali Kelas: {kelas.name}
                     </h1>
                     <p className="text-[13px] text-text-muted font-inter mt-1">
-                        Pantau kehadiran harian anak didik Anda secara real-time.
+                        Pantau kehadiran harian anak didik kelas Anda secara real-time.
                     </p>
                 </div>
                 <span
@@ -156,12 +173,27 @@ export default function HomeroomDashboard({
             )}
 
             {/* ── DESKTOP: Tabel Perhatian Khusus ─────────────── */}
-            <section className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-border">
-                    <h2 className="text-[15px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h2>
+            <section className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden shadow-card">
+                <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-[15px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h2>
+                        <span className="text-[12px] text-text-muted">
+                            Menampilkan {paginatedAttention.length} dari {attentionStudents.length} siswa
+                        </span>
+                    </div>
+                    <div className="w-64">
+                        <SearchBar
+                            value={search}
+                            onChange={setSearch}
+                            onSearch={() => setCurrentPage(1)}
+                            placeholder="Cari nama / NIS..."
+                        />
+                    </div>
                 </div>
-                {attentionStudents.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">Semua siswa hadir tepat waktu ✓</div>
+                {paginatedAttention.length === 0 ? (
+                    <div className="py-12 text-center text-text-muted text-[13px]">
+                        {search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Semua siswa hadir tepat waktu ✓"}
+                    </div>
                 ) : (
                     <table className="w-full border-collapse font-inter">
                         <thead>
@@ -179,7 +211,7 @@ export default function HomeroomDashboard({
                             </tr>
                         </thead>
                         <tbody>
-                            {attentionStudents.map((s) => {
+                            {paginatedAttention.map((s) => {
                                 const status = getRowStatus(s);
                                 const badge = BADGE[status];
                                 const note = rowNote(s);
@@ -230,114 +262,154 @@ export default function HomeroomDashboard({
                         </tbody>
                     </table>
                 )}
+
+                {attentionStudents.length > pageSize && (
+                    <div className="p-4 border-t border-border bg-surface">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={attentionStudents.length}
+                            perPage={pageSize}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
+                )}
             </section>
 
-            {/* ── MOBILE: Summary card + card list ────────────── */}
-            <div className="lg:hidden flex flex-col gap-4">
-                {/* Summary card navy */}
-                <div className="rounded-xl px-5 py-5" style={{ background: "#2E3391" }}>
-                    <p className="text-white/70 text-[11px] font-inter">Ringkasan Hari Ini</p>
-                    <p className="text-white text-[20px] font-bold font-inter mt-1">{todayFormatted()}</p>
-                    <div className="flex gap-4 mt-3">
+            {/* ── MOBILE (lg:hidden) ──────────────────────────── */}
+            {/* ── MOBILE (lg:hidden) — Figma: Mobile Wali Kelas Dashboard ──────────────────────────── */}
+            <div className="lg:hidden flex flex-col gap-4 font-inter">
+                {/* 1. Hero Summary Card (Figma: Ringkasan Hari Ini, Date, Total Siswa, Hadir, Absen/Telat) */}
+                <div className="bg-primary text-white rounded-2xl p-5 shadow-card overflow-hidden">
+                    <p className="text-white/80 text-[12px] font-medium">
+                        Ringkasan Hari Ini
+                    </p>
+                    <h2 className="text-white text-[22px] font-bold mt-1">
+                        {todayFormatted()}
+                    </h2>
+
+                    <div className="border-t border-white/20 my-3.5" />
+
+                    <div className="flex items-center justify-between text-center">
                         <div>
-                            <p className="text-white/70 text-[10px] uppercase tracking-wide">Total Siswa</p>
-                            <p className="text-white font-bold text-[16px]">{stats?.total ?? 0}</p>
+                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
+                                Total Siswa
+                            </span>
+                            <span className="text-[20px] font-bold text-white block mt-0.5">
+                                {stats?.total ?? students.length}
+                            </span>
                         </div>
                         <div>
-                            <p className="text-white/70 text-[10px] uppercase tracking-wide">Hadir</p>
-                            <p className="font-bold text-[16px]" style={{ color: "#10B981" }}>
+                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
+                                Hadir
+                            </span>
+                            <span className="text-[20px] font-bold text-emerald-400 block mt-0.5">
                                 {stats?.present ?? 0}
-                            </p>
+                            </span>
                         </div>
                         <div>
-                            <p className="text-white/70 text-[10px] uppercase tracking-wide">Absen/Telat</p>
-                            <p className="font-bold text-[16px]" style={{ color: "#F59E0B" }}>
+                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
+                                Absen/Telat
+                            </span>
+                            <span className="text-[20px] font-bold text-amber-400 block mt-0.5">
                                 {(stats?.late ?? 0) + (stats?.absent ?? 0)}
-                            </p>
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Section title */}
-                <p className="text-[14px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</p>
+                {/* 2. Section: Perhatian Khusus Hari Ini */}
+                <div>
+                    <h3 className="text-[14px] font-bold text-text-primary mb-3">
+                        Perhatian Khusus Hari Ini
+                    </h3>
 
-                {attentionStudents.length === 0 ? (
-                    <p className="text-text-muted text-[13px] text-center py-6">Semua siswa hadir tepat waktu ✓</p>
-                ) : (
-                    attentionStudents.map((s) => {
-                        const status = getRowStatus(s);
-                        const badge = BADGE[status];
-                        const note = rowNote(s);
-                        // Border kiri warna per status
-                        const leftBorder: Record<RowStatus, string> = {
-                            alpa: "#EF4444",
-                            terlambat: "#F59E0B",
-                            pending: "#2E3391",
-                            diizinkan: "#10B981",
-                            hadir: "#10B981",
-                        };
-                        return (
-                            <div
-                                key={s.id}
-                                className="bg-white rounded-xl overflow-hidden"
-                                style={{
-                                    border: "1px solid #E2E8F0",
-                                    borderLeft: `4px solid ${leftBorder[status]}`,
-                                }}
-                            >
-                                <div className="px-4 pt-3 pb-2 flex items-start justify-between gap-2">
-                                    <div>
-                                        <p className="text-[14px] font-bold text-text-primary">{s.name}</p>
-                                        <p className="text-[12px] text-text-muted mt-0.5">{note}</p>
-                                    </div>
-                                    <span
-                                        className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0 mt-0.5"
-                                        style={{ background: badge.bg, color: badge.color }}
+                    {attentionStudents.length === 0 ? (
+                        <div className="bg-surface border border-border rounded-2xl p-6 text-center shadow-card">
+                            <i className="fas fa-check-circle text-emerald-500 text-3xl mb-2" />
+                            <p className="text-text-primary text-[14px] font-bold">
+                                Semua Siswa Hadir Tepat Waktu
+                            </p>
+                            <p className="text-text-muted text-[12px] mt-0.5">
+                                Tidak ada anomali atau izin tertunda hari ini.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {attentionStudents.map((s) => {
+                                const status = getRowStatus(s);
+                                const badge = BADGE[status];
+                                const note = rowNote(s);
+                                const leftBorder: Record<RowStatus, string> = {
+                                    alpa: "#EF4444",
+                                    terlambat: "#F59E0B",
+                                    pending: "#2E3391",
+                                    diizinkan: "#10B981",
+                                    hadir: "#10B981",
+                                };
+                                return (
+                                    <div
+                                        key={s.id}
+                                        className="bg-surface rounded-2xl p-4 border border-border/80 shadow-card flex flex-col gap-3"
+                                        style={{ borderLeftWidth: "5px", borderLeftColor: leftBorder[status] }}
                                     >
-                                        {badge.label}
-                                    </span>
-                                </div>
-                                {status === "pending" && (
-                                    <div className="px-4 pb-3">
-                                        <Link
-                                            href="/leave-requests/verification"
-                                            className="w-full flex items-center justify-center py-2 rounded-lg text-[13px] font-bold text-white"
-                                            style={{ background: "#2E3391" }}
-                                        >
-                                            Verifikasi Izin
-                                        </Link>
-                                    </div>
-                                )}
-                                {(status === "terlambat" || status === "diizinkan") && (
-                                    <div className="px-4 pb-3">
-                                        <button
-                                            type="button"
-                                            className="w-full flex items-center justify-center py-2 rounded-lg text-[13px] font-semibold border border-border text-text-primary"
-                                        >
-                                            Lihat Detail
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })
-                )}
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <h4 className="text-[14px] font-bold text-primary truncate">
+                                                    {s.name}
+                                                </h4>
+                                                <p className="text-[12px] text-text-muted mt-0.5">
+                                                    {note}
+                                                </p>
+                                            </div>
+                                            <span
+                                                className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0"
+                                                style={{ background: badge.bg, color: badge.color }}
+                                            >
+                                                {badge.label}
+                                            </span>
+                                        </div>
 
-                {/* Quick link verifikasi jika ada pending */}
-                {pendingLeaveCount > 0 && (
-                    <Link
-                        href="/leave-requests/verification"
-                        className="flex items-center justify-between px-4 py-3 rounded-xl border border-border bg-white"
-                    >
-                        <span className="text-[13px] font-semibold text-text-primary">Verifikasi Izin</span>
-                        <span
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[11px] font-bold"
-                            style={{ background: "#EF4444" }}
-                        >
-                            {pendingLeaveCount}
-                        </span>
-                    </Link>
-                )}
+                                        {/* Action Buttons matching Figma mockup */}
+                                        {status === "pending" && (
+                                            <Link
+                                                href="/leave-requests/verification"
+                                                className="w-full py-2.5 bg-primary text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
+                                            >
+                                                <span>Verifikasi Izin</span>
+                                            </Link>
+                                        )}
+
+                                        {status === "terlambat" && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {}}
+                                                className="w-full py-2 border-2 border-primary text-primary font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/5 active:scale-[0.98] transition-all"
+                                            >
+                                                <span>Lihat Detail</span>
+                                            </button>
+                                        )}
+
+                                        {status === "diizinkan" && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {}}
+                                                className="w-full py-2 border-2 border-emerald-600 text-emerald-600 font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 hover:bg-emerald-50 active:scale-[0.98] transition-all"
+                                            >
+                                                <span>Lihat Detail</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Branding */}
+                <p className="text-center text-[11px] text-text-muted/60 py-4 font-inter">
+                    SMART Absen · SMA UII Yogyakarta
+                </p>
             </div>
         </AppShell>
     );

@@ -47,8 +47,18 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
             // Navigasi
             {
                 id: "nav-dashboard",
-                title: "Buka Dashboard",
-                description: "Kembali ke Beranda Utama",
+                title:
+                    userRole === "admin"
+                        ? "Buka Dashboard Admin"
+                        : userRole === "student"
+                          ? "Buka Overview Siswa"
+                          : userRole === "guardian"
+                            ? "Buka Overview Wali Murid"
+                            : "Buka Overview Guru",
+                description:
+                    userRole === "admin"
+                        ? "Pusat kendali operasional dan analitik sekolah"
+                        : "Kembali ke ringkasan beranda utama",
                 category: "Navigasi Halaman",
                 icon: FiSliders,
                 action: () =>

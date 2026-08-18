@@ -59,7 +59,7 @@ export default function Input({
                 )}
                 <input
                     id={id}
-                    className={`w-full px-4 py-2.5 border border-border rounded-lg
+                    className={`w-full h-10 px-3.5 border border-border rounded-lg
                         text-[14px] text-text-primary font-inter bg-surface
                         placeholder:text-text-inactive
                         focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent

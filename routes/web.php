@@ -71,6 +71,8 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Class Enrolment
     Route::get('/class-enrolment', [ClassEnrolmentController::class, 'index'])->name('class-enrolment');
     Route::post('/class-enrolment/assign', [ClassEnrolmentController::class, 'assignStudent'])->name('class-enrolment.assign');
+    Route::post('/class-enrolment/bulk-assign', [ClassEnrolmentController::class, 'bulkAssign'])->name('class-enrolment.bulk-assign');
+    Route::post('/class-enrolment/bulk-remove', [ClassEnrolmentController::class, 'bulkRemove'])->name('class-enrolment.bulk-remove');
     Route::delete('/class-enrolment/remove/{studentId}', [ClassEnrolmentController::class, 'removeStudent'])->name('class-enrolment.remove');
 
     // Guardian Assignment (Hubungkan Wali Murid dengan Murid)
@@ -88,6 +90,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::prefix('leave-requests')->name('leave-requests.')->group(function () {
         Route::get('/', [LeaveRequestController::class, 'index'])->name('index');
         Route::get('/verification', [LeaveRequestController::class, 'verification'])->name('verification');
+        Route::post('/bulk-verify', [LeaveRequestController::class, 'bulkVerify'])->name('bulk-verify');
         Route::get('/{id}', [LeaveRequestController::class, 'show'])->name('show');
         Route::patch('/{id}/approve', [LeaveRequestController::class, 'approve'])->name('approve');
         Route::patch('/{id}/reject', [LeaveRequestController::class, 'reject'])->name('reject');
@@ -135,6 +138,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Student
     Route::prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/overview', [StudentPortalController::class, 'dashboard'])->name('overview');
         Route::get('/attendance', [StudentPortalController::class, 'liveAttendance'])->name('attendance');
         Route::post('/attendance/check-in', [StudentPortalController::class, 'checkIn'])->name('attendance.check-in')
             ->middleware('throttle:attendance-checkin');

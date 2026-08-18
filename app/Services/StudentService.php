@@ -138,4 +138,12 @@ class StudentService
         $student = Student::findOrFail($studentId);
         $student->update(['class_id' => $classId]);
     }
+
+    /**
+     * @param  list<int>  $studentIds
+     */
+    public function bulkAssignToClass(array $studentIds, ?int $classId): int
+    {
+        return Student::whereIn('id', array_unique($studentIds))->update(['class_id' => $classId]);
+    }
 }

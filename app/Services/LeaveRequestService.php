@@ -50,6 +50,19 @@ class LeaveRequestService
         return $leave->fresh(['student.user', 'student.class', 'guardian']);
     }
 
+    /**
+     * @param  list<int>  $ids
+     * @param  string  $status
+     */
+    public function bulkVerify(array $ids, string $status): int
+    {
+        if (! in_array($status, ['Approved', 'Rejected'], true)) {
+            throw new \InvalidArgumentException('Status must be Approved or Rejected.');
+        }
+
+        return LeaveRequest::whereIn('id', array_unique($ids))->update(['approval_status' => $status]);
+    }
+
     public function pending(): LengthAwarePaginator
     {
         return LeaveRequest::with(['student.user', 'student.class', 'guardian'])

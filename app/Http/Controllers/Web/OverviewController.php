@@ -3,30 +3,26 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class OverviewController extends Controller
 {
-    public function __construct(
-        protected AnalyticsService $analyticsService,
-    ) {
-    }
-
     public function index(Request $request)
     {
-        $date = $request->query('date', now()->toDateString());
+        $user = Auth::user();
 
-        $overview = $this->analyticsService->schoolOverview($date);
-        $monthlyTrend = $this->analyticsService->monthlyTrend();
-        $weeklyTrend = $this->analyticsService->weeklyTrend();
+        if (! $user) {
+            return redirect()->route('login');
+        }
 
-        return Inertia::render('Admin/Overview', [
-            'overview' => $overview,
-            'monthlyTrend' => $monthlyTrend,
-            'weeklyTrend' => $weeklyTrend,
-            'selectedDate' => $date,
-        ]);
+        return match ($user->role) {
+            'teacher' => $user->teacher?->isWaliKelas()
+                ? redirect()->route('teacher.homeroom')
+                : redirect()->route('teacher.duty'),
+            'guardian' => redirect()->route('guardian.dashboard', $request->query()),
+            'student' => redirect()->route('student.dashboard'),
+            default => redirect()->route('dashboard'),
+        };
     }
 }

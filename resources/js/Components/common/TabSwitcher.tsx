@@ -13,15 +13,15 @@ interface TabSwitcherProps {
 
 export default function TabSwitcher({ tabs, activeKey, onChange, className = "" }: TabSwitcherProps) {
     return (
-        <div className={`flex gap-1 border-b border-border ${className}`}>
+        <div className={`flex gap-2 sm:gap-3 border-b border-border overflow-x-auto no-scrollbar scrollbar-none ${className}`}>
             {tabs.map((tab) => (
                 <button
                     key={tab.key}
                     onClick={() => onChange(tab.key)}
-                    className={`px-4 py-2.5 text-[14px] font-inter font-medium transition-colors border-b-2 -mb-px inline-flex items-center gap-2 ${
+                    className={`px-4 sm:px-5 py-2.5 text-[13px] sm:text-[14px] font-inter font-medium transition-all border-b-2 -mb-px inline-flex items-center justify-center gap-2.5 whitespace-nowrap shrink-0 cursor-pointer rounded-t-lg focus:outline-none focus:ring-0 ${
                         activeKey === tab.key
-                            ? "text-primary border-primary font-bold"
-                            : "text-text-inactive border-transparent hover:text-text-primary"
+                            ? "text-primary border-primary font-bold bg-primary/5"
+                            : "text-text-inactive border-transparent hover:text-text-primary hover:bg-muted/50"
                     }`}
                     type="button"
                 >

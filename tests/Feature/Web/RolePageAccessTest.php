@@ -60,7 +60,7 @@ class RolePageAccessTest extends TestCase
     public static function adminAllowedPages(): array
     {
         return [
-            '/overview', '/monitoring',
+            '/dashboard', '/monitoring',
             '/master-data',
             '/class-enrolment', '/settings',
             '/leave-requests', '/leave-requests/verification',

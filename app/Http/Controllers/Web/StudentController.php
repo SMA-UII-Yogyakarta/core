@@ -42,11 +42,7 @@ class StudentController extends Controller
             $classes = $this->schoolClassService->paginate(
                 request()->only(['search']),
             );
-            $assignedTeacherIds = \App\Models\SchoolClass::whereNotNull('teacher_id')
-                ->pluck('teacher_id')
-                ->unique();
-            $availableTeachers = \App\Models\Teacher::whereNotIn('id', $assignedTeacherIds)
-                ->select(['id', 'name'])
+            $allTeachers = \App\Models\Teacher::select(['id', 'name'])
                 ->orderBy('name')
                 ->get();
             $total = $classes->total();
@@ -55,7 +51,8 @@ class StudentController extends Controller
             return Inertia::render('Admin/MasterData', [
                 'activeTab' => 'classes',
                 'schoolClasses' => $classes,
-                'allTeachers' => $availableTeachers,
+                'allTeachers' => $allTeachers,
+                'classOptions' => $classes->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->all(),
                 'searchConfig' => [
                     'mode' => $isClientMode ? 'client' : 'server',
                     'allData' => $isClientMode ? $classes->all() : null,

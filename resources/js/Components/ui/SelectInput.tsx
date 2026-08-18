@@ -132,7 +132,7 @@ export default function SelectInput({
                     disabled={disabled}
                     onClick={() => !disabled && (isOpen ? close() : openDropdown())}
                     onKeyDown={handleKeyDown}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 border rounded-lg text-[14px] font-inter text-left bg-surface
+                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-lg text-[14px] font-inter text-left bg-surface
                         focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
                         disabled:opacity-50 disabled:cursor-not-allowed
                         ${error ? "border-danger ring-1 ring-danger/40" : "border-border"}
@@ -143,12 +143,16 @@ export default function SelectInput({
                     </span>
                     <div className="flex items-center gap-1">
                         {selectedOption && !disabled && (
-                            <span
+                            <button
+                                type="button"
                                 onClick={handleClear}
-                                className="text-text-muted hover:text-text-primary cursor-pointer px-1"
+                                aria-label="Hapus pilihan"
+                                className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded-full hover:bg-muted flex items-center justify-center cursor-pointer"
                             >
-                                ×
-                            </span>
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
                         )}
                         <svg
                             className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}

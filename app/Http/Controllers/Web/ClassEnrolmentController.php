@@ -55,4 +55,29 @@ class ClassEnrolmentController extends Controller
 
         return redirect()->back()->with('success', 'Student removed from class successfully.');
     }
+
+    public function bulkAssign(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'class_id' => 'required|integer|exists:school_classes,id',
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'integer|exists:students,id',
+        ]);
+
+        $count = $this->studentService->bulkAssignToClass($validated['student_ids'], (int) $validated['class_id']);
+
+        return redirect()->back()->with('success', $count . ' siswa berhasil ditambahkan ke kelas.');
+    }
+
+    public function bulkRemove(\Illuminate\Http\Request $request)
+    {
+        $validated = $request->validate([
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'integer|exists:students,id',
+        ]);
+
+        $count = $this->studentService->bulkAssignToClass($validated['student_ids'], null);
+
+        return redirect()->back()->with('success', $count . ' siswa berhasil dikeluarkan dari kelas.');
+    }
 }

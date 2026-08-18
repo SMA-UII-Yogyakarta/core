@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, AttendanceChart, Table, Card, PageHeader } from "@/Components";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
@@ -194,7 +194,6 @@ export default function Dashboard({
     }, [period, weeklyTrend, monthlyTrend, selectedDate]);
 
     const presentPct = stats.total_students > 0 ? Math.round((stats.verified_present / stats.total_students) * 100) : 0;
-    const izinPct = stats.total_students > 0 ? Math.round((stats.sick_permit / stats.total_students) * 100) : 0;
     const sakitAlpaSplit = stats.absent; // absent without note
 
     const attentionColumns: Column<AttentionStudent>[] = [
@@ -310,33 +309,114 @@ export default function Dashboard({
                 </div>
             </PageHeader>
 
-            {/* ── Mobile KPI (Figma: 2×2 Hadir/Alpa/Ijin/Sakit) ── */}
-            <section className="grid grid-cols-2 gap-3 mb-5 lg:hidden">
-                <article className="bg-surface border border-border rounded-xl p-3 shadow-sm">
-                    <p className="text-[11px] text-text-muted font-inter">Hadir</p>
-                    <p className="text-[20px] font-bold text-primary font-inter mt-1">
-                        {stats.verified_present}
-                        <span className="text-text-inactive font-normal mx-1">||</span>
-                        <span className="text-primary">{presentPct}%</span>
-                    </p>
-                </article>
-                <article className="bg-surface border border-border rounded-xl p-3 shadow-sm">
-                    <p className="text-[11px] text-text-muted font-inter">Alpa</p>
-                    <p className="text-[20px] font-bold text-danger font-inter mt-1">{sakitAlpaSplit}</p>
-                </article>
-                <article className="bg-surface border border-border rounded-xl p-3 shadow-sm">
-                    <p className="text-[11px] text-text-muted font-inter">Ijin</p>
-                    <p className="text-[20px] font-bold text-success font-inter mt-1">
-                        {stats.sick_permit}
-                        <span className="text-text-inactive font-normal mx-1">||</span>
-                        <span>{izinPct}%</span>
-                    </p>
-                </article>
-                <article className="bg-surface border border-border rounded-xl p-3 shadow-sm">
-                    <p className="text-[11px] text-text-muted font-inter">Terlambat</p>
-                    <p className="text-[20px] font-bold text-warning font-inter mt-1">{stats.late}</p>
-                </article>
-            </section>
+            {/* ── Mobile & Tablet Layout (lg:hidden) ── */}
+            <div className="lg:hidden flex flex-col gap-4 font-inter mb-6">
+                {/* 1. KPI Cards (Mobile: 2x2 || Tablet: 4x1) */}
+                <section className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                        <p className="text-[11px] text-text-muted font-inter">Hadir</p>
+                        <p className="text-[18px] sm:text-[20px] font-bold text-primary font-inter mt-1">
+                            {stats.verified_present}
+                            <span className="text-text-inactive font-normal mx-1">||</span>
+                            <span className="text-primary">{presentPct}%</span>
+                        </p>
+                    </article>
+                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                        <p className="text-[11px] text-text-muted font-inter">Alpa</p>
+                        <p className="text-[18px] sm:text-[20px] font-bold text-danger font-inter mt-1">{sakitAlpaSplit}</p>
+                    </article>
+                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                        <p className="text-[11px] text-text-muted font-inter">Ijin</p>
+                        <p className="text-[18px] sm:text-[20px] font-bold text-success font-inter mt-1">
+                            {stats.sick_permit}
+                            <span className="text-text-inactive font-normal mx-1">||</span>
+                            <span>{stats.total_students > 0 ? Math.round((stats.sick_permit / stats.total_students) * 100) : 0}%</span>
+                        </p>
+                    </article>
+                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                        <p className="text-[11px] text-text-muted font-inter">Sakit / Telat</p>
+                        <p className="text-[18px] sm:text-[20px] font-bold text-warning font-inter mt-1">
+                            {stats.late}
+                            <span className="text-text-inactive font-normal mx-1">||</span>
+                            <span>{stats.total_students > 0 ? Math.round((stats.late / stats.total_students) * 100) : 0}%</span>
+                        </p>
+                    </article>
+                </section>
+
+                {/* 2. Menu Utama Grid (Mobile: 2x2 || Tablet: 4x1) */}
+                <div>
+                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-2.5">Menu Utama</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                        <Link
+                            href="/master-data"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-database" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Data Master
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Siswa, guru, kelas
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/settings"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-clock" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Atur Waktu
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Jam masuk & libur
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/class-enrolment"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-chalkboard-teacher" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Enrolment
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Penempatan kelas
+                                </span>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/export"
+                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-[18px] mb-3">
+                                <i className="fas fa-file-alt" />
+                            </div>
+                            <div>
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                    Ekspor Rekap
+                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">
+                                    Unduh Excel & PDF
+                                </span>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            </div>
 
             {/* ── Desktop Stat Cards (Figma 4 cards) ── */}
             <section className="hidden lg:grid grid-cols-4 gap-6 mb-6">
@@ -392,7 +472,7 @@ export default function Dashboard({
                             <select
                                 value={selectedClassId ?? ""}
                                 onChange={handleClassFilter}
-                                className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none min-w-[140px]"
+                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none min-w-[140px]"
                             >
                                 <option value="">Semua Kelas</option>
                                 {classes.map((c) => (
@@ -412,7 +492,7 @@ export default function Dashboard({
                                 type="date"
                                 value={selectedDate}
                                 onChange={handleDateFilter}
-                                className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none"
                             />
                         </div>
                     </div>

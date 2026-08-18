@@ -17,8 +17,9 @@ class ExportController extends Controller
 
     public function index(Request $request)
     {
-        $period = in_array($request->query('period'), ['harian', 'bulanan', 'semester'], true)
-            ? $request->query('period')
+        $periodParam = $request->query('period') ?? $request->query('tab');
+        $period = in_array($periodParam, ['harian', 'bulanan', 'semester'], true)
+            ? $periodParam
             : 'bulanan';
         $date = $request->query('date', now()->toDateString());
         $month = (int) $request->query('month', now()->month);

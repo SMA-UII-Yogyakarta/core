@@ -108,7 +108,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                 <select
                     value={monthVal}
                     onChange={(e) => setMonthVal(e.target.value)}
-                    className="border border-border rounded-xl px-4 py-2.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+                    className="h-10 border border-border rounded-xl px-4 text-[13px] sm:text-[14px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
                     dusk="select-month"
                     data-testid="select-month"
                 >
@@ -122,7 +122,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                 <select
                     value={yearVal}
                     onChange={(e) => setYearVal(e.target.value)}
-                    className="border border-border rounded-xl px-4 py-2.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
+                    className="h-10 border border-border rounded-xl px-4 text-[13px] sm:text-[14px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
                     dusk="select-year"
                     data-testid="select-year"
                 >
