@@ -3,7 +3,7 @@ import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import { holidaySchema } from "@/schemas";
+import { holidaySchema, locationSettingSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 
 // ─── Types ───
@@ -183,8 +183,18 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         );
     };
 
+    const [locationErrors, setLocationErrors] = useState<Record<string, string>>({});
+
     const handleSaveLocationSettings = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        setLocationErrors({});
+
+        const valid = validateForm(locationSettingSchema, locationForm);
+        if (!valid.success) {
+            setLocationErrors(valid.errors);
+            return;
+        }
+
         setSavingLocation(true);
         router.post("/settings/location-settings", locationForm, {
             preserveState: true,
@@ -448,6 +458,9 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         placeholder="SMA UII Yogyakarta"
                                         required
                                     />
+                                    {locationErrors.name && (
+                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.name}</span>
+                                    )}
                                 </div>
 
                                 <div>
@@ -462,6 +475,9 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         placeholder="Jl. Taman Siswa No.158..."
                                         required
                                     />
+                                    {locationErrors.address && (
+                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.address}</span>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -477,6 +493,9 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                             className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                                             required
                                         />
+                                        {locationErrors.latitude && (
+                                            <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.latitude}</span>
+                                        )}
                                     </div>
                                     <div>
                                         <label className="block text-[12px] font-bold text-text-primary mb-1">
@@ -490,6 +509,9 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                             className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                                             required
                                         />
+                                        {locationErrors.longitude && (
+                                            <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.longitude}</span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -509,6 +531,9 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         />
                                         <span className="text-[12px] text-text-muted">Meter (Disarankan: 100 - 150 meter)</span>
                                     </div>
+                                    {locationErrors.radius_meters && (
+                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.radius_meters}</span>
+                                    )}
                                 </div>
 
                                 <div className="pt-2 flex flex-wrap items-center gap-3">
