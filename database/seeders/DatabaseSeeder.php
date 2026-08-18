@@ -329,15 +329,18 @@ class DatabaseSeeder extends Seeder
             'Hari Prasetya, S.T.', 'Lilis Suryani, S.Farm.', 'Fauzan Adhim, M.Ag.', 'Rini Widyastuti, S.Pd.',
         ];
 
+        $guardianUsernames = [
+            0 => 'wahyu',
+            1 => 'sri',
+            2 => 'hendro',
+            3 => 'titin',
+            4 => 'agus_w',
+            5 => 'nurul_w',
+        ];
+
         $guardians = collect();
         foreach ($guardianNames as $gIdx => $gName) {
-            $uName = 'wali_' . ($gIdx + 1);
-            if ($gIdx === 0) {
-                $uName = 'wahyu';
-            }
-            if ($gIdx === 1) {
-                $uName = 'sri';
-            }
+            $uName = $guardianUsernames[$gIdx] ?? ('wali_' . ($gIdx + 1));
 
             $user = User::updateOrCreate(
                 ['username' => $uName],
@@ -389,6 +392,38 @@ class DatabaseSeeder extends Seeder
             'Melati', 'Rohman', 'Sukmawati', 'Ramadhan', 'Saputra', 'Wibowo', 'Kusumawati',
         ];
 
+        // Pemetaan eksplisit untuk akun demo siswa UAT sesuai dokumen SEED-DATA-TESTING-GUIDE.md:
+        $specialDemoStudents = [
+            // Kelas X-A (Index 0)
+            '0_1' => ['username' => 'ahmad', 'name' => 'Ahmad Reza Pahlevi', 'guardian_idx' => 0],
+            '0_2' => ['username' => 'clara', 'name' => 'Clarissa Maharani', 'guardian_idx' => 1],
+            '0_3' => ['username' => 'budi_s', 'name' => 'Budi Santoso', 'guardian_idx' => 2],
+            '0_4' => ['username' => 'diana', 'name' => 'Diana Putri Lestari', 'guardian_idx' => 3],
+            // Kelas X-B (Index 1)
+            '1_1' => ['username' => 'eko', 'name' => 'Eko Prasetyo Utomo', 'guardian_idx' => 4],
+            '1_2' => ['username' => 'fitri', 'name' => 'Fitri Handayani', 'guardian_idx' => 5],
+            // Kelas X-C Tahfidz (Index 2)
+            '2_1' => ['username' => 'irvan', 'name' => 'Muhammad Irvan Maulana', 'guardian_idx' => 6],
+            // Kelas XI-MIPA 1 (Index 3)
+            '3_1' => ['username' => 'miftah', 'name' => 'Miftahul Huda Jannah', 'guardian_idx' => 7],
+            // Kelas XI-MIPA 2 (Index 4)
+            '4_1' => ['username' => 'qori', 'name' => 'Qori Amalia Fauziah', 'guardian_idx' => 8],
+            // Kelas XI-IPS 1 (Index 5)
+            '5_1' => ['username' => 'utami', 'name' => 'Utami Rahayu Ningsih', 'guardian_idx' => 0],
+            '5_2' => ['username' => 'vina', 'name' => 'Vina Marvina Salsabila', 'guardian_idx' => 1],
+            '5_3' => ['username' => 'wawan', 'name' => 'Wawan Setiawan Aji', 'guardian_idx' => 2],
+            '5_4' => ['username' => 'yoga', 'name' => 'Yoga Pratama Yudha', 'guardian_idx' => 3],
+            // Kelas XI-IPS 2 (Index 6)
+            '6_1' => ['username' => 'zahra', 'name' => 'Zahra Alifia Zahir', 'guardian_idx' => 4],
+            '6_2' => ['username' => 'arya', 'name' => 'Arya Bagus Sudewa', 'guardian_idx' => 5],
+            // Kelas XII-MIPA 1 (Index 7)
+            '7_1' => ['username' => 'danang_s', 'name' => 'Danang Tri Wicaksono', 'guardian_idx' => 9],
+            // Kelas XII-IPS 1 (Index 8)
+            '8_1' => ['username' => 'haris_s', 'name' => 'Haris Firmansyah', 'guardian_idx' => 10],
+            // Kelas XII-IPS 2 (Index 9)
+            '9_1' => ['username' => 'latif_s', 'name' => 'Latif Nur Rohman', 'guardian_idx' => 11],
+        ];
+
         $students = collect();
         $studentCounter = 1;
 
@@ -417,24 +452,24 @@ class DatabaseSeeder extends Seeder
                 $ln = $lastNames[($cIdx * 5 + $i * 3) % count($lastNames)];
                 $fullName = $fn . ' ' . $ln;
 
-                // Username spesifik untuk akun demo siswa utama:
                 $uName = 'siswa_' . $studentCounter;
-                if ($cIdx === 0 && $i === 1) {
-                    $uName = 'ahmad';
-                    $fullName = 'Ahmad Pratama';
-                }
-                if ($cIdx === 0 && $i === 2) {
-                    $uName = 'clara';
-                    $fullName = 'Clara Salsabila';
-                }
-
                 $nis = $nisPrefix . str_pad((string)$studentCounter, 4, '0', STR_PAD_LEFT);
                 $nisn = '00' . substr((string)$birthYear, 2, 2) . str_pad((string)$studentCounter, 6, '0', STR_PAD_LEFT);
+                $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
+
+                $key = "{$cIdx}_{$i}";
+                if (isset($specialDemoStudents[$key])) {
+                    $demo = $specialDemoStudents[$key];
+                    $uName = $demo['username'];
+                    $fullName = $demo['name'];
+                    if (isset($guardians[$demo['guardian_idx']])) {
+                        $guardian = $guardians[$demo['guardian_idx']];
+                    }
+                }
+
                 $birthMonth = str_pad((string)(($i % 12) + 1), 2, '0', STR_PAD_LEFT);
                 $birthDay = str_pad((string)(($i * 2) % 28 + 1), 2, '0', STR_PAD_LEFT);
                 $birthDate = "{$birthYear}-{$birthMonth}-{$birthDay}";
-
-                $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
 
                 $user = User::updateOrCreate(
                     ['username' => $uName],
