@@ -117,7 +117,7 @@ export default function AppShell({ title, children }: AppShellProps) {
         <>
             {title && <Head title={title} />}
 
-            <div className="h-full flex flex-col bg-primary overflow-hidden">
+            <div className="h-screen max-h-screen flex flex-col bg-primary overflow-hidden">
                 <Toast />
 
                 {/* Mobile Header (lg:hidden) */}
