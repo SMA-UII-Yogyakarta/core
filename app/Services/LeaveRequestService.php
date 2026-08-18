@@ -52,7 +52,7 @@ class LeaveRequestService
 
     /**
      * @param  list<int>  $ids
-     * @param  'Approved'|'Rejected'  $status
+     * @param  string  $status
      */
     public function bulkVerify(array $ids, string $status): int
     {

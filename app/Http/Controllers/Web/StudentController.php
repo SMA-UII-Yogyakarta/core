@@ -52,7 +52,7 @@ class StudentController extends Controller
                 'activeTab' => 'classes',
                 'schoolClasses' => $classes,
                 'allTeachers' => $allTeachers,
-                'classOptions' => $classes->map(fn($c) => ['id' => $c->id, 'name' => $c->name])->all(),
+                'classOptions' => $classes->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->all(),
                 'searchConfig' => [
                     'mode' => $isClientMode ? 'client' : 'server',
                     'allData' => $isClientMode ? $classes->all() : null,
