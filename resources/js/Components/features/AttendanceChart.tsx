@@ -154,7 +154,8 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                         max: isRate ? 100 : undefined,
                         suggestedMax: isRate ? 100 : undefined,
                         ticks: {
-                            stepSize: isRate ? 20 : 1,
+                            stepSize: isRate ? 20 : undefined,
+                            precision: 0,
                             color: "#94A3B8",
                             font: { size: 11, family: "Inter" },
                             callback: (value) => (isRate ? `${value}%` : String(value)),
