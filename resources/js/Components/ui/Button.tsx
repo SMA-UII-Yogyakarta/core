@@ -26,9 +26,9 @@ const variantStyles: Record<ButtonVariant | "success", string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-    sm: "px-3 py-1.5 text-[12px]",
-    md: "px-5 py-2.5 text-[14px]",
-    lg: "px-6 py-3 text-[16px]",
+    sm: "h-8 px-3 text-[12px]",
+    md: "h-10 px-4 text-[13px] sm:text-[14px]",
+    lg: "h-12 px-6 text-[15px] sm:text-[16px]",
 };
 
 export function Button<E extends ElementType = "button">({

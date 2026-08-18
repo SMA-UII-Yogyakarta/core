@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../ui/Button";
 import Modal from "../common/Modal";
+import type { ButtonSize } from "@/types/component";
 
 export interface ExportButtonGroupProps {
     onExportExcel?: () => void;
@@ -10,6 +11,8 @@ export interface ExportButtonGroupProps {
     loadingPdf?: boolean;
     disabled?: boolean;
     className?: string;
+    buttonClassName?: string;
+    size?: ButtonSize;
     label?: string;
     dusk?: string;
 }
@@ -22,6 +25,8 @@ export default function ExportButtonGroup({
     loadingPdf = false,
     disabled = false,
     className = "",
+    buttonClassName = "",
+    size = "md",
     label = "Unduh Laporan",
     dusk = "export-btn-group",
 }: ExportButtonGroupProps) {
@@ -50,12 +55,12 @@ export default function ExportButtonGroup({
         >
             <Button
                 variant="primary"
-                size="sm"
+                size={size}
                 onClick={() => setIsModalOpen(true)}
                 disabled={disabled}
                 dusk="btn-open-export-modal"
                 data-testid="btn-open-export-modal"
-                className="font-semibold shadow-sm"
+                className={`h-[40px] px-4 font-semibold shadow-sm rounded-lg flex items-center justify-center shrink-0 ${buttonClassName}`}
             >
                 <i className="fas fa-download mr-1.5" />
                 {label}

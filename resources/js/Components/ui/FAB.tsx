@@ -6,6 +6,7 @@ export interface FABProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: "accent" | "primary";
     position?: "bottom-right" | "bottom-left" | "bottom-center";
     dusk?: string;
+    show?: boolean;
 }
 
 const positionClasses = {
@@ -15,8 +16,8 @@ const positionClasses = {
 };
 
 const variantClasses = {
-    accent: "bg-accent text-primary hover:bg-accent-hover active:scale-95 shadow-xl shadow-accent/20",
-    primary: "bg-primary text-white hover:bg-primary-hover active:scale-95 shadow-xl shadow-primary/20",
+    accent: "bg-accent text-primary hover:bg-accent-hover active:scale-95 shadow-accent/20",
+    primary: "bg-primary text-white hover:bg-primary-hover active:scale-95 shadow-primary/20",
 };
 
 export default function FAB({
@@ -26,6 +27,7 @@ export default function FAB({
     position = "bottom-right",
     className = "",
     dusk,
+    show = true,
     children,
     ...props
 }: FABProps) {
@@ -34,10 +36,11 @@ export default function FAB({
     return (
         <button
             type="button"
-            className={`fixed z-30 flex items-center justify-center font-inter font-bold transition-all duration-200 cursor-pointer focus:outline-none focus:ring-4 focus:ring-accent/40
+            className={`fixed z-30 flex items-center justify-center font-inter font-bold transition-all duration-300 cursor-pointer focus:outline-none focus:ring-4 focus:ring-accent/40
                 ${positionClasses[position]}
                 ${variantClasses[variant]}
                 ${isExtended ? "px-5 py-3.5 rounded-full text-[13px] gap-2.5" : "w-14 h-14 rounded-full text-xl"}
+                ${show ? "opacity-100 translate-y-0 pointer-events-auto shadow-xl" : "opacity-0 translate-y-6 pointer-events-none shadow-none"}
                 ${className}`}
             dusk={dusk}
             data-testid={dusk}
