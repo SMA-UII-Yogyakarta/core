@@ -12,7 +12,9 @@ services:
       LOG_LEVEL: warning
       MAIL_MAILER: log
     volumes:
+      - .:/var/www/html
       - ./env/.env.production:/var/www/html/.env:ro
+      - /var/www/html/public/hot
 
   worker:
     image: core-app
