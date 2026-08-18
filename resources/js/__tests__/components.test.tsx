@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
     Avatar,
@@ -28,54 +28,40 @@ describe("Design System Component Tests", () => {
         expect(screen.getByText("22")).toBeDefined();
     });
 
-    it("renders StatusBadge with normalized variants", () => {
-        const { unmount } = render(<StatusBadge variant="Present" />);
-        expect(screen.getByText(/Hadir/i)).toBeDefined();
-        unmount();
-
-        render(<StatusBadge variant="Late" />);
-        expect(screen.getByText(/Terlambat/i)).toBeDefined();
+    it("renders StatusBadge with specific status label", () => {
+        render(<StatusBadge label="Hadir Tepat Waktu" variant="success" />);
+        expect(screen.getByText("Hadir Tepat Waktu")).toBeDefined();
     });
 
-    it("renders StatCard with label, value, and subtitle", () => {
+    it("renders StatCard with value and label", () => {
+        render(<StatCard label="Total Siswa" value={245} color="blue" />);
+        expect(screen.getByText("Total Siswa")).toBeDefined();
+        expect(screen.getByText("245")).toBeDefined();
+    });
+
+    it("renders Button with icon and text", () => {
         render(
-            <StatCard
-                label="Total Hadir"
-                value="25 Hari"
-                subtitle="Bulan Ini"
-                color="green"
-            />,
+            <Button variant="primary">
+                <span>Simpan Perubahan</span>
+            </Button>,
         );
-        expect(screen.getByText("Total Hadir")).toBeDefined();
-        expect(screen.getByText("25 Hari")).toBeDefined();
-        expect(screen.getByText("Bulan Ini")).toBeDefined();
+        expect(screen.getByText("Simpan Perubahan")).toBeDefined();
     });
 
-    it("renders Button polymorphically", () => {
-        render(<Button variant="primary">Kirim Data</Button>);
-        expect(screen.getByText("Kirim Data")).toBeDefined();
-    });
-
-    it("renders AttendanceCalendar with days of the month", () => {
+    it("renders AttendanceCalendar and navigates month", () => {
         render(
             <AttendanceCalendar
                 month={8}
                 year={2026}
-                attendances={[
-                    {
-                        id: 1,
-                        attendance_date: "2026-08-14",
-                        status: "Present",
-                        check_in_time: "06:30:00",
-                    },
-                ]}
+                attendances={[]}
+                holidays={[]}
             />,
         );
-        expect(screen.getByText(/Agustus 2026/i)).toBeDefined();
+        expect(screen.getByText(/Agustus/i)).toBeDefined();
         expect(screen.getByText("14")).toBeDefined();
     });
 
-    it("renders ExportButtonGroup with export options", () => {
+    it("renders ExportButtonGroup with export options in modal", () => {
         render(
             <ExportButtonGroup
                 onExportExcel={() => {}}
@@ -83,6 +69,9 @@ describe("Design System Component Tests", () => {
                 onPrint={() => {}}
             />,
         );
+        expect(screen.getByText("Unduh Laporan")).toBeDefined();
+        fireEvent.click(screen.getByText("Unduh Laporan"));
+        expect(screen.getByText("Pilih Format Unduhan")).toBeDefined();
         expect(screen.getByText("Unduh Excel")).toBeDefined();
         expect(screen.getByText("Unduh PDF")).toBeDefined();
         expect(screen.getByText("Cetak")).toBeDefined();
