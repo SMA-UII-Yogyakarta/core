@@ -39,10 +39,16 @@ export default function Navbar({
 
     return (
         <header className="flex items-center justify-between px-6 sm:px-10 py-4 bg-primary h-[70px] w-full shrink-0">
-            {/* Left — Brand */}
+            {/* Left — Brand Logo & Name (Figma Dekstop Dashboard.png & Siswa Dashboard.png) */}
             <div className="flex items-center gap-3">
-                <Avatar name="SMA UII" size="sm" variant="accent" alt="SMA UII Logo" />
-                <span className="text-white font-bold text-[16px] font-inter tracking-wide hidden sm:block">
+                <Link
+                    href="/dashboard"
+                    className="px-2.5 py-1 rounded-lg bg-accent text-primary font-brand font-extrabold text-[13px] leading-none shrink-0 shadow-xs hover:scale-105 transition-transform"
+                    title="SMA UII Yogyakarta"
+                >
+                    UII
+                </Link>
+                <span className="text-white font-bold text-[16px] font-brand tracking-wide">
                     {brand}
                 </span>
             </div>

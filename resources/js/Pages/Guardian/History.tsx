@@ -1,7 +1,26 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
+import {
+    FiUser,
+    FiCalendar,
+    FiFilter,
+    FiClock,
+    FiFileText,
+    FiBarChart2,
+} from "react-icons/fi";
 import AttendanceChart from "@/Components/features/AttendanceChart";
-import { StatCard, StatusBadge, FilterBar, Button } from "@/Components";
+import {
+    StatCard,
+    StatusBadge,
+    FilterBar,
+    Button,
+    Table,
+    PageHeader,
+    Card,
+    EmptyState,
+    Avatar,
+} from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
 interface Student {
@@ -77,193 +96,280 @@ export default function History({
     stats,
     monthlyTrend,
 }: PageProps) {
-    const [studentVal] = useState(selectedStudentId.toString());
     const [monthVal, setMonthVal] = useState(month.toString());
     const [yearVal, setYearVal] = useState(year.toString());
+
+    const handleSelectStudent = (id: number) => {
+        router.get(
+            "/guardian/history",
+            { student_id: id, month: monthVal, year: yearVal },
+            { preserveState: true }
+        );
+    };
 
     const handleFilter = () => {
         router.get(
             "/guardian/history",
-            { student_id: studentVal, month: monthVal, year: yearVal },
-            { preserveState: true },
+            { student_id: selectedStudentId, month: monthVal, year: yearVal },
+            { preserveState: true }
         );
     };
 
-    return (
-        <AppShell title="Riwayat Anak">
-            {/* Child Selector */}
-            <section className="bg-surface border border-border rounded-xl p-5 mb-6">
-                <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Pilih Anak</h2>
-                <div className="flex flex-wrap gap-2">
-                    {students.map((s) => (
-                        <button
-                            key={s.id}
-                            type="button"
-                            onClick={() =>
-                                router.get(
-                                    "/guardian/history",
-                                    { student_id: s.id, month: monthVal, year: yearVal },
-                                    { preserveState: true },
-                                )
-                            }
-                            className={`px-4 py-2 rounded-lg border text-[13px] font-medium transition-colors ${
-                                s.id === selectedStudentId
-                                    ? "bg-primary text-white border-primary"
-                                    : "bg-surface text-text-primary border-border hover:bg-background"
-                            }`}
-                        >
-                            {s.name}
-                        </button>
-                    ))}
+    // Columns for Attendance Table
+    const attendanceColumns: Column<AttendanceRecord>[] = [
+        {
+            key: "attendance_date",
+            header: "Tanggal Presensi",
+            render: (row: AttendanceRecord) => (
+                <div className="flex items-center gap-2 font-medium text-text-primary">
+                    <FiCalendar className="w-4 h-4 text-text-muted shrink-0" />
+                    <span>{row.attendance_date}</span>
                 </div>
-            </section>
+            ),
+        },
+        {
+            key: "check_in_time",
+            header: "Jam Masuk",
+            render: (row: AttendanceRecord) => (
+                <div className="flex items-center gap-2 font-mono font-medium text-text-primary">
+                    <FiClock className="w-4 h-4 text-text-muted shrink-0" />
+                    <span>{row.check_in_time ? `${row.check_in_time} WIB` : "-"}</span>
+                </div>
+            ),
+        },
+        {
+            key: "status",
+            header: "Status Kehadiran",
+            render: (row: AttendanceRecord) => {
+                const statusLower = row.status?.toLowerCase() ?? "";
+                const variant =
+                    statusLower === "present"
+                        ? "present"
+                        : statusLower === "late"
+                        ? "late"
+                        : "absent";
+                return <StatusBadge variant={variant} />;
+            },
+        },
+    ];
 
-            {selectedStudent ? (
-                <>
-                    {/* Profile */}
-                    <section className="bg-surface border border-border rounded-xl p-5 mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-[14px]">
-                                {selectedStudent.name.charAt(0)}
+    // Columns for Leave Request Table
+    const leaveColumns: Column<LeaveRequest>[] = [
+        {
+            key: "category",
+            header: "Kategori Izin",
+            render: (row: LeaveRequest) => (
+                <div className="flex items-center gap-2 font-medium text-text-primary">
+                    <FiFileText className="w-4 h-4 text-primary shrink-0" />
+                    <span>{row.category}</span>
+                </div>
+            ),
+        },
+        {
+            key: "period",
+            header: "Periode Tanggal",
+            render: (row: LeaveRequest) => (
+                <span className="text-text-muted font-medium text-[13px]">
+                    {row.start_date} {row.end_date && row.end_date !== row.start_date ? `s/d ${row.end_date}` : ""}
+                </span>
+            ),
+        },
+        {
+            key: "approval_status",
+            header: "Status Persetujuan",
+            render: (row: LeaveRequest) => {
+                const s = row.approval_status?.toLowerCase() ?? "pending";
+                const variant =
+                    s === "approved"
+                        ? "approved"
+                        : s === "rejected"
+                        ? "rejected"
+                        : "pending";
+                return <StatusBadge variant={variant} />;
+            },
+        },
+    ];
+
+    return (
+        <AppShell title="Riwayat Presensi Anak">
+            <div className="flex flex-col gap-6 font-inter">
+                {/* Header */}
+                <PageHeader
+                    title="Riwayat Presensi Anak"
+                    description="Pantau laporan kehadiran harian, keterlambatan, dan riwayat pengajuan izin anak Anda."
+                />
+
+                {/* Child Selector Tabs */}
+                <Card className="p-5 border-border">
+                    <h3 className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-3 flex items-center gap-2 font-inter">
+                        <FiUser className="w-4 h-4 text-primary" />
+                        <span>Pilih Anak</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2.5">
+                        {students.map((s) => {
+                            const isSelected = s.id === selectedStudentId;
+                            return (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => handleSelectStudent(s.id)}
+                                    className={`px-4 py-2.5 rounded-xl border text-[13px] font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                                        isSelected
+                                            ? "bg-primary text-white border-primary shadow-xs"
+                                            : "bg-surface text-text-primary border-border hover:bg-muted"
+                                    }`}
+                                >
+                                    <Avatar name={s.name} size="xs" />
+                                    <span>{s.name}</span>
+                                    {s.class?.name && (
+                                        <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-normal ${
+                                            isSelected ? "bg-white/20 text-white" : "bg-muted text-text-muted"
+                                        }`}>
+                                            {s.class.name}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </Card>
+
+                {selectedStudent ? (
+                    <>
+                        {/* Selected Student Profile Banner */}
+                        <Card className="p-5 border-border bg-gradient-to-r from-surface to-muted/40">
+                            <div className="flex items-center gap-4">
+                                <Avatar name={selectedStudent.name} size="lg" className="ring-2 ring-primary/20" />
+                                <div className="min-w-0">
+                                    <h2 className="text-[18px] font-bold text-text-primary truncate">
+                                        {selectedStudent.name}
+                                    </h2>
+                                    <p className="text-[13px] text-text-muted mt-0.5">
+                                        Kelas: <strong className="text-text-primary font-semibold">{selectedStudent.class?.name ?? "-"}</strong>
+                                        <span className="mx-2">•</span>
+                                        NIS: <strong className="text-text-primary font-mono font-semibold">{selectedStudent.nis}</strong>
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-[16px] font-bold text-text-primary">{selectedStudent.name}</h2>
-                                <p className="text-[12px] text-text-muted">
-                                    {selectedStudent.class?.name ?? "-"} — NIS: {selectedStudent.nis}
-                                </p>
-                            </div>
+                        </Card>
+
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                            <StatCard
+                                label="Hari Tercatat"
+                                value={stats?.total_days ?? 0}
+                                color="grey"
+                                subtitle="Total Hari Sekolah"
+                            />
+                            <StatCard
+                                label="Hadir Tepat"
+                                value={stats?.present ?? 0}
+                                color="green"
+                                subtitle="Sesuai Jam Masuk"
+                            />
+                            <StatCard
+                                label="Terlambat"
+                                value={stats?.late ?? 0}
+                                color="amber"
+                                subtitle="Lewat Batas Jam"
+                            />
+                            <StatCard
+                                label="Tidak Hadir / Alpa"
+                                value={stats?.absent ?? 0}
+                                color="red"
+                                subtitle="Tanpa Keterangan"
+                            />
                         </div>
-                    </section>
 
-                    {/* Stats */}
-                    <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                        <StatCard label="Hari Tercatat" value={stats?.total_days ?? 0} color="grey" />
-                        <StatCard label="Hadir" value={stats?.present ?? 0} color="green" />
-                        <StatCard label="Terlambat" value={stats?.late ?? 0} color="amber" />
-                        <StatCard label="Tidak Hadir" value={stats?.absent ?? 0} color="red" />
-                    </section>
-
-                    {/* Monthly Trend Chart */}
-                    {monthlyTrend && monthlyTrend.length > 0 && (
-                        <section className="bg-surface border border-border rounded-xl p-5 mb-6">
-                            <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                                Tren Kehadiran Bulanan
-                            </h2>
-                            <AttendanceChart data={monthlyTrend} />
-                        </section>
-                    )}
-
-                    {/* Filter */}
-                    <FilterBar className="mb-6">
-                        <FilterBar.Select
-                            label="Bulan"
-                            options={MONTH_NAMES.map((name, i) => ({
-                                value: (i + 1).toString(),
-                                label: name,
-                            }))}
-                            value={monthVal}
-                            onChange={(e) => setMonthVal(e.target.value)}
-                        />
-                        <FilterBar.Select
-                            label="Tahun"
-                            options={["2024", "2025", "2026", "2027"].map((t) => ({
-                                value: t,
-                                label: t,
-                            }))}
-                            value={yearVal}
-                            onChange={(e) => setYearVal(e.target.value)}
-                        />
-                        <Button variant="primary" onClick={handleFilter}>
-                            Tampilkan
-                        </Button>
-                    </FilterBar>
-
-                    {/* Attendance Table */}
-                    <section className="bg-surface border border-border rounded-xl p-5 mb-6">
-                        <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
-                            Detail Kehadiran — {MONTH_NAMES[month - 1]} {year}
-                        </h2>
-                        {attendances.length === 0 ? (
-                            <p className="text-text-muted text-[13px] text-center py-8">Belum ada data kehadiran.</p>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full border-collapse font-inter">
-                                    <thead>
-                                        <tr className="bg-background border-b border-border">
-                                            <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase">
-                                                Tanggal
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase">
-                                                Jam Masuk
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase">
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {attendances.map((att) => (
-                                            <tr
-                                                key={att.id}
-                                                className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
-                                            >
-                                                <td className="px-4 py-3 text-[14px] text-text-primary">
-                                                    {att.attendance_date}
-                                                </td>
-                                                <td className="px-4 py-3 text-[14px] text-text-primary">
-                                                    {att.check_in_time} WIB
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <StatusBadge
-                                                        variant={att.status === "Present" ? "present" : "late"}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                        {/* Monthly Trend Chart */}
+                        {monthlyTrend && monthlyTrend.length > 0 && (
+                            <Card className="p-5 border-border">
+                                <h3 className="text-[15px] font-bold text-text-primary font-inter mb-4 flex items-center gap-2">
+                                    <FiBarChart2 className="w-4 h-4 text-primary" />
+                                    <span>Grafik Tren Kehadiran Bulanan</span>
+                                </h3>
+                                <AttendanceChart data={monthlyTrend} />
+                            </Card>
                         )}
-                    </section>
 
-                    {/* Leave Requests */}
-                    <section className="bg-surface border border-border rounded-xl p-5">
-                        <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Riwayat Izin</h2>
-                        {leaveRequests.length === 0 ? (
-                            <p className="text-text-muted text-[13px] text-center py-4">Belum ada pengajuan izin.</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {leaveRequests.map((lr) => (
-                                    <div
-                                        key={lr.id}
-                                        className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
-                                    >
-                                        <div>
-                                            <span className="text-[13px] text-text-primary font-medium">
-                                                {lr.category}
-                                            </span>
-                                            <span className="text-[12px] text-text-muted ml-2">
-                                                {lr.start_date} — {lr.end_date}
-                                            </span>
-                                        </div>
-                                        <StatusBadge
-                                            variant={
-                                                lr.approval_status === "Approved"
-                                                    ? "approved"
-                                                    : lr.approval_status === "Rejected"
-                                                      ? "rejected"
-                                                      : "pending"
-                                            }
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-                </>
-            ) : (
-                <p className="text-text-muted text-[13px] text-center py-8">Tidak ada data untuk ditampilkan.</p>
-            )}
+                        {/* Filter Bar */}
+                        <FilterBar>
+                            <FilterBar.Select
+                                label="Bulan"
+                                options={MONTH_NAMES.map((name, i) => ({
+                                    value: (i + 1).toString(),
+                                    label: name,
+                                }))}
+                                value={monthVal}
+                                onChange={(e) => setMonthVal(e.target.value)}
+                            />
+                            <FilterBar.Select
+                                label="Tahun"
+                                options={["2024", "2025", "2026", "2027"].map((t) => ({
+                                    value: t,
+                                    label: t,
+                                }))}
+                                value={yearVal}
+                                onChange={(e) => setYearVal(e.target.value)}
+                            />
+                            <Button variant="primary" onClick={handleFilter} icon={<FiFilter className="w-4 h-4" />}>
+                                Tampilkan Filter
+                            </Button>
+                        </FilterBar>
+
+                        {/* Attendance Table */}
+                        <Card className="p-5 border-border">
+                            <h3 className="text-[16px] font-bold text-text-primary font-inter mb-4 flex items-center justify-between">
+                                <span>Detail Presensi — {MONTH_NAMES[month - 1]} {year}</span>
+                                <span className="text-[12px] font-normal text-text-muted">
+                                    Total: {attendances.length} Rekam Data
+                                </span>
+                            </h3>
+
+                            {attendances.length === 0 ? (
+                                <EmptyState
+                                    title="Belum Ada Data Presensi"
+                                    description={`Tidak ada rekaman data presensi untuk periode ${MONTH_NAMES[month - 1]} ${year}.`}
+                                />
+                            ) : (
+                                <Table
+                                    columns={attendanceColumns}
+                                    data={attendances}
+                                    keyExtractor={(item: AttendanceRecord) => item.id}
+                                />
+                            )}
+                        </Card>
+
+                        {/* Leave Requests Table */}
+                        <Card className="p-5 border-border">
+                            <h3 className="text-[16px] font-bold text-text-primary font-inter mb-4 flex items-center justify-between">
+                                <span>Riwayat Permohonan Izin / Sakit</span>
+                                <span className="text-[12px] font-normal text-text-muted">
+                                    Total: {leaveRequests.length} Pengajuan
+                                </span>
+                            </h3>
+
+                            {leaveRequests.length === 0 ? (
+                                <EmptyState
+                                    title="Belum Ada Pengajuan Izin"
+                                    description="Siswa ini belum memiliki riwayat pengajuan izin atau sakit."
+                                />
+                            ) : (
+                                <Table
+                                    columns={leaveColumns}
+                                    data={leaveRequests}
+                                    keyExtractor={(item: LeaveRequest) => item.id}
+                                />
+                            )}
+                        </Card>
+                    </>
+                ) : (
+                    <EmptyState
+                        title="Tidak Ada Siswa Terpilih"
+                        description="Silakan pilih salah satu profil anak di atas untuk menampilkan riwayat presensi."
+                    />
+                )}
+            </div>
         </AppShell>
     );
 }

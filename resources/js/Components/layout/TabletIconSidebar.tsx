@@ -8,7 +8,18 @@ interface TabletIconSidebarProps {
 
 export default function TabletIconSidebar({ navSections, activeItemKey }: TabletIconSidebarProps) {
     return (
-        <aside className="bg-primary py-4 px-2 flex flex-col items-center gap-3 rounded-none hidden sm:flex lg:hidden w-16 shrink-0 select-none overflow-y-auto overflow-x-hidden no-scrollbar border-r border-white/10 z-20 h-full">
+        <aside className="bg-primary py-3 px-2 flex flex-col items-center gap-2 rounded-none hidden sm:flex lg:hidden w-16 shrink-0 select-none overflow-y-auto overflow-x-hidden no-scrollbar border-r border-white/10 z-20 h-full">
+            {/* Top Logo */}
+            <Link
+                href="/dashboard"
+                className="w-10 h-10 rounded-xl bg-accent text-primary font-brand font-extrabold text-[13px] flex items-center justify-center shrink-0 shadow-md shadow-accent/20 hover:scale-105 transition-transform"
+                title="SMA UII Yogyakarta"
+            >
+                UII
+            </Link>
+
+            <div className="w-8 h-[1px] bg-white/10 shrink-0 my-1" />
+
             {/* Navigation Icons */}
             <div className="flex flex-col gap-2.5 w-full items-center">
                 {navSections.map((section) =>
