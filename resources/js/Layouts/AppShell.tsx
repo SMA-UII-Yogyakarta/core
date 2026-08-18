@@ -179,7 +179,7 @@ export default function AppShell({ title, children }: AppShellProps) {
                     <div className="flex items-center gap-4 shrink-0">
                         <button
                             onClick={() => setCommandPaletteOpen(true)}
-                            className="text-white/80 hover:text-white text-[15px]"
+                            className="w-7 h-7 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors text-[14px]"
                             aria-label="Cari"
                             type="button"
                         >
@@ -187,12 +187,12 @@ export default function AppShell({ title, children }: AppShellProps) {
                         </button>
                         <Link
                             href="/notifications"
-                            className="text-white/80 hover:text-white text-[15px] relative"
+                            className="w-7 h-7 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors text-[14px] relative"
                             aria-label="Notifikasi"
                         >
                             <i className="fas fa-bell" />
                             {(pageProps.auth?.unreadCount ?? 0) > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-danger text-white text-[8px] font-bold w-[12px] h-[12px] flex items-center justify-center rounded-full border border-primary shrink-0 select-none">
+                                <span className="absolute -top-0.5 -right-0.5 bg-danger text-white text-[8px] font-bold w-[12px] h-[12px] flex items-center justify-center rounded-full border border-primary shrink-0 select-none">
                                     {pageProps.auth?.unreadCount}
                                 </span>
                             )}

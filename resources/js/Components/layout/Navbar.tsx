@@ -51,7 +51,7 @@ export default function Navbar({
             <div className="flex items-center gap-4 sm:gap-5">
                 <button
                     onClick={onSearchClick}
-                    className="text-white/80 hover:text-white transition-colors text-[16px] cursor-pointer"
+                    className="w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors text-[16px] focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer"
                     aria-label="Cari"
                     type="button"
                 >

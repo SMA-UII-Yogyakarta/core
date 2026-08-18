@@ -61,7 +61,7 @@ export default function NotificationPopover({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`relative p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer ${
+                className={`relative w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer ${
                     isOpen ? "bg-white/15 text-white" : ""
                 }`}
                 aria-label={`Notifikasi (${unreadCount} belum dibaca)`}
@@ -69,10 +69,10 @@ export default function NotificationPopover({
                 dusk="btn-bell-popover"
                 data-testid="btn-bell-popover"
             >
-                <i className="fas fa-bell text-[17px]" />
+                <i className="fas fa-bell text-[16px]" />
                 {unreadCount > 0 && (
                     <span
-                        className="absolute -top-1 -right-1 bg-danger text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full border-2 border-primary shadow-sm select-none animate-pulse"
+                        className="absolute -top-0.5 -right-0.5 bg-danger text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full border-2 border-primary shadow-sm select-none animate-pulse"
                         dusk="notification-badge"
                     >
                         {unreadCount > 99 ? "99+" : unreadCount}
