@@ -21,6 +21,8 @@ class PermissionRegistry
             'master-data.*' => ['admin'],
             'class-enrolment' => ['admin'],
             'class-enrolment.*' => ['admin'],
+            'guardian-assignment' => ['admin'],
+            'guardian-assignment.*' => ['admin'],
             'settings' => ['admin'],
             'settings.*' => ['admin'],
             'attendance-correction' => ['admin'],
@@ -86,6 +88,7 @@ class PermissionRegistry
 
                     ['key' => 'master-data',        'label' => 'Data Master',       'icon' => 'fa-database',          'href' => '/master-data',          'roles' => ['admin']],
                     ['key' => 'class-enrolment',    'label' => 'Enrolment Kelas',   'icon' => 'fa-chalkboard-teacher','href' => '/class-enrolment',      'roles' => ['admin']],
+                    ['key' => 'guardian-assignment','label' => 'Relasi Wali Murid', 'icon' => 'fa-users-cog',        'href' => '/guardian-assignment',  'roles' => ['admin']],
                     ['key' => 'settings',           'label' => 'Atur Waktu & Libur','icon' => 'fa-clock',             'href' => '/settings',             'roles' => ['admin']],
                     ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin']],
 

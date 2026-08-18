@@ -60,3 +60,4 @@ GEMINI.md
 /storybook-static
 /playwright-report
 /test-results
+.agents/

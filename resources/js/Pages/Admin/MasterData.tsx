@@ -136,7 +136,7 @@ export default function MasterData({
     const [showClassFilter, setShowClassFilter] = useState(false);
 
     const [importModalOpen, setImportModalOpen] = useState(false);
-    const [importEntity, setImportEntity] = useState<"students" | "teachers">("students");
+    const [importEntity, setImportEntity] = useState<"students" | "teachers" | "classes" | "guardians">("students");
 
     // Student create / edit / detail
     type StudentModalMode = "create" | "edit" | "detail" | null;
@@ -661,6 +661,12 @@ export default function MasterData({
                 <div className="flex gap-2">
                     <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailStudent(s)} />
                     <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditStudent(s)} />
+                    <ActionButton
+                        variant="delete"
+                        icon="fa-trash"
+                        label="Hapus"
+                        onClick={() => handleDelete("students", s.id)}
+                    />
                 </div>
             ),
             className: "w-px whitespace-nowrap",
@@ -1088,6 +1094,10 @@ export default function MasterData({
                             setSearch={setSearch}
                             handleSearch={handleSearchSubmit}
                             placeholder="Cari nama wali murid..."
+                            onImport={() => {
+                                setImportEntity("guardians");
+                                setImportModalOpen(true);
+                            }}
                             onAdd={openCreateGuardian}
                         />
                         <section className="mt-4">
@@ -1138,21 +1148,21 @@ export default function MasterData({
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input
-                            label="NIS"
+                            label="NIS *"
                             value={studentForm.nis}
                             disabled={studentModal === "detail"}
                             onChange={(e) => setStudentForm("nis", e.target.value)}
                             error={studentErrors.nis}
                         />
                         <Input
-                            label="NISN"
+                            label="NISN *"
                             value={studentForm.nisn}
                             disabled={studentModal === "detail"}
                             onChange={(e) => setStudentForm("nisn", e.target.value)}
                             error={studentErrors.nisn}
                         />
                         <Input
-                            label="Nama Lengkap"
+                            label="Nama Lengkap *"
                             value={studentForm.name}
                             disabled={studentModal === "detail"}
                             onChange={(e) => setStudentForm("name", e.target.value)}
@@ -1160,15 +1170,18 @@ export default function MasterData({
                             className="sm:col-span-2"
                         />
                         <SelectInput
-                            label="Kelas"
+                            label="Kelas (Opsional)"
                             value={studentForm.class_id}
                             disabled={studentModal === "detail"}
                             onChange={(val) => setStudentForm("class_id", val as string)}
-                            options={classOptions.map((c) => ({ value: c.id, label: c.name }))}
+                            options={[
+                                { value: "", label: "— Belum Masuk Kelas —" },
+                                ...classOptions.map((c) => ({ value: c.id, label: c.name }))
+                            ]}
                             error={studentErrors.class_id}
                         />
                         <Input
-                            label="Tanggal Lahir"
+                            label="Tanggal Lahir *"
                             type="date"
                             value={studentForm.birth_date}
                             disabled={studentModal === "detail"}
@@ -1176,7 +1189,7 @@ export default function MasterData({
                             error={studentErrors.birth_date}
                         />
                         <Input
-                            label="Tahun Masuk"
+                            label="Tahun Masuk *"
                             type="number"
                             numeric
                             value={studentForm.enrollment_year}
@@ -1184,7 +1197,7 @@ export default function MasterData({
                             onChange={(e) => setStudentForm("enrollment_year", Number(e.target.value))}
                         />
                         <SelectInput
-                            label="Status"
+                            label="Status *"
                             value={studentForm.status}
                             disabled={studentModal === "detail" || studentModal === "create"}
                             onChange={(val) => setStudentForm("status", val as string)}
@@ -1194,17 +1207,17 @@ export default function MasterData({
                             ]}
                         />
                         <SelectInput
-                            label="Wali Murid"
+                            label="Wali Murid (Opsional)"
                             value={studentForm.guardian_id}
                             disabled={studentModal === "detail"}
                             onChange={(val) => setStudentForm("guardian_id", val as string)}
                             options={[
-                                { value: "", label: "— Opsional —" },
+                                { value: "", label: "— Belum Ada Wali —" },
                                 ...allGuardians.map((g) => ({ value: g.id, label: g.name })),
                             ]}
                         />
                         <Input
-                            label="No. Telepon"
+                            label="No. Telepon (Opsional)"
                             value={studentForm.phone}
                             disabled={studentModal === "detail"}
                             onChange={(e) => setStudentForm("phone", e.target.value)}
@@ -1212,14 +1225,14 @@ export default function MasterData({
                         {studentModal === "create" && (
                             <>
                                 <Input
-                                    label="Email (SSO)"
+                                    label="Email SSO (Opsional)"
                                     type="email"
                                     value={studentForm.email}
                                     onChange={(e) => setStudentForm("email", e.target.value)}
                                     error={studentErrors.email}
                                 />
                                 <Input
-                                    label="Password Awal"
+                                    label="Password Awal (Opsional)"
                                     type="password"
                                     value={studentForm.password}
                                     onChange={(e) => setStudentForm("password", e.target.value)}
@@ -1228,7 +1241,9 @@ export default function MasterData({
                             </>
                         )}
                         <div className="sm:col-span-2">
-                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">Alamat</label>
+                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
+                                Alamat <span className="text-[12px] text-text-inactive font-normal">(Opsional)</span>
+                            </label>
                             <textarea
                                 value={studentForm.address}
                                 disabled={studentModal === "detail"}
@@ -1258,30 +1273,33 @@ export default function MasterData({
                 >
                     <div className="space-y-4">
                         <Input
-                            label="Kode Guru"
+                            label="Kode Guru *"
                             value={teacherForm.teacher_code}
                             disabled={teacherModal === "detail"}
                             onChange={(e) => setTeacherForm("teacher_code", e.target.value)}
                             error={teacherErrors.teacher_code}
+                            placeholder="Contoh: TCH-016"
                         />
                         <Input
-                            label="Nama Guru"
+                            label="Nama Guru Lengkap & Gelar *"
                             value={teacherForm.name}
                             disabled={teacherModal === "detail"}
                             onChange={(e) => setTeacherForm("name", e.target.value)}
                             error={teacherErrors.name}
+                            placeholder="Contoh: Dr. H. Slamet, M.Pd."
                         />
                         {teacherModal === "create" && (
                             <>
                                 <Input
-                                    label="Email (SSO)"
+                                    label="Email SSO (Opsional)"
                                     type="email"
                                     value={teacherForm.email}
                                     onChange={(e) => setTeacherForm("email", e.target.value)}
                                     error={teacherErrors.email}
+                                    placeholder="Contoh: slamet@smauii.sch.id"
                                 />
                                 <Input
-                                    label="Password Awal"
+                                    label="Password Awal (Opsional)"
                                     type="password"
                                     value={teacherForm.password}
                                     onChange={(e) => setTeacherForm("password", e.target.value)}
@@ -1310,30 +1328,33 @@ export default function MasterData({
                 >
                     <div className="space-y-4">
                         <Input
-                            label="Nama Wali"
+                            label="Nama Wali Murid *"
                             value={guardianForm.name}
                             disabled={guardianModal === "detail"}
                             onChange={(e) => setGuardianForm("name", e.target.value)}
                             error={guardianErrors.name}
+                            placeholder="Contoh: H. Agus Salim, S.E."
                         />
                         <Input
-                            label="No. Telepon"
+                            label="No. Telepon / WhatsApp (Opsional)"
                             value={guardianForm.phone}
                             disabled={guardianModal === "detail"}
                             onChange={(e) => setGuardianForm("phone", e.target.value)}
                             error={guardianErrors.phone}
+                            placeholder="Contoh: 08123456789"
                         />
                         {guardianModal === "create" && (
                             <>
                                 <Input
-                                    label="Email (SSO)"
+                                    label="Email SSO (Opsional)"
                                     type="email"
                                     value={guardianForm.email}
                                     onChange={(e) => setGuardianForm("email", e.target.value)}
                                     error={guardianErrors.email}
+                                    placeholder="Contoh: agus@wali.smauii.sch.id"
                                 />
                                 <Input
-                                    label="Password Awal"
+                                    label="Password Awal (Opsional)"
                                     type="password"
                                     value={guardianForm.password}
                                     onChange={(e) => setGuardianForm("password", e.target.value)}
@@ -1342,13 +1363,16 @@ export default function MasterData({
                             </>
                         )}
                         <div>
-                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">Alamat</label>
+                            <label className="block text-sm font-medium text-primary mb-1.5 font-inter">
+                                Alamat Tinggal <span className="text-[12px] text-text-inactive font-normal">(Opsional)</span>
+                            </label>
                             <textarea
                                 value={guardianForm.address}
                                 disabled={guardianModal === "detail"}
                                 onChange={(e) => setGuardianForm("address", e.target.value)}
                                 rows={3}
                                 className="w-full border border-border rounded-lg px-4 py-2.5 text-[14px] disabled:bg-muted font-inter bg-surface placeholder:text-text-inactive focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent"
+                                placeholder="Contoh: Jl. Sorowajan Baru No. 12, Banguntapan, Bantul"
                             />
                         </div>
                     </div>

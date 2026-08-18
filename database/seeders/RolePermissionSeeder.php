@@ -24,20 +24,20 @@ class RolePermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $perm]);
         }
 
-        $admin = Role::findByName('admin');
+        $admin = Role::firstOrCreate(['name' => 'admin']);
         $admin->syncPermissions($permissions);
 
-        $teacher = Role::findByName('teacher');
+        $teacher = Role::firstOrCreate(['name' => 'teacher']);
         $teacher->syncPermissions([
             'create-presensi',
             'view-laporan',
             'approve-izin',
         ]);
 
-        $guardian = Role::findByName('guardian');
+        $guardian = Role::firstOrCreate(['name' => 'guardian']);
         $guardian->syncPermissions(['view-laporan']);
 
-        $student = Role::findByName('student');
+        $student = Role::firstOrCreate(['name' => 'student']);
         $student->syncPermissions(['create-presensi', 'view-laporan']);
     }
 }
