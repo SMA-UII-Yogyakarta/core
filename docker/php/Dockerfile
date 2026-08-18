@@ -1,13 +1,17 @@
 FROM php:8.4-cli-alpine
 
-RUN sed -i 's|dl-cdn.alpinelinux.org|dl-4.alpinelinux.org|g' /etc/apk/repositories \
-    && apk add --no-cache \
+RUN apk add --no-cache \
         postgresql-dev \
         autoconf \
         g++ \
         make \
         libzip-dev \
-    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath zip \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath zip gd \
     && pecl install redis \
     && docker-php-ext-enable redis
 

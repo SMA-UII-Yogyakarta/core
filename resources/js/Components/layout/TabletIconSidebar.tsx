@@ -8,7 +8,7 @@ interface TabletIconSidebarProps {
 
 export default function TabletIconSidebar({ navSections, activeItemKey }: TabletIconSidebarProps) {
     return (
-        <aside className="bg-primary py-4 px-2 flex flex-col items-center gap-3 rounded-none hidden sm:flex lg:hidden w-16 shrink-0 select-none overflow-y-auto overflow-x-hidden no-scrollbar border-r border-white/10 z-20 sticky top-0 self-start h-full max-h-full">
+        <aside className="bg-primary py-4 px-2 flex flex-col items-center gap-3 rounded-none hidden sm:flex lg:hidden w-16 shrink-0 select-none overflow-y-auto overflow-x-hidden no-scrollbar border-r border-white/10 z-20 h-full">
             {/* Navigation Icons */}
             <div className="flex flex-col gap-2.5 w-full items-center">
                 {navSections.map((section) =>

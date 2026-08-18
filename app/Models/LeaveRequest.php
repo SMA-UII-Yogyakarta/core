@@ -69,4 +69,18 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(Guardian::class);
     }
+
+    public function getDocumentUrlAttribute(?string $value): ?string
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        if (str_contains($value, 'rustfs:9000') || str_contains($value, 'localhost:9000') || str_contains($value, '127.0.0.1:9000')) {
+            $path = preg_replace('#^https?://[^/]+/(smauii-attendance/)?#', '', $value);
+            return route('storage-s3', ['path' => $path]);
+        }
+
+        return $value;
+    }
 }
