@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Button, Pagination, Table, PageHeader, NativeSelect, StickyContainer } from "@/Components";
+import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
@@ -24,6 +24,16 @@ interface Holiday {
     is_holiday: boolean;
 }
 
+interface LocationSetting {
+    id: number;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    radius_meters: number;
+    is_active: boolean;
+}
+
 interface PaginatedData<T> {
     data: T[];
     current_page: number;
@@ -40,6 +50,7 @@ interface Filters {
 interface AturWaktuLiburProps {
     timeSettings: TimeSetting[];
     holidays: PaginatedData<Holiday>;
+    locationSetting?: LocationSetting;
     filters: Filters;
 }
 
@@ -83,14 +94,13 @@ function formatIndonesianDate(dateStr: string): string {
     }
 }
 
-// ─── Page ───
-
-export default function AturWaktuLibur({ timeSettings, holidays, filters }: AturWaktuLiburProps) {
+export default function HolidaySettings({ timeSettings, holidays, locationSetting, filters }: AturWaktuLiburProps) {
     const [saving, setSaving] = useState(false);
-    const [activeSettingTab, setActiveSettingTab] = useState<"time" | "holiday">("time");
+    const [savingLocation, setSavingLocation] = useState(false);
+    const [activeSettingTab, setActiveSettingTab] = useState<"time" | "location" | "holiday">("time");
+
     const normalizeTime = (value?: string | null, fallback = "06:30") => {
         if (!value) return fallback;
-        // Backend may cast as H:i:s
         return value.length >= 5 ? value.slice(0, 5) : value;
     };
 
@@ -125,6 +135,15 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
             };
         }
         return initial;
+    });
+
+    const [locationForm, setLocationForm] = useState({
+        name: locationSetting?.name ?? "SMA UII Yogyakarta",
+        address: locationSetting?.address ?? "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
+        latitude: locationSetting?.latitude ?? -7.814257,
+        longitude: locationSetting?.longitude ?? 110.375944,
+        radius_meters: locationSetting?.radius_meters ?? 100,
+        is_active: locationSetting?.is_active ?? true,
     });
 
     const {
@@ -162,6 +181,15 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                 onFinish: () => setSaving(false),
             },
         );
+    };
+
+    const handleSaveLocationSettings = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        setSavingLocation(true);
+        router.post("/settings/location-settings", locationForm, {
+            preserveState: true,
+            onFinish: () => setSavingLocation(false),
+        });
     };
 
     const handleAddHoliday = (e: React.FormEvent) => {
@@ -301,7 +329,7 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                         value={form[day].check_in_close}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
                     />
                 </div>
             ),
@@ -309,16 +337,15 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
     ];
 
     return (
-        <AppShell title="Konfigurasi Jadwal & Waktu">
-            {/* Page Header */}
+        <AppShell title="Atur Waktu, Lokasi & Libur - SMA UII Yogyakarta">
             <PageHeader
-                title="Konfigurasi Jadwal & Waktu"
-                description="Atur parameter gerbang digital presensi dan tetapkan hari libur akademik."
+                title="Pengaturan Presensi & Geofencing"
+                description="Kelola jam operasional presensi harian, titik lokasi GPS sekolah, radius geofence, dan kalender libur akademik SMA UII."
             />
 
-            {/* Mobile & Tablet Tab Switcher (Sticky On Top) */}
-            <StickyContainer className="lg:hidden">
-                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs">
+            {/* Desktop & Mobile Tab Selection */}
+            <div className="mb-6">
+                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs max-w-2xl">
                     <button
                         type="button"
                         onClick={() => setActiveSettingTab("time")}
@@ -333,6 +360,18 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                     </button>
                     <button
                         type="button"
+                        onClick={() => setActiveSettingTab("location")}
+                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            activeSettingTab === "location"
+                                ? "bg-primary text-white shadow-sm font-bold"
+                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
+                        }`}
+                    >
+                        <i className="fas fa-map-marker-alt text-[14px]" />
+                        <span>Lokasi & Geofence</span>
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => setActiveSettingTab("holiday")}
                         className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             activeSettingTab === "holiday"
@@ -344,12 +383,12 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                         <span>Libur Akademik</span>
                     </button>
                 </div>
-            </StickyContainer>
+            </div>
 
-            {/* Split Layout */}
+            {/* Main Content Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* Column 1: Jam Operasional Harian (Left) */}
-                <div className={`lg:col-span-3 ${activeSettingTab === "time" ? "block" : "hidden lg:block"}`}>
+                {/* Section 1: Jam Operasional Harian */}
+                <div className={`lg:col-span-3 ${activeSettingTab === "time" ? "block" : "hidden"}`}>
                     <section className="flex flex-col gap-6">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
@@ -371,8 +410,175 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                     </section>
                 </div>
 
-                {/* Column 2: Libur Akademik (Right) */}
-                <div className={`lg:col-span-2 flex flex-col gap-6 ${activeSettingTab === "holiday" ? "block" : "hidden lg:flex"}`}>
+                {/* Section 2: Titik Lokasi & Geofencing Presensi */}
+                <div className={`lg:col-span-5 ${activeSettingTab === "location" ? "block" : "hidden"}`}>
+                    <div className="bg-surface border border-border rounded-xl p-6 shadow-card">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-3 border-b border-border">
+                            <div>
+                                <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
+                                    <i className="fas fa-map-marker-alt text-[16px] text-danger" />
+                                    Titik Lokasi Utama & Radius Geofencing SMA UII Yogyakarta
+                                </h2>
+                                <p className="text-[12px] text-text-muted mt-1">
+                                    Atur koordinat GPS pusat gedung sekolah dan batas jarak (radius) maksimal siswa melakukan presensi selfie.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => handleSaveLocationSettings()}
+                                disabled={savingLocation}
+                                className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-60 shrink-0"
+                                type="button"
+                            >
+                                <i className="fas fa-check text-[12px]" />
+                                <span>{savingLocation ? "Menyimpan..." : "Simpan Lokasi Presensi"}</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveLocationSettings} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-4">
+                                <div>
+                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
+                                        Nama Gedung / Lokasi Presensi
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={locationForm.name}
+                                        onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
+                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        placeholder="SMA UII Yogyakarta"
+                                        required
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
+                                        Alamat Lengkap Sekolah
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={locationForm.address}
+                                        onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
+                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        placeholder="Jl. Taman Siswa No.158..."
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[12px] font-bold text-text-primary mb-1">
+                                            Latitude (Garis Lintang)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            value={locationForm.latitude}
+                                            onChange={(e) => setLocationForm({ ...locationForm, latitude: parseFloat(e.target.value) || 0 })}
+                                            className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[12px] font-bold text-text-primary mb-1">
+                                            Longitude (Garis Bujur)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            value={locationForm.longitude}
+                                            onChange={(e) => setLocationForm({ ...locationForm, longitude: parseFloat(e.target.value) || 0 })}
+                                            className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
+                                        Radius Toleransi Geofence (Meter)
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="number"
+                                            min={10}
+                                            max={5000}
+                                            value={locationForm.radius_meters}
+                                            onChange={(e) => setLocationForm({ ...locationForm, radius_meters: parseInt(e.target.value) || 100 })}
+                                            className="w-32 border border-border rounded-lg px-3 py-2 text-[13px] font-mono font-bold text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                            required
+                                        />
+                                        <span className="text-[12px] text-text-muted">Meter (Disarankan: 100 - 150 meter)</span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex flex-wrap items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setLocationForm({
+                                            name: "SMA UII Yogyakarta",
+                                            address: "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
+                                            latitude: -7.814257,
+                                            longitude: 110.375944,
+                                            radius_meters: 100,
+                                            is_active: true,
+                                        })}
+                                        className="text-[12px] font-semibold text-primary hover:underline flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <i className="fas fa-crosshairs text-[11px]" />
+                                        <span>Set Preset SMA UII Taman Siswa (-7.814257, 110.375944)</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Visual Preview Box */}
+                            <div className="bg-slate-50 border border-border rounded-xl p-5 flex flex-col justify-between">
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[12px] font-bold uppercase tracking-wider text-text-muted">Preview Peta & Status</span>
+                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-success/15 text-success border border-success/30 flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                                            Geofencing Active ({locationForm.radius_meters}m)
+                                        </span>
+                                    </div>
+
+                                    <div className="bg-surface border border-border rounded-lg p-4 shadow-sm flex flex-col gap-2">
+                                        <div className="flex items-start gap-2.5">
+                                            <i className="fas fa-school text-primary text-[16px] mt-0.5" />
+                                            <div>
+                                                <h4 className="text-[14px] font-bold text-text-primary">{locationForm.name}</h4>
+                                                <p className="text-[12px] text-text-secondary leading-snug mt-0.5">{locationForm.address}</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between text-[11px] font-mono text-text-muted">
+                                            <span>Lat: {locationForm.latitude}</span>
+                                            <span>Lng: {locationForm.longitude}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-900 flex items-start gap-2">
+                                        <i className="fas fa-info-circle text-amber-600 text-[14px] mt-0.5" />
+                                        <span>Siswa hanya dapat melakukan check-in jika posisi GPS HP berada di dalam lingkaran radius <strong>{locationForm.radius_meters} meter</strong> dari titik koordinat pusat SMA UII Yogyakarta.</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                                    <a
+                                        href={`https://www.google.com/maps?q=${locationForm.latitude},${locationForm.longitude}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-border hover:bg-slate-100 text-text-primary text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        <i className="fas fa-external-link-alt text-[11px] text-primary" />
+                                        <span>Buka di Google Maps</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {/* Section 3: Libur Akademik */}
+                <div className={`lg:col-span-5 ${activeSettingTab === "holiday" ? "block" : "hidden"}`}>
                     <div className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
                         {/* Card Header */}
                         <div className="flex items-center justify-between mb-6 pb-2 border-b border-border/60">
@@ -448,60 +654,59 @@ export default function AturWaktuLibur({ timeSettings, holidays, filters }: Atur
                                         disabled={holidayProcessing}
                                         className="bg-primary hover:bg-primary/95 text-white px-4 py-1.5 rounded-lg text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-60"
                                     >
-                                        {holidayProcessing ? "Menyimpan..." : "Simpan"}
+                                        {holidayProcessing ? "Menyimpan..." : "Simpan Libur"}
                                     </button>
                                 </div>
                             </form>
                         )}
 
-                        {/* Month / Year Filters for Holidays */}
-                        <div className="flex gap-3 mb-5 select-none">
-                            <NativeSelect
-                                className="w-1/2 sm:w-[140px]"
-                                value={filters.year ?? currentYear.toString()}
-                                onChange={(e) =>
-                                    router.get(
-                                        "/settings",
-                                        { year: e.target.value, month: filters.month },
-                                        { preserveState: true },
-                                    )
-                                }
-                            >
-                                {Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
-                                ))}
-                            </NativeSelect>
-                            <NativeSelect
-                                className="w-1/2 sm:w-[140px]"
-                                value={filters.month ?? ""}
-                                onChange={(e) =>
-                                    router.get(
-                                        "/settings",
-                                        { year: filters.year, month: e.target.value },
-                                        { preserveState: true },
-                                    )
-                                }
-                            >
-                                <option value="">Semua Bulan</option>
-                                {months.map((m) => (
-                                    <option key={m.value} value={m.value}>
-                                        {m.label}
-                                    </option>
-                                ))}
-                            </NativeSelect>
+                        {/* Filter Bar */}
+                        <div className="flex gap-3 mb-5 items-center">
+                            <div className="w-40">
+                                <NativeSelect
+                                    value={filters.month ?? ""}
+                                    onChange={(e) =>
+                                        router.get(
+                                            "/settings",
+                                            { year: filters.year, month: e.target.value },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                >
+                                    <option value="">Semua Bulan</option>
+                                    {months.map((m) => (
+                                        <option key={m.value} value={m.value}>
+                                            {m.label}
+                                        </option>
+                                    ))}
+                                </NativeSelect>
+                            </div>
+                            <div className="w-32">
+                                <NativeSelect
+                                    value={filters.year ?? String(currentYear)}
+                                    onChange={(e) =>
+                                        router.get(
+                                            "/settings",
+                                            { year: e.target.value, month: filters.month },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                >
+                                    <option value={String(currentYear - 1)}>{currentYear - 1}</option>
+                                    <option value={String(currentYear)}>{currentYear}</option>
+                                    <option value={String(currentYear + 1)}>{currentYear + 1}</option>
+                                </NativeSelect>
+                            </div>
                         </div>
 
-                        {/* Holiday List rendered as Cards (as per Figma) */}
-                        <div className="flex-1 flex flex-col gap-3.5 max-h-[380px] overflow-y-auto pr-1.5 scrollbar-thin">
+                        {/* Holidays List */}
+                        <div className="flex flex-col gap-3 flex-1">
                             {holidays.data.length === 0 ? (
-                                <div className="py-12 text-center text-text-inactive font-inter text-[13px]">
+                                <div className="flex-1 flex items-center justify-center text-text-muted text-[13px] py-12">
                                     Belum ada hari libur.
                                 </div>
                             ) : (
                                 holidays.data.map((h, index) => {
-                                    // border left alternating colors like Figma (red, blue, green etc.)
                                     const borderColors = [
                                         "border-l-danger",
                                         "border-l-primary",

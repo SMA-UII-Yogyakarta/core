@@ -83,6 +83,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Settings (Waktu & Libur)
     Route::get('/settings', [AttendanceSettingController::class, 'index'])->name('settings');
     Route::post('/settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('settings.time-settings');
+    Route::post('/settings/location-settings', [AttendanceSettingController::class, 'updateLocationSettings'])->name('settings.location-settings');
     Route::post('/settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('settings.holidays');
     Route::delete('/settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('settings.holidays.destroy');
 

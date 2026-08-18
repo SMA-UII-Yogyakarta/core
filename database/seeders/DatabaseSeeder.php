@@ -10,6 +10,7 @@ use App\Models\Guardian;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
 use App\Models\SchoolClass;
+use App\Models\SchoolLocationSetting;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
@@ -528,6 +529,21 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
+        // 8.5 School Location Settings (Titik Lokasi Presensi & Geofencing SMA UII Yogyakarta)
+        // ─────────────────────────────────────────────────────────────
+        SchoolLocationSetting::firstOrCreate(
+            ['id' => 1],
+            [
+                'name' => 'SMA UII Yogyakarta',
+                'address' => 'Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151',
+                'latitude' => -7.814257,
+                'longitude' => 110.375944,
+                'radius_meters' => 100,
+                'is_active' => true,
+            ],
+        );
+
+        // ─────────────────────────────────────────────────────────────
         // 9. Academic Calendar (Hari Libur & Agenda SMA UII Yogyakarta)
         // ─────────────────────────────────────────────────────────────
         $academicEvents = [
@@ -581,15 +597,15 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 11. Attendances (Presensi Realistis Sepanjang Tahun Berjalan di SMA UII)
+        // 11. Attendances (Presensi Realistis Sepanjang Tahun Berjalan di SMA UII Yogyakarta)
         // ─────────────────────────────────────────────────────────────
-        $schoolLat = -7.797061;
-        $schoolLng = 110.399583;
+        $schoolLat = -7.814257;
+        $schoolLng = 110.375944;
         $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
 
-        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga hari ini
+        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI KEMARIN (agar hari ini siswa bisa uji coba kamera & live presensi)
         $startDate = Carbon::create(now()->year, 1, 5);
-        $endDate = now();
+        $endDate = now()->subDay();
         $assignedStudents = $students->filter(fn ($s) => $s->class_id !== null)->values();
 
         $attendanceBatch = [];
