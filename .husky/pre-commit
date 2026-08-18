@@ -26,23 +26,46 @@ fi
 
 # Run fast checks
 echo "🔍 1/3 Checking TypeScript types..."
-docker exec core-bun-1 bun run typecheck
+if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-bun-1; then
+    docker exec core-bun-1 bun run typecheck
+else
+    bun run typecheck
+fi
+
 if [ $? -ne 0 ]; then
     echo "❌ TypeScript typecheck failed! Fix errors before committing."
     exit 1
 fi
 
 echo "🎨 2/3 Checking Frontend ESLint..."
-docker exec core-bun-1 bun run lint
+if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-bun-1; then
+    docker exec core-bun-1 bun run lint
+else
+    bun run lint
+fi
+
 if [ $? -ne 0 ]; then
     echo "❌ ESLint check failed! Run 'bun run lint:fix' to fix style issues."
     exit 1
 fi
 
-echo "🐘 3/3 Checking PHP Code Style (Laravel Pint)..."
-docker exec core-app-1 ./vendor/bin/pint --test
-if [ $? -ne 0 ]; then
-    echo "❌ PHP Pint code style failed! Run 'docker exec core-app-1 ./vendor/bin/pint' to auto-fix code style."
+echo "🐘 3/3 Checking & Auto-Formatting PHP Code Style (Laravel Pint)..."
+if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-app-1; then
+    docker exec core-app-1 ./vendor/bin/pint --test
+    PINT_STATUS=$?
+else
+    php ./vendor/bin/pint --test
+    PINT_STATUS=$?
+fi
+
+if [ $PINT_STATUS -ne 0 ]; then
+    echo "⚠️  PHP Pint code style issues detected! Running auto-formatter..."
+    if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-app-1; then
+        docker exec core-app-1 ./vendor/bin/pint
+    else
+        php ./vendor/bin/pint
+    fi
+    echo "❌ PHP Pint auto-formatted files. Please stage the formatted PHP files and commit again."
     exit 1
 fi
 

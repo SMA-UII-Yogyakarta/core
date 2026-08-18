@@ -34,9 +34,11 @@ export default function Table<T>({
                         {columns.map((col) => (
                             <th
                                 key={col.key}
-                                className={`px-4 py-3 text-left text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap ${col.className ?? ""}`}
+                                className={`px-4 py-3 text-left text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap align-middle ${col.className ?? ""}`}
                             >
-                                {col.header}
+                                <div className="inline-flex items-center align-middle gap-2">
+                                    {col.header}
+                                </div>
                             </th>
                         ))}
                     </tr>
@@ -46,7 +48,7 @@ export default function Table<T>({
                         <tr>
                             <td
                                 colSpan={columns.length}
-                                className="px-4 py-12 text-center text-text-inactive"
+                                className="px-4 py-12 text-center text-text-inactive align-middle"
                             >
                                 Memuat data...
                             </td>
@@ -55,7 +57,7 @@ export default function Table<T>({
                         <tr>
                             <td
                                 colSpan={columns.length}
-                                className="px-4 py-12 text-center text-text-inactive"
+                                className="px-4 py-12 text-center text-text-inactive align-middle"
                             >
                                 {emptyMessage}
                             </td>
@@ -69,9 +71,9 @@ export default function Table<T>({
                                 {columns.map((col) => (
                                     <td
                                         key={col.key}
-                                        className={`px-4 py-3 text-[14px] text-text-primary ${col.className ?? ""}`}
+                                        className={`px-4 py-3 text-[14px] text-text-primary align-middle ${col.className ?? ""}`}
                                     >
-                                        <div>
+                                        <div className="flex items-center align-middle min-h-[24px]">
                                             {col.render
                                                 ? col.render(item)
                                                 : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}

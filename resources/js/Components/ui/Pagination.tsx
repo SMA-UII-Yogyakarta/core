@@ -56,7 +56,7 @@ export default function Pagination({
     const endItem = Math.min(currentPage * perPage, totalItems);
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-3 text-[13px] text-text-muted font-inter select-none">
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-4 pb-20 sm:pb-0 gap-3 text-[13px] text-text-muted font-inter select-none">
             <span className="text-[12px] sm:text-[13px]">
                 Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
                 <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
