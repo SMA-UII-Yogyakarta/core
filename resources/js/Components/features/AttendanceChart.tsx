@@ -62,18 +62,21 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                       label: "Rata-rata Kehadiran (%)",
                       data: data.map((d) => {
                           if (typeof d.rate === "number") return d.rate;
+                          if (d.rate === null) return null;
                           const total = d.present + d.late + (d.absent ?? 0);
-                          if (total <= 0) return 0;
+                          if (total <= 0) return null;
                           return Math.round(((d.present + d.late) / total) * 1000) / 10;
                       }),
                       backgroundColor: "rgba(46, 51, 145, 0.12)",
                       borderColor: "#2E3391",
                       borderWidth: 2.5,
                       fill: true,
-                      tension: 0.4,
-                      pointRadius: 0,
-                      pointHoverRadius: 4,
+                      tension: 0.3,
+                      cubicInterpolationMode: "monotone" as const,
+                      pointRadius: 2,
+                      pointHoverRadius: 5,
                       pointBackgroundColor: "#2E3391",
+                      spanGaps: false,
                   },
               ]
             : [
@@ -85,6 +88,7 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                       borderWidth: 2,
                       fill: false,
                       tension: 0.3,
+                      cubicInterpolationMode: "monotone" as const,
                       pointRadius: 4,
                       pointBackgroundColor: "#22c55e",
                       borderRadius: isLine ? 0 : 4,
@@ -97,6 +101,7 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                       borderWidth: 2,
                       fill: false,
                       tension: 0.3,
+                      cubicInterpolationMode: "monotone" as const,
                       pointRadius: 4,
                       pointBackgroundColor: "#f59e0b",
                       borderRadius: isLine ? 0 : 4,
@@ -112,6 +117,14 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 6,
+                        bottom: 0,
+                        left: 0,
+                    },
+                },
                 plugins: {
                     legend: {
                         display: !isRate,
@@ -120,7 +133,8 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                     tooltip: {
                         callbacks: {
                             label: (ctx) => {
-                                const val = ctx.parsed.y ?? 0;
+                                const val = ctx.parsed.y;
+                                if (val === null || val === undefined) return " Belum ada data";
                                 if (isRate) return ` ${val}%`;
                                 return ` ${ctx.dataset.label}: ${val}`;
                             },
@@ -138,6 +152,7 @@ export default function AttendanceChart({ data, type = "bar", height = 300 }: Pr
                     y: {
                         beginAtZero: true,
                         max: isRate ? 100 : undefined,
+                        suggestedMax: isRate ? 100 : undefined,
                         ticks: {
                             stepSize: isRate ? 20 : 1,
                             color: "#94A3B8",
