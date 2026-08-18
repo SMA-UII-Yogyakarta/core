@@ -4,12 +4,14 @@ namespace App\Imports;
 
 use App\Models\SchoolClass;
 use App\Models\Teacher;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
 
 class SchoolClassesImport
 {
     private array $errors = [];
+
     private array $success = [];
 
     public function import(string $filePath): array
@@ -19,17 +21,21 @@ class SchoolClassesImport
 
         $isFirstRow = true;
         $headers = [];
+        $currentRowIndex = 0;
 
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
+                $currentRowIndex++;
+
                 $cells = [];
                 foreach ($row->getCells() as $cell) {
-                    $cells[] = (string) $cell->getValue();
+                    $cells[] = trim((string) $cell->getValue());
                 }
 
                 if ($isFirstRow) {
                     $headers = $cells;
                     $isFirstRow = false;
+
                     continue;
                 }
 
@@ -42,7 +48,11 @@ class SchoolClassesImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $msg = $e->getMessage();
+                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                        $msg = 'Nama kelas sudah terdaftar di sistem.';
+                    }
+                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
                 }
             }
         }
@@ -69,10 +79,6 @@ class SchoolClassesImport
                 throw new \RuntimeException('Nama kelas wajib diisi.');
             }
 
-            if (SchoolClass::where('name', $name)->exists()) {
-                throw new \RuntimeException("Kelas {$name} sudah terdaftar.");
-            }
-
             $teacherId = null;
             if (! empty($teacherCode)) {
                 $teacher = Teacher::where('teacher_code', $teacherCode)
@@ -81,6 +87,19 @@ class SchoolClassesImport
                 if ($teacher) {
                     $teacherId = $teacher->id;
                 }
+            }
+
+            $existingClass = SchoolClass::where('name', $name)->first();
+
+            if ($existingClass) {
+                $existingClass->update([
+                    'level' => in_array($level, ['X', 'XI', 'XII']) ? $level : $existingClass->level,
+                    'capacity' => $capacity > 0 ? $capacity : $existingClass->capacity,
+                    'teacher_id' => $teacherId ?? $existingClass->teacher_id,
+                ]);
+                $this->success[] = "Kelas {$name} - Diperbarui";
+
+                return;
             }
 
             SchoolClass::create([

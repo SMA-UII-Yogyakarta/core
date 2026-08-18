@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
@@ -12,6 +13,7 @@ use OpenSpout\Reader\Common\Creator\ReaderFactory;
 class StudentsImport
 {
     private array $errors = [];
+
     private array $success = [];
 
     public function import(string $filePath): array
@@ -21,17 +23,21 @@ class StudentsImport
 
         $isFirstRow = true;
         $headers = [];
+        $currentRowIndex = 0;
 
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
+                $currentRowIndex++;
+
                 $cells = [];
                 foreach ($row->getCells() as $cell) {
-                    $cells[] = (string) $cell->getValue();
+                    $cells[] = trim((string) $cell->getValue());
                 }
 
                 if ($isFirstRow) {
                     $headers = $cells;
                     $isFirstRow = false;
+
                     continue;
                 }
 
@@ -44,7 +50,21 @@ class StudentsImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $msg = $e->getMessage();
+                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                        if (str_contains($msg, 'students_nis_unique')) {
+                            $msg = 'NIS siswa sudah terdaftar di sistem.';
+                        } elseif (str_contains($msg, 'students_nisn_unique')) {
+                            $msg = 'NISN siswa sudah terdaftar di sistem.';
+                        } elseif (str_contains($msg, 'users_email_unique')) {
+                            $msg = 'Email siswa sudah terdaftar untuk akun lain.';
+                        } elseif (str_contains($msg, 'users_username_unique')) {
+                            $msg = 'Username (NIS) siswa sudah terdaftar di sistem.';
+                        } else {
+                            $msg = 'Data siswa sudah terdaftar di sistem (duplicate entry).';
+                        }
+                    }
+                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
                 }
             }
         }
@@ -62,31 +82,27 @@ class StudentsImport
     private function importRow(array $data): void
     {
         DB::transaction(function () use ($data) {
-            $nis = $data['nis'] ?? $data['NIS'] ?? '';
-            $nisn = $data['nisn'] ?? $data['NISN'] ?? '';
-            $name = $data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '';
-            $className = $data['class'] ?? $data['Kelas'] ?? $data['KELAS'] ?? '';
+            $nis = trim($data['nis'] ?? $data['NIS'] ?? '');
+            $nisn = trim($data['nisn'] ?? $data['NISN'] ?? '');
+            $name = trim($data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '');
+            $className = trim($data['class'] ?? $data['Kelas'] ?? $data['KELAS'] ?? '');
             $birthDate = trim($data['birth_date'] ?? $data['Tanggal Lahir'] ?? '');
+            $email = trim($data['email'] ?? $data['Email'] ?? '');
+            $enrollmentYear = trim($data['enrollment_year'] ?? $data['Tahun Masuk'] ?? '');
 
             if (empty($nis) || empty($name)) {
-                throw new \RuntimeException('NIS and name are required.');
+                throw new \RuntimeException('NIS dan nama siswa wajib diisi.');
             }
 
             if (empty($birthDate)) {
-                throw new \RuntimeException("Birth date (Tanggal Lahir) is required for student {$name}.");
+                throw new \RuntimeException("Tanggal lahir wajib diisi untuk siswa {$name}.");
             }
 
-            $enrollmentYear = trim($data['enrollment_year'] ?? $data['Tahun Masuk'] ?? '');
-
             if ($enrollmentYear !== '' && ! preg_match('/^\d{4}$/', $enrollmentYear)) {
-                throw new \RuntimeException("Invalid enrollment year for student {$name}.");
+                throw new \RuntimeException("Tahun masuk tidak valid untuk siswa {$name}.");
             }
 
             $enrollmentYear = $enrollmentYear !== '' ? $enrollmentYear : date('Y');
-
-            if (User::where('username', $nis)->exists()) {
-                throw new \RuntimeException("Username {$nis} is already registered.");
-            }
 
             $classId = null;
             if (! empty($className)) {
@@ -96,10 +112,68 @@ class StudentsImport
                 }
             }
 
+            $existingStudent = Student::where('nis', $nis)->first();
+            $existingUser = User::where('username', $nis)->first();
+
+            // Check email uniqueness
+            if (! empty($email)) {
+                $emailUser = User::where('email', $email)->first();
+                if ($emailUser) {
+                    if ($existingUser === null) {
+                        throw new \RuntimeException("Email '{$email}' sudah terdaftar untuk pengguna lain ({$emailUser->name}).");
+                    }
+                    if ($emailUser->id !== $existingUser->id) {
+                        throw new \RuntimeException("Email '{$email}' sudah terdaftar untuk pengguna lain ({$emailUser->name}).");
+                    }
+                }
+            }
+
+            if ($existingStudent) {
+                $user = $existingStudent->user;
+                $user->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $user->email,
+                ]);
+                $existingStudent->update([
+                    'name' => $name,
+                    'nisn' => ! empty($nisn) ? $nisn : $existingStudent->nisn,
+                    'class_id' => $classId ?? $existingStudent->class_id,
+                    'birth_date' => $birthDate,
+                    'phone' => trim($data['phone'] ?? $data['Telepon'] ?? $existingStudent->phone),
+                    'address' => trim($data['address'] ?? $data['Alamat'] ?? $existingStudent->address),
+                    'enrollment_year' => $enrollmentYear,
+                ]);
+                $this->success[] = "{$name} ({$nis}) - Diperbarui";
+
+                return;
+            }
+
+            if ($existingUser) {
+                $existingUser->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $existingUser->email,
+                ]);
+                Student::create([
+                    'user_id' => $existingUser->id,
+                    'class_id' => $classId,
+                    'nis' => $nis,
+                    'nisn' => $nisn,
+                    'name' => $name,
+                    'birth_date' => $birthDate,
+                    'phone' => trim($data['phone'] ?? $data['Telepon'] ?? null),
+                    'address' => trim($data['address'] ?? $data['Alamat'] ?? null),
+                    'enrollment_year' => $enrollmentYear,
+                    'status' => 'Active',
+                ]);
+                $this->success[] = "{$name} ({$nis})";
+
+                return;
+            }
+
             $user = User::create([
                 'username' => $nis,
                 'name' => $name,
-                'email' => $data['email'] ?? $data['Email'] ?? null,
+                'email' => ! empty($email) ? $email : null,
                 'password' => Hash::make('password'),
                 'role' => 'student',
             ]);
@@ -112,8 +186,8 @@ class StudentsImport
                 'nisn' => $nisn,
                 'name' => $name,
                 'birth_date' => $birthDate,
-                'phone' => $data['phone'] ?? $data['Telepon'] ?? null,
-                'address' => $data['address'] ?? $data['Alamat'] ?? null,
+                'phone' => trim($data['phone'] ?? $data['Telepon'] ?? null),
+                'address' => trim($data['address'] ?? $data['Alamat'] ?? null),
                 'enrollment_year' => $enrollmentYear,
                 'status' => 'Active',
             ]);

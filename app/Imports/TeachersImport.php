@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Teacher;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use OpenSpout\Reader\Common\Creator\ReaderFactory;
@@ -11,6 +12,7 @@ use OpenSpout\Reader\Common\Creator\ReaderFactory;
 class TeachersImport
 {
     private array $errors = [];
+
     private array $success = [];
 
     public function import(string $filePath): array
@@ -20,17 +22,21 @@ class TeachersImport
 
         $isFirstRow = true;
         $headers = [];
+        $currentRowIndex = 0;
 
         foreach ($reader->getSheetIterator() as $sheet) {
             foreach ($sheet->getRowIterator() as $row) {
+                $currentRowIndex++;
+
                 $cells = [];
                 foreach ($row->getCells() as $cell) {
-                    $cells[] = (string) $cell->getValue();
+                    $cells[] = trim((string) $cell->getValue());
                 }
 
                 if ($isFirstRow) {
                     $headers = $cells;
                     $isFirstRow = false;
+
                     continue;
                 }
 
@@ -43,7 +49,19 @@ class TeachersImport
                 try {
                     $this->importRow($data);
                 } catch (\Exception $e) {
-                    $this->errors[] = 'Row ' . ($reader->getSheetIterator()->key() + 1) . ': ' . $e->getMessage();
+                    $msg = $e->getMessage();
+                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                        if (str_contains($msg, 'teachers_teacher_code_unique')) {
+                            $msg = 'Kode guru sudah terdaftar di sistem.';
+                        } elseif (str_contains($msg, 'users_email_unique')) {
+                            $msg = 'Email guru sudah terdaftar untuk akun lain.';
+                        } elseif (str_contains($msg, 'users_username_unique')) {
+                            $msg = 'Username guru sudah terdaftar di sistem.';
+                        } else {
+                            $msg = 'Data guru sudah terdaftar di sistem (duplicate entry).';
+                        }
+                    }
+                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
                 }
             }
         }
@@ -61,21 +79,75 @@ class TeachersImport
     private function importRow(array $data): void
     {
         DB::transaction(function () use ($data) {
-            $code = $data['teacher_code'] ?? $data['Kode'] ?? $data['kode'] ?? '';
-            $name = $data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '';
+            $code = trim($data['teacher_code'] ?? $data['Kode'] ?? $data['kode'] ?? $data['nip'] ?? $data['NIP'] ?? '');
+            $name = trim($data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '');
+            $email = trim($data['email'] ?? $data['Email'] ?? $data['EMAIL'] ?? '');
 
-            if (empty($code) || empty($name)) {
-                throw new \RuntimeException('Teacher code and name are required.');
+            if (empty($name)) {
+                throw new \RuntimeException('Nama guru wajib diisi.');
             }
 
-            if (User::where('username', $code)->exists()) {
-                throw new \RuntimeException("Username {$code} is already registered.");
+            // Auto-generate teacher_code if empty
+            if (empty($code)) {
+                $maxId = (int) Teacher::max('id') + 1;
+                do {
+                    $code = sprintf('TCH-%03d', $maxId++);
+                } while (Teacher::where('teacher_code', $code)->exists() || User::where('username', $code)->exists());
             }
 
+            // Check existing teacher & user by teacher_code/username
+            $existingTeacher = Teacher::where('teacher_code', $code)->first();
+            $existingUser = User::where('username', $code)->first();
+
+            // Check email uniqueness if email provided
+            if (! empty($email)) {
+                $emailUser = User::where('email', $email)->first();
+                if ($emailUser) {
+                    if ($existingUser === null) {
+                        throw new \RuntimeException("Email '{$email}' sudah terdaftar untuk pengguna lain ({$emailUser->name}).");
+                    }
+                    if ($emailUser->id !== $existingUser->id) {
+                        throw new \RuntimeException("Email '{$email}' sudah terdaftar untuk pengguna lain ({$emailUser->name}).");
+                    }
+                }
+            }
+
+            if ($existingTeacher) {
+                // Update existing teacher & user (Upsert)
+                $user = $existingTeacher->user;
+                $user->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $user->email,
+                ]);
+                $existingTeacher->update([
+                    'name' => $name,
+                ]);
+                $this->success[] = "{$name} ({$code}) - Diperbarui";
+
+                return;
+            }
+
+            if ($existingUser) {
+                // User exists without teacher record
+                $existingUser->update([
+                    'name' => $name,
+                    'email' => ! empty($email) ? $email : $existingUser->email,
+                ]);
+                Teacher::create([
+                    'user_id' => $existingUser->id,
+                    'teacher_code' => $code,
+                    'name' => $name,
+                ]);
+                $this->success[] = "{$name} ({$code})";
+
+                return;
+            }
+
+            // Create new User and Teacher
             $user = User::create([
                 'username' => $code,
                 'name' => $name,
-                'email' => $data['email'] ?? $data['Email'] ?? null,
+                'email' => ! empty($email) ? $email : null,
                 'password' => Hash::make('password'),
                 'role' => 'teacher',
             ]);
