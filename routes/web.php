@@ -17,6 +17,7 @@ use App\Http\Controllers\Web\OverviewController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SchoolClassController;
 use App\Http\Controllers\Web\SemesterReportController;
+use App\Http\Controllers\Web\StorageProxyController;
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\StudentPortalController;
 use App\Http\Controllers\Web\TeacherController;
@@ -32,6 +33,9 @@ Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')
     ->middleware('throttle:web-login');
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
+Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
+    ->where('path', '.*')
+    ->name('storage-s3');
 
 // ─── AUTHENTICATED + AUTHORIZED ───
 Route::middleware(['auth', 'authorize'])->group(function () {

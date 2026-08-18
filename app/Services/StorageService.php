@@ -56,6 +56,14 @@ class StorageService
 
     public function compress(UploadedFile $file): string
     {
+        $realPath = $file->getRealPath() ?: $file->getPathname();
+
+        if (! function_exists('imagecreatefromjpeg') || ! function_exists('imagecreatetruecolor')) {
+            $content = @file_get_contents($realPath);
+
+            return $content !== false ? $content : '';
+        }
+
         $maxWidth = 320;
         $maxHeight = 240;
         $quality = 90;
