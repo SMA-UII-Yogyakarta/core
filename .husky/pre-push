@@ -1,0 +1,62 @@
+#!/bin/sh
+
+echo "🛡️  [DX Safety Guard] Running Pre-Push Full Test Suite & Static Analysis..."
+
+# Check if SKIP_PUSH_TESTS is set
+if [ "$SKIP_PUSH_TESTS" = "1" ] || [ "$SKIP_HOOKS" = "1" ]; then
+    echo "⚠️  [DX WARNING] Pre-push full test suite is being SKIPPED by developer override!"
+    
+    DEV_NAME=$(git config user.name || echo "$USER")
+    DEV_EMAIL=$(git config user.email || echo "unknown")
+    TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+    
+    if [ -z "$SKIP_REASON" ]; then
+        echo "❌ [ERROR] Mandatory skip reason required! Please provide SKIP_REASON environment variable:"
+        echo "   Example: SKIP_PUSH_TESTS=1 SKIP_REASON=\"Urgent hotfix verified manually\" git push"
+        exit 1
+    fi
+    
+    LOG_LINE="[$TIMESTAMP] DEVELOPER: $DEV_NAME ($DEV_EMAIL) | STAGE: PRE-PUSH | REASON: \"$SKIP_REASON\""
+    mkdir -p storage/logs
+    echo "$LOG_LINE" >> storage/logs/git_skip_audit.log
+    echo "📝 [AUDIT LOGGED] Push skip reason recorded in storage/logs/git_skip_audit.log"
+    echo "⚠️  Ensure CI/CD status checks pass before merging PR to develop!"
+    exit 0
+fi
+
+echo "🧪 1/5 Running Frontend Vitest Suite..."
+docker exec core-bun-1 bun run test
+if [ $? -ne 0 ]; then
+    echo "❌ Vitest unit tests failed! Fix tests before pushing to remote."
+    exit 1
+fi
+
+echo "🏗️ 2/5 Testing Vite Bundle Build..."
+docker exec core-bun-1 bun run build
+if [ $? -ne 0 ]; then
+    echo "❌ Vite build failed! Fix compilation errors before pushing."
+    exit 1
+fi
+
+echo "🐘 3/5 Running PHPStan Static Analysis..."
+docker exec core-app-1 ./vendor/bin/phpstan analyse --memory-limit=1G
+if [ $? -ne 0 ]; then
+    echo "❌ PHPStan static analysis failed! Fix static types before pushing."
+    exit 1
+fi
+
+echo "⚡ 4/5 Running PHPUnit Test Suite..."
+docker exec core-app-1 php artisan test
+if [ $? -ne 0 ]; then
+    echo "❌ PHPUnit feature tests failed! Fix failing PHP tests before pushing."
+    exit 1
+fi
+
+echo "🎨 5/5 Validating PHP Code Style..."
+docker exec core-app-1 ./vendor/bin/pint --test
+if [ $? -ne 0 ]; then
+    echo "❌ PHP Pint style check failed! Run 'docker exec core-app-1 ./vendor/bin/pint' to auto-fix."
+    exit 1
+fi
+
+echo "🚀 [DX Safety Guard] All pre-push tests and static analysis passed 100%! Ready for push."
