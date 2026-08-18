@@ -124,7 +124,7 @@ export default function GuardianDashboard({
                                 Pilih siswa untuk melihat presensi dan riwayat izin ketidakhadiran
                             </p>
                         </div>
-                        <div className="w-full sm:w-80">
+                        <div className="w-full sm:w-80 min-w-0 max-w-full">
                             <NativeSelect
                                 value={selectedStudentId?.toString() ?? ""}
                                 onChange={(e) => handleSelectStudent(e.target.value)}
