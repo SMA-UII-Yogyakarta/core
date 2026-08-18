@@ -1,8 +1,8 @@
 export const SMA_UII_LOCATION = {
     name: "SMA UII Yogyakarta",
-    address: "Jl. Sorowajan Baru, Tamanan, Banguntapan, Bantul, D.I. Yogyakarta",
-    latitude: -7.797061,
-    longitude: 110.399583,
+    address: "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
+    latitude: -7.814257,
+    longitude: 110.375944,
     maxRadiusMeters: 100, // 100 meter radius geofence
 };
 
