@@ -64,10 +64,19 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::delete('/master-data/classes/{id}', [SchoolClassController::class, 'destroy'])->name('master-data.classes.destroy');
     Route::delete('/master-data/guardians/{id}', [GuardianController::class, 'destroy'])->name('master-data.guardians.destroy');
 
+    // Master Data Import & Templates
+    Route::post('/master-data/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('master-data.import');
+    Route::get('/master-data/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('master-data.import.template');
+
     // Class Enrolment
     Route::get('/class-enrolment', [ClassEnrolmentController::class, 'index'])->name('class-enrolment');
     Route::post('/class-enrolment/assign', [ClassEnrolmentController::class, 'assignStudent'])->name('class-enrolment.assign');
     Route::delete('/class-enrolment/remove/{studentId}', [ClassEnrolmentController::class, 'removeStudent'])->name('class-enrolment.remove');
+
+    // Guardian Assignment (Hubungkan Wali Murid dengan Murid)
+    Route::get('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'index'])->name('guardian-assignment');
+    Route::post('/guardian-assignment/assign', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent'])->name('guardian-assignment.assign');
+    Route::delete('/guardian-assignment/remove/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent'])->name('guardian-assignment.remove');
 
     // Settings (Waktu & Libur)
     Route::get('/settings', [AttendanceSettingController::class, 'index'])->name('settings');

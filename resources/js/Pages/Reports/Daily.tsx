@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, StatCard } from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, Pagination, SearchBar } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiDownload } from "react-icons/fi";
 
@@ -45,6 +46,21 @@ export default function DailyReport({
     selectedClassId,
 }: DailyReportProps) {
     const { t } = useLanguage();
+    const [studentSearch, setStudentSearch] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const rawStudents = classDetail?.students ?? [];
+    const filteredStudents = rawStudents.filter(
+        (s) =>
+            s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+            s.nis.includes(studentSearch) ||
+            s.status.toLowerCase().includes(studentSearch.toLowerCase()),
+    );
+
+    const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
+    const start = (currentPage - 1) * pageSize;
+    const paginatedStudents = filteredStudents.slice(start, start + pageSize);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -118,16 +134,29 @@ export default function DailyReport({
                 {classDetail && (
                     <Card>
                         <div className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-text">
-                                    {t("reports.classDetail").replace("{class}", classDetail.class.name)}
-                                </h3>
-                                <span className="text-sm text-text-inactive">
-                                    {t("reports.totalStudents").replace(
-                                        "{count}",
-                                        classDetail.students.length.toString(),
-                                    )}
-                                </span>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-text">
+                                        {t("reports.classDetail").replace("{class}", classDetail.class.name)}
+                                    </h3>
+                                    <span className="text-sm text-text-inactive">
+                                        {t("reports.totalStudents").replace(
+                                            "{count}",
+                                            classDetail.students.length.toString(),
+                                        )} (10 anak per halaman)
+                                    </span>
+                                </div>
+                                <div className="w-full sm:w-72">
+                                    <SearchBar
+                                        value={studentSearch}
+                                        onChange={(v) => {
+                                            setStudentSearch(v);
+                                            setCurrentPage(1);
+                                        }}
+                                        onSearch={() => {}}
+                                        placeholder="Cari siswa di kelas..."
+                                    />
+                                </div>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full">
@@ -140,7 +169,7 @@ export default function DailyReport({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {classDetail.students.map((student) => (
+                                        {paginatedStudents.map((student) => (
                                             <tr
                                                 key={student.id}
                                                 className="border-b border-border/50 hover:bg-primary/5"
@@ -162,6 +191,16 @@ export default function DailyReport({
                                     </tbody>
                                 </table>
                             </div>
+                            {filteredStudents.length > pageSize && (
+                                <div className="mt-4 pt-3 border-t border-border">
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredStudents.length}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </Card>
                 )}

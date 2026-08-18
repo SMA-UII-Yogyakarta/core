@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database with rich, production-grade realistic data
      * simulating the real-world environment of SMA UII Yogyakarta.
+     * Contains 245+ realistic students, 85+ guardians, 10 classes, 15 teachers, and full attendance records.
      */
     public function run(): void
     {
@@ -271,38 +272,76 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 6. Guardians (25 Profil Orang Tua / Wali Murid Realistis)
+        // 6. Guardians (85 Profil Orang Tua / Wali Murid Realistis DIY)
         // ─────────────────────────────────────────────────────────────
-        $guardianData = [
-            ['username' => 'wahyu', 'name' => 'Ir. Wahyu Hidayat, M.T.', 'email' => 'wahyu.hidayat@mail.com', 'phone' => '081223344551', 'address' => 'Jl. Kaliurang KM 14.5, Sleman, Yogyakarta'],
-            ['username' => 'sri', 'name' => 'Dr. Dra. Sri Rahayu, M.Si.', 'email' => 'sri.rahayu@mail.com', 'phone' => '081324354652', 'address' => 'Jl. Sorowajan Baru No. 12, Banguntapan, Bantul'],
-            ['username' => 'hendro', 'name' => 'Hendro Gunawan, S.E.', 'email' => 'hendro.gunawan@mail.com', 'phone' => '081535465753', 'address' => 'Purbayan, Kotagede, Kota Yogyakarta'],
-            ['username' => 'titin', 'name' => 'Titin Supriyatin, S.Pd.', 'email' => 'titin.supriyatin@mail.com', 'phone' => '081746576854', 'address' => 'Jl. Wonosari KM 7, Baturetno, Banguntapan'],
-            ['username' => 'agus_w', 'name' => 'Agus Salim, S.Kom.', 'email' => 'agus.salim@mail.com', 'phone' => '081957687955', 'address' => 'Jl. Gedongkuning No. 45, Rejowinangun, Kotagede'],
-            ['username' => 'nurul_w', 'name' => 'Nurul Hidayah, S.Farm., Apt.', 'email' => 'nurul.hidayah@mail.com', 'phone' => '082168798056', 'address' => 'Jl. Glagahsari No. 18, Warungboto, Umbulharjo'],
-            ['username' => 'bambang_w', 'name' => 'Dr. Bambang Widjanarko, Sp.A.', 'email' => 'bambang.widjanarko@mail.com', 'phone' => '082279809157', 'address' => 'Jl. Laksda Adisucipto KM 8, Maguwoharjo, Sleman'],
-            ['username' => 'retno_w', 'name' => 'Dra. Retno Palupi', 'email' => 'retno.palupi@mail.com', 'phone' => '082380910258', 'address' => 'Jl. Kusumanegara No. 80, Mujamuju, Umbulharjo'],
-            ['username' => 'yusuf_w', 'name' => 'Yusuf Mansur, S.T.', 'email' => 'yusuf.mansur@mail.com', 'phone' => '082491021359', 'address' => 'Jl. Janti Gg. Gemak No. 102, Caturtunggal, Depok, Sleman'],
-            ['username' => 'anita_w', 'name' => 'Anita Kusuma, S.Sos.', 'email' => 'anita.kusuma@mail.com', 'phone' => '082502132460', 'address' => 'Jl. Magelang KM 5, Mlati, Sleman'],
-            ['username' => 'surya_w', 'name' => 'Surya Kencana, S.H., M.Kn.', 'email' => 'surya.kencana@mail.com', 'phone' => '082613243561', 'address' => 'Jl. Tamansiswa No. 110, Mergangsan, Kota Yogyakarta'],
-            ['username' => 'maya_w', 'name' => 'Maya Indraswari, S.E.', 'email' => 'maya.indraswari@mail.com', 'phone' => '082724354662', 'address' => 'Jl. Ring Road Selatan, Sewon, Bantul'],
-            ['username' => 'ferry_w', 'name' => 'Ferry Setiawan, S.Si.', 'email' => 'ferry.setiawan@mail.com', 'phone' => '082835465763', 'address' => 'Jl. Imogiri Timur KM 6, Banguntapan, Bantul'],
-            ['username' => 'dewi_kartika', 'name' => 'Dewi Kartika, S.Pd.', 'email' => 'dewi.kartika@mail.com', 'phone' => '082946576864', 'address' => 'Jl. Veteran No. 33, Pandeyan, Umbulharjo'],
-            ['username' => 'ridwan_w', 'name' => 'Ridwan Kamil, M.Eng.', 'email' => 'ridwan.kamil@mail.com', 'phone' => '083057687965', 'address' => 'Jl. Seturan Raya No. 9, Kledokan, Depok, Sleman'],
-            ['username' => 'farida_w', 'name' => 'Farida Nuraini, S.Ag.', 'email' => 'farida.nuraini@mail.com', 'phone' => '083168798066', 'address' => 'Perumahan Sorowajan Indah Blok B-4, Banguntapan'],
-            ['username' => 'lukman_w', 'name' => 'Lukman Hakim, S.E., Ak.', 'email' => 'lukman.hakim@mail.com', 'phone' => '083279809167', 'address' => 'Jl. Balirejo No. 25, Muja Muju, Umbulharjo'],
-            ['username' => 'ratna_w', 'name' => 'Ratna Sari Dewi, S.Ked.', 'email' => 'ratna.dewi@mail.com', 'phone' => '083380910268', 'address' => 'Jl. Babarsari No. 14, Tambakbayan, Caturtunggal'],
-            ['username' => 'gunawan_w', 'name' => 'Gunawan Wibisono, S.H.', 'email' => 'gunawan.wibisono@mail.com', 'phone' => '083491021369', 'address' => 'Jl. Rejowinangun No. 67, Kotagede, Kota Yogyakarta'],
-            ['username' => 'triana_w', 'name' => 'Triana Puspitasari, S.Psi.', 'email' => 'triana.puspita@mail.com', 'phone' => '083502132470', 'address' => 'Jl. Wirosaban No. 10, Sorosutan, Umbulharjo'],
+        $diyLocations = [
+            'Jl. Kaliurang KM 14.5, Sleman, Yogyakarta',
+            'Jl. Sorowajan Baru No. 12, Banguntapan, Bantul',
+            'Purbayan, Kotagede, Kota Yogyakarta',
+            'Jl. Wonosari KM 7, Baturetno, Banguntapan',
+            'Jl. Gedongkuning No. 45, Rejowinangun, Kotagede',
+            'Jl. Glagahsari No. 18, Warungboto, Umbulharjo',
+            'Jl. Laksda Adisucipto KM 8, Maguwoharjo, Sleman',
+            'Jl. Kusumanegara No. 80, Mujamuju, Umbulharjo',
+            'Jl. Janti Gg. Gemak No. 102, Caturtunggal, Depok, Sleman',
+            'Jl. Magelang KM 5, Mlati, Sleman',
+            'Jl. Tamansiswa No. 110, Mergangsan, Kota Yogyakarta',
+            'Jl. Ring Road Selatan, Sewon, Bantul',
+            'Jl. Imogiri Timur KM 6, Banguntapan, Bantul',
+            'Jl. Veteran No. 33, Pandeyan, Umbulharjo',
+            'Jl. Seturan Raya No. 9, Kledokan, Depok, Sleman',
+            'Perumahan Sorowajan Indah Blok B-4, Banguntapan',
+            'Jl. Balirejo No. 25, Muja Muju, Umbulharjo',
+            'Jl. Babarsari No. 14, Tambakbayan, Caturtunggal',
+            'Jl. Rejowinangun No. 67, Kotagede, Kota Yogyakarta',
+            'Jl. Wirosaban No. 10, Sorosutan, Umbulharjo',
+            'Jl. Parangtritis KM 5.5, Sewon, Bantul',
+            'Jl. Palagan Tentara Pelajar KM 9, Sariharjo, Ngaglik',
+            'Jl. Wates KM 3, Kadipiro, Kasihan, Bantul',
+            'Jl. Solo KM 10, Kalitirto, Berbah, Sleman',
+            'Jl. Tajem KM 2, Maguwoharjo, Depok, Sleman',
+        ];
+
+        $guardianNames = [
+            'Ir. Wahyu Hidayat, M.T.', 'Dr. Dra. Sri Rahayu, M.Si.', 'Hendro Gunawan, S.E.', 'Titin Supriyatin, S.Pd.',
+            'Agus Salim, S.Kom.', 'Nurul Hidayah, S.Farm., Apt.', 'Dr. Bambang Widjanarko, Sp.A.', 'Dra. Retno Palupi',
+            'Yusuf Mansur, S.T.', 'Anita Kusuma, S.Sos.', 'Surya Kencana, S.H., M.Kn.', 'Maya Indraswari, S.E.',
+            'Ferry Setiawan, S.Si.', 'Dewi Kartika, S.Pd.', 'Ridwan Kamil, M.Eng.', 'Farida Nuraini, S.Ag.',
+            'Lukman Hakim, S.E., Ak.', 'Ratna Sari Dewi, S.Ked.', 'Gunawan Wibisono, S.H.', 'Triana Puspitasari, S.Psi.',
+            'H. Ahmad Syukron, M.Ag.', 'Hj. Endang Sulistyowati', 'Dr. Dedi Suryadi, M.T.', 'drg. Rina Kusumawati',
+            'Sugeng Riyadi, S.Pd.', 'Haryanto Nugroho, S.T.', 'Nunung Nurhayati, S.E.', 'Wibowo Santoso, M.M.',
+            'Priyo Utomo, S.Kom.', 'Dyah Ayu Anggraini, S.Si.', 'Sigit Purnomo, S.H.', 'Kurniawan Dwi, M.Eng.',
+            'Erna Widyastuti, S.Pd.', 'Bayu Aji Pratama, S.E.', 'Lestari Handayani, S.Sos.', 'Joko Purwanto, S.T.',
+            'Sunarto Hadi, M.Pd.', 'Sri Lestari, S.Kom.', 'Bambang Sudarmono, S.H.', 'Rini Astuti, S.Farm.',
+            'Danang Setyawan, S.E.', 'Nur Hidayatullah, M.Si.', 'Fitri Handayani, S.Pd.', 'Teguh Wibowo, S.T.',
+            'Anisa Rahmawati, S.Ked.', 'Budi Santoso, S.Sos.', 'Mulyadi, S.E., M.M.', 'Hartini, S.Pd.',
+            'Dwi Cahyono, S.Kom.', 'Eko Supriyanto, S.H.', 'Yulianti, S.Si.', 'Aris Munandar, M.Eng.',
+            'Wulandari, S.E.', 'Hendra Saputra, S.T.', 'Ratnawati, S.Pd.I.', 'Arief Rahman, S.Kom.',
+            'Susanto, S.Sos.', 'Tri Wulandari, S.Farm.', 'Agus Hermawan, S.E.', 'Sri Wahyuni, M.Pd.',
+            'Hadi Prayitno, S.T.', 'Dewi Anggraeni, S.H.', 'Rahmat Hidayat, S.Pd.', 'Kusuma Wardani, S.Si.',
+            'Slamet Riyadi, S.E.', 'Endah Pujiastuti, S.Kom.', 'Heru Prasetyo, M.T.', 'Yuni Astuti, S.Pd.',
+            'Agung Nugroho, S.H.', 'Puji Rahayu, S.Sos.', 'Didik Setiawan, S.T.', 'Nurul Aini, S.Farm.',
+            'Widodo, S.Pd., M.Pd.', 'Rina Novita, S.E.', 'Bambang Irawan, S.Kom.', 'Siti Marhamah, S.Ag.',
+            'Edi Susanto, S.T.', 'Nur Hasanah, S.Pd.', 'Muh. Zulfikar, S.H.', 'Tatik Maryati, S.E.',
+            'Cahyo Pramono, M.Eng.', 'Suwarni, S.Pd.', 'Anton Sujarwo, S.Kom.', 'Sri Mulyani, S.Sos.',
+            'Hari Prasetya, S.T.', 'Lilis Suryani, S.Farm.', 'Fauzan Adhim, M.Ag.', 'Rini Widyastuti, S.Pd.',
         ];
 
         $guardians = collect();
-        foreach ($guardianData as $g) {
+        foreach ($guardianNames as $gIdx => $gName) {
+            $uName = 'wali_' . ($gIdx + 1);
+            if ($gIdx === 0) {
+                $uName = 'wahyu';
+            }
+            if ($gIdx === 1) {
+                $uName = 'sri';
+            }
+
             $user = User::updateOrCreate(
-                ['username' => $g['username']],
+                ['username' => $uName],
                 [
-                    'name' => $g['name'],
-                    'email' => $g['email'],
+                    'name' => $gName,
+                    'email' => $uName . '@wali.smauii.sch.id',
                     'role' => 'guardian',
                     'password' => bcrypt('password'),
                 ],
@@ -313,111 +352,159 @@ class DatabaseSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'name' => $user->name,
-                    'phone' => $g['phone'],
-                    'address' => $g['address'],
+                    'phone' => '08' . (11 + ($gIdx % 8)) . fake()->numerify('########'),
+                    'address' => $diyLocations[$gIdx % count($diyLocations)],
                 ],
             );
             $guardians->push($guardian);
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 7. Students (40 Siswa Realistis Terbagi di 10 Kelas)
+        // 7. Students (230 Siswa Terbagi di 10 Kelas + 15 Unassigned)
         // ─────────────────────────────────────────────────────────────
-        $studentList = [
-            // Kelas X-A (Fase E - 1)
-            ['username' => 'ahmad', 'name' => 'Ahmad Reza Pahlevi', 'gender' => 'L', 'class_idx' => 0, 'guardian_idx' => 0, 'nis' => '24250001', 'nisn' => '0081234501', 'birth' => '2009-04-12'],
-            ['username' => 'clara', 'name' => 'Clarissa Maharani', 'gender' => 'P', 'class_idx' => 0, 'guardian_idx' => 1, 'nis' => '24250002', 'nisn' => '0081234502', 'birth' => '2009-08-23'],
-            ['username' => 'budi_s', 'name' => 'Budi Santoso', 'gender' => 'L', 'class_idx' => 0, 'guardian_idx' => 2, 'nis' => '24250003', 'nisn' => '0081234503', 'birth' => '2009-01-15'],
-            ['username' => 'diana', 'name' => 'Diana Putri Lestari', 'gender' => 'P', 'class_idx' => 0, 'guardian_idx' => 3, 'nis' => '24250004', 'nisn' => '0081234504', 'birth' => '2009-11-04'],
+        // 23 Siswa per kelas x 10 kelas = 230 Siswa Terdaftar di Kelas
+        // + 15 Siswa Unassigned (Belum masuk kelas) = 245 Total Siswa!
 
-            // Kelas X-B (Fase E - 2)
-            ['username' => 'eko', 'name' => 'Eko Prasetyo Utomo', 'gender' => 'L', 'class_idx' => 1, 'guardian_idx' => 4, 'nis' => '24250005', 'nisn' => '0081234505', 'birth' => '2009-03-18'],
-            ['username' => 'fitri', 'name' => 'Fitri Handayani', 'gender' => 'P', 'class_idx' => 1, 'guardian_idx' => 5, 'nis' => '24250006', 'nisn' => '0081234506', 'birth' => '2009-05-20'],
-            ['username' => 'gilang', 'name' => 'Gilang Ramadhan Permana', 'gender' => 'L', 'class_idx' => 1, 'guardian_idx' => 6, 'nis' => '24250007', 'nisn' => '0081234507', 'birth' => '2009-09-09'],
-            ['username' => 'hani', 'name' => 'Hani Nurjanah', 'gender' => 'P', 'class_idx' => 1, 'guardian_idx' => 7, 'nis' => '24250008', 'nisn' => '0081234508', 'birth' => '2009-12-14'],
+        $firstNamesM = [
+            'Ahmad', 'Budi', 'Danang', 'Eko', 'Fajar', 'Gilang', 'Haris', 'Irvan', 'Joko', 'Krisna',
+            'Latif', 'Muhammad', 'Naufal', 'Oktafian', 'Pratama', 'Rafi', 'Satria', 'Taufik', 'Umar', 'Wahyu',
+            'Yoga', 'Zulham', 'Aditya', 'Bagus', 'Candra', 'Dimas', 'Fandi', 'Galih', 'Hafizh', 'Iqbal',
+            'Kevin', 'Lukman', 'Mahendra', 'Niko', 'Pandu', 'Rangga', 'Syahrul', 'Teguh', 'Vino', 'Wisnu',
+        ];
 
-            // Kelas X-C (Fase E - Tahfidz)
-            ['username' => 'irvan', 'name' => 'Muhammad Irvan Maulana', 'gender' => 'L', 'class_idx' => 2, 'guardian_idx' => 8, 'nis' => '24250009', 'nisn' => '0081234509', 'birth' => '2009-02-28'],
-            ['username' => 'julia', 'name' => 'Julia Safitri Wardhani', 'gender' => 'P', 'class_idx' => 2, 'guardian_idx' => 9, 'nis' => '24250010', 'nisn' => '0081234510', 'birth' => '2009-07-07'],
-            ['username' => 'krisna', 'name' => 'Krisna Aditya Nugraha', 'gender' => 'L', 'class_idx' => 2, 'guardian_idx' => 10, 'nis' => '24250011', 'nisn' => '0081234511', 'birth' => '2009-06-19'],
-            ['username' => 'lisa', 'name' => 'Lisa Aryani Dewi', 'gender' => 'P', 'class_idx' => 2, 'guardian_idx' => 11, 'nis' => '24250012', 'nisn' => '0081234512', 'birth' => '2009-10-30'],
+        $firstNamesF = [
+            'Aisyah', 'Bella', 'Clarissa', 'Diana', 'Elisa', 'Fitri', 'Gita', 'Hani', 'Intan', 'Julia',
+            'Kurnia', 'Lisa', 'Megawati', 'Nindi', 'Olivia', 'Putri', 'Qori', 'Rina', 'Sari', 'Tiara',
+            'Utami', 'Vina', 'Wulan', 'Yulia', 'Zahra', 'Amalia', 'Berliana', 'Cintya', 'Dinda', 'Farah',
+            'Hanifah', 'Indah', 'Jasmine', 'Karina', 'Laksmi', 'Mutiara', 'Nabila', 'Pratiwi', 'Rani', 'Salma',
+        ];
 
-            // Kelas XI-MIPA 1 (Fase F - Sains 1)
-            ['username' => 'miftah', 'name' => 'Miftahul Huda Jannah', 'gender' => 'P', 'class_idx' => 3, 'guardian_idx' => 12, 'nis' => '23240001', 'nisn' => '0071234601', 'birth' => '2008-03-22'],
-            ['username' => 'nindi', 'name' => 'Nindi Lestari Ningrum', 'gender' => 'P', 'class_idx' => 3, 'guardian_idx' => 13, 'nis' => '23240002', 'nisn' => '0071234602', 'birth' => '2008-06-15'],
-            ['username' => 'okta', 'name' => 'Oktafian Dwi Cahyo', 'gender' => 'L', 'class_idx' => 3, 'guardian_idx' => 14, 'nis' => '23240003', 'nisn' => '0071234603', 'birth' => '2008-10-10'],
-            ['username' => 'putri', 'name' => 'Putri Ayu Maharani', 'gender' => 'P', 'class_idx' => 3, 'guardian_idx' => 15, 'nis' => '23240004', 'nisn' => '0071234604', 'birth' => '2008-01-08'],
-
-            // Kelas XI-MIPA 2 (Fase F - Sains 2)
-            ['username' => 'qori', 'name' => 'Qori Amalia Fauziah', 'gender' => 'P', 'class_idx' => 4, 'guardian_idx' => 16, 'nis' => '23240005', 'nisn' => '0071234605', 'birth' => '2008-04-17'],
-            ['username' => 'reza', 'name' => 'Reza Fahlevi Pratama', 'gender' => 'L', 'class_idx' => 4, 'guardian_idx' => 17, 'nis' => '23240006', 'nisn' => '0071234606', 'birth' => '2008-09-03'],
-            ['username' => 'sari', 'name' => 'Sari Dewi Anggraini', 'gender' => 'P', 'class_idx' => 4, 'guardian_idx' => 18, 'nis' => '23240007', 'nisn' => '0071234607', 'birth' => '2008-07-25'],
-            ['username' => 'taufik', 'name' => 'Taufik Hidayatullah', 'gender' => 'L', 'class_idx' => 4, 'guardian_idx' => 19, 'nis' => '23240008', 'nisn' => '0071234608', 'birth' => '2008-11-29'],
-
-            // Kelas XI-IPS 1 (Fase F - Sosial 1)
-            ['username' => 'utami', 'name' => 'Utami Rahayu Ningsih', 'gender' => 'P', 'class_idx' => 5, 'guardian_idx' => 0, 'nis' => '23240009', 'nisn' => '0071234609', 'birth' => '2008-02-14'],
-            ['username' => 'vina', 'name' => 'Vina Marvina Salsabila', 'gender' => 'P', 'class_idx' => 5, 'guardian_idx' => 1, 'nis' => '23240010', 'nisn' => '0071234610', 'birth' => '2008-08-18'],
-            ['username' => 'wawan', 'name' => 'Wawan Setiawan Aji', 'gender' => 'L', 'class_idx' => 5, 'guardian_idx' => 2, 'nis' => '23240011', 'nisn' => '0071234611', 'birth' => '2008-12-05'],
-            ['username' => 'yoga', 'name' => 'Yoga Pratama Yudha', 'gender' => 'L', 'class_idx' => 5, 'guardian_idx' => 3, 'nis' => '23240012', 'nisn' => '0071234612', 'birth' => '2008-05-31'],
-
-            // Kelas XI-IPS 2 (Fase F - Sosial 2)
-            ['username' => 'zahra', 'name' => 'Zahra Alifia Zahir', 'gender' => 'P', 'class_idx' => 6, 'guardian_idx' => 4, 'nis' => '23240013', 'nisn' => '0071234613', 'birth' => '2008-03-09'],
-            ['username' => 'arya_s', 'name' => 'Arya Bagus Sudewa', 'gender' => 'L', 'class_idx' => 6, 'guardian_idx' => 5, 'nis' => '23240014', 'nisn' => '0071234614', 'birth' => '2008-07-12'],
-            ['username' => 'bella_s', 'name' => 'Bella Safira Puspita', 'gender' => 'P', 'class_idx' => 6, 'guardian_idx' => 6, 'nis' => '23240015', 'nisn' => '0071234615', 'birth' => '2008-09-27'],
-            ['username' => 'candra_s', 'name' => 'Candra Wijaya Kusuma', 'gender' => 'L', 'class_idx' => 6, 'guardian_idx' => 7, 'nis' => '23240016', 'nisn' => '0071234616', 'birth' => '2008-11-16'],
-
-            // Kelas XII-MIPA 1 (Tingkat Akhir Sains 1)
-            ['username' => 'danang_s', 'name' => 'Danang Tri Wicaksono', 'gender' => 'L', 'class_idx' => 7, 'guardian_idx' => 8, 'nis' => '22230001', 'nisn' => '0061234701', 'birth' => '2007-01-20'],
-            ['username' => 'elisa_s', 'name' => 'Elisa Rahmawati', 'gender' => 'P', 'class_idx' => 7, 'guardian_idx' => 9, 'nis' => '22230002', 'nisn' => '0061234702', 'birth' => '2007-04-14'],
-            ['username' => 'fajar_s', 'name' => 'Fajar Sidik Permana', 'gender' => 'L', 'class_idx' => 7, 'guardian_idx' => 10, 'nis' => '22230003', 'nisn' => '0061234703', 'birth' => '2007-08-08'],
-            ['username' => 'gita_s', 'name' => 'Gita Gutawa Putri', 'gender' => 'P', 'class_idx' => 7, 'guardian_idx' => 11, 'nis' => '22230004', 'nisn' => '0061234704', 'birth' => '2007-12-01'],
-
-            // Kelas XII-IPS 1 (Tingkat Akhir Sosial 1)
-            ['username' => 'haris_s', 'name' => 'Haris Firmansyah', 'gender' => 'L', 'class_idx' => 8, 'guardian_idx' => 12, 'nis' => '22230005', 'nisn' => '0061234705', 'birth' => '2007-02-11'],
-            ['username' => 'intan_s', 'name' => 'Intan Permata Sari', 'gender' => 'P', 'class_idx' => 8, 'guardian_idx' => 13, 'nis' => '22230006', 'nisn' => '0061234706', 'birth' => '2007-05-24'],
-            ['username' => 'joko_s', 'name' => 'Joko Susilo Hadiningrat', 'gender' => 'L', 'class_idx' => 8, 'guardian_idx' => 14, 'nis' => '22230007', 'nisn' => '0061234707', 'birth' => '2007-09-17'],
-            ['username' => 'kurnia_s', 'name' => 'Kurnia Melati Putri', 'gender' => 'P', 'class_idx' => 8, 'guardian_idx' => 15, 'nis' => '22230008', 'nisn' => '0061234708', 'birth' => '2007-10-05'],
-
-            // Kelas XII-IPS 2 (Tingkat Akhir Sosial 2)
-            ['username' => 'latif_s', 'name' => 'Latif Nur Rohman', 'gender' => 'L', 'class_idx' => 9, 'guardian_idx' => 16, 'nis' => '22230009', 'nisn' => '0061234709', 'birth' => '2007-03-30'],
-            ['username' => 'megawati_s', 'name' => 'Megawati Sukmawati', 'gender' => 'P', 'class_idx' => 9, 'guardian_idx' => 17, 'nis' => '22230010', 'nisn' => '0061234710', 'birth' => '2007-06-21'],
-            ['username' => 'naufal_s', 'name' => 'Naufal Rizky Ramadhan', 'gender' => 'L', 'class_idx' => 9, 'guardian_idx' => 18, 'nis' => '22230011', 'nisn' => '0061234711', 'birth' => '2007-07-19'],
-            ['username' => 'oliv_s', 'name' => 'Olivia Putri Anggraini', 'gender' => 'P', 'class_idx' => 9, 'guardian_idx' => 19, 'nis' => '22230012', 'nisn' => '0061234712', 'birth' => '2007-11-28'],
+        $lastNames = [
+            'Pahlevi', 'Maharani', 'Santoso', 'Lestari', 'Utomo', 'Handayani', 'Permana', 'Nurjanah',
+            'Maulana', 'Wardhani', 'Nugraha', 'Dewi', 'Jannah', 'Ningrum', 'Cahyo', 'Ayu', 'Fauziah',
+            'Pratama', 'Anggraini', 'Hidayatullah', 'Ningsih', 'Salsabila', 'Aji', 'Yudha', 'Zahir',
+            'Sudewa', 'Puspita', 'Kusuma', 'Wicaksono', 'Rahmawati', 'Firmansyah', 'Sari', 'Susilo',
+            'Melati', 'Rohman', 'Sukmawati', 'Ramadhan', 'Saputra', 'Wibowo', 'Kusumawati',
         ];
 
         $students = collect();
-        foreach ($studentList as $s) {
+        $studentCounter = 1;
+
+        // A. Generate 23 Siswa per Kelas (Total 230 Siswa Kelas)
+        foreach ($classes as $cIdx => $class) {
+            $level = $class->level;
+            $enrollmentYear = match ($level) {
+                'X' => 2024,
+                'XI' => 2023,
+                'XII' => 2022,
+                default => 2024,
+            };
+            $nisPrefix = substr((string)$enrollmentYear, 2, 2) . substr((string)($enrollmentYear + 1), 2, 2);
+            $birthYear = match ($level) {
+                'X' => 2009,
+                'XI' => 2008,
+                'XII' => 2007,
+                default => 2009,
+            };
+
+            for ($i = 1; $i <= 23; $i++) {
+                $isMale = ($i % 2 === 1);
+                $fn = $isMale
+                    ? $firstNamesM[($cIdx * 7 + $i) % count($firstNamesM)]
+                    : $firstNamesF[($cIdx * 7 + $i) % count($firstNamesF)];
+                $ln = $lastNames[($cIdx * 5 + $i * 3) % count($lastNames)];
+                $fullName = $fn . ' ' . $ln;
+
+                // Username spesifik untuk akun demo siswa utama:
+                $uName = 'siswa_' . $studentCounter;
+                if ($cIdx === 0 && $i === 1) {
+                    $uName = 'ahmad';
+                }
+                if ($cIdx === 0 && $i === 2) {
+                    $uName = 'clara';
+                }
+
+                $nis = $nisPrefix . str_pad((string)$studentCounter, 4, '0', STR_PAD_LEFT);
+                $nisn = '00' . substr((string)$birthYear, 2, 2) . str_pad((string)$studentCounter, 6, '0', STR_PAD_LEFT);
+                $birthMonth = str_pad((string)(($i % 12) + 1), 2, '0', STR_PAD_LEFT);
+                $birthDay = str_pad((string)(($i * 2) % 28 + 1), 2, '0', STR_PAD_LEFT);
+                $birthDate = "{$birthYear}-{$birthMonth}-{$birthDay}";
+
+                $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
+
+                $user = User::updateOrCreate(
+                    ['username' => $uName],
+                    [
+                        'name' => $fullName,
+                        'email' => $uName . '@siswa.smauii.sch.id',
+                        'role' => 'student',
+                        'password' => bcrypt('password'),
+                    ],
+                );
+                $user->assignRole('student');
+
+                $student = Student::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'class_id' => $class->id,
+                        'guardian_id' => $guardian->id,
+                        'nis' => $nis,
+                        'nisn' => $nisn,
+                        'name' => $fullName,
+                        'birth_date' => $birthDate,
+                        'phone' => '088' . fake()->numerify('########'),
+                        'address' => $guardian->address,
+                        'enrollment_year' => $enrollmentYear,
+                        'status' => 'Active',
+                    ],
+                );
+                $students->push($student);
+                $studentCounter++;
+            }
+        }
+
+        // B. Generate 15 Siswa UNASSIGNED (Belum Masuk Kelas) untuk Menguji Enrolment Kelas
+        for ($u = 1; $u <= 15; $u++) {
+            $isMale = ($u % 2 === 1);
+            $fn = $isMale ? $firstNamesM[($u * 3) % count($firstNamesM)] : $firstNamesF[($u * 3) % count($firstNamesF)];
+            $ln = $lastNames[($u * 4) % count($lastNames)];
+            $fullName = $fn . ' ' . $ln . ' (Siswa Baru)';
+            $uName = 'calon_siswa_' . $u;
+
+            $nis = '2425' . str_pad((string)($studentCounter), 4, '0', STR_PAD_LEFT);
+            $nisn = '0009' . str_pad((string)($studentCounter), 6, '0', STR_PAD_LEFT);
+            $birthDate = '2009-07-' . str_pad((string)($u + 5), 2, '0', STR_PAD_LEFT);
+
+            $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
+
             $user = User::updateOrCreate(
-                ['username' => $s['username']],
+                ['username' => $uName],
                 [
-                    'name' => $s['name'],
-                    'email' => $s['username'] . '@siswa.smauii.sch.id',
+                    'name' => $fullName,
+                    'email' => $uName . '@siswa.smauii.sch.id',
                     'role' => 'student',
                     'password' => bcrypt('password'),
                 ],
             );
             $user->assignRole('student');
 
-            $class = $classes[$s['class_idx']];
-            $guardian = $guardians[$s['guardian_idx']];
-            $enrollmentYear = (int) substr($s['nis'], 0, 2) + 2000;
-
             $student = Student::updateOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'class_id' => $class->id,
+                    'class_id' => null, // UNASSIGNED!
                     'guardian_id' => $guardian->id,
-                    'nis' => $s['nis'],
-                    'nisn' => $s['nisn'],
-                    'name' => $s['name'],
-                    'birth_date' => $s['birth'],
+                    'nis' => $nis,
+                    'nisn' => $nisn,
+                    'name' => $fullName,
+                    'birth_date' => $birthDate,
                     'phone' => '088' . fake()->numerify('########'),
                     'address' => $guardian->address,
-                    'enrollment_year' => $enrollmentYear,
+                    'enrollment_year' => 2024,
                     'status' => 'Active',
                 ],
             );
             $students->push($student);
+            $studentCounter++;
         }
 
         // ─────────────────────────────────────────────────────────────
@@ -509,7 +596,12 @@ class DatabaseSeeder extends Seeder
 
             $dateString = $date->format('Y-m-d');
 
+            // Presensi untuk seluruh 230 siswa yang terdaftar di kelas
             foreach ($students as $idx => $student) {
+                if ($student->class_id === null) {
+                    continue; // Siswa belum masuk kelas belum memiliki presensi
+                }
+
                 // Pola probabilistik kehadiran realistis:
                 // 82% Hadir Tepat Waktu (Present), 10% Terlambat (Late), 8% Sakit/Izin/Alpha
                 $prob = ($idx * 7 + $daysAgo * 13) % 100;
@@ -522,11 +614,10 @@ class DatabaseSeeder extends Seeder
                     ->exists();
 
                 if ($hasApprovedLeave) {
-                    // Siswa sakit/izin yang disetujui tidak membuat record attendance
                     continue;
                 }
 
-                if ($prob < 82) {
+                if ($prob < 85) {
                     // HADIR TEPAT WAKTU (06:35 - 06:55)
                     $minute = str_pad((string) (35 + ($idx % 20)), 2, '0', STR_PAD_LEFT);
                     $second = str_pad((string) (($idx * 11) % 60), 2, '0', STR_PAD_LEFT);
@@ -538,13 +629,13 @@ class DatabaseSeeder extends Seeder
                         ],
                         [
                             'check_in_time' => "06:{$minute}:{$second}",
-                            'latitude' => $schoolLat + (fake()->numberBetween(-15, 15) / 100000),
-                            'longitude' => $schoolLng + (fake()->numberBetween(-15, 15) / 100000),
+                            'latitude' => (string) ($schoolLat + (fake()->numberBetween(-15, 15) / 100000)),
+                            'longitude' => (string) ($schoolLng + (fake()->numberBetween(-15, 15) / 100000)),
                             'photo_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80',
                             'status' => 'Present',
                         ],
                     );
-                } elseif ($prob < 92) {
+                } elseif ($prob < 95) {
                     // TERLAMBAT (07:05 - 07:22)
                     $minute = str_pad((string) (5 + ($idx % 18)), 2, '0', STR_PAD_LEFT);
                     $second = str_pad((string) (($idx * 13) % 60), 2, '0', STR_PAD_LEFT);
@@ -556,54 +647,55 @@ class DatabaseSeeder extends Seeder
                         ],
                         [
                             'check_in_time' => "07:{$minute}:{$second}",
-                            'latitude' => $schoolLat + (fake()->numberBetween(-20, 20) / 100000),
-                            'longitude' => $schoolLng + (fake()->numberBetween(-20, 20) / 100000),
-                            'photo_url' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=320&h=240&q=80',
+                            'latitude' => (string) ($schoolLat + (fake()->numberBetween(-15, 15) / 100000)),
+                            'longitude' => (string) ($schoolLng + (fake()->numberBetween(-15, 15) / 100000)),
+                            'photo_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80',
                             'status' => 'Late',
                         ],
                     );
                 }
-                // Sisa 8%: Tidak presensi (Alpha)
+                // Sisanya (prob >= 95) tidak memiliki record presensi -> Terhitung Absent (Alpa) secara otomatis
             }
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 12. System Notifications (Broadcast & Role-Targeted)
+        // 12. System Notifications (Notifikasi Realistis untuk Multi-Role)
         // ─────────────────────────────────────────────────────────────
         $notifications = [
             [
-                'target_group' => 'all',
-                'title' => 'Peringatan Milad UII Ke-83 & Hari Libur Akademik',
-                'content' => 'Diberitahukan kepada seluruh bapak/ibu guru, siswa-siswi, dan wali murid bahwa dalam rangka Milad Universitas Islam Indonesia (UII) ke-83, kegiatan belajar mengajar ditiadakan.',
-            ],
-            [
-                'target_group' => 'guardian',
-                'title' => 'Laporan Rekapitulasi Presensi Bulanan Siswa Telah Tersedia',
-                'content' => 'Bapak/Ibu Wali Murid dapat memantau grafik rekapitulasi kehadiran putra/putri tercinta pada menu Riwayat Presensi di portal SMA UII.',
-            ],
-            [
-                'target_group' => 'teacher',
-                'title' => 'Pengingat Jadwal Piket & Monitoring Presensi Siswa',
-                'content' => 'Bapak/Ibu Guru Piket dimohon untuk melakukan monitoring dan konfirmasi presensi harian siswa melalui menu Dashboard Piket sebelum pukul 08:00 WIB.',
-            ],
-            [
+                'recipient_id' => $students[0]->user_id, // Ahmad
+                'title' => 'Presensi Berhasil Diverifikasi',
+                'content' => 'Presensi kehadiran Anda hari ini telah dicatat sistem pada pukul 06:42 WIB dengan status Hadir Tepat Waktu.',
                 'target_group' => 'student',
-                'title' => 'Informasi Pelaksanaan Penilaian Tengah Semester (PTS)',
-                'content' => 'Persiapkan diri kalian untuk menghadapi PTS Ganjil. Pastikan hadir tepat waktu di sekolah dan presensi menggunakan kamera selfie sebelum pukul 07:00 WIB.',
+            ],
+            [
+                'recipient_id' => $students[0]->user_id,
+                'title' => 'Pengingat Agenda Sekolah',
+                'content' => 'Penilaian Tengah Semester (PTS) Ganjil akan dimulai 2 minggu lagi. Pastikan kehadiran dan persiapan belajar Anda optimal.',
+                'target_group' => 'student',
+            ],
+            [
+                'recipient_id' => $teachers[0]->user_id, // Budi Hartono (Wali X-A)
+                'title' => 'Pengajuan Izin Siswa Baru',
+                'content' => 'Siswa Ahmad Reza Pahlevi mengajukan izin kategori Sakit selama 2 hari. Silakan lakukan verifikasi berkas surat dokter.',
+                'target_group' => 'teacher',
+            ],
+            [
+                'recipient_id' => $guardians[0]->user_id, // Ir. Wahyu Hidayat
+                'title' => 'Laporan Kehadiran Mingguan Ananda',
+                'content' => 'Ananda Ahmad Reza Pahlevi tercatat 100% Hadir Tepat Waktu pada pekan ini di kelas X-A SMA UII Yogyakarta.',
+                'target_group' => 'guardian',
+            ],
+            [
+                'recipient_id' => 1, // Admin Utama
+                'title' => 'Rekapitulasi Presensi Harian Siap',
+                'content' => 'Rekap presensi seluruh rombongan belajar per hari ini telah diolah. Tingkat kehadiran sekolah mencapai 94.8%.',
+                'target_group' => 'all',
             ],
         ];
 
-        $adminUser = User::where('username', 'admin')->first();
-
         foreach ($notifications as $notif) {
-            Notification::firstOrCreate(
-                ['title' => $notif['title']],
-                [
-                    'sender_id' => $adminUser?->id,
-                    'target_group' => $notif['target_group'],
-                    'content' => $notif['content'],
-                ],
-            );
+            Notification::create($notif);
         }
     }
 }

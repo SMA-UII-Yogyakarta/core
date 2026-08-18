@@ -59,6 +59,7 @@ class PermissionRegistryNavTest extends TestCase
             '/dashboard',
             '/master-data',
             '/class-enrolment',
+            '/guardian-assignment',
             '/settings',
             '/export',
         ], $this->hrefsFor($user));

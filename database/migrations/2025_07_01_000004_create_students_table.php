@@ -10,7 +10,7 @@ return new class () extends Migration {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users', 'id')->cascadeOnDelete();
-            $table->foreignId('class_id')->constrained('school_classes', 'id')->nullOnDelete();
+            $table->foreignId('class_id')->nullable()->constrained('school_classes', 'id')->nullOnDelete();
 
             $table->string('nis', 30)->unique();
             $table->string('nisn', 30)->unique();
