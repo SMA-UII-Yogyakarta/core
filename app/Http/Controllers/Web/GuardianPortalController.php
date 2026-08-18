@@ -48,13 +48,13 @@ class GuardianPortalController extends Controller
         $todayAttendance = null;
         if ($selectedStudentId) {
             $att = Attendance::where('student_id', $selectedStudentId)
-                ->where('attendance_date', now()->toDateString())
+                ->whereDate('attendance_date', now()->toDateString())
                 ->first();
             if ($att) {
                 $todayAttendance = [
                     'id' => $att->id,
                     'status' => $att->status,
-                    'check_in_time' => $att->check_in_time,
+                    'check_in_time' => $att->check_in_time->format('H:i:s'),
                     'attendance_date' => $att->attendance_date->toDateString(),
                 ];
             }
