@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserIdpResource;
+use App\Models\User;
 use App\Services\SessionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -25,7 +27,7 @@ class AuthController extends Controller
             'device_name' => 'nullable|string',
         ]);
 
-        $user = \App\Models\User::where('username', $request->username)->first();
+        $user = User::where('username', $request->username)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -43,9 +45,12 @@ class AuthController extends Controller
             $expiration,
         )->plainTextToken;
 
+        $user->load(['student.class', 'teacher.schoolClasses', 'guardian.students.class']);
+
         return response()->json([
             'token' => $token,
-            'user' => $user->load(['student', 'teacher', 'guardian']),
+            'expires_at' => $expiration?->toIso8601String(),
+            'user' => new UserIdpResource($user),
         ]);
     }
 
@@ -58,9 +63,17 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        return response()->json(
-            $request->user()->load(['student', 'teacher', 'guardian']),
-        );
+        $user = $request->user();
+        $user->load(['student.class', 'teacher.schoolClasses', 'guardian.students.class']);
+
+        return response()->json([
+            'data' => new UserIdpResource($user),
+        ]);
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        return $this->user($request);
     }
 
     public function refresh(Request $request): JsonResponse
