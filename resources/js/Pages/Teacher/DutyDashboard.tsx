@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Drawer, ActionButton, Pagination, SearchBar } from "@/Components";
+import { Drawer, ActionButton, Pagination, SearchBar, Table } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
 
 interface Teacher {
@@ -91,10 +92,15 @@ export default function DutyDashboard({
     const [mobileTab, setMobileTab] = useState<MobileTab>(initialMobileTab);
     const [selectedStudent, setSelectedStudent] = useState<AttentionStudent | null>(null);
 
+    // Pagination configuration
+    const pageSize = 10;
+
     // Desktop search & pagination
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
+
+    // Mobile pagination
+    const [mobileCurrentPage, setMobileCurrentPage] = useState(1);
 
     const filteredAttention = useMemo(() => {
         if (!search.trim()) return attentionStudents;
@@ -169,53 +175,63 @@ export default function DutyDashboard({
     const anomali = attentionStudents.filter((s) => s.status === "alpa" || s.status === "terlambat");
     const izinList = attentionStudents.filter((s) => s.status === "pending" || s.status === "diizinkan");
 
-    // ── Shared table rows ───────────────────────────────────────────────────
-    const renderTableRows = (rows: AttentionStudent[]) => (
-        <>
-            {rows.length === 0 ? (
-                <tr>
-                    <td colSpan={5} className="text-center text-text-muted text-[13px] py-10">
-                        Tidak ada data siswa untuk kriteria ini.
-                    </td>
-                </tr>
-            ) : (
-                rows.map((s) => {
+    const activeMobileList = mobileTab === "anomali" ? anomali : izinList;
+    const totalMobilePages = Math.ceil(activeMobileList.length / pageSize) || 1;
+    const safeMobilePage = Math.min(Math.max(1, mobileCurrentPage), totalMobilePages);
+    const paginatedMobileList = activeMobileList.slice(
+        (safeMobilePage - 1) * pageSize,
+        safeMobilePage * pageSize
+    );
+
+    const columns = useMemo<Column<AttentionStudent>[]>(
+        () => [
+            {
+                key: "nis",
+                header: "NISN",
+                className: "font-bold text-text-primary",
+            },
+            {
+                key: "name",
+                header: "Nama Siswa",
+            },
+            {
+                key: "status",
+                header: "Status Hari Ini",
+                render: (s) => {
                     const badge = BADGE[s.status];
-                    const note = rowNote(s);
                     return (
-                        <tr
-                            key={s.id}
-                            className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
+                        <span
+                            className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+                            style={{ background: badge.bg, color: badge.color }}
                         >
-                            <td className="px-4 py-3 text-[13px] font-bold text-text-primary">{s.nis}</td>
-                            <td className="px-4 py-3 text-[13px] text-text-primary">{s.name}</td>
-                            <td className="px-4 py-3">
-                                <span
-                                    className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-                                    style={{ background: badge.bg, color: badge.color }}
-                                >
-                                    {badge.label}
-                                </span>
-                            </td>
-                            <td
-                                className="px-4 py-3 text-[13px]"
-                                style={{ color: s.status === "terlambat" ? "#F59E0B" : "#64748B" }}
-                            >
-                                {note}
-                            </td>
-                            <td className="px-4 py-3">
-                                <ActionButton
-                                    variant="detail"
-                                    icon="fa-eye"
-                                    label="Detail"
-                                    onClick={() => setSelectedStudent(s)}
-                                />
-                            </td>
-                        </tr>
+                            {badge.label}
+                        </span>
                     );
-                })
-            )}
-        </>
+                },
+            },
+            {
+                key: "note",
+                header: "Waktu / Keterangan",
+                render: (s) => (
+                    <span style={{ color: s.status === "terlambat" ? "#F59E0B" : "#64748B" }}>
+                        {rowNote(s)}
+                    </span>
+                ),
+            },
+            {
+                key: "actions",
+                header: "Aksi",
+                render: (s) => (
+                    <ActionButton
+                        variant="detail"
+                        icon="fa-eye"
+                        label="Detail"
+                        onClick={() => setSelectedStudent(s)}
+                    />
+                ),
+            },
+        ],
+        []
     );
 
     return (
@@ -341,10 +357,10 @@ export default function DutyDashboard({
                     <div className="border border-border rounded-xl overflow-hidden">
                         <div className="px-5 py-3 border-b border-border flex items-center justify-between gap-4">
                             <div>
-                                <h2 className="text-[14px] font-bold text-text-primary font-inter">
+                                <h2 className="text-[18px] font-bold text-text-primary font-inter">
                                     Perhatian Khusus Hari Ini
                                 </h2>
-                                <span className="text-[11px] text-text-muted font-medium">
+                                <span className="text-[14px] text-text-muted font-medium">
                                     Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau
                                 </span>
                             </div>
@@ -360,23 +376,15 @@ export default function DutyDashboard({
                                 />
                             </div>
                         </div>
-                        <table className="w-full border-collapse font-inter">
-                            <thead>
-                                <tr className="bg-background border-b border-border">
-                                    {["NISN", "Nama Siswa", "Status Hari Ini", "Waktu / Keterangan", "Aksi"].map(
-                                        (h) => (
-                                            <th
-                                                key={h}
-                                                className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide"
-                                            >
-                                                {h}
-                                            </th>
-                                        ),
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody>{renderTableRows(paginatedAttention)}</tbody>
-                        </table>
+                        
+                        <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none">
+                            <Table
+                                columns={columns}
+                                data={paginatedAttention}
+                                keyExtractor={(s) => s.id}
+                                emptyMessage="Tidak ada data siswa untuk kriteria ini."
+                            />
+                        </div>
 
                         {filteredAttention.length > pageSize && (
                             <div className="p-3 border-t border-border bg-surface">
@@ -429,7 +437,10 @@ export default function DutyDashboard({
                 <div className="flex border-b border-border bg-surface rounded-t-xl overflow-hidden shadow-xs">
                     <button
                         type="button"
-                        onClick={() => setMobileTab("anomali")}
+                        onClick={() => {
+                            setMobileTab("anomali");
+                            setMobileCurrentPage(1);
+                        }}
                         className={`flex-1 py-3 text-[13px] font-extrabold transition-all text-center cursor-pointer border-b-2 ${
                             mobileTab === "anomali"
                                 ? "border-accent text-primary bg-accent/5"
@@ -440,7 +451,10 @@ export default function DutyDashboard({
                     </button>
                     <button
                         type="button"
-                        onClick={() => setMobileTab("izin")}
+                        onClick={() => {
+                            setMobileTab("izin");
+                            setMobileCurrentPage(1);
+                        }}
                         className={`flex-1 py-3 text-[13px] font-bold transition-all text-center cursor-pointer border-b-2 flex items-center justify-center gap-1.5 ${
                             mobileTab === "izin"
                                 ? "border-accent text-primary bg-accent/5"
@@ -574,7 +588,10 @@ export default function DutyDashboard({
                     <div className="flex bg-muted p-1 rounded-xl mb-3 select-none">
                         <button
                             type="button"
-                            onClick={() => setMobileTab("anomali")}
+                            onClick={() => {
+                                setMobileTab("anomali");
+                                setMobileCurrentPage(1);
+                            }}
                             className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
                                 mobileTab === "anomali" ? "bg-surface text-primary shadow-xs" : "text-text-muted"
                             }`}
@@ -583,7 +600,10 @@ export default function DutyDashboard({
                         </button>
                         <button
                             type="button"
-                            onClick={() => setMobileTab("izin")}
+                            onClick={() => {
+                                setMobileTab("izin");
+                                setMobileCurrentPage(1);
+                            }}
                             className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
                                 mobileTab === "izin" ? "bg-surface text-primary shadow-xs" : "text-text-muted"
                             }`}
@@ -594,7 +614,7 @@ export default function DutyDashboard({
 
                     {/* Card list */}
                     <div className="space-y-2.5">
-                        {(mobileTab === "anomali" ? anomali : izinList).map((s) => {
+                        {paginatedMobileList.map((s) => {
                             const badge = BADGE[s.status];
                             return (
                                 <div
@@ -619,10 +639,22 @@ export default function DutyDashboard({
                                 </div>
                             );
                         })}
-                        {(mobileTab === "anomali" ? anomali : izinList).length === 0 && (
+                        {activeMobileList.length === 0 && (
                             <p className="text-center text-[12px] text-text-muted py-4">
                                 Tidak ada data siswa untuk kategori ini.
                             </p>
+                        )}
+
+                        {activeMobileList.length > pageSize && (
+                            <div className="pt-2">
+                                <Pagination
+                                    currentPage={safeMobilePage}
+                                    totalPages={totalMobilePages}
+                                    totalItems={activeMobileList.length}
+                                    perPage={pageSize}
+                                    onPageChange={setMobileCurrentPage}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
