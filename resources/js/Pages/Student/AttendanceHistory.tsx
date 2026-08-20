@@ -1,7 +1,16 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { AttendanceCalendar, Button, StatusBadge, Modal } from "@/Components";
+import {
+    AttendanceCalendar,
+    Button,
+    StatusBadge,
+    Modal,
+    PageHeader,
+    Table,
+    NativeSelect,
+} from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 
 interface Student {
     id: number;
@@ -82,258 +91,244 @@ export default function AttendanceHistory({ student, attendances, month, year }:
         });
     }, [attendances, selectedDay]);
 
+    const columns: Column<AttendanceRecord>[] = [
+        {
+            key: "attendance_date",
+            header: "Tanggal",
+            render: (att) => <span className="font-semibold text-text-primary">{att.attendance_date}</span>,
+        },
+        {
+            key: "check_in_time",
+            header: "Waktu Masuk",
+            render: (att) => (
+                <span className="font-mono text-text-secondary">
+                    {att.check_in_time ? `${att.check_in_time} WIB` : "—"}
+                </span>
+            ),
+        },
+        {
+            key: "status",
+            header: "Status",
+            render: (att) => <StatusBadge variant={att.status} />,
+        },
+        {
+            key: "photo",
+            header: "Foto Bukti",
+            render: (att) =>
+                att.photo_url ? (
+                    <button
+                        type="button"
+                        onClick={() =>
+                            setPhotoModal({
+                                url: att.photo_url!,
+                                date: att.attendance_date,
+                            })
+                        }
+                        className="text-[12px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1.5"
+                    >
+                        <i className="fas fa-camera text-[11px]" />
+                        <span>Cek Foto</span>
+                    </button>
+                ) : (
+                    <span className="text-[12px] text-text-muted">—</span>
+                ),
+        },
+    ];
+
     return (
         <AppShell title="Riwayat Presensi Siswa">
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div>
-                    <h1 className="text-[22px] font-bold text-text-primary font-inter">Riwayat Presensi Siswa</h1>
-                    <p className="text-[13px] text-text-muted font-inter mt-0.5">
-                        Daftar lengkap kehadiran <strong className="text-text-primary">{student.name}</strong> per
-                        bulan.
-                    </p>
+            <PageHeader
+                title="Riwayat Presensi Siswa"
+                description={`Daftar lengkap rekapitulasi kehadiran ${student.name} per bulan.`}
+            >
+                <div className="flex items-center gap-2 bg-surface px-4 py-2 border border-border rounded-xl shadow-xs">
+                    <span className="text-[12px] font-bold text-text-muted uppercase">Tingkat Kehadiran:</span>
+                    <span className="text-[16px] font-bold text-primary font-mono">{stats.rate}%</span>
+                </div>
+            </PageHeader>
+
+            <div className="space-y-6 font-inter">
+                {/* Filter Controls */}
+                <div className="flex items-center gap-3 bg-surface p-4 border border-border rounded-xl flex-wrap">
+                    <div className="w-40">
+                        <NativeSelect
+                            value={monthVal}
+                            onChange={(e) => setMonthVal(e.target.value)}
+                            dusk="select-month"
+                            data-testid="select-month"
+                        >
+                            {MONTH_NAMES.map((name, i) => (
+                                <option key={name} value={(i + 1).toString()}>
+                                    {name}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                    </div>
+
+                    <div className="w-32">
+                        <NativeSelect
+                            value={yearVal}
+                            onChange={(e) => setYearVal(e.target.value)}
+                            dusk="select-year"
+                            data-testid="select-year"
+                        >
+                            {["2024", "2025", "2026", "2027"].map((y) => (
+                                <option key={y} value={y}>
+                                    {y}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                    </div>
+
+                    <Button
+                        variant="primary"
+                        size="md"
+                        onClick={handleFilter}
+                        dusk="btn-filter-history"
+                        data-testid="btn-filter-history"
+                    >
+                        <i className="fas fa-filter mr-1.5" />
+                        Tampilkan
+                    </Button>
                 </div>
 
-                {/* KPI Chip Rate */}
-                <div className="flex items-center gap-3 self-start sm:self-auto">
-                    <div className="px-4 py-2 bg-surface border border-border rounded-xl shadow-sm flex items-center gap-2.5">
-                        <span className="text-[11px] font-bold text-text-muted uppercase">Tingkat Kehadiran:</span>
-                        <span className="text-[15px] font-bold text-primary font-mono">{stats.rate}%</span>
+                {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
+                <div className="hidden lg:grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
+                    {/* Kiri — Kalender Visual Composable */}
+                    <div className="space-y-4">
+                        <AttendanceCalendar
+                            month={month}
+                            year={year}
+                            attendances={attendances}
+                            selectedDay={selectedDay}
+                            onSelectDay={(day) => setSelectedDay(day)}
+                            dusk="student-attendance-calendar"
+                        />
+
+                        {/* Day selection preview card */}
+                        {selectedDay && (
+                            <div className="p-4 rounded-2xl bg-surface border border-border shadow-card animate-slide-in">
+                                <p className="text-[13px] font-bold text-text-primary mb-1">
+                                    Rincian Tanggal {selectedDay} {MONTH_NAMES[month - 1]} {year}
+                                </p>
+                                {selectedRecord ? (
+                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/60">
+                                        <div className="flex items-center gap-2">
+                                            <StatusBadge variant={selectedRecord.status} />
+                                            <span className="text-[12px] text-text-muted font-mono">
+                                                {selectedRecord.check_in_time ? `${selectedRecord.check_in_time} WIB` : "-"}
+                                            </span>
+                                        </div>
+                                        {selectedRecord.photo_url && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setPhotoModal({
+                                                        url: selectedRecord.photo_url!,
+                                                        date: selectedRecord.attendance_date,
+                                                    })
+                                                }
+                                                className="text-[12px] font-bold text-primary hover:underline cursor-pointer"
+                                            >
+                                                Lihat Foto Selfie
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <p className="text-[12px] text-text-muted mt-1">
+                                        Tidak ada catatan presensi pada tanggal ini (Libur / Alpa).
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Kanan — Standalone Table */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                            <span className="text-[14px] font-bold text-text-primary">
+                                Rekapitulasi {MONTH_NAMES[month - 1]} {year}
+                            </span>
+                            <span className="text-[12px] text-text-muted">
+                                Total {attendances.length} Hari Terdata
+                            </span>
+                        </div>
+
+                        <Table
+                            columns={columns}
+                            data={attendances}
+                            keyExtractor={(att) => att.id}
+                            emptyMessage="Belum ada data kehadiran untuk periode bulan dan tahun ini."
+                        />
                     </div>
                 </div>
-            </div>
 
-            {/* Filter Bar */}
-            <div className="flex items-center gap-3 mb-6 flex-wrap">
-                <select
-                    value={monthVal}
-                    onChange={(e) => setMonthVal(e.target.value)}
-                    className="h-10 border border-border rounded-xl px-4 text-[13px] sm:text-[14px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
-                    dusk="select-month"
-                    data-testid="select-month"
-                >
-                    {MONTH_NAMES.map((name, i) => (
-                        <option key={name} value={(i + 1).toString()}>
-                            {name}
-                        </option>
-                    ))}
-                </select>
-
-                <select
-                    value={yearVal}
-                    onChange={(e) => setYearVal(e.target.value)}
-                    className="h-10 border border-border rounded-xl px-4 text-[13px] sm:text-[14px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm"
-                    dusk="select-year"
-                    data-testid="select-year"
-                >
-                    {["2024", "2025", "2026", "2027"].map((y) => (
-                        <option key={y} value={y}>
-                            {y}
-                        </option>
-                    ))}
-                </select>
-
-                <Button
-                    variant="primary"
-                    size="md"
-                    onClick={handleFilter}
-                    dusk="btn-filter-history"
-                    data-testid="btn-filter-history"
-                >
-                    <i className="fas fa-filter mr-1.5" />
-                    Tampilkan
-                </Button>
-            </div>
-
-            {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
-            <div className="hidden lg:grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
-                {/* Kiri — Kalender Visual Composable */}
-                <div className="space-y-4">
+                {/* ══ MOBILE: Kalender + List View ═══════════════════════════════ */}
+                <div className="lg:hidden flex flex-col gap-4 font-inter">
                     <AttendanceCalendar
                         month={month}
                         year={year}
                         attendances={attendances}
                         selectedDay={selectedDay}
                         onSelectDay={(day) => setSelectedDay(day)}
-                        dusk="student-attendance-calendar"
+                        dusk="mobile-attendance-calendar"
                     />
 
-                    {/* Day selection preview card */}
-                    {selectedDay && (
-                        <div className="p-4 rounded-2xl bg-surface border border-border shadow-card animate-slide-in">
-                            <p className="text-[13px] font-bold text-text-primary mb-1">
-                                Rincian Tanggal {selectedDay} {MONTH_NAMES[month - 1]} {year}
-                            </p>
-                            {selectedRecord ? (
-                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/60">
-                                    <div className="flex items-center gap-2">
-                                        <StatusBadge variant={selectedRecord.status} />
-                                        <span className="text-[12px] text-text-muted font-mono">
-                                            {selectedRecord.check_in_time ? `${selectedRecord.check_in_time} WIB` : "-"}
-                                        </span>
-                                    </div>
-                                    {selectedRecord.photo_url && (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setPhotoModal({
-                                                    url: selectedRecord.photo_url!,
-                                                    date: selectedRecord.attendance_date,
-                                                })
-                                            }
-                                            className="text-[12px] font-bold text-primary hover:underline cursor-pointer"
-                                        >
-                                            Lihat Foto Selfie
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                <p className="text-[12px] text-text-muted mt-1">
-                                    Tidak ada catatan presensi pada tanggal ini (Libur / Alpa).
-                                </p>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Kanan — Tabel */}
-                <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-card self-start">
-                    <div className="p-4 border-b border-border bg-muted/50 flex items-center justify-between">
-                        <span className="text-[13px] font-bold text-text-primary">
-                            Rekapitulasi {MONTH_NAMES[month - 1]} {year}
-                        </span>
-                        <span className="text-[11px] font-semibold text-text-muted">
-                            Total {attendances.length} Hari Terdata
-                        </span>
-                    </div>
-
                     {attendances.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-text-muted">
-                            <i className="fas fa-calendar-times text-[36px] mb-3 opacity-40" />
-                            <p className="text-[14px] font-semibold">Belum ada data kehadiran</p>
-                            <p className="text-[12px] mt-0.5">Pilih periode bulan dan tahun di atas.</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-text-muted bg-surface rounded-2xl border border-border">
+                            <i className="fas fa-calendar-times text-[32px] mb-2 opacity-40" />
+                            <p className="text-[13px] font-semibold">Belum ada data kehadiran.</p>
                         </div>
                     ) : (
-                        <table className="w-full text-left font-inter">
-                            <thead>
-                                <tr className="border-b border-border bg-muted text-[11px] font-bold text-text-muted uppercase tracking-wider">
-                                    <th className="px-4 py-3">Tanggal</th>
-                                    <th className="px-4 py-3">Waktu Masuk</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3">Foto Bukti</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {attendances.map((att) => (
-                                    <tr
+                        <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-card">
+                            <div className="px-4 py-3 bg-muted border-b border-border flex items-center justify-between">
+                                <span className="text-[12px] font-bold text-text-primary">
+                                    Bulan {MONTH_NAMES[month - 1]} {year}
+                                </span>
+                                <span className="text-[11px] font-bold text-primary font-mono">{stats.rate}% Hadir</span>
+                            </div>
+
+                            {attendances.map((att, idx) => {
+                                const isLast = idx === attendances.length - 1;
+                                return (
+                                    <div
                                         key={att.id}
-                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
+                                        className={`flex items-center px-4 py-3.5 gap-3 ${
+                                            !isLast ? "border-b border-border" : ""
+                                        }`}
                                     >
-                                        <td className="px-4 py-3.5 text-[13px] font-semibold text-text-primary">
-                                            {att.attendance_date}
-                                        </td>
-                                        <td className="px-4 py-3.5 text-[13px] text-text-secondary font-mono">
-                                            {att.check_in_time ? (
-                                                `${att.check_in_time} WIB`
-                                            ) : (
-                                                <span className="text-text-muted">—</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3.5">
-                                            <StatusBadge variant={att.status} />
-                                        </td>
-                                        <td className="px-4 py-3.5">
-                                            {att.photo_url ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setPhotoModal({
-                                                            url: att.photo_url!,
-                                                            date: att.attendance_date,
-                                                        })
-                                                    }
-                                                    className="text-[12px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1.5"
-                                                >
-                                                    <i className="fas fa-camera text-[11px]" />
-                                                    <span>Cek Foto</span>
-                                                </button>
-                                            ) : (
-                                                <span className="text-[12px] text-text-muted">—</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[13px] font-bold text-text-primary">
+                                                {att.attendance_date}
+                                            </p>
+                                            <p className="text-[11px] text-text-muted font-mono mt-0.5">
+                                                {att.check_in_time ? `${att.check_in_time} WIB` : "Tidak ada jam"}
+                                            </p>
+                                        </div>
+
+                                        <StatusBadge variant={att.status} />
+
+                                        {att.photo_url && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setPhotoModal({
+                                                        url: att.photo_url!,
+                                                        date: att.attendance_date,
+                                                    })
+                                                }
+                                                className="text-primary text-[14px] p-2 hover:bg-muted rounded-xl"
+                                                aria-label="Lihat foto selfie"
+                                            >
+                                                <i className="fas fa-camera" />
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     )}
                 </div>
-            </div>
-
-            {/* ══ MOBILE: Kalender + List View ═══════════════════════════════ */}
-            <div className="lg:hidden flex flex-col gap-4 font-inter">
-                <AttendanceCalendar
-                    month={month}
-                    year={year}
-                    attendances={attendances}
-                    selectedDay={selectedDay}
-                    onSelectDay={(day) => setSelectedDay(day)}
-                    dusk="mobile-attendance-calendar"
-                />
-
-                {attendances.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-text-muted bg-surface rounded-2xl border border-border">
-                        <i className="fas fa-calendar-times text-[32px] mb-2 opacity-40" />
-                        <p className="text-[13px] font-semibold">Belum ada data kehadiran.</p>
-                    </div>
-                ) : (
-                    <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-card">
-                        <div className="px-4 py-3 bg-muted border-b border-border flex items-center justify-between">
-                            <span className="text-[12px] font-bold text-text-primary">
-                                Bulan {MONTH_NAMES[month - 1]} {year}
-                            </span>
-                            <span className="text-[11px] font-bold text-primary font-mono">{stats.rate}% Hadir</span>
-                        </div>
-
-                        {attendances.map((att, idx) => {
-                            const isLast = idx === attendances.length - 1;
-                            return (
-                                <div
-                                    key={att.id}
-                                    className={`flex items-center px-4 py-3.5 gap-3 ${
-                                        !isLast ? "border-b border-border" : ""
-                                    }`}
-                                >
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[13px] font-bold text-text-primary">
-                                            {att.attendance_date}
-                                        </p>
-                                        <p className="text-[11px] text-text-muted font-mono mt-0.5">
-                                            {att.check_in_time ? `${att.check_in_time} WIB` : "Tidak ada jam"}
-                                        </p>
-                                    </div>
-
-                                    <StatusBadge variant={att.status} />
-
-                                    {att.photo_url && (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                setPhotoModal({
-                                                    url: att.photo_url!,
-                                                    date: att.attendance_date,
-                                                })
-                                            }
-                                            className="text-primary text-[14px] p-2 hover:bg-muted rounded-xl"
-                                            aria-label="Lihat foto selfie"
-                                        >
-                                            <i className="fas fa-camera" />
-                                        </button>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
             </div>
 
             {/* Modal Pratinjau Foto Bukti Selfie */}
@@ -344,7 +339,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                     title={`Bukti Foto Presensi — ${photoModal.date}`}
                     width="sm"
                 >
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center font-inter">
                         <img
                             src={photoModal.url}
                             alt="Foto Selfie Siswa"
