@@ -233,4 +233,97 @@ class StudentPortalTest extends TestCase
             ->get('/student/history')
             ->assertForbidden();
     }
+
+    public function test_student_cannot_check_in_before_open_time(): void
+    {
+        Carbon::setTestNow('2026-08-14 05:30:00'); // Friday 05:30 — before 06:00 open
+        [$user] = $this->createStudentWithClass();
+
+        AttendanceTimeSetting::create([
+            'day' => 'Friday',
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '07:45:00',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post('/student/attendance/check-in', [
+                'latitude' => -7.797061,
+                'longitude' => 110.399583,
+                'photo_url' => 'https://example.com/photo.jpg',
+            ]);
+
+        $response->assertSessionHas('error', 'Attendance opens at 06:00:00');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_student_cannot_check_in_after_close_time(): void
+    {
+        Carbon::setTestNow('2026-08-14 08:00:00'); // Friday 08:00 — after 07:45 close
+        [$user] = $this->createStudentWithClass();
+
+        AttendanceTimeSetting::create([
+            'day' => 'Friday',
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '07:45:00',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post('/student/attendance/check-in', [
+                'latitude' => -7.797061,
+                'longitude' => 110.399583,
+                'photo_url' => 'https://example.com/photo.jpg',
+            ]);
+
+        $response->assertSessionHas('error', 'Attendance closed at 07:45:00');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_student_cannot_check_in_on_unscheduled_day(): void
+    {
+        Carbon::setTestNow('2026-08-14 06:30:00'); // Friday, but no setting for Friday
+        [$user] = $this->createStudentWithClass();
+
+        // Only create a Monday setting — Friday has no schedule
+        AttendanceTimeSetting::create([
+            'day' => 'Monday',
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '07:45:00',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post('/student/attendance/check-in', [
+                'latitude' => -7.797061,
+                'longitude' => 110.399583,
+                'photo_url' => 'https://example.com/photo.jpg',
+            ]);
+
+        $response->assertSessionHas('error', 'No attendance schedule for Friday');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_student_dashboard_renders_for_student_without_class(): void
+    {
+        $user = User::factory()->create(['role' => 'student']);
+        Student::factory()->create([
+            'user_id' => $user->id,
+            'class_id' => null,
+            'name' => 'Tanpa Kelas',
+            'nis' => '99999',
+            'nisn' => '0099999999',
+            'status' => 'Active',
+        ]);
+
+        $this->actingAs($user)
+            ->get('/student/dashboard')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Student/Dashboard')
+                ->where('student.class', null));
+    }
 }
