@@ -3,18 +3,18 @@ import { expect, test } from '@playwright/test';
 test.describe('Admin Master Data & Drawer Flow', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/login');
-        await page.fill('input[name="identifier"], input[type="text"]', 'admin');
-        await page.fill('input[name="password"], input[type="password"]', 'password');
-        await page.click('button[type="submit"]');
-        await page.waitForURL(/\/(overview|dashboard|master-data)/);
+        await page.fill('input[name="username"]', 'admin');
+        await page.fill('input[name="password"]', 'password');
+        await page.locator('input[name="password"]').press('Enter');
+        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
     });
 
     test('admin can access master data and switch tabs', async ({ page }) => {
         await page.goto('/master-data');
-        await expect(page.getByText(/Master Data/i).first()).toBeVisible();
+        await expect(page.locator('body')).toContainText(/Manajemen Data Master|Master Data/i);
 
-        // Switch to Teachers tab
-        const teacherTab = page.getByRole('button', { name: /guru/i });
+        // Switch to Teachers tab ("Master Guru")
+        const teacherTab = page.getByText(/Master Guru/i).first();
         if (await teacherTab.isVisible()) {
             await teacherTab.click();
             await expect(page).toHaveURL(/tab=teachers/);

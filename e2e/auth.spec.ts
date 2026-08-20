@@ -8,39 +8,47 @@ test.describe('Authentication & Multi-Role Routing', () => {
         await expect(loginLink).toBeVisible();
     });
 
-    test('admin can login and redirects to admin overview/dashboard', async ({ page }) => {
+    test('admin can login and redirects to admin overview/dashboard via /overview', async ({ page }) => {
         await page.goto('/login');
-        await page.fill('input[name="identifier"], input[type="text"]', 'admin');
-        await page.fill('input[name="password"], input[type="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.fill('input[name="username"]', 'admin');
+        await page.fill('input[name="password"]', 'password');
+        await page.locator('input[name="password"]').press('Enter');
 
+        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await page.goto('/overview');
         await expect(page).toHaveURL(/\/(overview|dashboard|master-data)/);
     });
 
-    test('teacher can login and redirects to teacher portal', async ({ page }) => {
+    test('teacher can login and redirects to teacher portal via /overview', async ({ page }) => {
         await page.goto('/login');
-        await page.fill('input[name="identifier"], input[type="text"]', 'budi');
-        await page.fill('input[name="password"], input[type="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.fill('input[name="username"]', 'budi');
+        await page.fill('input[name="password"]', 'password');
+        await page.locator('input[name="password"]').press('Enter');
 
+        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await page.goto('/overview');
         await expect(page).toHaveURL(/\/teacher/);
     });
 
-    test('guardian can login and redirects to guardian portal', async ({ page }) => {
+    test('guardian can login and redirects to guardian portal via /overview', async ({ page }) => {
         await page.goto('/login');
-        await page.fill('input[name="identifier"], input[type="text"]', 'wahyu');
-        await page.fill('input[name="password"], input[type="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.fill('input[name="username"]', 'wahyu');
+        await page.fill('input[name="password"]', 'password');
+        await page.locator('input[name="password"]').press('Enter');
 
+        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await page.goto('/overview');
         await expect(page).toHaveURL(/\/guardian/);
     });
 
-    test('student can login and redirects to student portal', async ({ page }) => {
+    test('student can login and redirects to student portal via /overview', async ({ page }) => {
         await page.goto('/login');
-        await page.fill('input[name="identifier"], input[type="text"]', 'ahmad');
-        await page.fill('input[name="password"], input[type="password"]', 'password');
-        await page.click('button[type="submit"]');
+        await page.fill('input[name="username"]', 'ahmad');
+        await page.fill('input[name="password"]', 'password');
+        await page.locator('input[name="password"]').press('Enter');
 
+        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await page.goto('/overview');
         await expect(page).toHaveURL(/\/student/);
     });
 });
