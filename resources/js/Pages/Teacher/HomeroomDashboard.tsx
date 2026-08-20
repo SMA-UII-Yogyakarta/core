@@ -1,7 +1,16 @@
 import { useState, useMemo } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Pagination, SearchBar } from "@/Components";
+import {
+    PageHeader,
+    StatCard,
+    StatusBadge,
+    Table,
+    Pagination,
+    SearchBar,
+    Button,
+} from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 
 interface Teacher {
     id: number;
@@ -51,7 +60,6 @@ interface PageProps {
     pendingLeaveCount?: number;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function todayFormatted(): string {
     return new Date().toLocaleDateString("id-ID", {
         day: "numeric",
@@ -71,15 +79,6 @@ function getRowStatus(s: Student): RowStatus {
     return "hadir";
 }
 
-type BadgeDef = { label: string; bg: string; color: string };
-const BADGE: Record<RowStatus, BadgeDef> = {
-    alpa: { label: "ALPA", bg: "#FFE4E6", color: "#EF4444" },
-    terlambat: { label: "TERLAMBAT", bg: "#FEF3C7", color: "#F59E0B" },
-    pending: { label: "PENDING IZIN", bg: "#E0E7FF", color: "#2E3391" },
-    diizinkan: { label: "DIIZINKAN", bg: "#DCFCE7", color: "#10B981" },
-    hadir: { label: "HADIR", bg: "#DCFCE7", color: "#10B981" },
-};
-
 function rowNote(s: Student): string {
     const att = s.attendances[0];
     const status = getRowStatus(s);
@@ -90,7 +89,6 @@ function rowNote(s: Student): string {
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 export default function HomeroomDashboard({
     teacher: _teacher,
     class: kelas,
@@ -102,7 +100,6 @@ export default function HomeroomDashboard({
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
-    // Split students: "perhatian khusus" = bukan hadir tepat waktu
     const attentionStudents = useMemo(() => {
         const raw = students.filter((s) => getRowStatus(s) !== "hadir");
         if (!search.trim()) return raw;
@@ -119,7 +116,7 @@ export default function HomeroomDashboard({
     if (!kelas) {
         return (
             <AppShell title="Overview Wali Kelas">
-                <div className="bg-surface border border-border rounded-xl p-12 text-center">
+                <div className="bg-surface border border-border rounded-xl p-12 text-center font-inter">
                     <i className="fas fa-chalkboard-teacher text-[40px] text-text-muted mb-4 block" />
                     <p className="text-text-muted text-[14px]">Anda belum ditugaskan sebagai wali kelas.</p>
                 </div>
@@ -127,56 +124,88 @@ export default function HomeroomDashboard({
         );
     }
 
+    const columns: Column<Student>[] = [
+        {
+            key: "nis",
+            header: "NISN",
+            render: (s: Student) => <span className="font-bold text-text-primary">{s.nis}</span>,
+        },
+        {
+            key: "name",
+            header: "Nama Siswa",
+            render: (s: Student) => <span className="font-semibold text-text-primary">{s.name}</span>,
+        },
+        {
+            key: "status",
+            header: "Status Hari Ini",
+            render: (s: Student) => <StatusBadge variant={getRowStatus(s)} />,
+        },
+        {
+            key: "note",
+            header: "Waktu / Keterangan",
+            render: (s: Student) => {
+                const st = getRowStatus(s);
+                return (
+                    <span className={st === "terlambat" ? "text-warning font-semibold" : "text-text-secondary"}>
+                        {rowNote(s)}
+                    </span>
+                );
+            },
+        },
+        {
+            key: "actions",
+            header: "Tindakan",
+            render: (s: Student) => {
+                const st = getRowStatus(s);
+                if (st === "pending") {
+                    return (
+                        <Link href="/leave-requests/verification">
+                            <Button variant="primary" size="sm">
+                                Verifikasi Izin
+                            </Button>
+                        </Link>
+                    );
+                }
+                if (st === "alpa") {
+                    return <span className="text-text-muted text-[13px]">-</span>;
+                }
+                return (
+                    <Button variant="outline" size="sm">
+                        Lihat Detail
+                    </Button>
+                );
+            },
+        },
+    ];
+
     return (
         <AppShell title="Overview Wali Kelas">
-            {/* ── Page header ─────────────────────────────────── */}
-            <div className="flex items-start justify-between mb-6 flex-wrap gap-2">
-                <div>
-                    <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                        Overview Wali Kelas: {kelas.name}
-                    </h1>
-                    <p className="text-[13px] text-text-muted font-inter mt-1">
-                        Pantau kehadiran harian anak didik kelas Anda secara real-time.
-                    </p>
-                </div>
-                <span
-                    className="text-[13px] font-semibold px-3 py-1.5 rounded-lg shrink-0"
-                    style={{ background: "#EFF6FF", color: "#2E3391" }}
-                >
+            <PageHeader
+                title={`Overview Wali Kelas: ${kelas.name}`}
+                description="Pantau kehadiran harian anak didik kelas Anda secara real-time."
+            >
+                <span className="text-[13px] font-semibold px-3 py-1.5 rounded-lg bg-primary-light text-primary border border-primary/20">
                     {todayFormatted()}
                 </span>
-            </div>
+            </PageHeader>
 
-            {/* ── 4 Stat cards (colored borders) ──────────────── */}
+            {/* 4 Stat Cards */}
             {stats && (
-                <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                    {[
-                        { label: "HADIR / TEPAT WAKTU", value: stats.present, border: "#10B981", color: "#10B981" },
-                        { label: "TERLAMBAT", value: stats.late, border: "#F59E0B", color: "#F59E0B" },
-                        { label: "SAKIT / IZIN", value: stats.pending_leave ?? 0, border: "#2E3391", color: "#2E3391" },
-                        { label: "TANPA KETERANGAN", value: stats.absent, border: "#EF4444", color: "#EF4444" },
-                    ].map(({ label, value, border, color }) => (
-                        <div
-                            key={label}
-                            className="bg-surface rounded-xl p-5 flex flex-col gap-1"
-                            style={{ border: `1px solid ${border}` }}
-                        >
-                            <span className="text-[28px] font-bold leading-none" style={{ color }}>
-                                {value}
-                            </span>
-                            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide">
-                                {label}
-                            </span>
-                        </div>
-                    ))}
+                <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <StatCard label="HADIR / TEPAT WAKTU" value={stats.present} />
+                    <StatCard label="TERLAMBAT" value={stats.late} />
+                    <StatCard label="SAKIT / IZIN" value={stats.pending_leave ?? 0} />
+                    <StatCard label="TANPA KETERANGAN" value={stats.absent} />
                 </section>
             )}
 
-            {/* ── DESKTOP: Tabel Perhatian Khusus ─────────────── */}
-            <section className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden shadow-card">
-                <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-4">
+            {/* ── DESKTOP (lg:block): Standalone Table ─────────────── */}
+            <section className="hidden lg:block space-y-4 font-inter">
+                <div className="flex items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-[15px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h2>
+                        <h2 className="text-[16px] font-bold text-text-primary">
+                            Perhatian Khusus Hari Ini
+                        </h2>
                         <span className="text-[12px] text-text-muted">
                             Menampilkan {paginatedAttention.length} dari {attentionStudents.length} siswa
                         </span>
@@ -190,81 +219,16 @@ export default function HomeroomDashboard({
                         />
                     </div>
                 </div>
-                {paginatedAttention.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">
-                        {search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Semua siswa hadir tepat waktu ✓"}
-                    </div>
-                ) : (
-                    <table className="w-full border-collapse font-inter">
-                        <thead>
-                            <tr className="bg-background border-b border-border">
-                                {["NISN", "Nama Siswa", "Status Hari Ini", "Waktu / Keterangan", "Tindakan"].map(
-                                    (h) => (
-                                        <th
-                                            key={h}
-                                            className="px-4 py-3 text-left text-[12px] font-semibold text-text-muted uppercase tracking-wide"
-                                        >
-                                            {h}
-                                        </th>
-                                    ),
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {paginatedAttention.map((s) => {
-                                const status = getRowStatus(s);
-                                const badge = BADGE[status];
-                                const note = rowNote(s);
-                                return (
-                                    <tr
-                                        key={s.id}
-                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
-                                    >
-                                        <td className="px-4 py-3 text-[13px] font-bold text-text-primary">{s.nis}</td>
-                                        <td className="px-4 py-3 text-[13px] text-text-primary">{s.name}</td>
-                                        <td className="px-4 py-3">
-                                            <span
-                                                className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-                                                style={{ background: badge.bg, color: badge.color }}
-                                            >
-                                                {badge.label}
-                                            </span>
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px]"
-                                            style={{ color: status === "terlambat" ? "#F59E0B" : "#64748B" }}
-                                        >
-                                            {note}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {status === "pending" ? (
-                                                <Link
-                                                    href="/leave-requests/verification"
-                                                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-[12px] font-bold text-white"
-                                                    style={{ background: "#2E3391" }}
-                                                >
-                                                    Verifikasi Izin
-                                                </Link>
-                                            ) : status === "alpa" ? (
-                                                <span className="text-text-muted text-[13px]">-</span>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-[12px] font-semibold border border-border text-text-primary hover:bg-background transition-colors"
-                                                >
-                                                    Lihat Detail
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                )}
+
+                <Table
+                    columns={columns}
+                    data={paginatedAttention}
+                    keyExtractor={(s) => s.id}
+                    emptyMessage={search ? "Tidak ditemukan siswa yang cocok." : "Semua siswa hadir tepat waktu ✓"}
+                />
 
                 {attentionStudents.length > pageSize && (
-                    <div className="p-4 border-t border-border bg-surface">
+                    <div className="pt-2">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -277,16 +241,11 @@ export default function HomeroomDashboard({
             </section>
 
             {/* ── MOBILE (lg:hidden) ──────────────────────────── */}
-            {/* ── MOBILE (lg:hidden) — Figma: Mobile Wali Kelas Dashboard ──────────────────────────── */}
             <div className="lg:hidden flex flex-col gap-4 font-inter">
-                {/* 1. Hero Summary Card (Figma: Ringkasan Hari Ini, Date, Total Siswa, Hadir, Absen/Telat) */}
+                {/* Hero Summary Card */}
                 <div className="bg-primary text-white rounded-2xl p-5 shadow-card overflow-hidden">
-                    <p className="text-white/80 text-[12px] font-medium">
-                        Ringkasan Hari Ini
-                    </p>
-                    <h2 className="text-white text-[22px] font-bold mt-1">
-                        {todayFormatted()}
-                    </h2>
+                    <p className="text-white/80 text-[12px] font-medium">Ringkasan Hari Ini</p>
+                    <h2 className="text-white text-[22px] font-bold mt-1">{todayFormatted()}</h2>
 
                     <div className="border-t border-white/20 my-3.5" />
 
@@ -303,7 +262,7 @@ export default function HomeroomDashboard({
                             <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
                                 Hadir
                             </span>
-                            <span className="text-[20px] font-bold text-emerald-400 block mt-0.5">
+                            <span className="text-[20px] font-bold text-emerald-300 block mt-0.5">
                                 {stats?.present ?? 0}
                             </span>
                         </div>
@@ -311,25 +270,21 @@ export default function HomeroomDashboard({
                             <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
                                 Absen/Telat
                             </span>
-                            <span className="text-[20px] font-bold text-amber-400 block mt-0.5">
+                            <span className="text-[20px] font-bold text-amber-300 block mt-0.5">
                                 {(stats?.late ?? 0) + (stats?.absent ?? 0)}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                {/* 2. Section: Perhatian Khusus Hari Ini */}
-                <div>
-                    <h3 className="text-[14px] font-bold text-text-primary mb-3">
-                        Perhatian Khusus Hari Ini
-                    </h3>
+                {/* Mobile Attention List */}
+                <div className="space-y-3">
+                    <h3 className="text-[14px] font-bold text-text-primary">Perhatian Khusus Hari Ini</h3>
 
                     {attentionStudents.length === 0 ? (
                         <div className="bg-surface border border-border rounded-2xl p-6 text-center shadow-card">
-                            <i className="fas fa-check-circle text-emerald-500 text-3xl mb-2" />
-                            <p className="text-text-primary text-[14px] font-bold">
-                                Semua Siswa Hadir Tepat Waktu
-                            </p>
+                            <i className="fas fa-check-circle text-success text-3xl mb-2" />
+                            <p className="text-text-primary text-[14px] font-bold">Semua Siswa Hadir Tepat Waktu</p>
                             <p className="text-text-muted text-[12px] mt-0.5">
                                 Tidak ada anomali atau izin tertunda hari ini.
                             </p>
@@ -337,67 +292,33 @@ export default function HomeroomDashboard({
                     ) : (
                         <div className="space-y-3">
                             {attentionStudents.map((s) => {
-                                const status = getRowStatus(s);
-                                const badge = BADGE[status];
-                                const note = rowNote(s);
-                                const leftBorder: Record<RowStatus, string> = {
-                                    alpa: "#EF4444",
-                                    terlambat: "#F59E0B",
-                                    pending: "#2E3391",
-                                    diizinkan: "#10B981",
-                                    hadir: "#10B981",
-                                };
+                                const st = getRowStatus(s);
                                 return (
                                     <div
                                         key={s.id}
-                                        className="bg-surface rounded-2xl p-4 border border-border/80 shadow-card flex flex-col gap-3"
-                                        style={{ borderLeftWidth: "5px", borderLeftColor: leftBorder[status] }}
+                                        className="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-3"
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
-                                                <h4 className="text-[14px] font-bold text-primary truncate">
+                                                <h4 className="text-[14px] font-bold text-text-primary truncate">
                                                     {s.name}
                                                 </h4>
-                                                <p className="text-[12px] text-text-muted mt-0.5">
-                                                    {note}
-                                                </p>
+                                                <p className="text-[12px] text-text-muted mt-0.5">{rowNote(s)}</p>
                                             </div>
-                                            <span
-                                                className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0"
-                                                style={{ background: badge.bg, color: badge.color }}
-                                            >
-                                                {badge.label}
-                                            </span>
+                                            <StatusBadge variant={st} />
                                         </div>
 
-                                        {/* Action Buttons matching Figma mockup */}
-                                        {status === "pending" && (
-                                            <Link
-                                                href="/leave-requests/verification"
-                                                className="w-full py-2.5 bg-primary text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all"
-                                            >
-                                                <span>Verifikasi Izin</span>
+                                        {st === "pending" && (
+                                            <Link href="/leave-requests/verification" className="w-full">
+                                                <Button variant="primary" size="sm" className="w-full justify-center">
+                                                    Verifikasi Izin
+                                                </Button>
                                             </Link>
                                         )}
-
-                                        {status === "terlambat" && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {}}
-                                                className="w-full py-2 border-2 border-primary text-primary font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/5 active:scale-[0.98] transition-all"
-                                            >
-                                                <span>Lihat Detail</span>
-                                            </button>
-                                        )}
-
-                                        {status === "diizinkan" && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {}}
-                                                className="w-full py-2 border-2 border-emerald-600 text-emerald-600 font-bold text-[13px] rounded-xl flex items-center justify-center gap-1.5 hover:bg-emerald-50 active:scale-[0.98] transition-all"
-                                            >
-                                                <span>Lihat Detail</span>
-                                            </button>
+                                        {st === "terlambat" && (
+                                            <Button variant="outline" size="sm" className="w-full justify-center">
+                                                Lihat Detail
+                                            </Button>
                                         )}
                                     </div>
                                 );
@@ -405,11 +326,6 @@ export default function HomeroomDashboard({
                         </div>
                     )}
                 </div>
-
-                {/* Footer Branding */}
-                <p className="text-center text-[11px] text-text-muted/60 py-4 font-inter">
-                    SMART Absen · SMA UII Yogyakarta
-                </p>
             </div>
         </AppShell>
     );
