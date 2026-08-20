@@ -45,6 +45,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('web-login', function (Request $request) {
+            if (app()->environment(['local', 'testing'])) {
+                return Limit::none();
+            }
+
             return Limit::perMinute(5)->by('web-login:' . $request->ip())
                 ->response(fn () => back()->with('error', 'Too many login attempts. Please try again in 1 minute.'));
         });
