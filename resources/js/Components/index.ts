@@ -48,6 +48,7 @@ export { default as Radio, RadioGroup } from "@/Components/ui/Radio";
 export { default as LoadingSpinner } from "@/Components/common/LoadingSpinner";
 export { default as EmptyState } from "@/Components/common/EmptyState";
 export { default as ErrorAlert } from "@/Components/common/ErrorAlert";
+export { default as FormError } from "@/Components/ui/FormError";
 export { default as ImportModal } from "@/Components/features/ImportModal";
 export { default as Skeleton } from "@/Components/ui/Skeleton";
 export { default as ErrorBoundary } from "@/Components/common/ErrorBoundary";

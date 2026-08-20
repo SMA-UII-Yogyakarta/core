@@ -21,6 +21,7 @@ import {
     StatusBadge,
     Table,
     EmptyState,
+    FormError,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { leaveApplicationSchema } from "@/schemas";
@@ -173,8 +174,8 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
 
                 {/* Success Alert Banner */}
                 {successMsg && (
-                    <div className="px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[13px] text-emerald-600 font-medium flex items-center gap-2.5 animate-fadeIn">
-                        <FiCheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <div className="px-4 py-3 bg-success-bg border border-success/30 rounded-xl text-[13px] text-success font-medium flex items-center gap-2.5 animate-fadeIn">
+                        <FiCheckCircle className="w-5 h-5 text-success shrink-0" />
                         <span>{successMsg}</span>
                     </div>
                 )}
@@ -202,9 +203,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                     </option>
                                 ))}
                             </NativeSelect>
-                            {errors?.student_id && (
-                                <p className="text-[11px] text-danger mt-1 font-medium">{errors.student_id}</p>
-                            )}
+                            <FormError message={errors?.student_id} />
                         </div>
 
                         {/* Kategori Izin */}
@@ -222,9 +221,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                     </option>
                                 ))}
                             </NativeSelect>
-                            {errors?.category && (
-                                <p className="text-[11px] text-danger mt-1 font-medium">{errors.category}</p>
-                            )}
+                            <FormError message={errors?.category} />
                         </div>
 
                         {/* Tanggal Mulai & Selesai */}
@@ -264,11 +261,9 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                 onChange={(e) => setData("description", e.target.value)}
                                 placeholder="Tulis rincian alasan sakit atau kegiatan..."
                                 rows={3}
-                                className="w-full border border-border rounded-xl p-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors resize-none placeholder:text-text-muted/60"
+                                className="w-full border border-border rounded-xl p-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors resize-none placeholder:text-text-muted/60 font-inter"
                             />
-                            {errors?.description && (
-                                <p className="text-[11px] text-danger mt-1 font-medium">{errors.description}</p>
-                            )}
+                            <FormError message={errors?.description} />
                         </div>
 
                         {/* Unggah Bukti */}
@@ -281,13 +276,13 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                 onClick={() => fileInputRef.current?.click()}
                                 className={`w-full flex flex-col items-center justify-center gap-2 py-6 rounded-xl transition-all cursor-pointer border-2 border-dashed ${
                                     data.document
-                                        ? "bg-emerald-500/5 border-emerald-500/40 text-emerald-600"
-                                        : "bg-blue-500/5 border-primary/30 text-primary hover:bg-blue-500/10"
+                                        ? "bg-success-bg border-success/40 text-success"
+                                        : "bg-primary-light/30 border-primary/30 text-primary hover:bg-primary-light/50"
                                 }`}
                             >
                                 {data.document ? (
                                     <>
-                                        <FiCheck className="w-8 h-8 text-emerald-500" />
+                                        <FiCheck className="w-8 h-8 text-success" />
                                         <span className="text-[13px] font-bold">
                                             {data.document.name}
                                         </span>
@@ -311,9 +306,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                 onChange={handleFileChange}
                                 className="hidden"
                             />
-                            {errors?.document && (
-                                <p className="text-[11px] text-danger mt-1 font-medium">{errors.document}</p>
-                            )}
+                            <FormError message={errors?.document} />
                         </div>
 
                         {/* Submit Button */}

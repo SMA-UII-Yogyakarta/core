@@ -9,7 +9,7 @@ import {
     FiChevronRight,
     FiActivity,
 } from "react-icons/fi";
-import { Card, StatCard, NativeSelect, Button } from "@/Components";
+import { Card, StatCard, NativeSelect, Button, StatusBadge, PageHeader } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 
 interface Student {
@@ -68,9 +68,13 @@ export default function GuardianDashboard({
     return (
         <AppShell title="Overview Wali Murid">
             <div className="flex flex-col gap-6 font-inter">
-                {/* 1. Hero Greeting & Real-Time Clock Card */}
+                {/* 1. Page Header & Hero Greeting Card */}
+                <PageHeader
+                    title={`Selamat Datang, ${guardian?.name ?? "Wali Murid"}`}
+                    description="Portal Informasi Kehadiran & Pengajuan Izin Siswa · SMA UII Yogyakarta"
+                />
+
                 <div className="relative bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-card overflow-hidden">
-                    {/* Background Glow Effects */}
                     <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-accent/15 blur-2xl pointer-events-none" />
                     <div className="absolute -left-6 -top-6 w-32 h-32 rounded-full bg-white/5 blur-xl pointer-events-none" />
 
@@ -80,15 +84,14 @@ export default function GuardianDashboard({
                                 <p className="text-white/70 text-[11px] font-bold tracking-wider uppercase mb-1">
                                     {currentDate}
                                 </p>
-                                <h1 className="text-white text-[20px] sm:text-[24px] font-bold leading-tight truncate">
-                                    Selamat Datang, {guardian?.name ?? "Wali Murid"}
-                                </h1>
+                                <h2 className="text-white text-[20px] sm:text-[24px] font-bold leading-tight truncate">
+                                    Pantauan Presensi Real-Time
+                                </h2>
                                 <p className="text-white/80 text-[13px] font-medium mt-1">
-                                    Portal Wali Murid · SMA UII Yogyakarta
+                                    SMA UII Yogyakarta
                                 </p>
                             </div>
 
-                            {/* Digital Clock Display */}
                             <div className="self-start sm:self-auto shrink-0 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-4 py-2.5 text-right">
                                 <p className="text-[22px] font-extrabold font-mono text-white leading-none">
                                     {currentTime}
@@ -99,7 +102,6 @@ export default function GuardianDashboard({
                             </div>
                         </div>
 
-                        {/* Status Quick Pills */}
                         <div className="flex items-center gap-2.5 mt-5 flex-wrap">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-medium bg-white/15 text-white backdrop-blur-xs border border-white/10">
                                 <FiUsers className="w-3.5 h-3.5 text-accent" />
@@ -143,18 +145,20 @@ export default function GuardianDashboard({
                 <Card
                     className={`p-6 text-center border-2 flex flex-col items-center justify-center transition-all ${
                         todayAttendance
-                            ? "border-emerald-500/30 bg-emerald-500/5"
-                            : "border-amber-500/30 bg-amber-500/5"
+                            ? "border-success/30 bg-success-bg"
+                            : "border-warning/30 bg-warning-bg"
                     }`}
                 >
-                    <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-3">
-                        STATUS PRESENSI HARI INI ({new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })})
-                    </p>
+                    <div className="flex items-center justify-between w-full max-w-md mb-4">
+                        <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                            Status Presensi Hari Ini
+                        </p>
+                        <StatusBadge variant={todayAttendance ? "hadir" : "alpa"} />
+                    </div>
+
                     <div
-                        className={`w-16 h-16 rounded-full flex items-center justify-center text-white mb-3.5 shadow-lg transition-transform hover:scale-105 ${
-                            todayAttendance
-                                ? "bg-emerald-500 shadow-emerald-500/25"
-                                : "bg-amber-500 shadow-amber-500/25"
+                        className={`w-16 h-16 rounded-full flex items-center justify-center text-white mb-3.5 shadow-md ${
+                            todayAttendance ? "bg-success" : "bg-warning"
                         }`}
                     >
                         {todayAttendance ? (
@@ -164,13 +168,11 @@ export default function GuardianDashboard({
                         )}
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                        <h3 className="text-[18px] sm:text-[20px] font-bold text-text-primary">
-                            {todayAttendance ? "Anak Anda Telah Hadir" : "Belum Melakukan Presensi"}
-                        </h3>
-                    </div>
+                    <h3 className="text-[18px] sm:text-[20px] font-bold text-text-primary mb-1">
+                        {todayAttendance ? "Anak Anda Telah Hadir" : "Belum Melakukan Presensi"}
+                    </h3>
 
-                    <p className="text-[13px] text-text-muted mt-1 max-w-md">
+                    <p className="text-[13px] text-text-muted max-w-md">
                         {todayAttendance?.check_in_time ? (
                             <>
                                 Presensi tercatat pada pukul <strong className="text-text-primary font-mono font-bold">{todayAttendance.check_in_time} WIB</strong>
@@ -185,7 +187,7 @@ export default function GuardianDashboard({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Card className="p-5 hover:border-primary/40 transition-all flex flex-col justify-between group">
                         <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-xl bg-primary-light text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                 <FiActivity className="w-6 h-6" />
                             </div>
                             <div>
@@ -208,7 +210,7 @@ export default function GuardianDashboard({
 
                     <Card className="p-5 hover:border-accent/40 transition-all flex flex-col justify-between group bg-accent/5 border-accent/20">
                         <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-accent/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-xl bg-accent/20 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                 <FiFileText className="w-6 h-6" />
                             </div>
                             <div>
@@ -231,29 +233,23 @@ export default function GuardianDashboard({
                 </div>
 
                 {/* 5. Ringkasan Semester Ini */}
-                <div>
-                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-3 font-inter flex items-center gap-2">
+                <div className="space-y-3">
+                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider font-inter flex items-center gap-2">
                         <FiUserCheck className="w-4 h-4 text-primary" />
                         <span>Ringkasan Semester Ini</span>
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <StatCard
-                            label="Hadir"
+                            label="Hadir Tepat Waktu"
                             value={semesterStats?.present ?? 0}
-                            color="green"
-                            subtitle="Total Hari Presensi Masuk"
                         />
                         <StatCard
                             label="Sakit / Izin"
                             value={semesterStats?.sick_permit ?? 0}
-                            color="amber"
-                            subtitle="Permohonan Disetujui"
                         />
                         <StatCard
                             label="Alpa / Tanpa Keterangan"
                             value={semesterStats?.absent ?? 0}
-                            color="red"
-                            subtitle="Ketidakhadiran Tanpa Izin"
                         />
                     </div>
                 </div>
