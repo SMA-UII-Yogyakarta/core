@@ -65,15 +65,15 @@ export default function DailyReport({
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Present":
-                return "text-green-600 bg-green-50";
+                return "text-success bg-success-bg";
             case "Late":
-                return "text-amber-600 bg-amber-50";
+                return "text-warning bg-warning-bg";
             case "Sick":
-                return "text-blue-600 bg-blue-50";
+                return "text-primary bg-primary-light";
             case "Permission":
-                return "text-purple-600 bg-purple-50";
+                return "text-accent bg-accent/10";
             default:
-                return "text-red-600 bg-red-50";
+                return "text-danger bg-danger-bg";
         }
     };
 
@@ -232,10 +232,10 @@ export default function DailyReport({
                                             <tr key={cls.id} className="border-b border-border/50 hover:bg-primary/5">
                                                 <td className="py-3 font-medium">{cls.name}</td>
                                                 <td className="py-3 text-center text-text-inactive">{cls.total}</td>
-                                                <td className="py-3 text-center text-green-600">{cls.present}</td>
-                                                <td className="py-3 text-center text-amber-600">{cls.late}</td>
-                                                <td className="py-3 text-center text-blue-600">0</td>
-                                                <td className="py-3 text-center text-red-600">
+                                                <td className="py-3 text-center text-success font-semibold">{cls.present}</td>
+                                                <td className="py-3 text-center text-warning font-semibold">{cls.late}</td>
+                                                <td className="py-3 text-center text-primary font-semibold">0</td>
+                                                <td className="py-3 text-center text-danger font-semibold">
                                                     {cls.total - cls.present - cls.late}
                                                 </td>
                                                 <td className="py-3 text-center font-medium">{rate}%</td>

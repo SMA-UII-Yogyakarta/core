@@ -385,11 +385,11 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                                         <td className="py-3 text-center text-text-inactive">
                                                             {cls.total}
                                                         </td>
-                                                        <td className="py-3 text-center text-green-600">
+                                                        <td className="py-3 text-center text-success font-semibold">
                                                             {cls.present}
                                                         </td>
-                                                        <td className="py-3 text-center text-amber-600">{cls.late}</td>
-                                                        <td className="py-3 text-center text-red-600">
+                                                        <td className="py-3 text-center text-warning font-semibold">{cls.late}</td>
+                                                        <td className="py-3 text-center text-danger font-semibold">
                                                             {cls.total - cls.present - cls.late}
                                                         </td>
                                                         <td className="py-3 text-center font-medium">{rate}%</td>

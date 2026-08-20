@@ -661,8 +661,8 @@ export default function MasterData({
                         {s.class.name}
                     </span>
                 ) : (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">
-                        <i className="fas fa-exclamation-circle text-[10px] text-amber-500" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-warning-bg text-warning border border-warning/20 whitespace-nowrap">
+                        <i className="fas fa-exclamation-circle text-[10px] text-warning" />
                         Belum Ada Kelas
                     </span>
                 )
