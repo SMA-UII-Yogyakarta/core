@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Avatar, PageHeader, StatCard, Button, StatusBadge } from "@/Components";
+import { PageHeader, StatCard, Button, StatusBadge } from "@/Components";
 
 interface Student {
     id: number;
