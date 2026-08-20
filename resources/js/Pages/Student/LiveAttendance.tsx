@@ -11,6 +11,7 @@ import {
     isWithinSchoolGeofence,
     SMA_UII_LOCATION,
 } from "@/utils/geoHelper";
+import { compressImageFromVideo } from "@/utils/imageCompressor";
 
 interface Student {
     id: number;
@@ -134,23 +135,23 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
         return isWithinSchoolGeofence(coords.lat, coords.lng);
     }, [coords]);
 
-    const capturePhoto = (): string => {
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        if (!video || !canvas) return "";
-        canvas.width = 320;
-        canvas.height = 240;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return "";
-        ctx.drawImage(video, 0, 0, 320, 240);
-        return canvas.toDataURL("image/jpeg", 0.7);
-    };
-
     const handleSubmit = () => {
         setError(null);
 
-        const photoDataUrl = capturePhoto();
-        const photoBase64 = photoDataUrl.split(",")[1] || "";
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas) {
+            setError("Kamera belum siap. Mohon tunggu sejenak.");
+            return;
+        }
+
+        const compression = compressImageFromVideo(video, canvas, 20 * 1024, 320, 240);
+        if (compression.sizeInBytes > 20 * 1024) {
+            setError(`Ukuran foto (${compression.sizeInKb} KB) melebihi batas 20 KB. Silakan coba lagi.`);
+            return;
+        }
+
+        const photoBase64 = compression.base64;
 
         // Client Zod validation
         const payload = {

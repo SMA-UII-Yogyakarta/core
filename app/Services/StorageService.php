@@ -96,23 +96,20 @@ class StorageService
 
         ob_start();
         imagejpeg($canvas, null, $quality);
-        $data = ob_get_clean();
-
-        imagedestroy($source);
-        imagedestroy($canvas);
+        $data = ob_get_clean() ?: '';
 
         // Compress further if still > 20KB
         $attempts = 0;
         while (strlen($data) > $maxBytes && $quality > 10 && $attempts < 5) {
             $quality -= 10;
             ob_start();
-            $canvasResized = imagecreatetruecolor($newWidth, $newHeight);
-            imagecopyresampled($canvasResized, $source, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
-            imagejpeg($canvasResized, null, $quality);
-            $data = ob_get_clean();
-            imagedestroy($canvasResized);
+            imagejpeg($canvas, null, $quality);
+            $data = ob_get_clean() ?: '';
             $attempts++;
         }
+
+        imagedestroy($source);
+        imagedestroy($canvas);
 
         return $data;
     }

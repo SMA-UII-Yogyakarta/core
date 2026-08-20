@@ -22,9 +22,9 @@ describe("Geo Helper Utility", () => {
     });
 
     it("identifies location within 100 meters geofence", () => {
-        // Point approximately 40 meters away
-        const nearbyLat = -7.797200;
-        const nearbyLng = 110.399650;
+        // Point approximately 15 meters away from SMA UII
+        const nearbyLat = SMA_UII_LOCATION.latitude - 0.0001;
+        const nearbyLng = SMA_UII_LOCATION.longitude + 0.0001;
         const distance = calculateDistance(nearbyLat, nearbyLng);
 
         expect(distance).toBeLessThan(100);
