@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function () {
             'api.logout',
         );
         Route::get('/user', [AuthController::class, 'user'])->name('api.user');
+        Route::get('/me', [AuthController::class, 'me'])->name('api.me');
 
         // ── Session Management ──
         Route::post('/refresh', [AuthController::class, 'refresh'])->name(
