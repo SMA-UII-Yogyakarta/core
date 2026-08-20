@@ -147,9 +147,9 @@ export default function SemesterReport({
                                                 className="border-b border-border/50 hover:bg-primary/5"
                                             >
                                                 <td className="py-3 font-medium">{month.label}</td>
-                                                <td className="py-3 text-center text-green-600">{month.present}</td>
-                                                <td className="py-3 text-center text-amber-600">{month.late}</td>
-                                                <td className="py-3 text-center text-red-600">{month.absent}</td>
+                                                <td className="py-3 text-center text-success font-semibold">{month.present}</td>
+                                                <td className="py-3 text-center text-warning font-semibold">{month.late}</td>
+                                                <td className="py-3 text-center text-danger font-semibold">{month.absent}</td>
                                                 <td className="py-3 text-center font-medium">{rate}%</td>
                                             </tr>
                                         );

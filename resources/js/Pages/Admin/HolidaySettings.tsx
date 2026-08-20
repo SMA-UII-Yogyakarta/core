@@ -554,7 +554,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                             </div>
 
                             {/* Visual Preview Box */}
-                            <div className="bg-slate-50 border border-border rounded-xl p-5 flex flex-col justify-between">
+                            <div className="bg-background border border-border rounded-xl p-5 flex flex-col justify-between">
                                 <div className="flex flex-col gap-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[12px] font-bold uppercase tracking-wider text-text-muted">Preview Peta & Status</span>
@@ -578,8 +578,8 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         </div>
                                     </div>
 
-                                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[12px] text-amber-900 flex items-start gap-2">
-                                        <i className="fas fa-info-circle text-amber-600 text-[14px] mt-0.5" />
+                                    <div className="p-3 bg-warning-bg border border-warning/20 rounded-lg text-[12px] text-warning flex items-start gap-2">
+                                        <i className="fas fa-info-circle text-warning text-[14px] mt-0.5" />
                                         <span>Siswa hanya dapat melakukan check-in jika posisi GPS HP berada di dalam lingkaran radius <strong>{locationForm.radius_meters} meter</strong> dari titik koordinat pusat SMA UII Yogyakarta.</span>
                                     </div>
                                 </div>
@@ -589,7 +589,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         href={`https://www.google.com/maps?q=${locationForm.latitude},${locationForm.longitude}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-border hover:bg-slate-100 text-text-primary text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
+                                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface border border-border hover:bg-muted text-text-primary text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
                                     >
                                         <i className="fas fa-external-link-alt text-[11px] text-primary" />
                                         <span>Buka di Google Maps</span>
@@ -623,7 +623,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         {showAddForm && (
                             <form
                                 onSubmit={handleAddHoliday}
-                                className="border border-border/80 rounded-xl p-4 bg-slate-50 flex flex-col gap-3 mb-5"
+                                className="border border-border/80 rounded-xl p-4 bg-muted/40 flex flex-col gap-3 mb-5"
                             >
                                 <h3 className="text-[13px] font-bold text-text-primary font-inter">
                                     Tambah Hari Libur Baru
@@ -668,7 +668,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                             resetHoliday();
                                             setShowAddForm(false);
                                         }}
-                                        className="px-3 py-1.5 text-[12px] font-bold text-text-secondary hover:bg-slate-200/50 rounded-lg transition-colors cursor-pointer"
+                                        className="px-3 py-1.5 text-[12px] font-bold text-text-secondary hover:bg-muted rounded-lg transition-colors cursor-pointer"
                                     >
                                         Batal
                                     </button>

@@ -283,7 +283,7 @@ export default function Dashboard({
                 description="Ringkasan kehadiran institusi berdasarkan periode yang dipilih."
             >
                 <div
-                    className="flex bg-slate-200/60 p-1 rounded-xl select-none self-start sm:self-auto shadow-sm border border-slate-300/30"
+                    className="flex bg-muted p-1 rounded-xl select-none self-start sm:self-auto shadow-xs border border-border"
                     role="tablist"
                     aria-label="Periode statistik"
                 >
@@ -349,9 +349,9 @@ export default function Dashboard({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                         <Link
                             href="/master-data"
-                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
                                 <i className="fas fa-database" />
                             </div>
                             <div>
@@ -366,9 +366,9 @@ export default function Dashboard({
 
                         <Link
                             href="/settings"
-                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
                                 <i className="fas fa-clock" />
                             </div>
                             <div>
@@ -383,9 +383,9 @@ export default function Dashboard({
 
                         <Link
                             href="/class-enrolment"
-                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
                                 <i className="fas fa-chalkboard-teacher" />
                             </div>
                             <div>
@@ -400,9 +400,9 @@ export default function Dashboard({
 
                         <Link
                             href="/export"
-                            className="bg-surface border border-border/80 rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
                                 <i className="fas fa-file-alt" />
                             </div>
                             <div>
