@@ -298,7 +298,7 @@ export default function ExportPage({
                         </div>
                     )}
 
-                    <Card.Footer className="bg-white flex items-center justify-between gap-2 text-[#94A3B8] text-[12px] font-inter">
+                    <Card.Footer className="bg-surface flex items-center justify-between gap-2 text-text-muted text-[12px] font-inter">
                         <div className="flex items-center gap-2">
                             <i className="fas fa-info-circle"></i>
                             <span>Tampilan kolom menyesuaikan otomatis berdasarkan filter periode.</span>

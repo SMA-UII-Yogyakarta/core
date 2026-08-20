@@ -321,9 +321,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         value={form[day].late_threshold}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
-                        className={`border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed ${
-                            day === "Friday" ? "text-[#D97706]" : "text-warning"
-                        }`}
+                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed text-warning"
                     />
                 </div>
             ),
