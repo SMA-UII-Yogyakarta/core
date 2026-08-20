@@ -441,7 +441,7 @@ CSS Figma pake `position: absolute` dan ukuran fix. Di Tailwind kita pake flexbo
 Kerjakan komponen kecil dulu (`Button`, `Input`, `BrandLogo`), baru naik ke komponen besar (`Sidebar`, `FilterBar`), lalu ke halaman utuh (`Login`, `Dashboard`).
 
 ### 3. Gunakan `@theme` — Jangan Hex Langsung
-Gunakan Tailwind utility classes seperti `bg-primary`, `text-accent`, `border-border` — bukan `bg-[#2E3391]`.
+Gunakan Tailwind utility classes semantic seperti `bg-primary`, `text-accent`, `border-border`, `text-warning`, `bg-success-bg`, `text-danger` — bukan warna hex langsung seperti `bg-[#2E3391]` atau `text-[#29347A]`. Jika butuh warna brand khusus baru, daftarkan terlebih dahulu di `@theme` pada `app.css`.
 
 ### 4. Perhatikan State
 Figma mendefinisikan 2 state per komponen:
@@ -450,30 +450,39 @@ Figma mendefinisikan 2 state per komponen:
 
 Buat prop seperti `isActive` atau `variant` untuk membedakan.
 
-### 5. Ikon Font Awesome 5
-Figma pakai Font Awesome 5 Free. Implementasi kita:
-- **Layouts, sidebar, nav**: Pakai FA5 CDN via `<i className="fas fa-icon-name" />`
-- **Components**: Pakai `react-icons/fa` (tree-shaking, ringan)
-- Tidak perlu install `@fortawesome/react-fontawesome` — cukup CDN di `app.tsx` + `react-icons/fa`
-- Mapping icon Figma → FA5 ada di [Icon yang Dipakai di Figma](#icon-yang-dipakai-di-figma)
+### 5. Konvensi Ikon (Font Awesome 5 & React Icons)
+Implementasi konvensi ikon di codebase:
+- **Layouts, Sidebar, Navigasi, Action Components & Cards** (`ActionButton`, `Pagination`, `FAB`, `LeaveRequestCard`): Menggunakan FA5 CDN via `<i className="fas fa-icon-name" />` (misalnya `<i className="fas fa-eye" />`, `<i className="fas fa-chevron-right" />`).
+- **Form Primitives & Leaf Controls** (`Toggle`, `Checkbox`, `Radio`, `SearchBar`, `CommandPalette`): Menggunakan `react-icons/fa` atau `react-icons/fi` (`FaCheck`, `FaSearch`, `FiSettings`).
+- Keduanya valid dan telah terstandarisasi sesuai domain level komponen masing-masing.
 
-### 6. Layout Utama Dulu
+### 6. Aturan Tabel Mandiri (Standalone Table Rule)
+- Komponen `<Table>` **TIDAK BOLEH** dibungkus di dalam komponen `<Card>`.
+- Tabel harus berdiri mandiri dengan wrapper `overflow-x-auto`, border semantic (`border-border`), dan paginasi `<Pagination>` diletakkan di luar/bawah tabel.
+
+### 7. Gunakan Canonical Types dari `@/types`
+- Jangan membuat `interface` model domain baru secara manual di file komponen jika sudah ada tipe resminya.
+- Gunakan tipe kanonik yang digenerate dari Laravel Data DTO di `@/types` (misal: `import type { LeaveRequest, Student, Attendance } from "@/types"`).
+
+### 8. Internasionalisasi (i18n & `translations.ts`)
+- Jangan menimpa atau menghapus `t()` yang sudah ada dengan string hardcoded.
+- Gunakan `useLanguage()` dan `t("reports.key")`. Jika ada teks baru dari Figma, tambahkan key baru di `resources/js/utils/translations.ts` (dukung locale ID dan EN).
+
+### 9. Layout Utama Dulu
 Bikin `AdminLayout.tsx` (header + sidebar) dulu sebelum mengerjakan halaman-halaman admin. Struktur sidebar ada di `desktop.css` baris 1030-1479.
 
-### 7. Dev Server
+### 10. Dev Server & Verifikasi
 ```bash
 bun run dev
+bun run typecheck && bun run lint
 ```
 Vite HMR — perubahan langsung kelihatan di browser tanpa reload manual.
 
-### 8. File Figma-nya Kepanjangan?
-Cari aja `/* Nama Halaman */` yang mau dikerjakan, lalu baca blok di bawahnya sampai ketemu `/* Nama Halaman */` berikutnya. Atau cari pake Ctrl+F nama komponen (misal "Button", "Input").
-
-### 9. Ukuran Piksel Beda?
+### 11. Ukuran Piksel Beda?
 Wajar. Figma pake 1x scale. Di browser nanti pake unit relatif Tailwind (`px-4`, `py-3`, `gap-2`, dll). Jangan kaku ikut ukuran persis Figma.
 
-### 10. Mentok?
-Tanya Sandiko atau Azis. Jangan nebak sendiri kalau mentok >30 menit.
+### 12. Mentok?
+Tanya Sandiko atau tim. Jangan nebak sendiri kalau mentok >30 menit.
 
 ---
 
