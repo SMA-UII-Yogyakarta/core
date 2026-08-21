@@ -127,7 +127,7 @@ export default function DailyReport({
         <AppShell>
             <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                 <PageHeader 
-                    title="Laporan & Ekspor Global"
+                    title={t("reports.dailyTitle")}
                     description="Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas."
                 />
 
@@ -143,7 +143,7 @@ export default function DailyReport({
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                     router.get(`/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, {}, { preserveState: true })
                                 }
-                                className="h-10 w-full sm:w-[150px] bg-surface border border-border/80 rounded-lg px-3 text-[13px] font-medium text-[#29347A] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="h-10 w-full sm:w-[150px] bg-surface border border-border/80 rounded-lg px-3 text-[13px] font-medium text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             />
                             
                             {/* Class Selector */}
@@ -155,26 +155,26 @@ export default function DailyReport({
                                     router.get(`/reports/daily?date=${selectedDate}${classQuery}`, {}, { preserveState: true });
                                 }}
                                 options={[
-                                    { value: "", label: "Semua Kelas" },
+                                    { value: "", label: t("reports.allClasses") },
                                     ...classes.map((c) => ({
                                         value: c.id,
                                         label: c.name,
                                     })),
                                 ]}
-                                className="h-10 w-full sm:w-[240px] text-[13px] font-medium text-[#29347A] border-border/80"
+                                className="h-10 w-full sm:w-[240px] text-[13px] font-medium text-primary border-border/80"
                             />
 
                             {/* Export Buttons */}
                             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                                 <a
-                                    href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}&format=pdf`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#EF4444] text-white px-5 rounded-lg hover:bg-red-600 text-[13px] font-bold shadow-sm transition-colors"
+                                    href={`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
+                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-danger text-white px-5 rounded-lg hover:bg-danger/90 text-[13px] font-bold shadow-sm transition-colors"
                                 >
                                     <i className="fas fa-file-pdf"></i> PDF
                                 </a>
                                 <a
-                                    href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}&format=excel`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#10B981] text-white px-5 rounded-lg hover:bg-emerald-600 text-[13px] font-bold shadow-sm transition-colors"
+                                    href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
+                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-success text-white px-5 rounded-lg hover:bg-success/90 text-[13px] font-bold shadow-sm transition-colors"
                                 >
                                     <i className="fas fa-file-excel"></i> Excel
                                 </a>
@@ -182,28 +182,13 @@ export default function DailyReport({
                         </div>
                     </div>
 
-                {/* Stats Grid - Hidden to match Figma design but kept in code for reference
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                    <StatCard
-                        label={t("reports.totalStudents")}
-                        value={overview.total_students.toLocaleString("id-ID")}
-                        color="blue"
-                    />
-                    <StatCard
-                        label={t("reports.present")}
-                        value={overview.present.toLocaleString("id-ID")}
-                        color="green"
-                    />
-                    <StatCard label={t("reports.late")} value={overview.late.toLocaleString("id-ID")} color="amber" />
-                    <StatCard label={t("reports.absent")} value={overview.absent.toLocaleString("id-ID")} color="red" />
-                </div>
-                */}
+
 
                 {classDetail ? (
                     <div className="p-6">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <div>
-                                <h3 className="text-lg font-bold text-[#29347A]">
+                                <h3 className="text-lg font-bold text-primary">
                                     {t("reports.classDetail").replace("{class}", classDetail.class.name)}
                                 </h3>
                                 <span className="text-sm text-text-inactive">
@@ -247,8 +232,8 @@ export default function DailyReport({
                 ) : (
                     <div className="p-4 sm:p-6">
                         <div className="mb-4">
-                            <h3 className="text-lg font-bold text-[#29347A]">
-                                Ringkasan Semua Kelas
+                            <h3 className="text-lg font-bold text-primary">
+                                {t("reports.allClassesSummary")}
                             </h3>
                             <span className="text-sm text-text-inactive">
                                 Menampilkan rekapitulasi data dari {overview.classes.length} kelas

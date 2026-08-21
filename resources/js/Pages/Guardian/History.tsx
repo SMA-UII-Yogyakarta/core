@@ -237,7 +237,7 @@ export default function History({
                 {selectedStudent ? (
                     <>
                         {/* Selected Student Profile Banner */}
-                        <Card className="p-5 border-border bg-gradient-to-r from-surface to-muted/40">
+                        <Card className="p-5 border-border bg-surface">
                             <div className="flex items-center gap-4">
                                 <Avatar name={selectedStudent.name} size="lg" className="ring-2 ring-primary/20" />
                                 <div className="min-w-0">
@@ -258,26 +258,18 @@ export default function History({
                             <StatCard
                                 label="Hari Tercatat"
                                 value={stats?.total_days ?? 0}
-                                color="grey"
-                                subtitle="Total Hari Sekolah"
                             />
                             <StatCard
                                 label="Hadir Tepat"
                                 value={stats?.present ?? 0}
-                                color="green"
-                                subtitle="Sesuai Jam Masuk"
                             />
                             <StatCard
                                 label="Terlambat"
                                 value={stats?.late ?? 0}
-                                color="amber"
-                                subtitle="Lewat Batas Jam"
                             />
                             <StatCard
                                 label="Tidak Hadir / Alpa"
                                 value={stats?.absent ?? 0}
-                                color="red"
-                                subtitle="Tanpa Keterangan"
                             />
                         </div>
 

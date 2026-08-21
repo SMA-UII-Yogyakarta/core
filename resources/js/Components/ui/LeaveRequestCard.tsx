@@ -1,28 +1,7 @@
 import React from "react";
 import { StatusBadge } from "@/Components";
 import type { StatusVariant } from "@/types/component";
-
-export interface LeaveRequest {
-    id: number;
-    category: string;
-    start_date: string;
-    end_date: string;
-    description?: string | null;
-    document_url: string | null;
-    approval_status: string;
-    student: {
-        id: number;
-        nisn: string;
-        name: string;
-        class: { id: number; name: string } | null;
-    };
-    guardian: {
-        id: number;
-        name: string;
-        phone?: string | null;
-    } | null;
-    created_at: string;
-}
+import type { LeaveRequest } from "@/types";
 
 interface LeaveRequestCardProps {
     leaveRequest: LeaveRequest;
@@ -37,10 +16,10 @@ const statusToVariant: Record<string, StatusVariant> = {
     Rejected: "rejected",
 };
 
-const statusBorderColors: Record<string, string> = {
-    Pending: "#F59E0B", // amber-500
-    Approved: "#10B981", // emerald-500
-    Rejected: "#EF4444", // red-500
+const statusBorderClass: Record<string, string> = {
+    Pending: "border-l-warning",
+    Approved: "border-l-success",
+    Rejected: "border-l-danger",
 };
 
 const statusLabels: Record<string, string> = {
@@ -62,9 +41,9 @@ export function LeaveRequestCard({
     checkboxSlot,
     actionSlot,
 }: LeaveRequestCardProps) {
-    const statusLabel = leaveRequest.approval_status;
-    const variant = statusToVariant[statusLabel] ?? "pending";
-    const borderColor = statusBorderColors[statusLabel] ?? "#64748B";
+    const variant = statusToVariant[leaveRequest.approval_status] || "pending";
+    const borderClass = statusBorderClass[leaveRequest.approval_status] || "border-l-border";
+    const label = statusLabels[leaveRequest.approval_status] || leaveRequest.approval_status;
 
     const guardianInfo = leaveRequest.guardian?.name
         ? `Ibu/Bapak ${leaveRequest.guardian.name} (Wali Murid)`
@@ -103,8 +82,7 @@ export function LeaveRequestCard({
 
     return (
         <div
-            className="flex flex-row bg-surface border border-border rounded-xl p-0 overflow-hidden shadow-sm relative transition-colors hover:border-primary/30"
-            style={{ borderLeftWidth: "6px", borderLeftColor: borderColor }}
+            className={`flex flex-row bg-surface border border-border rounded-xl p-0 overflow-hidden shadow-sm relative transition-colors hover:border-primary/30 border-l-[6px] ${borderClass}`}
         >
             {/* Image Placeholder / Attachment side */}
             <div className="flex w-[80px] sm:w-[150px] pt-4 sm:pt-6 pl-2 sm:pl-0 justify-center shrink-0">
@@ -127,7 +105,7 @@ export function LeaveRequestCard({
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
                             <i className="fas fa-image text-xl sm:text-3xl mb-0.5 sm:mb-1 opacity-50"></i>
-                            <span className="text-[8px] sm:text-[10px] font-medium opacity-70">Kosong</span>
+                            <h3 className="text-[14px] sm:text-[17px] font-bold text-primary font-inter leading-tight">Kosong</h3>
                         </div>
                     )}
                 </div>
@@ -138,17 +116,17 @@ export function LeaveRequestCard({
                 <div className="flex justify-between items-start mb-1 gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         {checkboxSlot && <div className="mt-1 shrink-0" onClick={(e) => e.stopPropagation()}>{checkboxSlot}</div>}
-                        <h3 className="font-bold text-[#29347A] text-[15px] sm:text-[18px] truncate">
-                            {leaveRequest.student.name}
+                        <h3 className="font-bold text-primary text-[15px] sm:text-[18px] truncate">
+                            {leaveRequest.student?.name || "Tanpa Nama"}
                         </h3>
                     </div>
                     <div className="shrink-0">
-                        <StatusBadge variant={variant} label={statusLabels[statusLabel] ?? statusLabel} />
+                        <StatusBadge variant={variant} label={label} />
                     </div>
                 </div>
 
                 <p className="text-[11px] sm:text-[13px] text-text-muted mb-4 sm:mb-6 flex items-start sm:items-center gap-1.5 leading-tight">
-                    <i className="fas fa-user-edit"></i> Diajukan oleh: {guardianInfo} - {formatDateTime(leaveRequest.created_at)}
+                    <i className="fas fa-user-edit"></i> Diajukan oleh: {guardianInfo} - {formatDateTime(leaveRequest.created_at || "")}
                 </p>
 
                 <div className="bg-slate-50/80 rounded-xl p-3 sm:p-4 text-[12px] sm:text-[13.5px] grid grid-cols-1 md:grid-cols-2 gap-y-2 sm:gap-y-3 gap-x-6">
@@ -168,7 +146,7 @@ export function LeaveRequestCard({
                     </div>
                     <div>
                         <span className="font-semibold text-slate-600 mr-2">Kelas:</span>
-                        <span className="text-text-secondary">{leaveRequest.student.class?.name ?? "-"}</span>
+                        <span className="text-text-secondary">{leaveRequest.student?.class?.name ?? "-"}</span>
                     </div>
                     <div>
                         <span className="font-semibold text-slate-600 mr-2">Wali Murid:</span>

@@ -9,8 +9,8 @@ import {
     PageHeader,
     Drawer,
 } from "@/Components";
-import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import type { LeaveRequest } from "@/Components/ui/LeaveRequestCard";
+import { LeaveRequestCard } from "@/Components";
+import type { LeaveRequest } from "@/types";
 import AppShell from "@/Layouts/AppShell";
 
 interface PaginatedData<T> {
@@ -170,15 +170,15 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                             <div className="grid grid-cols-2 gap-3 text-[13px]">
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Nama Siswa</span>
-                                    <span className="font-semibold">{selectedRequest.student.name}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.name}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">NISN</span>
-                                    <span className="font-semibold">{selectedRequest.student.nisn}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.nisn}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Kelas</span>
-                                    <span className="font-semibold">{selectedRequest.student.class?.name ?? "-"}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.class?.name ?? "-"}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Wali Murid</span>
