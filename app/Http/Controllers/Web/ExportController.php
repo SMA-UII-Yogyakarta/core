@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\SchoolClass;
 use App\Services\ExportService;
 use App\Services\HomeroomScope;
 use Illuminate\Http\Request;
