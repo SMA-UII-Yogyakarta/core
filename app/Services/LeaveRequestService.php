@@ -7,7 +7,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class LeaveRequestService
 {
-    public function paginate(array $filters = [], int $perPage = 20): LengthAwarePaginator
+    /**
+     * @param  array<int, int>|null  $classIds  null means school-wide scope
+     */
+    public function paginate(array $filters = [], int $perPage = 20, ?array $classIds = null): LengthAwarePaginator
     {
         return LeaveRequest::query()
             ->with(['student.user', 'student.class', 'guardian'])
@@ -15,6 +18,10 @@ class LeaveRequestService
             ->when($filters['guardian_id'] ?? null, fn ($q, $v) => $q->where('guardian_id', $v))
             ->when($filters['status'] ?? null, fn ($q, $v) => $q->where('approval_status', $v))
             ->when($filters['category'] ?? null, fn ($q, $v) => $q->where('category', $v))
+            ->when($classIds !== null, fn ($q) => $q->whereHas(
+                'student',
+                fn ($sq) => $sq->whereIn('class_id', $classIds),
+            ))
             ->latest()
             ->paginate($perPage);
     }

@@ -235,10 +235,13 @@ class ExportService
         return $path;
     }
 
-    public function studentsXlsx(): string
+    /**
+     * @param  array<int, int>|null  $classIds  null means all classes
+     */
+    public function studentsXlsx(?array $classIds = null): string
     {
         $path = $this->exportPath('students_' . now()->timestamp . '.xlsx');
-        (new StudentsExport())->export($path);
+        (new StudentsExport($classIds))->export($path);
         return $path;
     }
 

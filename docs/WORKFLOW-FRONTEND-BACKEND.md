@@ -1503,9 +1503,46 @@ backend / frontend / contract
 
 ---
 
+## Server Adalah Hukum (Konvensi Keamanan Data)
+
+> UI/UX yang rapi itu wajib, tapi keputusan keamanan tidak boleh diserahkan ke client. Frontend bisa dibypass; server tidak.
+
+### Dua pertanyaan wajib sebelum fitur di-merge
+
+1. **"Kalau request ini dikirim langsung lewat HTTP tanpa lewat halaman saya, apa yang bocor?"** — uji dengan curl/Postman, bukan cuma browser.
+2. **"Data milik siapa saja yang keluar dari route ini?"** — registry menjawab *route mana boleh dibuka*, scoping menjawab *data siapa yang boleh keluar*.
+
+### Tiga layer otorisasi data
+
+| Layer | Alat | Menjawab |
+|---|---|---|
+| 1. Route gate | `PermissionRegistry` + `AuthorizeRoute` | Role/subtype apa boleh buka route ini |
+| 2. Ability check | Policy + `$this->authorize()` | Aksi apa yang boleh dilakukan |
+| 3. Data scope | `HomeroomScope` / ownership pattern | Record milik siapa yang boleh keluar |
+
+### Pola scoping kelas wali
+
+Wali kelas hanya boleh melihat data kelas asuhnya. Satu sumber kebenaran: `App\Services\HomeroomScope`.
+
+```php
+// Di controller:
+$scope = $this->homeroomScope->classIds($request->user()); // null = sekolah penuh
+$this->homeroomScope->assertClassAllowed($request->user(), $classId); // 403 kalau di luar scope
+$classes = $this->homeroomScope->classesFor($request->user()); // dropdown ter-scope
+```
+
+Semantik `classIds()`: `null` = admin/guru piket (scope sekolah, sesuai tugas), `array` = daftar kelas asuh wali, `[]` = tidak ada. **Default-deny**: parameter seperti `class_id` dari query divalidasi terhadap scope — di luar scope → 403, bukan diam-diam ditampilkan.
+
+### Test negatif itu wajib
+
+Setiap fitur ber-role wajib punya test matriks: role × resource-milik-orang-lain → assert 403. Test yang hanya memverifikasi "halaman terbuka untuk role yang benar" adalah happy-path; pola serangan nyata justru akses lintas kelas/murid. Lihat `tests/Feature/Web/HomeroomScopeTest.php` sebagai contoh.
+
+---
+
 > **Prinsip Tim:**
 > _Contract dulu, koding kemudian._
 > _Backend define shape, frontend consume._
 > _Service = satu-satunya tempat logic._
 > _Error handling bukan afterthought._
 > _Kalau mentok 30 menit, angkat tangan._
+> _Client adalah UX, server adalah hukum._
