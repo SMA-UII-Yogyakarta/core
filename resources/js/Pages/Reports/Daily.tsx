@@ -109,10 +109,10 @@ export default function DailyReport({
     const classColumns: Column<ClassSummary>[] = [
         { key: "name", header: t("reports.class"), className: "font-medium whitespace-nowrap" },
         { key: "total", header: <div className="text-center w-full">{t("reports.total")}</div>, render: (c) => <div className="text-center text-text-inactive">{c.total}</div> },
-        { key: "present", header: <div className="text-center w-full">{t("reports.present")}</div>, render: (c) => <div className="text-center text-green-600">{c.present}</div> },
-        { key: "late", header: <div className="text-center w-full">{t("reports.late")}</div>, render: (c) => <div className="text-center text-amber-600">{c.late}</div> },
-        { key: "sickPermission", header: <div className="text-center w-full">{t("reports.sickPermission")}</div>, render: () => <div className="text-center text-blue-600">0</div> },
-        { key: "absent", header: <div className="text-center w-full">{t("reports.absent")}</div>, render: (c) => <div className="text-center text-red-600">{c.total - c.present - c.late}</div> },
+        { key: "present", header: <div className="text-center w-full">{t("reports.present")}</div>, render: (c) => <div className="text-center text-success">{c.present}</div> },
+        { key: "late", header: <div className="text-center w-full">{t("reports.late")}</div>, render: (c) => <div className="text-center text-warning">{c.late}</div> },
+        { key: "sickPermission", header: <div className="text-center w-full">{t("reports.sickPermission")}</div>, render: () => <div className="text-center text-primary">0</div> },
+        { key: "absent", header: <div className="text-center w-full">{t("reports.absent")}</div>, render: (c) => <div className="text-center text-danger">{c.total - c.present - c.late}</div> },
         {
             key: "rate",
             header: <div className="text-center w-full">{t("reports.rate")}</div>,
