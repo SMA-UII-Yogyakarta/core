@@ -33,9 +33,12 @@ Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')
     ->middleware('throttle:web-login');
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
-Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
-    ->where('path', '.*')
-    ->name('storage-s3');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
+        ->where('path', '.*')
+        ->name('storage-s3');
+});
 
 // ─── AUTHENTICATED + AUTHORIZED ───
 Route::middleware(['auth', 'authorize'])->group(function () {
