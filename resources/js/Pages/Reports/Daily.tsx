@@ -69,9 +69,9 @@ export default function DailyReport({
             case "Late":
                 return "text-warning bg-warning-bg";
             case "Sick":
-                return "text-primary bg-primary-bg";
+                return "text-primary bg-primary-light";
             case "Permission":
-                return "text-accent bg-accent-bg";
+                return "text-accent bg-accent/10";
             default:
                 return "text-danger bg-danger-bg";
         }
