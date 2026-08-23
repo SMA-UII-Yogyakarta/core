@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
@@ -65,15 +65,15 @@ export default function DailyReport({
     const getStatusColor = (status: string) => {
         switch (status) {
             case "Present":
-                return "text-green-600 bg-green-50";
+                return "text-success bg-success-bg";
             case "Late":
-                return "text-amber-600 bg-amber-50";
+                return "text-warning bg-warning-bg";
             case "Sick":
-                return "text-blue-600 bg-blue-50";
+                return "text-primary bg-primary-bg";
             case "Permission":
-                return "text-purple-600 bg-purple-50";
+                return "text-accent bg-accent-bg";
             default:
-                return "text-red-600 bg-red-50";
+                return "text-danger bg-danger-bg";
         }
     };
 
@@ -125,6 +125,7 @@ export default function DailyReport({
 
     return (
         <AppShell>
+            <Head title={t("reports.dailyTitle")} />
             <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                 <PageHeader 
                     title={t("reports.dailyTitle")}
@@ -210,6 +211,7 @@ export default function DailyReport({
                                 />
                             </div>
                         </div>
+                        {/* TODO: Move to bare/unstyled prop in Table component */}
                         <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none">
                             <Table
                                 columns={studentColumns}
@@ -239,6 +241,7 @@ export default function DailyReport({
                                 Menampilkan rekapitulasi data dari {overview.classes.length} kelas
                             </span>
                         </div>
+                        {/* TODO: Move to bare/unstyled prop in Table component */}
                         <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none overflow-x-auto -mx-4 sm:-mx-6">
                             <Table
                                 columns={classColumns}

@@ -11,8 +11,9 @@ import {
     PageHeader,
     Drawer,
     Checkbox,
+    EmptyState,
 } from "@/Components";
-import { LeaveRequestCard } from "@/Components";
+import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -279,10 +280,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                             />
                         ))
                     ) : (
-                        <div className="bg-surface border border-border rounded-xl p-8 text-center">
-                            <div className="text-text-muted mb-2"><i className="fas fa-inbox text-3xl"></i></div>
-                            <p className="text-text-secondary text-[14px]">Tidak ada pengajuan izin.</p>
-                        </div>
+                        <EmptyState variant="no-leaves" />
                     )}
                 </div>
 
@@ -322,10 +320,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                                 </span>
                                 <span className="font-bold text-[15px]">{selectedRequest.approval_status}</span>
                             </div>
-                            <StatusBadge variant={
-                                selectedRequest.approval_status === "Pending" ? "pending" : 
-                                selectedRequest.approval_status === "Approved" ? "approved" : "rejected"
-                            } />
+                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] || "pending"} />
                         </div>
 
                         {/* Student Info */}

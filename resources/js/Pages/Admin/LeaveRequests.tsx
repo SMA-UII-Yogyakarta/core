@@ -8,8 +8,9 @@ import {
     StickyContainer,
     PageHeader,
     Drawer,
+    EmptyState,
 } from "@/Components";
-import { LeaveRequestCard } from "@/Components";
+import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
 import type { LeaveRequest } from "@/types";
 import AppShell from "@/Layouts/AppShell";
 
@@ -26,7 +27,6 @@ interface PageProps {
     filters: Record<string, string | undefined>;
 }
 
-    // No Table columns needed
 
 const statusTabs = [
     { key: "", label: "Semua" },
@@ -114,10 +114,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                             />
                         ))
                     ) : (
-                        <div className="bg-surface border border-border rounded-xl p-8 text-center">
-                            <div className="text-text-muted mb-2"><i className="fas fa-inbox text-3xl"></i></div>
-                            <p className="text-text-secondary text-[14px]">Tidak ada pengajuan izin.</p>
-                        </div>
+                        <EmptyState variant="no-leaves" />
                     )}
                 </div>
                 <Pagination
@@ -156,10 +153,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                                 </span>
                                 <span className="font-bold text-[15px]">{selectedRequest.approval_status}</span>
                             </div>
-                            <StatusBadge variant={
-                                selectedRequest.approval_status === "Pending" ? "pending" : 
-                                selectedRequest.approval_status === "Approved" ? "approved" : "rejected"
-                            } />
+                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] || "pending"} />
                         </div>
 
                         {/* Student Info */}

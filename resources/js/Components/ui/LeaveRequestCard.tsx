@@ -10,7 +10,7 @@ interface LeaveRequestCardProps {
     actionSlot?: React.ReactNode;
 }
 
-const statusToVariant: Record<string, StatusVariant> = {
+export const statusToVariant: Record<string, StatusVariant> = {
     Pending: "pending",
     Approved: "approved",
     Rejected: "rejected",
