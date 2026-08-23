@@ -2,37 +2,17 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import {
     StatusBadge,
-    ActionButton,
-    Table,
     Pagination,
     FilterBar,
     TabSwitcher,
     StickyContainer,
     PageHeader,
     Drawer,
-    Card,
+    EmptyState,
 } from "@/Components";
+import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
+import type { LeaveRequest } from "@/types";
 import AppShell from "@/Layouts/AppShell";
-import type { Column } from "@/Components/ui/Table";
-import type { StatusVariant } from "@/types/component";
-
-interface LeaveRequest {
-    id: number;
-    category: string;
-    start_date: string;
-    end_date: string;
-    description?: string | null;
-    document_url: string | null;
-    approval_status: string;
-    student: {
-        id: number;
-        nisn: string;
-        name: string;
-        class: { id: number; name: string } | null;
-    };
-    guardian: { id: number; name: string; phone?: string | null } | null;
-    created_at: string;
-}
 
 interface PaginatedData<T> {
     data: T[];
@@ -47,11 +27,6 @@ interface PageProps {
     filters: Record<string, string | undefined>;
 }
 
-const statusToVariant: Record<string, StatusVariant> = {
-    Pending: "pending",
-    Approved: "approved",
-    Rejected: "rejected",
-};
 
 const statusTabs = [
     { key: "", label: "Semua" },
@@ -85,61 +60,6 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
             { preserveState: true },
         );
     };
-
-    const columns: Column<LeaveRequest>[] = [
-        {
-            key: "student",
-            header: "Nama Siswa",
-            render: (lr) => (
-                <div>
-                    <div className="font-semibold text-text-primary">{lr.student.name}</div>
-                    <div className="text-[12px] text-text-muted">NISN: {lr.student.nisn}</div>
-                </div>
-            ),
-        },
-        {
-            key: "class",
-            header: "Kelas",
-            render: (lr) => lr.student.class?.name ?? "-",
-        },
-        {
-            key: "category",
-            header: "Kategori",
-            render: (lr) => (
-                <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary rounded-md text-[12px] font-bold">
-                    {categoryLabels[lr.category] ?? lr.category}
-                </span>
-            ),
-        },
-        {
-            key: "dates",
-            header: "Tanggal",
-            render: (lr) => `${lr.start_date} — ${lr.end_date}`,
-        },
-        {
-            key: "guardian",
-            header: "Pengaju",
-            render: (lr) => lr.guardian?.name ?? "Siswa",
-        },
-        {
-            key: "status",
-            header: "Status",
-            render: (lr) => {
-                const variant = statusToVariant[lr.approval_status] ?? "pending";
-                return <StatusBadge variant={variant} />;
-            },
-        },
-        {
-            key: "actions",
-            header: <div className="text-center w-full">Aksi</div>,
-            render: (lr) => (
-                <div className="flex justify-center">
-                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => setSelectedRequest(lr)} />
-                </div>
-            ),
-            className: "w-px whitespace-nowrap text-center",
-        },
-    ];
 
     return (
         <AppShell title="Pengajuan Izin">
@@ -184,14 +104,19 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
             </FilterBar>
 
             <section className="flex flex-col gap-4">
-                <Card>
-                    <Table
-                        columns={columns}
-                        data={leaveRequests.data}
-                        keyExtractor={(lr) => lr.id}
-                        emptyMessage="Tidak ada pengajuan izin."
-                    />
-                </Card>
+                <div className="flex flex-col gap-4">
+                    {leaveRequests.data.length > 0 ? (
+                        leaveRequests.data.map((lr) => (
+                            <LeaveRequestCard 
+                                key={lr.id} 
+                                leaveRequest={lr} 
+                                onDetailClick={setSelectedRequest}
+                            />
+                        ))
+                    ) : (
+                        <EmptyState variant="no-leaves" />
+                    )}
+                </div>
                 <Pagination
                     currentPage={leaveRequests.current_page}
                     totalPages={leaveRequests.last_page}
@@ -228,7 +153,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                                 </span>
                                 <span className="font-bold text-[15px]">{selectedRequest.approval_status}</span>
                             </div>
-                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] ?? "pending"} />
+                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] || "pending"} />
                         </div>
 
                         {/* Student Info */}
@@ -239,15 +164,15 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                             <div className="grid grid-cols-2 gap-3 text-[13px]">
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Nama Siswa</span>
-                                    <span className="font-semibold">{selectedRequest.student.name}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.name}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">NISN</span>
-                                    <span className="font-semibold">{selectedRequest.student.nisn}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.nisn}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Kelas</span>
-                                    <span className="font-semibold">{selectedRequest.student.class?.name ?? "-"}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.class?.name ?? "-"}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Wali Murid</span>

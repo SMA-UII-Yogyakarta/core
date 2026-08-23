@@ -10,6 +10,7 @@ export { default as StatCard } from "@/Components/ui/StatCard";
 export { default as StatusBadge } from "@/Components/ui/StatusBadge";
 export { default as Table } from "@/Components/ui/Table";
 export { default as Pagination } from "@/Components/ui/Pagination";
+export { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
 export { default as StickyContainer } from "@/Components/ui/StickyContainer";
 export { default as NativeSelect } from "@/Components/ui/NativeSelect";
 export { default as CommandPalette } from "@/Components/ui/CommandPalette";

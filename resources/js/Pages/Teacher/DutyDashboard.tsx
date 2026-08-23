@@ -304,10 +304,10 @@ export default function DutyDashboard({
                 {/* Standalone Table (Tabel Berdiri Sendiri) */}
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-[16px] font-bold text-text-primary font-inter">
+                        <h2 className="text-[18px] font-bold text-text-primary font-inter">
                             Perhatian Khusus Hari Ini
                         </h2>
-                        <span className="text-[12px] text-text-muted">
+                        <span className="text-[14px] text-text-muted">
                             Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau
                         </span>
                     </div>
