@@ -8,9 +8,11 @@ import {
     Modal,
     PageHeader,
     Table,
-    NativeSelect,
+    EmptyState,
+    FilterBar,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
+import { FiCamera, FiFilter } from "react-icons/fi";
 
 interface Student {
     id: number;
@@ -126,7 +128,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                         }
                         className="text-[12px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1.5"
                     >
-                        <i className="fas fa-camera text-[11px]" />
+                        <FiCamera className="text-[11px]" />
                         <span>Cek Foto</span>
                     </button>
                 ) : (
@@ -149,48 +151,39 @@ export default function AttendanceHistory({ student, attendances, month, year }:
 
             <div className="space-y-6 font-inter">
                 {/* Filter Controls */}
-                <div className="flex items-center gap-3 bg-surface p-4 border border-border rounded-xl flex-wrap">
-                    <div className="w-40">
-                        <NativeSelect
-                            value={monthVal}
-                            onChange={(e) => setMonthVal(e.target.value)}
-                            dusk="select-month"
-                            data-testid="select-month"
-                        >
-                            {MONTH_NAMES.map((name, i) => (
-                                <option key={name} value={(i + 1).toString()}>
-                                    {name}
-                                </option>
-                            ))}
-                        </NativeSelect>
-                    </div>
-
-                    <div className="w-32">
-                        <NativeSelect
-                            value={yearVal}
-                            onChange={(e) => setYearVal(e.target.value)}
-                            dusk="select-year"
-                            data-testid="select-year"
-                        >
-                            {["2024", "2025", "2026", "2027"].map((y) => (
-                                <option key={y} value={y}>
-                                    {y}
-                                </option>
-                            ))}
-                        </NativeSelect>
-                    </div>
-
+                <FilterBar>
+                    <FilterBar.Select
+                        label="Bulan"
+                        options={MONTH_NAMES.map((name, i) => ({
+                            value: (i + 1).toString(),
+                            label: name,
+                        }))}
+                        value={monthVal}
+                        onChange={(e) => setMonthVal(e.target.value)}
+                        dusk="select-month"
+                        data-testid="select-month"
+                    />
+                    <FilterBar.Select
+                        label="Tahun"
+                        options={["2024", "2025", "2026", "2027"].map((t) => ({
+                            value: t,
+                            label: t,
+                        }))}
+                        value={yearVal}
+                        onChange={(e) => setYearVal(e.target.value)}
+                        dusk="select-year"
+                        data-testid="select-year"
+                    />
                     <Button
                         variant="primary"
-                        size="md"
                         onClick={handleFilter}
+                        icon={<FiFilter className="w-4 h-4" />}
                         dusk="btn-filter-history"
                         data-testid="btn-filter-history"
                     >
-                        <i className="fas fa-filter mr-1.5" />
                         Tampilkan
                     </Button>
-                </div>
+                </FilterBar>
 
                 {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
                 <div className="hidden lg:grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
@@ -275,10 +268,12 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                     />
 
                     {attendances.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-text-muted bg-surface rounded-2xl border border-border">
-                            <i className="fas fa-calendar-times text-[32px] mb-2 opacity-40" />
-                            <p className="text-[13px] font-semibold">Belum ada data kehadiran.</p>
-                        </div>
+                        <EmptyState
+                            variant="no-history"
+                            title="Belum Ada Data Kehadiran"
+                            description={`Belum ada riwayat kehadiran untuk periode ${MONTH_NAMES[month - 1]} ${year}.`}
+                            className="bg-surface rounded-2xl border border-border"
+                        />
                     ) : (
                         <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-card">
                             <div className="px-4 py-3 bg-muted border-b border-border flex items-center justify-between">
@@ -320,7 +315,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                                 className="text-primary text-[14px] p-2 hover:bg-muted rounded-xl"
                                                 aria-label="Lihat foto selfie"
                                             >
-                                                <i className="fas fa-camera" />
+                                                <FiCamera />
                                             </button>
                                         )}
                                     </div>
