@@ -8,12 +8,23 @@ use App\Models\AcademicCalendar;
 use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
 use App\Models\LeaveRequest;
+use App\Models\SchoolLocationSetting;
 use App\Models\Student;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendanceService
 {
+    private const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
+    private const MAX_PHOTO_BLOB_LENGTH = 7_340_032;
+
+    private const ALLOWED_PHOTO_MIMES = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+    ];
+
     public function __construct(
         protected StorageService $storageService,
     ) {
@@ -99,6 +110,40 @@ class AttendanceService
             throw new \RuntimeException('Attendance closed at ' . $closeTime);
         }
 
+        // ─── Layer 4: Location & Geofence Check ───
+        $latitude = $data['latitude'] ?? null;
+        $longitude = $data['longitude'] ?? null;
+
+        if (! is_numeric($latitude) || ! is_numeric($longitude)) {
+            throw new \RuntimeException('Valid GPS coordinates are required.');
+        }
+
+        $latitude = (float) $latitude;
+        $longitude = (float) $longitude;
+
+        if ($latitude < -90 || $latitude > 90 || $longitude < -180 || $longitude > 180) {
+            throw new \RuntimeException('GPS coordinates are out of range.');
+        }
+
+        $schoolLocation = SchoolLocationSetting::where('is_active', true)->first();
+
+        if ($schoolLocation !== null && $schoolLocation->radius_meters > 0) {
+            $distanceMeters = $this->haversineMeters(
+                $latitude,
+                $longitude,
+                (float) $schoolLocation->latitude,
+                (float) $schoolLocation->longitude,
+            );
+
+            if ($distanceMeters > $schoolLocation->radius_meters) {
+                throw new \RuntimeException(sprintf(
+                    'Anda berada %.0f meter dari titik presensi sekolah (maksimal %d meter).',
+                    $distanceMeters,
+                    $schoolLocation->radius_meters,
+                ));
+            }
+        }
+
         // Check if already checked in today
         $existing = Attendance::where('student_id', $studentId)
             ->whereDate('attendance_date', $today)
@@ -110,21 +155,24 @@ class AttendanceService
 
         $photoUrl = $data['photo_url'] ?? '';
 
-        if (isset($data['photo']) && $data['photo'] instanceof UploadedFile) {
+        if (($data['photo'] ?? null) instanceof UploadedFile) {
+            $this->assertValidUpload($data['photo']);
             $photoUrl = $this->storageService->uploadAttendancePhoto($data['photo'], $studentId);
-        } elseif (empty($photoUrl) && isset($data['photo_blob'])) {
-            $tempPath = tempnam(sys_get_temp_dir(), 'attendance_') . '.jpg';
-            file_put_contents($tempPath, base64_decode($data['photo_blob']));
-            $uploadedFile = new UploadedFile($tempPath, 'photo.jpg', 'image/jpeg', null, true);
+        } elseif (trim((string) $photoUrl) === '' && isset($data['photo_blob'])) {
+            $uploadedFile = $this->decodePhotoBlob($data['photo_blob']);
             $photoUrl = $this->storageService->uploadAttendancePhoto($uploadedFile, $studentId);
+        }
+
+        if (trim((string) $photoUrl) === '') {
+            throw new \RuntimeException('Attendance photo is required.');
         }
 
         $attendance = Attendance::create([
             'student_id' => $studentId,
             'attendance_date' => $today,
             'check_in_time' => $now->format('H:i:s'),
-            'latitude' => $data['latitude'],
-            'longitude' => $data['longitude'],
+            'latitude' => $latitude,
+            'longitude' => $longitude,
             'photo_url' => $photoUrl,
             'status' => $status,
         ]);
@@ -133,6 +181,62 @@ class AttendanceService
         AttendanceMarked::dispatch($attendance);
 
         return $attendance;
+    }
+
+    private function assertValidUpload(UploadedFile $file): void
+    {
+        if (! $file->isValid()) {
+            throw new \RuntimeException('Uploaded photo is not valid.');
+        }
+
+        if ($file->getSize() > self::MAX_PHOTO_BYTES) {
+            throw new \RuntimeException('Photo exceeds maximum size of 5 MB.');
+        }
+
+        if (! isset(self::ALLOWED_PHOTO_MIMES[(string) $file->getMimeType()])) {
+            throw new \RuntimeException('Photo must be a JPEG, PNG, or WebP image.');
+        }
+    }
+
+    private function decodePhotoBlob(mixed $blob): UploadedFile
+    {
+        if (! is_string($blob) || $blob === '') {
+            throw new \RuntimeException('Invalid photo payload.');
+        }
+
+        if (strlen($blob) > self::MAX_PHOTO_BLOB_LENGTH) {
+            throw new \RuntimeException('Photo exceeds maximum size of 5 MB.');
+        }
+
+        $binary = base64_decode($blob, true);
+
+        if ($binary === false || strlen($binary) < 1024 || strlen($binary) > self::MAX_PHOTO_BYTES) {
+            throw new \RuntimeException('Invalid photo data.');
+        }
+
+        $info = @getimagesizefromstring($binary);
+
+        if ($info === false || ! isset(self::ALLOWED_PHOTO_MIMES[$info['mime']])) {
+            throw new \RuntimeException('Photo must be a valid JPEG, PNG, or WebP image.');
+        }
+
+        $extension = self::ALLOWED_PHOTO_MIMES[$info['mime']];
+        $tempPath = tempnam(sys_get_temp_dir(), 'attendance_');
+        file_put_contents($tempPath, $binary);
+
+        return new UploadedFile($tempPath, 'photo.' . $extension, $info['mime'], null, true);
+    }
+
+    private function haversineMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371000.0;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) ** 2;
+
+        return $earthRadius * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     public function todayByStudent(int $studentId): ?Attendance

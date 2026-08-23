@@ -7,6 +7,7 @@ use App\Models\AttendanceTimeSetting;
 use App\Models\Guardian;
 use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
+use App\Models\SchoolLocationSetting;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\AttendanceService;
@@ -127,6 +128,7 @@ class AttendanceServiceTest extends TestCase
         $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
             'longitude' => '110.3695',
+            'photo_url' => 'https://example.com/photo.jpg',
         ]);
 
         // Second check-in should fail
@@ -169,6 +171,7 @@ class AttendanceServiceTest extends TestCase
         $attendance = $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
             'longitude' => '110.3695',
+            'photo_url' => 'https://example.com/photo.jpg',
         ]);
 
         $this->assertEquals('Late', $attendance->status);
@@ -206,6 +209,7 @@ class AttendanceServiceTest extends TestCase
         $attendance = $this->service->checkIn($student->id, [
             'latitude' => '-7.7959',
             'longitude' => '110.3695',
+            'photo_url' => 'https://example.com/photo.jpg',
         ]);
 
         $this->assertEquals('Present', $attendance->status);
@@ -236,7 +240,7 @@ class AttendanceServiceTest extends TestCase
         // Create some attendances
         AcademicCalendar::create(['holiday_date' => now()->toDateString(), 'is_holiday' => false]);
 
-        $this->service->checkIn($student->id, ['latitude' => '-7.7959', 'longitude' => '110.3695']);
+        $this->service->checkIn($student->id, ['latitude' => '-7.7959', 'longitude' => '110.3695', 'photo_url' => 'https://example.com/photo.jpg']);
 
         $history = $this->service->history($student->id, 10);
 
@@ -407,7 +411,7 @@ class AttendanceServiceTest extends TestCase
 
         // One student checks in
         $student1 = Student::where('nis', '001')->first();
-        $this->service->checkIn($student1->id, ['latitude' => '-7.7959', 'longitude' => '110.3695']);
+        $this->service->checkIn($student1->id, ['latitude' => '-7.7959', 'longitude' => '110.3695', 'photo_url' => 'https://example.com/photo.jpg']);
 
         $stats = $this->service->stats($class->id);
 
@@ -526,5 +530,148 @@ class AttendanceServiceTest extends TestCase
         $stats = $this->service->stats($otherClass->id);
 
         $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    private function scheduleToday(): void
+    {
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '08:30:00',
+            'check_in_close' => '10:00:00',
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+    }
+
+    public function test_check_in_rejects_missing_coordinates(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Valid GPS coordinates are required.');
+
+        $this->service->checkIn($data['student']->id, [
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+    }
+
+    public function test_check_in_rejects_out_of_range_coordinates(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('GPS coordinates are out of range.');
+
+        $this->service->checkIn($data['student']->id, [
+            'latitude' => 999.0,
+            'longitude' => 110.3695,
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+    }
+
+    public function test_check_in_rejects_position_outside_school_radius(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        SchoolLocationSetting::create([
+            'name' => 'SMA UII',
+            'address' => 'Yogyakarta',
+            'latitude' => -7.7959,
+            'longitude' => 110.3695,
+            'radius_meters' => 100,
+            'is_active' => true,
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('222 meter dari titik presensi sekolah');
+
+        $this->service->checkIn($data['student']->id, [
+            'latitude' => -7.7939,
+            'longitude' => 110.3695,
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+    }
+
+    public function test_check_in_accepts_position_within_school_radius(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        SchoolLocationSetting::create([
+            'name' => 'SMA UII',
+            'address' => 'Yogyakarta',
+            'latitude' => -7.7959,
+            'longitude' => 110.3695,
+            'radius_meters' => 100,
+            'is_active' => true,
+        ]);
+
+        $attendance = $this->service->checkIn($data['student']->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+
+        $this->assertSame(-7.7959, (float) $attendance->latitude);
+        $this->assertSame(110.3695, (float) $attendance->longitude);
+        $this->assertSame('Present', $attendance->status);
+    }
+
+    public function test_check_in_skips_geofence_when_location_setting_inactive(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        SchoolLocationSetting::create([
+            'name' => 'SMA UII',
+            'address' => 'Yogyakarta',
+            'latitude' => -7.7959,
+            'longitude' => 110.3695,
+            'radius_meters' => 100,
+            'is_active' => false,
+        ]);
+
+        $attendance = $this->service->checkIn($data['student']->id, [
+            'latitude' => -6.2,
+            'longitude' => 106.8,
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+
+        $this->assertSame('Present', $attendance->status);
+    }
+
+    public function test_check_in_requires_photo_source(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Attendance photo is required.');
+
+        $this->service->checkIn($data['student']->id, [
+            'latitude' => -7.7959,
+            'longitude' => 110.3695,
+        ]);
+    }
+
+    public function test_check_in_rejects_non_image_blob(): void
+    {
+        $this->scheduleToday();
+        $data = $this->createClassWithStudent();
+
+        $this->expectException(\RuntimeException::class);
+
+        $this->service->checkIn($data['student']->id, [
+            'latitude' => -7.7959,
+            'longitude' => 110.3695,
+            'photo_blob' => base64_encode('not-an-image'),
+        ]);
     }
 }
