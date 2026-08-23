@@ -4,41 +4,17 @@ import AppShell from "@/Layouts/AppShell";
 import {
     StatusBadge,
     Button,
-    Table,
     Pagination,
     TabSwitcher,
     FilterBar,
     StickyContainer,
     PageHeader,
     Drawer,
-    Card,
-    ActionButton,
     Checkbox,
+    EmptyState,
 } from "@/Components";
-import type { Column } from "@/Components/ui/Table";
-import type { StatusVariant } from "@/types/component";
-
-interface LeaveRequest {
-    id: number;
-    category: string;
-    start_date: string;
-    end_date: string;
-    description?: string | null;
-    document_url: string | null;
-    approval_status: string;
-    student: {
-        id: number;
-        nisn: string;
-        name: string;
-        class: { id: number; name: string } | null;
-    };
-    guardian: {
-        id: number;
-        name: string;
-        phone: string | null;
-    } | null;
-    created_at: string;
-}
+import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
+import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
     data: T[];
@@ -63,12 +39,6 @@ const categoryLabels: Record<string, string> = {
     Event: "Kegiatan",
     Competition: "Lomba",
     Other: "Lainnya",
-};
-
-const statusToVariant: Record<string, StatusVariant> = {
-    Pending: "pending",
-    Approved: "approved",
-    Rejected: "rejected",
 };
 
 const filterTabs = [
@@ -170,122 +140,6 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
     const somePendingSelected =
         pendingList.some((lr) => selectedLeaveIds.includes(lr.id)) && !allPendingSelected;
 
-    const columns: Column<LeaveRequest>[] = [
-        {
-            key: "select",
-            header: (
-                <Checkbox
-                    checked={allPendingSelected}
-                    indeterminate={somePendingSelected}
-                    disabled={pendingList.length === 0}
-                    onChange={(e) => {
-                        const ids = pendingList.map((lr) => lr.id);
-                        if (e.target.checked) {
-                            setSelectedLeaveIds((prev) => Array.from(new Set([...prev, ...ids])));
-                        } else {
-                            const set = new Set(ids);
-                            setSelectedLeaveIds((prev) => prev.filter((id) => !set.has(id)));
-                        }
-                    }}
-                />
-            ),
-            render: (lr) => {
-                const isPending = lr.approval_status === "Pending";
-                if (!isPending) return null;
-                return (
-                    <Checkbox
-                        checked={selectedLeaveIds.includes(lr.id)}
-                        onChange={(e) => {
-                            if (e.target.checked) {
-                                setSelectedLeaveIds((prev) => [...prev, lr.id]);
-                            } else {
-                                setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
-                            }
-                        }}
-                    />
-                );
-            },
-            className: "w-10 text-center",
-        },
-        {
-            key: "student",
-            header: "Nama Siswa",
-            render: (lr) => (
-                <div>
-                    <div className="font-semibold text-text-primary">{lr.student.name}</div>
-                    <div className="text-[12px] text-text-muted">NISN: {lr.student.nisn}</div>
-                </div>
-            ),
-        },
-        {
-            key: "class",
-            header: "Kelas",
-            render: (lr) => lr.student.class?.name ?? "-",
-        },
-        {
-            key: "category",
-            header: "Kategori",
-            render: (lr) => (
-                <span className="inline-block px-2.5 py-0.5 bg-primary/10 text-primary rounded-md text-[12px] font-bold">
-                    {categoryLabels[lr.category] ?? lr.category}
-                </span>
-            ),
-        },
-        {
-            key: "dates",
-            header: "Tanggal",
-            render: (lr) => (
-                <span className="text-[13px]">
-                    {lr.start_date} — {lr.end_date}
-                </span>
-            ),
-        },
-        {
-            key: "guardian",
-            header: "Wali",
-            render: (lr) => lr.guardian?.name ?? "-",
-        },
-        {
-            key: "status",
-            header: "Status",
-            render: (lr) => {
-                const variant = statusToVariant[lr.approval_status] ?? "pending";
-                return <StatusBadge variant={variant} />;
-            },
-        },
-        {
-            key: "actions",
-            header: "Aksi",
-            render: (lr) => (
-                <div className="flex items-center gap-2 justify-end">
-                    <ActionButton
-                        variant="detail"
-                        icon="fa-eye"
-                        label="Detail"
-                        onClick={() => setSelectedRequest(lr)}
-                    />
-                    {lr.approval_status === "Pending" && (
-                        <>
-                            <ActionButton
-                                variant="edit"
-                                icon="fa-check"
-                                label="Setuju"
-                                onClick={() => handleApprove(lr.id)}
-                            />
-                            <ActionButton
-                                variant="delete"
-                                icon="fa-times"
-                                label="Tolak"
-                                onClick={() => handleReject(lr.id)}
-                            />
-                        </>
-                    )}
-                </div>
-            ),
-            className: "w-px whitespace-nowrap text-right",
-        },
-    ];
-
     return (
         <AppShell title="Verifikasi Izin">
             <PageHeader
@@ -352,16 +206,83 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                 )}
             </FilterBar>
 
-            {/* Table */}
-            <section className="flex flex-col gap-4">
-                <Card>
-                    <Table
-                        columns={columns}
-                        data={leaveRequests.data}
-                        keyExtractor={(lr) => lr.id}
-                        emptyMessage="Tidak ada pengajuan izin."
+            {/* Bulk Select All Checkbox for top bar */}
+            {pendingList.length > 0 && statusFilter === "Pending" && (
+                <div className="flex items-center gap-2 mb-2 px-1">
+                    <Checkbox
+                        checked={allPendingSelected}
+                        indeterminate={somePendingSelected}
+                        onChange={(e) => {
+                            const ids = pendingList.map((lr) => lr.id);
+                            if (e.target.checked) {
+                                setSelectedLeaveIds((prev) => Array.from(new Set([...prev, ...ids])));
+                            } else {
+                                const set = new Set(ids);
+                                setSelectedLeaveIds((prev) => prev.filter((id) => !set.has(id)));
+                            }
+                        }}
                     />
-                </Card>
+                    <span className="text-[13px] text-text-muted font-medium cursor-pointer" onClick={() => {
+                        const ids = pendingList.map((lr) => lr.id);
+                        if (!allPendingSelected) {
+                            setSelectedLeaveIds((prev) => Array.from(new Set([...prev, ...ids])));
+                        } else {
+                            const set = new Set(ids);
+                            setSelectedLeaveIds((prev) => prev.filter((id) => !set.has(id)));
+                        }
+                    }}>Pilih Semua ({pendingList.length})</span>
+                </div>
+            )}
+
+            {/* List */}
+            <section className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4">
+                    {leaveRequests.data.length > 0 ? (
+                        leaveRequests.data.map((lr) => (
+                            <LeaveRequestCard 
+                                key={lr.id} 
+                                leaveRequest={lr} 
+                                onDetailClick={setSelectedRequest}
+                                checkboxSlot={
+                                    lr.approval_status === "Pending" ? (
+                                        <Checkbox
+                                            checked={selectedLeaveIds.includes(lr.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedLeaveIds((prev) => [...prev, lr.id]);
+                                                } else {
+                                                    setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
+                                                }
+                                            }}
+                                        />
+                                    ) : undefined
+                                }
+                                actionSlot={
+                                    lr.approval_status === "Pending" ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleApprove(lr.id)}
+                                                className="px-3 py-1.5 flex-1 sm:flex-none bg-success/10 text-success border border-success/20 rounded-lg text-[12px] font-bold hover:bg-success/20 transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                <i className="fas fa-check"></i> Setuju
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleReject(lr.id)}
+                                                className="px-3 py-1.5 flex-1 sm:flex-none bg-danger/10 text-danger border border-danger/20 rounded-lg text-[12px] font-bold hover:bg-danger/20 transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                <i className="fas fa-times"></i> Tolak
+                                            </button>
+                                        </>
+                                    ) : undefined
+                                }
+                            />
+                        ))
+                    ) : (
+                        <EmptyState variant="no-leaves" />
+                    )}
+                </div>
 
                 <Pagination
                     currentPage={leaveRequests.current_page}
@@ -399,7 +320,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                                 </span>
                                 <span className="font-bold text-[15px]">{selectedRequest.approval_status}</span>
                             </div>
-                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] ?? "pending"} />
+                            <StatusBadge variant={statusToVariant[selectedRequest.approval_status] || "pending"} />
                         </div>
 
                         {/* Student Info */}
@@ -410,15 +331,15 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                             <div className="grid grid-cols-2 gap-3 text-[13px]">
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Nama Siswa</span>
-                                    <span className="font-semibold">{selectedRequest.student.name}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.name}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">NISN</span>
-                                    <span className="font-semibold">{selectedRequest.student.nisn}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.nisn}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Kelas</span>
-                                    <span className="font-semibold">{selectedRequest.student.class?.name ?? "-"}</span>
+                                    <span className="font-semibold">{selectedRequest.student?.class?.name ?? "-"}</span>
                                 </div>
                                 <div>
                                     <span className="text-text-muted block text-[11px]">Wali Murid</span>

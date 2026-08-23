@@ -166,7 +166,7 @@ export default function SelectInput({
                 </button>
 
                 {isOpen && (
-                    <div className="absolute w-full mt-1 bg-surface border border-border rounded-lg shadow-lg z-50">
+                    <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-lg shadow-lg z-50">
                         <div className="px-3 py-2 border-b border-border">
                             <input
                                 ref={searchInputRef}
@@ -192,7 +192,7 @@ export default function SelectInput({
                                         key={opt.value}
                                         onClick={() => handleSelect(opt.value)}
                                         onMouseEnter={() => setHighlightedIndex(index)}
-                                        className={`px-3 py-2 text-[14px] font-inter cursor-pointer ${
+                                        className={`px-3 py-2 text-[14px] font-inter cursor-pointer whitespace-nowrap ${
                                             opt.value === value
                                                 ? "bg-primary/20 text-primary font-medium"
                                                 : "text-text-primary hover:bg-primary/10"
