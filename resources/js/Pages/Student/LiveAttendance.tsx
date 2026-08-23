@@ -3,6 +3,17 @@ import { router, usePage } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import Button from "@/Components/ui/Button";
 import { LiveBadge } from "@/Components";
+import {
+    FiAlertCircle,
+    FiCheck,
+    FiCheckCircle,
+    FiClock,
+    FiInfo,
+    FiLoader,
+    FiMapPin,
+    FiSend,
+    FiUser,
+} from "react-icons/fi";
 import { attendanceCheckInSchema } from "@/schemas/attendanceCheckIn.schema";
 import { validateForm } from "@/utils/zodHelper";
 import {
@@ -201,7 +212,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     dusk="attendance-status-success"
                     data-testid="attendance-status-success"
                 >
-                    <i className="fas fa-check-circle text-[16px]" />
+                    <FiCheckCircle className="text-[16px]" />
                     <span>Sudah presensi pukul {todayAttendance.check_in_time} WIB</span>
                 </div>
             );
@@ -217,8 +228,8 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                 className="w-full font-bold shadow-md"
                 dusk={isMobile ? "btn-submit-mobile" : "btn-submit-attendance"}
                 data-testid={isMobile ? "btn-submit-mobile" : "btn-submit-attendance"}
+                icon={<FiSend className="w-4 h-4" />}
             >
-                <i className="fas fa-paper-plane mr-2" />
                 {label}
             </Button>
         );
@@ -240,7 +251,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                         className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[13px] font-bold font-mono self-start sm:self-auto"
                         dusk="live-clock-badge"
                     >
-                        <i className="fas fa-clock text-[12px]" />
+                        <FiClock className="text-[12px]" />
                         <span>{currentTime}</span>
                     </div>
                 )}
@@ -253,7 +264,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     dusk="attendance-error-alert"
                     data-testid="attendance-error-alert"
                 >
-                    <i className="fas fa-exclamation-circle text-[16px] shrink-0" />
+                    <FiAlertCircle className="text-[16px] shrink-0" />
                     <span className="font-medium">{error ?? errors?.message}</span>
                 </div>
             )}
@@ -297,7 +308,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     {/* Placeholder */}
                     {!cameraReady && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted/40">
-                            <i className="fas fa-user text-[80px] mb-3" />
+                            <FiUser className="text-[80px] mb-3" />
                             <p className="text-[13px] font-medium text-white/60">Mengaktifkan kamera selfie...</p>
                         </div>
                     )}
@@ -306,7 +317,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     {todayAttendance && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm">
                             <div className="w-16 h-16 rounded-full bg-success text-white flex items-center justify-center text-[28px] mb-3 shadow-lg">
-                                <i className="fas fa-check" />
+                                <FiCheck />
                             </div>
                             <p className="text-white font-bold text-[18px]">Presensi Berhasil</p>
                             <p className="text-white/80 text-[13px] mt-1 font-mono">
@@ -323,7 +334,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2.5">
                                     <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                                        <i className="fas fa-school text-[15px]" />
+                                        <FiMapPin className="text-[15px]" />
                                     </div>
                                     <div>
                                         <h2 className="text-[15px] font-bold text-text-primary">
@@ -354,11 +365,11 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                                 {coords ? (
                                     <div className="space-y-1.5 font-inter">
                                         <p className="text-[13px] font-bold text-text-primary flex items-center gap-2">
-                                            <i
-                                                className={`fas fa-map-marker-alt ${
-                                                    isInsideRadius ? "text-success" : "text-warning"
-                                                }`}
-                                            />
+                                <FiMapPin
+                                    className={
+                                        isInsideRadius ? "text-success" : "text-warning"
+                                    }
+                                />
                                             <span>
                                                 Jarak ke sekolah:{" "}
                                                 <strong className="text-primary">
@@ -372,14 +383,14 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                                     </div>
                                 ) : (
                                     <p className="text-[12px] text-text-muted flex items-center gap-2">
-                                        <i className="fas fa-spinner fa-spin text-primary" />
+                                        <FiLoader className="animate-spin text-primary" />
                                         <span>Menghubungkan ke satelit GPS...</span>
                                     </p>
                                 )}
                             </div>
 
                             <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/10 text-[12px] text-text-secondary leading-relaxed">
-                                <i className="fas fa-info-circle text-primary mr-1.5" />
+                                    <FiInfo className="text-primary mr-1.5" />
                                 Presensi wajib dilakukan dari lingkungan sekolah dengan toleransi radius maksimal{" "}
                                 <strong>{SMA_UII_LOCATION.maxRadiusMeters} meter</strong>.
                             </div>
@@ -421,7 +432,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     {/* Placeholder */}
                     {!cameraReady && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted/40">
-                            <i className="fas fa-user text-[70px] mb-2" />
+                            <FiUser className="text-[70px] mb-2" />
                             <p className="text-[12px] text-white/60">Mengaktifkan kamera...</p>
                         </div>
                     )}
@@ -446,7 +457,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     {todayAttendance && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm">
                             <div className="w-14 h-14 rounded-full bg-success text-white flex items-center justify-center text-[24px] mb-2 shadow-lg">
-                                <i className="fas fa-check" />
+                                <FiCheck />
                             </div>
                             <p className="text-white font-bold text-[16px]">Presensi Berhasil</p>
                             <p className="text-white/80 text-[12px] mt-1 font-mono">
@@ -460,7 +471,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                 <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-card">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <i className="fas fa-map-marker-alt text-[16px]" />
+                            <FiMapPin className="text-[16px]" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-bold text-text-primary truncate">

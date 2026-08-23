@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { PageHeader, StatCard, Button, StatusBadge } from "@/Components";
+import { FiCalendar, FiCamera, FiCheckCircle } from "react-icons/fi";
 
 interface Student {
     id: number;
@@ -110,7 +111,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                         data-testid="today-attendance-done"
                     >
                         <div className="flex items-center gap-2">
-                            <i className="fas fa-check-circle text-[18px]" />
+                            <FiCheckCircle className="text-[18px]" />
                             <span className="font-bold text-[14px]">
                                 Sudah Presensi Masuk ({todayAttendance.check_in_time} WIB)
                             </span>
@@ -124,8 +125,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                         dusk="btn-presensi-mobile"
                         data-testid="btn-presensi-mobile"
                     >
-                        <Button variant="primary" size="lg" className="w-full justify-center text-[15px] font-extrabold py-3.5 shadow-md">
-                            <i className="fas fa-camera text-[16px] mr-2" />
+                        <Button variant="primary" size="lg" className="w-full justify-center text-[15px] font-extrabold py-3.5 shadow-md" icon={<FiCamera className="w-4 h-4" />}>
                             <span>PRESENSI MASUK SEKARANG</span>
                         </Button>
                     </Link>
@@ -154,7 +154,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                             className="bg-surface border border-border rounded-2xl p-5 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-11 h-11 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[20px] mb-3">
-                                <i className="fas fa-camera" />
+                                <FiCamera />
                             </div>
                             <div>
                                 <span className="text-[15px] font-bold text-text-primary block leading-tight">
@@ -171,7 +171,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                             className="bg-surface border border-border rounded-2xl p-5 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-11 h-11 rounded-xl bg-muted text-text-primary flex items-center justify-center text-[20px] mb-3">
-                                <i className="fas fa-calendar-alt" />
+                                <FiCalendar />
                             </div>
                             <div>
                                 <span className="text-[15px] font-bold text-text-primary block leading-tight">
