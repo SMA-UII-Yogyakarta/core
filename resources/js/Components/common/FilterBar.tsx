@@ -1,6 +1,6 @@
 import type { ReactNode, SelectHTMLAttributes } from "react";
 import Button from "@/Components/ui/Button";
-import { FaSearch } from "react-icons/fa";
+import { FiSearch } from "react-icons/fi";
 
 interface FilterOption {
     value: string;
@@ -66,7 +66,7 @@ function FilterSearch({ value, onChange, onSubmit, placeholder = "Cari data..." 
             <div className="w-full sm:w-auto">
                 <label className="block text-[13px] text-text-muted font-inter mb-1">Pencarian</label>
                 <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
                     <input
                         type="text"
                         value={value}
