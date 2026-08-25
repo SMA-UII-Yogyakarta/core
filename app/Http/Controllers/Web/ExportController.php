@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\SchoolClass;
 use App\Services\ExportService;
+use App\Services\HomeroomScope;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,6 +12,7 @@ class ExportController extends Controller
 {
     public function __construct(
         protected ExportService $exportService,
+        protected HomeroomScope $homeroomScope,
     ) {
     }
 
@@ -27,11 +28,13 @@ class ExportController extends Controller
         $semester = (int) $request->query('semester', now()->month <= 6 ? 1 : 2);
         $classId = $request->integer('class_id') ?: null;
 
-        $classes = SchoolClass::select('id', 'name')->orderBy('name')->get();
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
+
+        $classes = $this->homeroomScope->classesFor($request->user());
 
         return Inertia::render('Reports/Export', [
             'classes' => $classes,
-            'preview' => $this->exportService->previewData($period, $date, $month, $year, $semester, $classId),
+            'preview' => $this->exportService->previewData($period, (string) $date, $month, $year, $semester, $classId),
             'selectedPeriod' => $period,
             'selectedDate' => $date,
             'selectedMonth' => $month,
@@ -41,9 +44,11 @@ class ExportController extends Controller
         ]);
     }
 
-    public function students()
+    public function students(Request $request)
     {
-        $path = $this->exportService->studentsXlsx();
+        $classIds = $this->homeroomScope->classIds($request->user());
+
+        $path = $this->exportService->studentsXlsx($classIds);
         return response()->download($path)->deleteFileAfterSend();
     }
 
@@ -63,6 +68,8 @@ class ExportController extends Controller
         $date = $request->input('date', now()->toDateString());
         $classId = $request->integer('class_id') ?: null;
 
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
+
         $path = $this->exportService->dailyRecapXlsx($date, $classId);
         return response()->download($path)->deleteFileAfterSend();
     }
@@ -79,6 +86,8 @@ class ExportController extends Controller
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
 
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
+
         $path = $this->exportService->monthlyRecapXlsx($month, $year, $classId);
         return response()->download($path)->deleteFileAfterSend();
     }
@@ -92,6 +101,8 @@ class ExportController extends Controller
 
         $date = $request->input('date', now()->toDateString());
         $classId = $request->integer('class_id') ?: null;
+
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
 
         $path = $this->exportService->dailyRecapPdf($date, $classId);
         return response()->download($path, 'daily-recap-' . $date . '.pdf')->deleteFileAfterSend();
@@ -109,6 +120,8 @@ class ExportController extends Controller
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
 
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
+
         $path = $this->exportService->monthlyRecapPdf($month, $year, $classId);
         return response()->download($path, 'monthly-recap-' . $month . '-' . $year . '.pdf')->deleteFileAfterSend();
     }
@@ -125,6 +138,8 @@ class ExportController extends Controller
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
 
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
+
         $path = $this->exportService->semesterRecapXlsx($semester, $year, $classId);
         return response()->download($path, 'semester-recap-' . $year . '-s' . $semester . '.xlsx')->deleteFileAfterSend();
     }
@@ -140,6 +155,8 @@ class ExportController extends Controller
         $semester = $request->integer('semester', now()->month <= 6 ? 1 : 2);
         $year = $request->integer('year', now()->year);
         $classId = $request->integer('class_id') ?: null;
+
+        $this->homeroomScope->assertClassAllowed($request->user(), $classId);
 
         $path = $this->exportService->semesterRecapPdf($semester, $year, $classId);
         return response()->download($path, 'semester-recap-' . $year . '-s' . $semester . '.pdf')->deleteFileAfterSend();

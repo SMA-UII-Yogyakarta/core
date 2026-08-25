@@ -32,6 +32,7 @@ class PermissionRegistry
             'leave-requests.verification' => ['admin', 'teacher:wali'],
             'leave-requests.approve' => ['admin', 'teacher:wali'],
             'leave-requests.reject' => ['admin', 'teacher:wali'],
+            'leave-requests.bulk-verify' => ['admin', 'teacher:wali'],
 
             // Attendance
             'student.attendance' => ['student'],
@@ -44,6 +45,7 @@ class PermissionRegistry
 
             // Export
             'export' => ['admin', 'teacher:piket', 'teacher:wali'],
+            'export.teachers' => ['admin'],
             'export.*' => ['admin', 'teacher:piket', 'teacher:wali'],
 
             // Teacher
