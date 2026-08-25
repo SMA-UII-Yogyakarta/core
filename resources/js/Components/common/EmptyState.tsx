@@ -68,7 +68,7 @@ const variants: Record<string, { icon: ReactNode; defaultTitle: string; defaultD
         defaultDescription: "Mohon tunggu sebentar.",
     },
     error: {
-        icon: <FiAlertCircle className="text-4xl text-red-500" />,
+        icon: <FiAlertCircle className="text-4xl text-danger" />,
         defaultTitle: "Terjadi Kesalahan",
         defaultDescription: "Terjadi kesalahan saat memuat data.",
     },
@@ -78,30 +78,6 @@ const variants: Record<string, { icon: ReactNode; defaultTitle: string; defaultD
         defaultDescription: "Tidak ada data untuk ditampilkan.",
     },
 };
-
-interface EmptyStateProps {
-    variant?:
-        | "default"
-        | "no-data"
-        | "no-results"
-        | "no-permission"
-        | "no-camera"
-        | "no-attendance"
-        | "no-leaves"
-        | "no-history"
-        | "loading"
-        | "error";
-    title?: string;
-    description?: string;
-    actionLabel?: string;
-    actionHref?: string;
-    actionOnClick?: () => void;
-    icon?: ReactNode;
-    className?: string;
-    actionVariant?: "primary" | "secondary" | "ghost" | "outline";
-    showRetry?: boolean;
-    onRetry?: () => void;
-}
 
 export default function EmptyState({
     variant = "default",
