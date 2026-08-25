@@ -13,6 +13,7 @@ import {
     Button,
     Pagination,
     SearchBar,
+    ConfirmDialog,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
@@ -65,6 +66,10 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; overrideId: number | null }>({
+        open: false,
+        overrideId: null,
+    });
     const pageSize = 10;
 
     const filteredStudents = useMemo(() => {
@@ -140,9 +145,14 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
     };
 
     const deleteOverride = (overrideId: number) => {
-        if (!confirm("Hapus koreksi absensi ini dan kembalikan ke status asli?")) return;
-        router.delete(`/attendance-correction/${overrideId}`, {
+        setDeleteConfirm({ open: true, overrideId });
+    };
+
+    const handleConfirmedDelete = () => {
+        if (!deleteConfirm.overrideId) return;
+        router.delete(`/attendance-correction/${deleteConfirm.overrideId}`, {
             preserveScroll: true,
+            onSuccess: () => setDeleteConfirm({ open: false, overrideId: null }),
         });
     };
 
@@ -340,6 +350,15 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                     </div>
                 </Drawer>
             </div>
+
+            <ConfirmDialog
+                open={deleteConfirm.open}
+                onClose={() => setDeleteConfirm({ open: false, overrideId: null })}
+                onConfirm={handleConfirmedDelete}
+                title="Reset Koreksi Absensi"
+                message="Hapus koreksi absensi ini dan kembalikan ke status asli?"
+                variant="danger"
+            />
         </AppShell>
     );
 }
