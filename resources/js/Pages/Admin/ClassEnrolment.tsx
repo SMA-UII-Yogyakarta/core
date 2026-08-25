@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox } from "@/Components";
+import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox, Modal, NativeSelect, ConfirmDialog, EmptyState } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -44,6 +44,9 @@ export default function EnrolmentKelas({
     const [showAddModal, setShowAddModal] = useState(false);
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
     const [saveNotice, setSaveNotice] = useState<string | null>(null);
+
+    // Confirm Dialog States
+    const [bulkRemoveConfirm, setBulkRemoveConfirm] = useState(false);
 
     // Multi-selection states
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
@@ -112,15 +115,19 @@ export default function EnrolmentKelas({
 
     const handleBulkRemove = () => {
         if (selectedStudentIds.length === 0) return;
-        if (!confirm(`Keluarkan ${selectedStudentIds.length} siswa terpilih dari kelas ini?`)) {
-            return;
-        }
+        setBulkRemoveConfirm(true);
+    };
+
+    const confirmBulkRemove = () => {
         router.post(
             "/class-enrolment/bulk-remove",
             { student_ids: selectedStudentIds },
             {
                 preserveState: true,
-                onSuccess: () => setSelectedStudentIds([]),
+                onSuccess: () => {
+                    setSelectedStudentIds([]);
+                    setBulkRemoveConfirm(false);
+                },
             },
         );
     };
@@ -235,6 +242,69 @@ export default function EnrolmentKelas({
         },
     ];
 
+
+    const modalColumns: Column<UnassignedStudent>[] = [
+        {
+            key: "select",
+            header: (
+                <Checkbox
+                    checked={modalAllSelected}
+                    indeterminate={modalSomeSelected}
+                    onChange={(e) => {
+                        const pageIds = paginatedUnassigned.map((s) => s.id);
+                        if (e.target.checked) {
+                            setSelectedModalStudentIds((prev) =>
+                                Array.from(new Set([...prev, ...pageIds])),
+                            );
+                        } else {
+                            const pageSet = new Set(pageIds);
+                            setSelectedModalStudentIds((prev) =>
+                                prev.filter((id) => !pageSet.has(id)),
+                            );
+                        }
+                    }}
+                />
+            ),
+            render: (s) => (
+                <Checkbox
+                    checked={selectedModalStudentIds.includes(s.id)}
+                    onChange={(e) => {
+                        if (e.target.checked) {
+                            setSelectedModalStudentIds((prev) => [...prev, s.id]);
+                        } else {
+                            setSelectedModalStudentIds((prev) =>
+                                prev.filter((id) => id !== s.id),
+                            );
+                        }
+                    }}
+                />
+            ),
+            className: "w-10 text-center",
+        },
+        {
+            key: "nis",
+            header: "NIS",
+            className: "w-1 whitespace-nowrap",
+            render: (s) => s.nis,
+        },
+        {
+            key: "name",
+            header: "Nama",
+            className: "min-w-0 max-w-[200px] truncate",
+            render: (s) => <span title={s.name}>{s.name}</span>,
+        },
+        {
+            key: "actions",
+            header: <div className="text-center w-full">Aksi</div>,
+            className: "w-20 text-center whitespace-nowrap",
+            render: (s) => (
+                <Button size="sm" onClick={() => handleAssign(s.id)}>
+                    Tambah
+                </Button>
+            ),
+        },
+    ];
+
     return (
         <AppShell title="Manajemen & Enrolment Kelas">
             {/* Page Header */}
@@ -264,7 +334,7 @@ export default function EnrolmentKelas({
                             <label className="text-[13px] font-semibold text-text-secondary font-inter">
                                 Pilih Kelas
                             </label>
-                            <select
+                            <NativeSelect
                                 value={classId}
                                 onChange={(e) => {
                                     const nextId = e.target.value;
@@ -276,15 +346,12 @@ export default function EnrolmentKelas({
                                         { preserveState: true },
                                     );
                                 }}
-                                className="h-10 border border-border rounded-lg px-3.5 text-[14px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-full"
                             >
                                 <option value="">-- Pilih Kelas --</option>
-                                {classes.map((c) => (
-                                    <option key={c.id} value={c.id.toString()}>
-                                        {c.name}
-                                    </option>
+                                {classes.map(c => (
+                                    <option key={c.id} value={c.id.toString()}>{c.name}</option>
                                 ))}
-                            </select>
+                            </NativeSelect>
                         </div>
 
                         {/* Wali Kelas Display */}
@@ -419,175 +486,99 @@ export default function EnrolmentKelas({
                         </section>
                     ) : (
                         <div className="bg-surface border border-border rounded-xl p-12 text-center shadow-card flex flex-col items-center justify-center min-h-[440px]">
-                            <i className="fas fa-school text-text-inactive text-4xl mb-4" />
-                            <p className="text-text-muted font-inter text-[14px] max-w-sm">
-                                Silakan pilih kelas di kolom sebelah kiri untuk menampilkan daftar siswa terdaftar.
-                            </p>
+                            <EmptyState
+                                variant="no-data"
+                                title="Belum Ada Kelas yang Dipilih"
+                                description="Silakan pilih kelas di kolom sebelah kiri untuk menampilkan daftar siswa terdaftar."
+                            />
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Add Student Modal with Functional Bulk Selection */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between p-5 border-b border-border">
-                            <div>
-                                <h3 className="text-[16px] font-bold text-text-primary font-inter">
-                                    Tambah Siswa ke {selectedClass?.name}
-                                </h3>
-                                <p className="text-[12px] text-text-muted">
-                                    {unassignedStudents.length} siswa belum memiliki kelas
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="text-text-muted hover:text-text-primary text-xl cursor-pointer"
-                                type="button"
-                            >
-                                &times;
-                            </button>
-                        </div>
+                        {/* Add Student Modal */}
+            <Modal
+                open={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                title={`Tambah Siswa ke ${selectedClass?.name}`}
+                width="lg"
+            >
+                <div className="flex flex-col">
+                    <p className="text-[12px] text-text-muted mb-4">
+                        {unassignedStudents.length} siswa belum memiliki kelas
+                    </p>
 
-                        {unassignedStudents.length > 0 && (
-                            <div className="p-4 border-b border-border bg-background/50 flex items-center justify-between gap-3">
-                                <div className="flex-1">
-                                    <SearchBar
-                                        value={modalSearch}
-                                        onChange={(val) => {
-                                            setModalSearch(val);
-                                            setModalCurrentPage(1);
-                                        }}
-                                        onSearch={() => setModalCurrentPage(1)}
-                                        placeholder="Cari NIS / Nama siswa..."
-                                    />
-                                </div>
-                                {selectedModalStudentIds.length > 0 && (
-                                    <Button
-                                        variant="primary"
-                                        size="md"
-                                        onClick={handleBulkAssign}
-                                        icon={<i className="fas fa-check-double text-[12px]" />}
-                                    >
-                                        Tambahkan ({selectedModalStudentIds.length})
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="p-5 overflow-y-auto flex-1">
-                            {filteredUnassigned.length === 0 ? (
-                                <p className="text-text-muted text-center py-8">
-                                    {modalSearch
-                                        ? "Tidak ada siswa yang cocok dengan pencarian."
-                                        : "Tidak ada siswa yang belum terdaftar di kelas."}
-                                </p>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full border-collapse font-inter">
-                                        <thead>
-                                            <tr className="bg-background border-b border-border">
-                                                <th className="px-3 py-2.5 text-center w-10">
-                                                    <Checkbox
-                                                        checked={modalAllSelected}
-                                                        indeterminate={modalSomeSelected}
-                                                        onChange={(e) => {
-                                                            const pageIds = paginatedUnassigned.map((s) => s.id);
-                                                            if (e.target.checked) {
-                                                                setSelectedModalStudentIds((prev) =>
-                                                                    Array.from(new Set([...prev, ...pageIds])),
-                                                                );
-                                                            } else {
-                                                                const pageSet = new Set(pageIds);
-                                                                setSelectedModalStudentIds((prev) =>
-                                                                    prev.filter((id) => !pageSet.has(id)),
-                                                                );
-                                                            }
-                                                        }}
-                                                    />
-                                                </th>
-                                                <th className="px-3 py-2 text-left text-[12px] font-semibold text-text-muted">
-                                                    NIS
-                                                </th>
-                                                <th className="px-3 py-2 text-left text-[12px] font-semibold text-text-muted">
-                                                    Nama
-                                                </th>
-                                                <th className="px-3 py-2 text-center text-[12px] font-semibold text-text-muted w-20">
-                                                    Aksi
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {paginatedUnassigned.map((s) => (
-                                                <tr key={s.id} className="border-b border-border last:border-b-0 hover:bg-muted/40 transition-colors">
-                                                    <td className="px-3 py-2.5 text-center w-10">
-                                                        <Checkbox
-                                                            checked={selectedModalStudentIds.includes(s.id)}
-                                                            onChange={(e) => {
-                                                                if (e.target.checked) {
-                                                                    setSelectedModalStudentIds((prev) => [...prev, s.id]);
-                                                                } else {
-                                                                    setSelectedModalStudentIds((prev) =>
-                                                                        prev.filter((id) => id !== s.id),
-                                                                    );
-                                                                }
-                                                            }}
-                                                        />
-                                                    </td>
-                                                    <td className="px-3 py-2 text-[13px] text-text-muted w-1 whitespace-nowrap">{s.nis}</td>
-                                                    <td className="px-3 py-2 text-[13px] font-medium text-text-primary min-w-0 max-w-[200px] truncate" title={s.name}>{s.name}</td>
-                                                    <td className="px-3 py-2 text-center w-20 whitespace-nowrap">
-                                                        <Button size="sm" onClick={() => handleAssign(s.id)}>
-                                                            Tambah
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-
-                        {filteredUnassigned.length > modalPageSize && (
-                            <div className="p-3 border-t border-border bg-surface">
-                                <Pagination
-                                    currentPage={modalSafePage}
-                                    totalPages={modalTotalPages}
-                                    totalItems={filteredUnassigned.length}
-                                    perPage={modalPageSize}
-                                    onPageChange={setModalCurrentPage}
+                    {unassignedStudents.length > 0 && (
+                        <div className="pb-4 flex items-center justify-between gap-3">
+                            <div className="flex-1">
+                                <SearchBar
+                                    value={modalSearch}
+                                    onChange={(val) => {
+                                        setModalSearch(val);
+                                        setModalCurrentPage(1);
+                                    }}
+                                    onSearch={() => setModalCurrentPage(1)}
+                                    placeholder="Cari NIS / Nama siswa..."
                                 />
                             </div>
-                        )}
+                            {selectedModalStudentIds.length > 0 && (
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    onClick={handleBulkAssign}
+                                    icon={<i className="fas fa-check-double text-[12px]" />}
+                                >
+                                    Tambahkan ({selectedModalStudentIds.length})
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <Table
+                            columns={modalColumns}
+                            data={paginatedUnassigned}
+                            keyExtractor={(s) => s.id}
+                            emptyMessage={modalSearch
+                                ? "Tidak ada siswa yang cocok dengan pencarian."
+                                : "Tidak ada siswa yang belum terdaftar di kelas."}
+                        />
                     </div>
+
+                    {filteredUnassigned.length > modalPageSize && (
+                        <div className="pt-4 mt-2 border-t border-border">
+                            <Pagination
+                                currentPage={modalSafePage}
+                                totalPages={modalTotalPages}
+                                totalItems={filteredUnassigned.length}
+                                perPage={modalPageSize}
+                                onPageChange={setModalCurrentPage}
+                            />
+                        </div>
+                    )}
                 </div>
-            )}
+            </Modal>
 
             {/* Remove Single Confirmation Modal */}
-            {removeConfirmId !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setRemoveConfirmId(null)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal p-6 max-w-sm w-full">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2 font-inter">
-                            Hapus Siswa dari Kelas?
-                        </h3>
-                        <p className="text-[13px] text-text-muted mb-6">
-                            Siswa akan dipindahkan ke daftar siswa tanpa kelas. Tindakan ini dapat dibatalkan nanti.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <Button variant="ghost" onClick={() => setRemoveConfirmId(null)}>
-                                Batal
-                            </Button>
-                            <Button variant="danger" onClick={confirmRemove}>
-                                Hapus
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                open={removeConfirmId !== null}
+                onClose={() => setRemoveConfirmId(null)}
+                onConfirm={confirmRemove}
+                title="Hapus Siswa dari Kelas?"
+                message="Siswa akan dipindahkan ke daftar siswa tanpa kelas. Tindakan ini dapat dibatalkan nanti."
+                confirmLabel="Hapus"
+                variant="danger"
+            />
+            
+            <ConfirmDialog
+                open={bulkRemoveConfirm}
+                onClose={() => setBulkRemoveConfirm(false)}
+                onConfirm={confirmBulkRemove}
+                title="Keluarkan Siswa"
+                message={`Keluarkan ${selectedStudentIds.length} siswa terpilih dari kelas ini?`}
+                confirmLabel="Keluarkan"
+                variant="danger"
+            />
         </AppShell>
     );
 }

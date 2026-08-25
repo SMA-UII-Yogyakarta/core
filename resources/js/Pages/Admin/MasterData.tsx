@@ -1,7 +1,6 @@
 import { router, useForm, usePage } from "@inertiajs/react";
 import { useState, useMemo } from "react";
 import {
-    Card,
     Input,
     SelectInput,
     StickyContainer,
@@ -18,6 +17,8 @@ import {
     FAB,
     Avatar,
     Checkbox,
+    NativeSelect,
+    ConfirmDialog,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
@@ -147,7 +148,18 @@ export default function MasterData({
     const [search, setSearch] = useState(filters.search ?? "");
     const [classFilter, setClassFilter] = useState(filters.class_id ?? "");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
-    const [showClassFilter, setShowClassFilter] = useState(false);
+
+    // Confirm Dialog State
+    const [deleteConfirm, setDeleteConfirm] = useState<{
+        open: boolean;
+        entity: string | null;
+        ids: number | number[] | null;
+        label: string;
+    }>({ open: false, entity: null, ids: null, label: '' });
+
+    // Class Drawer State
+    const [classDrawer, setClassDrawer] = useState<{ open: boolean; mode: 'create' | 'edit' }>({ open: false, mode: 'create' });
+
 
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [importEntity, setImportEntity] = useState<"students" | "teachers" | "classes" | "guardians">("students");
@@ -173,7 +185,6 @@ export default function MasterData({
 
     // Class form (create + edit)
     const [editingClassId, setEditingClassId] = useState<number | null>(null);
-    const [isClassFormOpen, setIsClassFormOpen] = useState(true);
     const {
         data: formData,
         setData: setFormData,
@@ -264,17 +275,12 @@ export default function MasterData({
 
     const handleDeleteSelected = () => {
         if (selectedIds.length === 0) return;
-        if (!confirm(`Hapus ${selectedIds.length} siswa yang terpilih? Tindakan ini tidak dapat dibatalkan.`)) {
-            return;
-        }
-        router.post(
-            "/master-data/students/bulk-destroy",
-            { ids: selectedIds },
-            {
-                preserveScroll: true,
-                onSuccess: () => setSelectedIds([]),
-            },
-        );
+        setDeleteConfirm({
+            open: true,
+            entity: 'students/bulk-destroy',
+            ids: selectedIds,
+            label: `${selectedIds.length} siswa yang terpilih`,
+        });
     };
 
     const openCreateStudent = () => {
@@ -506,8 +512,8 @@ export default function MasterData({
         }
     };
 
-    const handleCreateClass = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleCreateClass = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         clearClassErrors();
         const valid = validateForm(schoolClassSchema, formData);
         if (!valid.success) {
@@ -523,6 +529,7 @@ export default function MasterData({
                 onSuccess: () => {
                     reset();
                     setEditingClassId(null);
+                    setClassDrawer({ open: false, mode: 'create' });
                 },
             });
             return;
@@ -530,6 +537,7 @@ export default function MasterData({
         post("/master-data/classes", {
             onSuccess: () => {
                 reset();
+                setClassDrawer({ open: false, mode: 'create' });
             },
         });
     };
@@ -542,17 +550,18 @@ export default function MasterData({
             capacity: String(c.capacity ?? ""),
             level: c.level || "X",
         });
-        setIsClassFormOpen(true);
+        setClassDrawer({ open: true, mode: 'edit' });
     };
 
-    const cancelEditClass = () => {
+    const openCreateClass = () => {
         setEditingClassId(null);
         reset();
+        clearClassErrors();
+        setClassDrawer({ open: true, mode: 'create' });
     };
 
     const applyClassFilter = (classId: string) => {
         setClassFilter(classId);
-        setShowClassFilter(false);
         router.get(
             "/master-data",
             {
@@ -587,10 +596,35 @@ export default function MasterData({
     };
 
     const handleDelete = (entity: string, id: number) => {
-        if (!confirm("Hapus data ini?")) return;
-        router.delete(`/master-data/${entity}/${id}`, {
-            preserveState: true,
+        setDeleteConfirm({
+            open: true,
+            entity,
+            ids: id,
+            label: "data ini",
         });
+    };
+    
+    const handleConfirmedDelete = () => {
+        if (!deleteConfirm.entity || !deleteConfirm.ids) return;
+        
+        if (Array.isArray(deleteConfirm.ids)) {
+            router.post(
+                `/master-data/${deleteConfirm.entity}`,
+                { ids: deleteConfirm.ids },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        setSelectedIds([]);
+                        setDeleteConfirm({ open: false, entity: null, ids: null, label: '' });
+                    },
+                }
+            );
+        } else {
+            router.delete(`/master-data/${deleteConfirm.entity}/${deleteConfirm.ids}`, {
+                preserveState: true,
+                onSuccess: () => setDeleteConfirm({ open: false, entity: null, ids: null, label: '' }),
+            });
+        }
     };
 
     // ─── Student Columns ───
@@ -876,8 +910,6 @@ export default function MasterData({
                             onDeleteSelected={handleDeleteSelected}
                             classFilter={classFilter}
                             classOptions={classOptions}
-                            showClassFilter={showClassFilter}
-                            onToggleClassFilter={() => setShowClassFilter((v) => !v)}
                             onApplyClassFilter={applyClassFilter}
                             onImport={() => {
                                 setImportEntity("students");
@@ -964,8 +996,8 @@ export default function MasterData({
 
                 {/* ── Kelas Tab ── */}
                 {currentTab === "class" && schoolClasses?.data && (
-                    <div className="flex flex-col lg:flex-row gap-4 items-start relative overflow-hidden transition-all duration-300">
-                        <div className="flex-1 w-full min-w-0 transition-all duration-300">
+                    <div className="flex flex-col gap-4 items-start">
+                        <div className="w-full">
                             <section className="flex flex-col gap-4">
                                 <div className="mb-1 flex items-center justify-between gap-3">
                                     <div className="flex-1">
@@ -980,15 +1012,11 @@ export default function MasterData({
                                     </div>
                                     <Button
                                         type="button"
-                                        variant={isClassFormOpen ? "outline" : "primary"}
-                                        onClick={() => setIsClassFormOpen(!isClassFormOpen)}
-                                        icon={
-                                            <i
-                                                className={`fas ${isClassFormOpen ? "fa-eye-slash" : "fa-plus"} text-[12px]`}
-                                            />
-                                        }
+                                        variant="primary"
+                                        onClick={openCreateClass}
+                                        icon={<i className="fas fa-plus text-[12px]" />}
                                     >
-                                        {isClassFormOpen ? "Sembunyikan Form" : "Buat Kelas Baru"}
+                                        Buat Kelas Baru
                                     </Button>
                                 </div>
                                 <Table
@@ -1015,101 +1043,7 @@ export default function MasterData({
                                 )}
                             </section>
                         </div>
-                        <div
-                            className={`transition-all duration-300 ease-in-out shrink-0 ${
-                                isClassFormOpen
-                                    ? "w-full lg:w-[380px] max-h-[1000px] opacity-100 translate-x-0"
-                                    : "w-0 max-h-0 lg:max-h-none lg:w-0 opacity-0 translate-x-4 pointer-events-none overflow-hidden"
-                            }`}
-                        >
-                            <Card className="border-2 border-dashed border-border p-4 h-[480px] flex flex-col w-full">
-                                <div className="text-primary py-2 text-lg font-semibold flex items-center justify-between">
-                                    <span>{editingClassId ? "Edit Kelas" : "Buat Kelas Baru"}</span>
-                                    <div className="flex items-center gap-3">
-                                        {editingClassId && (
-                                            <button
-                                                type="button"
-                                                onClick={cancelEditClass}
-                                                className="text-[12px] font-semibold text-text-muted hover:text-text-primary"
-                                            >
-                                                Batal
-                                            </button>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsClassFormOpen(false)}
-                                            className="text-text-muted hover:text-text-primary p-1"
-                                            title="Sembunyikan panel"
-                                        >
-                                            <i className="fas fa-times text-[14px]" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <form onSubmit={handleCreateClass} className="flex flex-col gap-2 flex-1">
-                                    <div className="grid grid-cols-3 gap-2 py-2">
-                                        <SelectInput
-                                            label="Tingkat"
-                                            options={[
-                                                { value: "X", label: "X" },
-                                                { value: "XI", label: "XI" },
-                                                { value: "XII", label: "XII" },
-                                            ]}
-                                            value={formData.level}
-                                            onChange={(val) => setFormData("level", (val as string) ?? "X")}
-                                            className="col-span-1"
-                                            error={errors.level}
-                                        />
-                                        <Input
-                                            label="Nama / Kode Kelas"
-                                            type="text"
-                                            id="kode_kelas"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData("name", e.target.value)}
-                                            description="Nama kelas harus unik."
-                                            className="col-span-2"
-                                            error={classErrors.name}
-                                        />
-                                    </div>
-                                    <SelectInput
-                                        label="Tugaskan Wali Kelas"
-                                        placeholder="-- Pilih Wali Kelas --"
-                                        description="Guru yang sudah menjadi Wali Kelas tidak akan muncul di sini."
-                                        options={(allTeachers || []).map((t) => ({
-                                            value: t.id,
-                                            label: t.name,
-                                        }))}
-                                        value={formData.teacher_id}
-                                        onChange={(val) =>
-                                            setFormData("teacher_id", typeof val === "number" ? val : null)
-                                        }
-                                        className="py-2"
-                                        error={classErrors.teacher_id}
-                                    />
-                                    <Input
-                                        label="Kapasitas Maksimal"
-                                        type="number"
-                                        id="kapasitas"
-                                        min="0"
-                                        numeric
-                                        value={formData.capacity}
-                                        onChange={(e) => setFormData("capacity", e.target.value)}
-                                        className="py-2"
-                                        error={classErrors.capacity}
-                                    />
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="w-full h-10 mt-auto rounded-lg bg-success hover:bg-success/90 text-white text-[13px] font-bold transition-colors disabled:opacity-60 cursor-pointer"
-                                    >
-                                        {processing
-                                            ? "Menyimpan..."
-                                            : editingClassId
-                                              ? "✓ Simpan Perubahan"
-                                              : "✓ Simpan Kelas Baru"}
-                                    </button>
-                                </form>
-                            </Card>
-                        </div>
+
                     </div>
                 )}
 
@@ -1156,6 +1090,77 @@ export default function MasterData({
                     </div>
                 )}
                 <ImportModal open={importModalOpen} onClose={() => setImportModalOpen(false)} entity={importEntity} />
+
+                <ConfirmDialog
+                    open={deleteConfirm.open}
+                    onClose={() => setDeleteConfirm({ open: false, entity: null, ids: null, label: '' })}
+                    onConfirm={handleConfirmedDelete}
+                    title="Hapus Data"
+                    message={`Yakin hapus ${deleteConfirm.label}? Aksi ini tidak bisa dibatalkan.`}
+                    confirmLabel="Ya, Hapus"
+                    variant="danger"
+                />
+
+                <Drawer
+                    open={classDrawer.open}
+                    onClose={() => setClassDrawer({ open: false, mode: 'create' })}
+                    title={classDrawer.mode === 'create' ? "Tambah Kelas" : "Edit Kelas"}
+                    width="md"
+                    onSubmit={handleCreateClass}
+                    submitLabel={classDrawer.mode === 'create' ? "Simpan" : "Perbarui"}
+                    loading={processing}
+                >
+                    <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-3 gap-4">
+                            <SelectInput
+                                label="Tingkat"
+                                options={[
+                                    { value: "X", label: "X" },
+                                    { value: "XI", label: "XI" },
+                                    { value: "XII", label: "XII" },
+                                ]}
+                                value={formData.level}
+                                onChange={(val) => setFormData("level", (val as string) ?? "X")}
+                                className="col-span-1"
+                                error={errors.level}
+                            />
+                            <Input
+                                label="Nama / Kode Kelas"
+                                type="text"
+                                id="kode_kelas"
+                                value={formData.name}
+                                onChange={(e) => setFormData("name", e.target.value)}
+                                description="Nama kelas harus unik."
+                                className="col-span-2"
+                                error={classErrors.name}
+                            />
+                        </div>
+                        <SelectInput
+                            label="Tugaskan Wali Kelas"
+                            placeholder="-- Pilih Wali Kelas --"
+                            description="Guru yang sudah menjadi Wali Kelas tidak akan muncul di sini."
+                            options={(allTeachers || []).map((t) => ({
+                                value: t.id,
+                                label: t.name,
+                            }))}
+                            value={formData.teacher_id}
+                            onChange={(val) =>
+                                setFormData("teacher_id", typeof val === "number" ? val : null)
+                            }
+                            error={classErrors.teacher_id}
+                        />
+                        <Input
+                            label="Kapasitas Maksimal"
+                            type="number"
+                            id="kapasitas"
+                            min="0"
+                            numeric
+                            value={formData.capacity}
+                            onChange={(e) => setFormData("capacity", e.target.value)}
+                            error={classErrors.capacity}
+                        />
+                    </div>
+                </Drawer>
 
                 {/* Student Create / Edit / Detail Drawer */}
                 <Drawer
@@ -1423,8 +1428,6 @@ function Toolbar({
     onAdd,
     classFilter,
     classOptions,
-    showClassFilter,
-    onToggleClassFilter,
     onApplyClassFilter,
 }: {
     triggerRef?: React.Ref<HTMLDivElement>;
@@ -1438,8 +1441,6 @@ function Toolbar({
     onAdd?: () => void;
     classFilter?: string;
     classOptions?: ClassOption[];
-    showClassFilter?: boolean;
-    onToggleClassFilter?: () => void;
     onApplyClassFilter?: (classId: string) => void;
 }) {
     return (
@@ -1456,43 +1457,16 @@ function Toolbar({
             <div className="flex flex-row flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
                 {/* Filter Kelas */}
                 {onApplyClassFilter && (
-                    <div className="relative flex-1 sm:flex-initial">
-                        <Button
-                            type="button"
-                            variant={classFilter ? "primary" : "outline"}
-                            onClick={onToggleClassFilter}
-                            icon={<i className="fas fa-filter text-[12px]" />}
-                            className="w-full justify-center"
+                    <div className="flex-1 sm:flex-initial min-w-[150px]">
+                        <NativeSelect
+                            value={classFilter || ""}
+                            onChange={(e) => onApplyClassFilter(e.target.value)}
                         >
-                            {classFilter
-                                ? (classOptions?.find((c) => String(c.id) === classFilter)?.name ?? "Filter Kelas")
-                                : "Filter Kelas"}
-                        </Button>
-                        {showClassFilter && (
-                            <div className="absolute z-20 top-full mt-1 right-0 sm:right-auto sm:left-0 min-w-[200px] w-full sm:w-auto bg-surface border border-border rounded-lg shadow-dropdown py-1 max-h-60 overflow-y-auto">
-                                <button
-                                    type="button"
-                                    className="w-full text-left px-3 py-2 text-[13px] hover:bg-muted"
-                                    onClick={() => onApplyClassFilter("")}
-                                >
-                                    Semua Kelas
-                                </button>
-                                {classOptions?.map((c) => (
-                                    <button
-                                        key={c.id}
-                                        type="button"
-                                        className={`w-full text-left px-3 py-2 text-[13px] hover:bg-muted ${
-                                            classFilter === String(c.id)
-                                                ? "bg-primary-light text-primary font-semibold"
-                                                : ""
-                                        }`}
-                                        onClick={() => onApplyClassFilter(String(c.id))}
-                                    >
-                                        {c.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                            <option value="">Semua Kelas</option>
+                            {(classOptions || []).map((c) => (
+                                <option key={c.id} value={String(c.id)}>{c.name}</option>
+                            ))}
+                        </NativeSelect>
                     </div>
                 )}
 
