@@ -1,10 +1,10 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type ActionVariant = "detail" | "edit" | "delete" | "import" | "add";
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant: ActionVariant;
-    icon?: string;
+    icon?: string | ReactNode;
     label: string;
 }
 
@@ -31,7 +31,12 @@ export default function ActionButton({ variant, icon, label, className = "", ...
             type="button"
             {...props}
         >
-            {icon && <i className={`fas ${icon} text-[12px]`} />}
+            {icon &&
+                (typeof icon === "string" ? (
+                    <i className={`fas ${icon} text-[12px]`} />
+                ) : (
+                    <span className="flex items-center justify-center text-[14px]">{icon}</span>
+                ))}
             <span>{label}</span>
         </button>
     );
