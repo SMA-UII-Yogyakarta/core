@@ -63,6 +63,7 @@ class LeaveRequestApiController extends Controller
             $leaveRequest = $this->leaveRequestService->verify(
                 $id,
                 $request->input('status'),
+                $request->input('rejection_reason'),
             );
 
             return ApiResponse::success(new LeaveRequestResource($leaveRequest));

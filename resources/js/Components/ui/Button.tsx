@@ -21,6 +21,8 @@ const variantStyles: Record<ButtonVariant | "success", string> = {
     secondary: "bg-accent text-primary hover:bg-accent/90 font-bold",
     outline: "border border-primary text-primary hover:bg-primary hover:text-white",
     danger: "bg-danger text-white hover:bg-danger/90",
+    "danger-outline":
+        "border border-danger text-danger hover:bg-danger hover:text-white",
     success: "bg-success text-white hover:bg-success/90",
     ghost: "text-text-muted hover:bg-background",
 };

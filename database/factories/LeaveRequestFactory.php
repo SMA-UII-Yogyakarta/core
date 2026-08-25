@@ -17,7 +17,7 @@ class LeaveRequestFactory extends Factory
         $start = fake()->dateTimeBetween('-2 weeks', '+1 week')->format('Y-m-d');
 
         return [
-            'category' => fake()->randomElement(['Sick', 'Event', 'Competition']),
+            'category' => fake()->randomElement(['Sick', 'Event', 'Competition', 'Other']),
             'start_date' => $start,
             'end_date' => fake()->dateTimeBetween($start, $start . ' +3 days')->format('Y-m-d'),
             'document_url' => null,

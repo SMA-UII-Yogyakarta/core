@@ -141,6 +141,13 @@ class TeacherPortalController extends Controller
             ->where('status', 'Active')
             ->get();
 
+        $studentIds = $students->pluck('id')->all();
+
+        $pendingLeaves = LeaveRequest::where('approval_status', 'Pending')
+            ->whereIn('student_id', $studentIds)
+            ->get()
+            ->keyBy('student_id');
+
         $studentsData = [];
         foreach ($students as $s) {
             $attendancesData = [];
@@ -151,11 +158,22 @@ class TeacherPortalController extends Controller
                     'check_in_time' => $a->check_in_time,
                 ];
             }
+            $pendingLeave = $pendingLeaves->get($s->id);
             $studentsData[] = [
                 'id' => $s->id,
                 'nis' => $s->nis,
+                'nisn' => $s->nisn,
                 'name' => $s->name,
                 'attendances' => $attendancesData,
+                'pendingLeave' => $pendingLeave ? [
+                    'id' => $pendingLeave->id,
+                    'category' => $pendingLeave->category,
+                    'approval_status' => $pendingLeave->approval_status,
+                    'description' => $pendingLeave->description,
+                    'document_url' => $pendingLeave->document_url,
+                    'start_date' => $pendingLeave->start_date->format('Y-m-d'),
+                    'created_at' => $pendingLeave->created_at->toIso8601String(),
+                ] : null,
             ];
         }
 
@@ -166,6 +184,24 @@ class TeacherPortalController extends Controller
             'class' => ['id' => $schoolClass->id, 'name' => $schoolClass->name],
             'students' => $studentsData,
             'stats' => $stats,
+            'pendingLeaveCount' => $pendingLeaves->count(),
+        ]);
+    }
+
+    /**
+     * TODO: Remove this preview method after Step 2 (backend) is done.
+     * This is temporary for frontend review purposes only.
+     */
+    public function leaveVerificationPreview()
+    {
+        $teacher = $this->teacherService->findByUserId(auth()->id());
+
+        return Inertia::render('Teacher/LeaveVerification', [
+            'teacher' => [
+                'id' => $teacher->id,
+                'name' => $teacher->name,
+            ],
+            'class' => null,
         ]);
     }
 }
