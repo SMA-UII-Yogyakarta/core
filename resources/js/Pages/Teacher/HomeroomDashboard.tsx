@@ -9,7 +9,9 @@ import {
     Pagination,
     SearchBar,
     Button,
+    EmptyState,
 } from "@/Components";
+import { FiUserX, FiCheckCircle } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 
 interface Teacher {
@@ -116,10 +118,12 @@ export default function HomeroomDashboard({
     if (!kelas) {
         return (
             <AppShell title="Overview Wali Kelas">
-                <div className="bg-surface border border-border rounded-xl p-12 text-center font-inter">
-                    <i className="fas fa-chalkboard-teacher text-[40px] text-text-muted mb-4 block" />
-                    <p className="text-text-muted text-[14px]">Anda belum ditugaskan sebagai wali kelas.</p>
-                </div>
+                <EmptyState
+                    variant="no-data"
+                    icon={<FiUserX className="text-4xl" />}
+                    title="Belum Ditugaskan"
+                    description="Anda belum ditugaskan sebagai wali kelas."
+                />
             </AppShell>
         );
     }
@@ -262,7 +266,7 @@ export default function HomeroomDashboard({
                             <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
                                 Hadir
                             </span>
-                            <span className="text-[20px] font-bold text-emerald-300 block mt-0.5">
+                            <span className="text-[20px] font-bold text-success block mt-0.5">
                                 {stats?.present ?? 0}
                             </span>
                         </div>
@@ -270,7 +274,7 @@ export default function HomeroomDashboard({
                             <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
                                 Absen/Telat
                             </span>
-                            <span className="text-[20px] font-bold text-amber-300 block mt-0.5">
+                            <span className="text-[20px] font-bold text-warning block mt-0.5">
                                 {(stats?.late ?? 0) + (stats?.absent ?? 0)}
                             </span>
                         </div>
@@ -282,13 +286,13 @@ export default function HomeroomDashboard({
                     <h3 className="text-[14px] font-bold text-text-primary">Perhatian Khusus Hari Ini</h3>
 
                     {attentionStudents.length === 0 ? (
-                        <div className="bg-surface border border-border rounded-2xl p-6 text-center shadow-card">
-                            <i className="fas fa-check-circle text-success text-3xl mb-2" />
-                            <p className="text-text-primary text-[14px] font-bold">Semua Siswa Hadir Tepat Waktu</p>
-                            <p className="text-text-muted text-[12px] mt-0.5">
-                                Tidak ada anomali atau izin tertunda hari ini.
-                            </p>
-                        </div>
+                        <EmptyState
+                            variant="no-data"
+                            icon={<FiCheckCircle className="text-4xl text-success" />}
+                            title="Semua Siswa Hadir Tepat Waktu"
+                            description="Tidak ada anomali atau izin tertunda hari ini."
+                            className="py-8"
+                        />
                     ) : (
                         <div className="space-y-3">
                             {attentionStudents.map((s) => {

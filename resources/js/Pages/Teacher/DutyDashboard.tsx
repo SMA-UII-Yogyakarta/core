@@ -7,12 +7,22 @@ import {
     StatusBadge,
     Table,
     Pagination,
-    SearchBar,
     Drawer,
     ActionButton,
     NativeSelect,
     Button,
+    FilterBar,
+    Input,
+    EmptyState,
 } from "@/Components";
+import {
+    FiCalendar,
+    FiEye,
+    FiFileText,
+    FiRefreshCw,
+    FiUser,
+    FiEdit3,
+} from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
 
@@ -140,14 +150,6 @@ export default function DutyDashboard({
         );
     };
 
-    const handleFilter = () => {
-        router.get(
-            "/teacher/duty",
-            { class_id: classVal || undefined, date: dateVal, tab: mobileTab },
-            { preserveState: true },
-        );
-    };
-
     const summary =
         totals ??
         classStats.reduce(
@@ -200,7 +202,7 @@ export default function DutyDashboard({
             render: (s: AttentionStudent) => (
                 <ActionButton
                     variant="detail"
-                    icon="fa-eye"
+                    icon={<FiEye />}
                     label="Detail"
                     onClick={() => setSelectedStudent(s)}
                 />
@@ -245,7 +247,7 @@ export default function DutyDashboard({
                             lastUpdated ? lastUpdated.toLocaleTimeString("id-ID") : "—"
                         }`}
                     >
-                        <i className={`fas fa-sync-alt text-[12px] ${isRefreshing ? "fa-spin" : ""}`} />
+                        <FiRefreshCw className={`text-[12px] ${isRefreshing ? "animate-spin" : ""}`} />
                     </Button>
                 </div>
             </PageHeader>
@@ -253,44 +255,33 @@ export default function DutyDashboard({
             {/* ── DESKTOP (lg:block) ──────────────────────────────────────── */}
             <div className="hidden lg:block space-y-6 font-inter">
                 {/* Controls Bar */}
-                <div className="flex items-center justify-between gap-4 bg-surface p-4 border border-border rounded-xl">
-                    <div className="flex items-center gap-4">
-                        <div className="w-48">
-                            <NativeSelect
-                                value={classVal}
-                                onChange={(e) => handleClassChange(e.target.value)}
-                            >
-                                {classOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </NativeSelect>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <i className="fas fa-calendar-alt text-text-muted text-[13px]" />
-                            <input
-                                type="date"
-                                value={dateVal}
-                                onChange={(e) => setDateVal(e.target.value)}
-                                onBlur={handleFilter}
-                                className="h-10 border border-border rounded-lg px-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="w-64">
-                        <SearchBar
+                <FilterBar className="mb-6">
+                    <FilterBar.Select
+                        label="Filter Kelas"
+                        value={classVal}
+                        onChange={(e) => handleClassChange(e.target.value)}
+                        options={classOptions}
+                    />
+                    <FilterBar.Date
+                        label="Tanggal"
+                        value={dateVal}
+                        onChange={handleDateChange}
+                    />
+                    <div className="w-full sm:w-64 sm:ml-auto">
+                        <FilterBar.Search
                             value={search}
                             onChange={(val) => {
                                 setSearch(val);
                                 setCurrentPage(1);
                             }}
-                            onSearch={() => setCurrentPage(1)}
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(1);
+                            }}
                             placeholder="Cari nama / NIS / kelas..."
                         />
                     </div>
-                </div>
+                </FilterBar>
 
                 {/* 5 Stat Cards Grid */}
                 <div className="grid grid-cols-5 gap-4">
@@ -347,11 +338,11 @@ export default function DutyDashboard({
                             </option>
                         ))}
                     </NativeSelect>
-                    <input
+                    <Input
                         type="date"
                         value={dateVal}
                         onChange={(e) => handleDateChange(e.target.value)}
-                        className="w-full h-11 rounded-xl px-3.5 text-[13px] font-bold text-text-primary bg-surface border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 shadow-xs"
+                        inputClassName="h-11 rounded-xl font-bold shadow-xs text-[13px]"
                     />
                 </div>
 
@@ -398,7 +389,7 @@ export default function DutyDashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-file-signature" />
+                                <FiEdit3 />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -415,7 +406,7 @@ export default function DutyDashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-calendar-alt" />
+                                <FiCalendar />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -432,7 +423,7 @@ export default function DutyDashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-file-alt" />
+                                <FiFileText />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -449,7 +440,7 @@ export default function DutyDashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-muted text-text-muted flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-user" />
+                                <FiUser />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -487,9 +478,13 @@ export default function DutyDashboard({
                             </div>
                         ))}
                         {(mobileTab === "anomali" ? anomali : izinList).length === 0 && (
-                            <p className="text-center text-[12px] text-text-muted py-4">
-                                Tidak ada data siswa untuk kategori ini.
-                            </p>
+                            <div className="py-6">
+                                <EmptyState
+                                    variant="no-data"
+                                    title="Kosong"
+                                    description="Tidak ada data siswa untuk kategori ini."
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
