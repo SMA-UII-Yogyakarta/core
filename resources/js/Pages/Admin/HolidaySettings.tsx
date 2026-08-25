@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
+import { Pagination, Table, PageHeader, NativeSelect, Toggle, Input, ConfirmDialog, EmptyState } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema, locationSettingSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
@@ -160,7 +160,11 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         description: "",
         is_holiday: true,
     });
-    const [deleteHolidayId, setDeleteHolidayId] = useState<number | null>(null);
+    const [deleteHolidayConfirm, setDeleteHolidayConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
+        open: false,
+        id: null,
+        name: "",
+    });
     const [showAddForm, setShowAddForm] = useState(false);
 
     const handleSaveTimeSettings = () => {
@@ -224,15 +228,15 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         });
     };
 
-    const handleDeleteHoliday = (id: number) => {
-        setDeleteHolidayId(id);
+    const handleDeleteHoliday = (id: number, name: string) => {
+        setDeleteHolidayConfirm({ open: true, id, name });
     };
 
     const confirmDeleteHoliday = () => {
-        if (deleteHolidayId === null) return;
-        router.delete(`/settings/holidays/${deleteHolidayId}`, {
+        if (deleteHolidayConfirm.id === null) return;
+        router.delete(`/settings/holidays/${deleteHolidayConfirm.id}`, {
             preserveState: true,
-            onSuccess: () => setDeleteHolidayId(null),
+            onSuccess: () => setDeleteHolidayConfirm({ open: false, id: null, name: "" }),
         });
     };
 
@@ -282,16 +286,11 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
             header: "Buka",
             className: "text-center justify-center md:justify-center whitespace-nowrap",
             render: (day) => (
-                <label className="relative inline-flex items-center cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={form[day].is_active}
-                        onChange={(e) => handleDayToggle(day, e.target.checked)}
-                        className="sr-only peer"
-                        aria-label={`Buka presensi ${dayNames[day] ?? day}`}
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success relative cursor-pointer" />
-                </label>
+                <Toggle
+                    checked={form[day].is_active}
+                    onChange={(e) => handleDayToggle(day, e.target.checked)}
+                    aria-label={`Buka presensi ${dayNames[day] ?? day}`}
+                />
             ),
         },
         {
@@ -300,12 +299,11 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
             className: "whitespace-nowrap",
             render: (day) => (
                 <div className="relative max-w-[130px] w-full">
-                    <input
+                    <Input
                         type="time"
                         value={form[day].check_in_open}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "check_in_open", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
                     />
                 </div>
             ),
@@ -316,12 +314,12 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
             className: "whitespace-nowrap",
             render: (day) => (
                 <div className="relative max-w-[130px] w-full">
-                    <input
+                    <Input
                         type="time"
                         value={form[day].late_threshold}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed text-warning"
+                        className="text-warning"
                     />
                 </div>
             ),
@@ -332,12 +330,12 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
             className: "whitespace-nowrap",
             render: (day) => (
                 <div className="relative max-w-[130px] w-full">
-                    <input
+                    <Input
                         type="time"
                         value={form[day].check_in_close}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                        className="text-danger"
                     />
                 </div>
             ),
@@ -445,20 +443,14 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         <form onSubmit={handleSaveLocationSettings} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <div className="flex flex-col gap-4">
                                 <div>
-                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                        Nama Gedung / Lokasi Presensi
-                                    </label>
-                                    <input
-                                        type="text"
+                                    <Input
+                                        label="Nama Gedung / Lokasi Presensi"
                                         value={locationForm.name}
                                         onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
                                         placeholder="SMA UII Yogyakarta"
+                                        error={locationErrors.name}
                                         required
                                     />
-                                    {locationErrors.name && (
-                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.name}</span>
-                                    )}
                                 </div>
 
                                 <div>
@@ -629,37 +621,23 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                     Tambah Hari Libur Baru
                                 </h3>
                                 <div>
-                                    <label className="block text-[11px] text-text-muted font-inter mb-1">
-                                        Tanggal Libur
-                                    </label>
-                                    <input
+                                    <Input
+                                        label="Tanggal Libur"
                                         type="date"
                                         value={holidayForm.holiday_date}
                                         onChange={(e) => setHolidayForm("holiday_date", e.target.value)}
-                                        className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        error={holidayErrors.holiday_date}
                                     />
-                                    {holidayErrors.holiday_date && (
-                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
-                                            {holidayErrors.holiday_date}
-                                        </p>
-                                    )}
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] text-text-muted font-inter mb-1">
-                                        Keterangan
-                                    </label>
-                                    <input
+                                    <Input
+                                        label="Keterangan"
                                         type="text"
                                         value={holidayForm.description}
                                         onChange={(e) => setHolidayForm("description", e.target.value)}
                                         placeholder="Contoh: Libur Nasional"
-                                        className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary placeholder:text-text-placeholder bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        error={holidayErrors.description}
                                     />
-                                    {holidayErrors.description && (
-                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
-                                            {holidayErrors.description}
-                                        </p>
-                                    )}
                                 </div>
                                 <div className="flex gap-2 justify-end mt-1">
                                     <button
@@ -725,43 +703,50 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         {/* Holidays List */}
                         <div className="flex flex-col gap-3 flex-1">
                             {holidays.data.length === 0 ? (
-                                <div className="flex-1 flex items-center justify-center text-text-muted text-[13px] py-12">
-                                    Belum ada hari libur.
-                                </div>
+                                <EmptyState variant="no-data" description="Belum ada hari libur yang ditambahkan." />
                             ) : (
-                                holidays.data.map((h, index) => {
-                                    const borderColors = [
-                                        "border-l-danger",
-                                        "border-l-primary",
-                                        "border-l-success",
-                                        "border-l-warning",
-                                    ];
-                                    const borderColor = borderColors[index % borderColors.length];
-                                    return (
-                                        <div
-                                            key={h.id}
-                                            className={`flex items-center justify-between p-4 bg-surface border border-border border-l-4 ${borderColor} rounded-xl shadow-sm hover:shadow-md transition-shadow`}
-                                        >
-                                            <div className="flex flex-col gap-1">
+                                <Table
+                                    columns={[
+                                        {
+                                            key: "description",
+                                            header: "Keterangan",
+                                            render: (h) => (
                                                 <span className="text-[13px] font-bold text-text-primary font-inter leading-tight">
                                                     {h.description ?? "Hari Libur"}
                                                 </span>
+                                            ),
+                                        },
+                                        {
+                                            key: "holiday_date",
+                                            header: "Tanggal",
+                                            render: (h) => (
                                                 <div className="flex items-center gap-1.5 text-[11px] text-text-secondary font-medium font-inter">
                                                     <i className="far fa-calendar text-text-inactive" />
                                                     <span>{formatIndonesianDate(h.holiday_date)}</span>
                                                 </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDeleteHoliday(h.id)}
-                                                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
-                                                type="button"
-                                                aria-label="Hapus hari libur"
-                                            >
-                                                <i className="far fa-trash-alt text-[14px]" />
-                                            </button>
-                                        </div>
-                                    );
-                                })
+                                            ),
+                                        },
+                                        {
+                                            key: "actions",
+                                            header: <div className="text-right">Aksi</div>,
+                                            className: "text-right",
+                                            render: (h) => (
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        onClick={() => handleDeleteHoliday(h.id, h.description ?? "Hari Libur")}
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
+                                                        type="button"
+                                                        aria-label="Hapus hari libur"
+                                                    >
+                                                        <i className="far fa-trash-alt text-[14px]" />
+                                                    </button>
+                                                </div>
+                                            ),
+                                        },
+                                    ]}
+                                    data={holidays.data}
+                                    keyExtractor={(h) => h.id}
+                                />
                             )}
                         </div>
 
@@ -788,25 +773,14 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
             </div>
 
             {/* Delete Confirmation Modal */}
-            {deleteHolidayId !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteHolidayId(null)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-sm p-6 text-center">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2">Konfirmasi Hapus</h3>
-                        <p className="text-[13px] text-text-muted mb-6">
-                            Apakah Anda yakin ingin menghapus hari libur ini?
-                        </p>
-                        <div className="flex gap-3 justify-center">
-                            <Button variant="ghost" onClick={() => setDeleteHolidayId(null)}>
-                                Batal
-                            </Button>
-                            <Button variant="danger" onClick={confirmDeleteHoliday}>
-                                Hapus
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                open={deleteHolidayConfirm.open}
+                onClose={() => setDeleteHolidayConfirm({ open: false, id: null, name: "" })}
+                onConfirm={confirmDeleteHoliday}
+                title="Hapus Hari Libur"
+                message={`Apakah Anda yakin ingin menghapus hari libur "${deleteHolidayConfirm.name}"?`}
+                variant="danger"
+            />
         </AppShell>
     );
 }
