@@ -126,6 +126,7 @@ export default function AppShell({ title, children }: AppShellProps) {
                         brand="SMA UII YOGYAKARTA"
                         username={userName}
                         userInitial={userInitial}
+                        userRole={userRole}
                         onLogout={handleLogout}
                         onSearchClick={() => setCommandPaletteOpen(true)}
                         unreadCount={pageProps.auth?.unreadCount ?? 0}

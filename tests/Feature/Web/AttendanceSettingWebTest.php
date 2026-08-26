@@ -22,15 +22,26 @@ class AttendanceSettingWebTest extends TestCase
         $this->student = User::factory()->create(['role' => 'student']);
     }
 
-    public function test_admin_can_access_settings_page(): void
+    public function test_admin_can_access_operational_settings_page(): void
     {
-        $response = $this->actingAs($this->admin)->get(route('settings'));
+        $response = $this->actingAs($this->admin)->get(route('operational-settings'));
         $response->assertOk();
         $response->assertInertia(
             fn ($page) => $page
             ->component('Admin/HolidaySettings')
             ->has('timeSettings')
             ->has('holidays'),
+        );
+    }
+
+    public function test_admin_can_access_system_settings_page(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('settings'));
+        $response->assertOk();
+        $response->assertInertia(
+            fn ($page) => $page
+            ->component('Admin/SystemSettings')
+            ->has('systemInfo'),
         );
     }
 
@@ -51,7 +62,7 @@ class AttendanceSettingWebTest extends TestCase
             ['day' => 'Saturday', 'check_in_open' => '07:00', 'late_threshold' => '07:30', 'check_in_close' => '08:00', 'is_active' => true],
         ];
 
-        $response = $this->actingAs($this->admin)->post(route('settings.time-settings'), [
+        $response = $this->actingAs($this->admin)->post(route('operational-settings.time-settings'), [
             'settings' => $settings,
         ]);
 
@@ -64,7 +75,7 @@ class AttendanceSettingWebTest extends TestCase
 
     public function test_admin_can_store_and_delete_holiday(): void
     {
-        $storeResponse = $this->actingAs($this->admin)->post(route('settings.holidays'), [
+        $storeResponse = $this->actingAs($this->admin)->post(route('operational-settings.holidays'), [
             'holiday_date' => '2026-08-17',
             'description' => 'Hari Kemerdekaan RI',
         ]);
@@ -77,7 +88,7 @@ class AttendanceSettingWebTest extends TestCase
 
         $holiday = AcademicCalendar::whereDate('holiday_date', '2026-08-17')->first();
 
-        $deleteResponse = $this->actingAs($this->admin)->delete(route('settings.holidays.destroy', ['id' => $holiday->id]));
+        $deleteResponse = $this->actingAs($this->admin)->delete(route('operational-settings.holidays.destroy', ['id' => $holiday->id]));
         $deleteResponse->assertRedirect();
         $this->assertDatabaseMissing('academic_calendars', [
             'id' => $holiday->id,

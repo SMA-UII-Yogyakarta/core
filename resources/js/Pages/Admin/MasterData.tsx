@@ -148,6 +148,44 @@ export default function MasterData({
     const [search, setSearch] = useState(filters.search ?? "");
     const [classFilter, setClassFilter] = useState(filters.class_id ?? "");
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    const handleCopyInfo = (key: string, text: string) => {
+        const performCopy = async () => {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch {
+                // Fallback to execCommand below
+            }
+
+            try {
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                textarea.style.position = "fixed";
+                textarea.style.left = "-999999px";
+                textarea.style.top = "-999999px";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                const successful = document.execCommand("copy");
+                textarea.remove();
+                return successful;
+            } catch (err) {
+                console.error("Copy failed:", err);
+                return false;
+            }
+        };
+
+        performCopy().then((success) => {
+            if (success) {
+                setCopiedKey(key);
+                setTimeout(() => setCopiedKey(null), 2000);
+            }
+        });
+    };
 
     // Confirm Dialog State
     const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -304,27 +342,8 @@ export default function MasterData({
         setStudentModal("create");
     };
 
-    const openEditStudent = (s: Student) => {
-        clearStudentErrors();
-        setEditingStudentId(s.id);
-        setStudentForm({
-            nis: s.nis,
-            nisn: s.nisn,
-            name: s.name,
-            class_id: s.class?.id ?? "",
-            birth_date: s.birth_date ?? "",
-            phone: s.phone ?? "",
-            address: s.address ?? "",
-            enrollment_year: s.enrollment_year ?? new Date().getFullYear(),
-            guardian_id: s.guardian_id ?? "",
-            email: s.user?.email ?? "",
-            password: "",
-            status: s.status === "Inactive" ? "Inactive" : "Active",
-        });
-        setStudentModal("edit");
-    };
-
     const openDetailStudent = (s: Student) => {
+        clearStudentErrors();
         setEditingStudentId(s.id);
         setStudentForm({
             nis: s.nis,
@@ -357,19 +376,8 @@ export default function MasterData({
         setTeacherModal("create");
     };
 
-    const openEditTeacher = (t: Teacher) => {
-        clearTeacherErrors();
-        setEditingTeacherId(t.id);
-        setTeacherForm({
-            teacher_code: t.teacher_code,
-            name: t.name,
-            email: t.user?.email ?? "",
-            password: "",
-        });
-        setTeacherModal("edit");
-    };
-
     const openDetailTeacher = (t: Teacher) => {
+        clearTeacherErrors();
         setEditingTeacherId(t.id);
         setTeacherForm({
             teacher_code: t.teacher_code,
@@ -418,20 +426,8 @@ export default function MasterData({
         setGuardianModal("create");
     };
 
-    const openEditGuardian = (g: Guardian) => {
-        clearGuardianErrors();
-        setEditingGuardianId(g.id);
-        setGuardianForm({
-            name: g.name,
-            phone: g.phone ?? "",
-            address: g.address ?? "",
-            email: g.user?.email ?? "",
-            password: "",
-        });
-        setGuardianModal("edit");
-    };
-
     const openDetailGuardian = (g: Guardian) => {
+        clearGuardianErrors();
         setEditingGuardianId(g.id);
         setGuardianForm({
             name: g.name,
@@ -712,18 +708,19 @@ export default function MasterData({
                     <StatusBadge variant={isActive ? "active" : "inactive"} label={isActive ? "AKTIF" : "NON-AKTIF"} />
                 );
             },
+            className: "text-center whitespace-nowrap",
         },
         {
             key: "actions",
-            header: <div className="text-center w-full">Aksi</div>,
+            header: "Aksi",
             render: (s) => (
-                <div className="flex gap-2 justify-center">
-                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailStudent(s)} />
-                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditStudent(s)} />
+                <div className="flex gap-1.5 justify-center">
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail & Kelola" iconOnly onClick={() => openDetailStudent(s)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
+                        iconOnly
                         onClick={() => handleDelete("students", s.id)}
                     />
                 </div>
@@ -763,15 +760,15 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: <div className="text-center w-full">Aksi</div>,
+            header: "Aksi",
             render: (t) => (
-                <div className="flex gap-2 justify-center">
-                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailTeacher(t)} />
-                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditTeacher(t)} />
+                <div className="flex gap-1.5 justify-center">
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail & Kelola" iconOnly onClick={() => openDetailTeacher(t)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
+                        iconOnly
                         onClick={() => handleDelete("teachers", t.id)}
                     />
                 </div>
@@ -811,17 +808,19 @@ export default function MasterData({
                     </span>
                 );
             },
+            className: "text-center whitespace-nowrap",
         },
         {
             key: "actions",
-            header: <div className="text-center w-full">Aksi</div>,
+            header: "Aksi",
             render: (c) => (
-                <div className="flex gap-2 justify-center">
-                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditClass(c)} />
+                <div className="flex gap-1.5 justify-center">
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail & Kelola" iconOnly onClick={() => openEditClass(c)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
+                        iconOnly
                         onClick={() => handleDelete("classes", c.id)}
                     />
                 </div>
@@ -861,15 +860,15 @@ export default function MasterData({
         },
         {
             key: "actions",
-            header: <div className="text-center w-full">Aksi</div>,
+            header: "Aksi",
             render: (w) => (
-                <div className="flex gap-2 justify-center">
-                    <ActionButton variant="detail" icon="fa-eye" label="Detail" onClick={() => openDetailGuardian(w)} />
-                    <ActionButton variant="edit" icon="fa-edit" label="Edit" onClick={() => openEditGuardian(w)} />
+                <div className="flex gap-1.5 justify-center">
+                    <ActionButton variant="detail" icon="fa-eye" label="Detail & Kelola" iconOnly onClick={() => openDetailGuardian(w)} />
                     <ActionButton
                         variant="delete"
                         icon="fa-trash"
                         label="Hapus"
+                        iconOnly
                         onClick={() => handleDelete("guardians", w.id)}
                     />
                 </div>
@@ -1104,11 +1103,45 @@ export default function MasterData({
                 <Drawer
                     open={classDrawer.open}
                     onClose={() => setClassDrawer({ open: false, mode: 'create' })}
-                    title={classDrawer.mode === 'create' ? "Tambah Kelas" : "Edit Kelas"}
+                    title={classDrawer.mode === 'create' ? "Tambah Kelas" : "Kelola & Detail Kelas"}
                     width="md"
                     onSubmit={handleCreateClass}
                     submitLabel={classDrawer.mode === 'create' ? "Simpan" : "Perbarui"}
                     loading={processing}
+                    headerActions={
+                        classDrawer.mode === 'edit' && editingClassId ? (
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const tch = (allTeachers || []).find((t) => t.id === formData.teacher_id)?.name || "Belum Ada Wali";
+                                        handleCopyInfo(
+                                            "class",
+                                            `Kelas: ${formData.name} | Tingkat: ${formData.level} | Kapasitas: ${formData.capacity} | Wali Kelas: ${tch}`
+                                        );
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                    title="Salin Informasi Kelas"
+                                >
+                                    <i className={copiedKey === "class" ? "fas fa-check text-success text-[10px]" : "far fa-copy text-[10px]"} />
+                                    <span>{copiedKey === "class" ? "Tersalin!" : "Salin"}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const id = editingClassId;
+                                        setClassDrawer({ open: false, mode: 'create' });
+                                        handleDelete("classes", id);
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light transition-colors cursor-pointer"
+                                    title="Hapus Kelas Ini"
+                                >
+                                    <i className="fas fa-trash text-[10px]" />
+                                    <span>Hapus</span>
+                                </button>
+                            </div>
+                        ) : undefined
+                    }
                 >
                     <div className="flex flex-col gap-4">
                         <div className="grid grid-cols-3 gap-4">
@@ -1171,12 +1204,67 @@ export default function MasterData({
                             ? "Tambah Data Siswa"
                             : studentModal === "edit"
                               ? "Edit Data Siswa"
-                              : "Detail Siswa"
+                              : "Detail Data Siswa"
                     }
                     width="xl"
                     onSubmit={studentModal === "detail" ? undefined : submitStudent}
                     submitLabel={studentModal === "create" ? "Simpan" : "Perbarui"}
                     loading={studentProcessing}
+                    headerActions={
+                        studentModal === "detail" ? (
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const cls = classOptions.find((c) => String(c.id) === String(studentForm.class_id))?.name || "Belum Masuk Kelas";
+                                        handleCopyInfo(
+                                            "student",
+                                            `Siswa: ${studentForm.name} | NIS: ${studentForm.nis} | NISN: ${studentForm.nisn} | Kelas: ${cls} | Telepon: ${studentForm.phone || "-"}`
+                                        );
+                                    }}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                    title="Salin Informasi Siswa"
+                                >
+                                    <i className={copiedKey === "student" ? "fas fa-check text-success text-[10px]" : "far fa-copy text-[10px]"} />
+                                    <span>{copiedKey === "student" ? "Tersalin!" : "Salin"}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setStudentModal("edit")}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                                    title="Unlock Edit Form"
+                                >
+                                    <i className="fas fa-lock-open text-[10px]" />
+                                    <span>Edit</span>
+                                </button>
+                                {editingStudentId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const id = editingStudentId;
+                                            closeStudentModal();
+                                            handleDelete("students", id);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light transition-colors cursor-pointer"
+                                        title="Hapus Siswa Ini"
+                                    >
+                                        <i className="fas fa-trash text-[10px]" />
+                                        <span>Hapus</span>
+                                    </button>
+                                )}
+                            </div>
+                        ) : studentModal === "edit" ? (
+                            <button
+                                type="button"
+                                onClick={() => setStudentModal("detail")}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                title="Mode Read-Only"
+                            >
+                                <i className="fas fa-lock text-[10px]" />
+                                <span>Kunci Baca</span>
+                            </button>
+                        ) : undefined
+                    }
                 >
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input
@@ -1296,12 +1384,66 @@ export default function MasterData({
                             ? "Tambah Data Guru"
                             : teacherModal === "edit"
                               ? "Edit Data Guru"
-                              : "Detail Guru"
+                              : "Detail Data Guru"
                     }
                     width="md"
                     onSubmit={teacherModal === "detail" ? undefined : submitTeacher}
                     submitLabel={teacherModal === "create" ? "Simpan" : "Perbarui"}
                     loading={teacherProcessing}
+                    headerActions={
+                        teacherModal === "detail" ? (
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleCopyInfo(
+                                            "teacher",
+                                            `Guru: ${teacherForm.name} | Kode: ${teacherForm.teacher_code} | Email: ${teacherForm.email || "-"}`
+                                        )
+                                    }
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                    title="Salin Informasi Guru"
+                                >
+                                    <i className={copiedKey === "teacher" ? "fas fa-check text-success text-[10px]" : "far fa-copy text-[10px]"} />
+                                    <span>{copiedKey === "teacher" ? "Tersalin!" : "Salin"}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTeacherModal("edit")}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                                    title="Unlock Edit Form"
+                                >
+                                    <i className="fas fa-lock-open text-[10px]" />
+                                    <span>Edit</span>
+                                </button>
+                                {editingTeacherId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const id = editingTeacherId;
+                                            closeTeacherModal();
+                                            handleDelete("teachers", id);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light transition-colors cursor-pointer"
+                                        title="Hapus Guru Ini"
+                                    >
+                                        <i className="fas fa-trash text-[10px]" />
+                                        <span>Hapus</span>
+                                    </button>
+                                )}
+                            </div>
+                        ) : teacherModal === "edit" ? (
+                            <button
+                                type="button"
+                                onClick={() => setTeacherModal("detail")}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                title="Mode Read-Only"
+                            >
+                                <i className="fas fa-lock text-[10px]" />
+                                <span>Kunci Baca</span>
+                            </button>
+                        ) : undefined
+                    }
                 >
                     <div className="space-y-4">
                         <Input
@@ -1357,6 +1499,60 @@ export default function MasterData({
                     onSubmit={guardianModal === "detail" ? undefined : submitGuardian}
                     submitLabel={guardianModal === "create" ? "Simpan" : "Perbarui"}
                     loading={guardianProcessing}
+                    headerActions={
+                        guardianModal === "detail" ? (
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        handleCopyInfo(
+                                            "guardian",
+                                            `Wali Murid: ${guardianForm.name} | No. Telepon: ${guardianForm.phone || "-"} | Email: ${guardianForm.email || "-"}`
+                                        )
+                                    }
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                    title="Salin Informasi Wali"
+                                >
+                                    <i className={copiedKey === "guardian" ? "fas fa-check text-success text-[10px]" : "far fa-copy text-[10px]"} />
+                                    <span>{copiedKey === "guardian" ? "Tersalin!" : "Salin"}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setGuardianModal("edit")}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                                    title="Unlock Edit Form"
+                                >
+                                    <i className="fas fa-lock-open text-[10px]" />
+                                    <span>Edit</span>
+                                </button>
+                                {editingGuardianId && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const id = editingGuardianId;
+                                            closeGuardianModal();
+                                            handleDelete("guardians", id);
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light transition-colors cursor-pointer"
+                                        title="Hapus Wali Ini"
+                                    >
+                                        <i className="fas fa-trash text-[10px]" />
+                                        <span>Hapus</span>
+                                    </button>
+                                )}
+                            </div>
+                        ) : guardianModal === "edit" ? (
+                            <button
+                                type="button"
+                                onClick={() => setGuardianModal("detail")}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-text-secondary bg-surface border border-border hover:bg-muted transition-colors cursor-pointer"
+                                title="Mode Read-Only"
+                            >
+                                <i className="fas fa-lock text-[10px]" />
+                                <span>Kunci Baca</span>
+                            </button>
+                        ) : undefined
+                    }
                 >
                     <div className="space-y-4">
                         <Input

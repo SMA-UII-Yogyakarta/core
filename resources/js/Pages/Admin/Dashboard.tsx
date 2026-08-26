@@ -350,7 +350,7 @@ export default function Dashboard({
                         </Link>
 
                         <Link
-                            href="/settings"
+                            href="/operational-settings"
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">

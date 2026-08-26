@@ -1,15 +1,9 @@
 import type { InputHTMLAttributes } from "react";
-import { FaCheck } from "react-icons/fa";
 
 interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
     label?: string;
     size?: "sm" | "md";
 }
-
-const sizeMap = {
-    sm: "w-[24px] h-[24px] text-[10px]",
-    md: "w-[30px] h-[30px] text-[12px]",
-};
 
 export default function Toggle({
     checked,
@@ -20,7 +14,7 @@ export default function Toggle({
     className = "",
     ...props
 }: ToggleProps) {
-    const sizeClass = sizeMap[size];
+    const isSm = size === "sm";
 
     return (
         <label
@@ -36,17 +30,25 @@ export default function Toggle({
                 className="sr-only peer"
                 {...props}
             />
-            <span
-                className={`inline-flex items-center justify-center ${sizeClass} rounded-md border transition-colors duration-150 font-inter font-medium
-                    ${
-                        checked
-                            ? "bg-primary border-primary text-white"
-                            : "bg-surface border-border text-text-secondary hover:bg-background"
-                    }
-                `}
+            <div
+                className={`relative inline-flex items-center shrink-0 rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
+                    isSm ? "w-9 h-5 p-0.5" : "w-11 h-6 p-0.5"
+                } ${
+                    checked
+                        ? "bg-emerald-500"
+                        : "bg-gray-300 dark:bg-gray-600"
+                }`}
             >
-                {checked && <FaCheck className="text-[10px]" />}
-            </span>
+                <span
+                    className={`inline-block rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
+                        isSm ? "w-4 h-4" : "w-5 h-5"
+                    } ${
+                        checked
+                            ? isSm ? "translate-x-4" : "translate-x-5"
+                            : "translate-x-0"
+                    }`}
+                />
+            </div>
             {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}
         </label>
     );
