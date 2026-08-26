@@ -133,10 +133,9 @@ export default function DailyReport({
                     description="Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas."
                 />
 
-                {/* Main Card */}
-                <Card className="overflow-hidden">
-                    {/* Filters & Export Toolbar */}
-                    <div className="bg-surface p-5 sm:p-6 border-b border-border flex flex-col sm:flex-row justify-end items-center gap-4">
+                {/* Filters & Export Toolbar Card */}
+                <Card className="p-4 sm:p-5 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
                         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                             {/* Date Picker */}
                             <Input
@@ -175,12 +174,11 @@ export default function DailyReport({
                             </div>
                         </div>
                     </div>
-
-
+                </Card>
 
                 {classDetail ? (
-                    <div className="p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
                             <div>
                                 <h3 className="text-lg font-bold text-primary">
                                     {t("reports.classDetail").replace("{class}", classDetail.class.name)}
@@ -204,17 +202,14 @@ export default function DailyReport({
                                 />
                             </div>
                         </div>
-                        <div>
-                            <Table
-                                columns={studentColumns}
-                                data={paginatedStudents}
-                                keyExtractor={(s) => s.id}
-                                emptyMessage="Tidak ada data siswa."
-                                bare
-                            />
-                        </div>
+                        <Table
+                            columns={studentColumns}
+                            data={paginatedStudents}
+                            keyExtractor={(s) => s.id}
+                            emptyMessage="Tidak ada data siswa."
+                        />
                         {filteredStudents.length > pageSize && (
-                            <div className="mt-4 pt-3 border-t border-border">
+                            <div className="pt-2">
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
@@ -225,8 +220,8 @@ export default function DailyReport({
                         )}
                     </div>
                 ) : (
-                    <div className="p-4 sm:p-6">
-                        <div className="mb-4">
+                    <div className="space-y-3">
+                        <div className="mb-1">
                             <h3 className="text-lg font-bold text-primary">
                                 {t("reports.allClassesSummary")}
                             </h3>
@@ -234,24 +229,20 @@ export default function DailyReport({
                                 Menampilkan rekapitulasi data dari {overview.classes.length} kelas
                             </span>
                         </div>
-                        <div className="overflow-x-auto -mx-4 sm:-mx-6">
-                            <Table
-                                columns={classColumns}
-                                data={overview.classes}
-                                keyExtractor={(c) => c.id}
-                                emptyMessage="Tidak ada data kelas."
-                                bare
-                            />
-                        </div>
+                        <Table
+                            columns={classColumns}
+                            data={overview.classes}
+                            keyExtractor={(c) => c.id}
+                            emptyMessage="Tidak ada data kelas."
+                        />
                         
-                        {/* Notes at the bottom as per Figma */}
-                        <div className="px-4 sm:px-6 py-4 mt-2 sm:mt-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
+                        {/* Notes at the bottom */}
+                        <div className="py-2 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
                             <i className="fas fa-info-circle hidden sm:block"></i>
                             Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
                         </div>
                     </div>
                 )}
-                </Card>
             </div>
         </AppShell>
     );
