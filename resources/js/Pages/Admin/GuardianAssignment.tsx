@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination } from "@/Components";
+import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination, EmptyState, ConfirmDialog } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -306,25 +306,17 @@ export default function GuardianAssignment({
                                 )}
                             </div>
                         ) : (
-                            <div className="text-center py-12 border-2 border-dashed border-border/80 rounded-xl my-auto">
-                                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3 text-lg">
-                                    <i className="fas fa-users-slash" />
-                                </div>
-                                <h3 className="text-[15px] font-bold text-text-primary">Belum Ada Siswa Terhubung</h3>
-                                <p className="text-[13px] text-text-secondary max-w-sm mx-auto mt-1 mb-4">
-                                    Wali murid ini belum memiliki hubungan dengan data siswa di database.
-                                </p>
-                                <Button
-                                    onClick={() => {
-                                        setStudentSearch("");
-                                        setModalPage(1);
-                                        setShowAddModal(true);
-                                    }}
-                                >
-                                    <i className="fas fa-plus mr-1.5" />
-                                    Hubungkan Siswa Sekarang
-                                </Button>
-                            </div>
+                            <EmptyState
+                                variant="no-data"
+                                title="Belum Ada Siswa Terhubung"
+                                description="Wali murid ini belum memiliki hubungan dengan data siswa di database."
+                                actionLabel="Hubungkan Siswa Sekarang"
+                                actionOnClick={() => {
+                                    setStudentSearch("");
+                                    setModalPage(1);
+                                    setShowAddModal(true);
+                                }}
+                            />
                         )
                     ) : (
                         <div className="text-center py-16 text-text-inactive my-auto">
@@ -431,26 +423,19 @@ export default function GuardianAssignment({
             </Modal>
 
             {/* Modal Konfirmasi Lepas Hubungan */}
-            <Modal
+            <ConfirmDialog
                 open={removeConfirmId !== null}
                 onClose={() => setRemoveConfirmId(null)}
-                title="Konfirmasi Lepas Hubungan"
-                width="sm"
-            >
-                <div className="flex flex-col gap-4 py-2">
-                    <p className="text-[14px] text-text-primary font-inter">
-                        Apakah Anda yakin ingin melepas hubungan siswa ini dari wali murid <strong>{selectedGuardian?.name}</strong>?
-                    </p>
-                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-                        <Button variant="ghost" onClick={() => setRemoveConfirmId(null)}>
-                            Batal
-                        </Button>
-                        <Button variant="danger" onClick={confirmRemove} data-testid="btn-confirm-unlink">
-                            Lepas Hubungan
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+                title="Lepas Relasi"
+                message={
+                    <span>
+                        Yakin melepas relasi wali-siswa ini dari <strong>{selectedGuardian?.name}</strong>?
+                    </span>
+                }
+                confirmLabel="Ya, Lepas"
+                variant="danger"
+                onConfirm={confirmRemove}
+            />
         </AppShell>
     );
 }

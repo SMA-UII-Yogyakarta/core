@@ -209,15 +209,12 @@ export default function History({
                         {students.map((s) => {
                             const isSelected = s.id === selectedStudentId;
                             return (
-                                <button
+                                <Button
                                     key={s.id}
                                     type="button"
                                     onClick={() => handleSelectStudent(s.id)}
-                                    className={`px-4 py-2.5 rounded-xl border text-[13px] font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                                        isSelected
-                                            ? "bg-primary text-white border-primary shadow-xs"
-                                            : "bg-surface text-text-primary border-border hover:bg-muted"
-                                    }`}
+                                    variant={isSelected ? "primary" : "outline"}
+                                    className="flex items-center gap-2 rounded-xl shadow-none font-bold"
                                 >
                                     <Avatar name={s.name} size="xs" />
                                     <span>{s.name}</span>
@@ -228,7 +225,7 @@ export default function History({
                                             {s.class.name}
                                         </span>
                                     )}
-                                </button>
+                                </Button>
                             );
                         })}
                     </div>

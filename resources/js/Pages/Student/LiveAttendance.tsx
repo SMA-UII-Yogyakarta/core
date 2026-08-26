@@ -3,8 +3,8 @@ import { router, usePage } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import Button from "@/Components/ui/Button";
 import { LiveBadge } from "@/Components";
+import ErrorAlert from "@/Components/common/ErrorAlert";
 import {
-    FiAlertCircle,
     FiCheck,
     FiCheckCircle,
     FiClock,
@@ -259,13 +259,8 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
             {/* Error banner */}
             {(error || errors?.message) && (
-                <div
-                    className="mb-5 px-4 py-3 bg-danger-bg border border-danger-light rounded-xl text-[13px] text-danger flex items-center gap-2.5 shadow-sm"
-                    dusk="attendance-error-alert"
-                    data-testid="attendance-error-alert"
-                >
-                    <FiAlertCircle className="text-[16px] shrink-0" />
-                    <span className="font-medium">{error ?? errors?.message}</span>
+                <div className="mb-5" dusk="attendance-error-alert" data-testid="attendance-error-alert">
+                    <ErrorAlert message={error || errors?.message || "Terjadi kesalahan presensi."} />
                 </div>
             )}
 

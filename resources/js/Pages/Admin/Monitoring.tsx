@@ -2,6 +2,7 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
+import EmptyState from "@/Components/common/EmptyState";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 
@@ -217,11 +218,13 @@ export default function Monitoring({
             )}
 
             {!selectedClassId && (
-                <Card className="p-12 text-center flex flex-col items-center justify-center">
-                    <i className="fas fa-chart-bar text-text-inactive text-4xl mb-3" />
-                    <p className="text-text-muted font-inter text-[14px]">
-                        Silakan pilih kelas untuk menampilkan data monitoring.
-                    </p>
+                <Card>
+                    <EmptyState
+                        variant="no-data"
+                        icon={<i className="fas fa-chart-bar text-4xl" />}
+                        title="Pilih Kelas"
+                        description="Silakan pilih kelas untuk menampilkan data monitoring."
+                    />
                 </Card>
             )}
         </AppShell>
