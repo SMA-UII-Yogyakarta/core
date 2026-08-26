@@ -251,6 +251,7 @@ export default function GuardianAssignment({
                                 totalItems={filteredGuardians.length}
                                 perPage={guardianPageSize}
                                 onPageChange={setGuardianPage}
+                                compact
                             />
                         </div>
                     )}

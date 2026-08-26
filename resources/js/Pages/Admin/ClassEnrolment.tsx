@@ -553,6 +553,7 @@ export default function EnrolmentKelas({
                                 totalItems={filteredUnassigned.length}
                                 perPage={modalPageSize}
                                 onPageChange={setModalCurrentPage}
+                                compact
                             />
                         </div>
                     )}
