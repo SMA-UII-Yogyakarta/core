@@ -2,6 +2,10 @@ import { useMemo, useState } from "react";
 import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, AttendanceChart, Table, Card, PageHeader } from "@/Components";
+import TabSwitcher from "@/Components/common/TabSwitcher";
+import EmptyState from "@/Components/common/EmptyState";
+import Input from "@/Components/ui/Input";
+import NativeSelect from "@/Components/ui/NativeSelect";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import type { StatusVariant } from "@/types/component";
 import type { Column } from "@/Components/ui/Table";
@@ -282,31 +286,12 @@ export default function Dashboard({
                 title="Statistik Kehadiran Sekolah"
                 description="Ringkasan kehadiran institusi berdasarkan periode yang dipilih."
             >
-                <div
-                    className="flex bg-muted p-1 rounded-xl select-none self-start sm:self-auto shadow-xs border border-border"
-                    role="tablist"
-                    aria-label="Periode statistik"
-                >
-                    {PERIODS.map((p) => {
-                        const isPeriodActive = period === p;
-                        return (
-                            <button
-                                key={p}
-                                role="tab"
-                                aria-selected={isPeriodActive}
-                                onClick={() => setPeriod(p)}
-                                className={`px-4 sm:px-5 py-1.5 text-[12px] sm:text-[13px] font-bold font-inter rounded-lg transition-all cursor-pointer ${
-                                    isPeriodActive
-                                        ? "bg-accent text-primary shadow-sm"
-                                        : "text-text-secondary hover:text-text-primary bg-transparent"
-                                }`}
-                                type="button"
-                            >
-                                {p}
-                            </button>
-                        );
-                    })}
-                </div>
+                <TabSwitcher
+                    tabs={PERIODS.map(p => ({ key: p, label: p }))}
+                    activeKey={period}
+                    onChange={(k) => setPeriod(k as Period)}
+                    className="self-start sm:self-auto"
+                />
             </PageHeader>
 
             {/* ── Mobile & Tablet Layout (lg:hidden) ── */}
@@ -469,10 +454,10 @@ export default function Dashboard({
                             <span className="text-[13px] text-text-muted font-inter whitespace-nowrap">
                                 Filter Kelas:
                             </span>
-                            <select
+                            <NativeSelect
                                 value={selectedClassId ?? ""}
                                 onChange={handleClassFilter}
-                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none min-w-[140px]"
+                                className="min-w-[140px]"
                             >
                                 <option value="">Semua Kelas</option>
                                 {classes.map((c) => (
@@ -480,7 +465,7 @@ export default function Dashboard({
                                         {c.name}
                                     </option>
                                 ))}
-                            </select>
+                            </NativeSelect>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -488,11 +473,11 @@ export default function Dashboard({
                                 <i className="fas fa-calendar-alt mr-1 text-text-inactive" />
                                 Tanggal:
                             </span>
-                            <input
+                            <Input
                                 type="date"
                                 value={selectedDate}
                                 onChange={handleDateFilter}
-                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                                inputClassName="h-10"
                             />
                         </div>
                     </div>
@@ -500,16 +485,22 @@ export default function Dashboard({
             </Card>
 
             {!selectedClassId ? (
-                <Card className="py-16 flex flex-col items-center gap-3 text-text-inactive">
-                    <i className="fas fa-filter text-3xl" />
-                    <p className="text-[14px] font-inter text-center px-4">
-                        Pilih kelas di filter atas untuk menampilkan data siswa.
-                    </p>
+                <Card>
+                    <EmptyState
+                        variant="no-data"
+                        icon={<i className="fas fa-filter text-3xl" />}
+                        title="Pilih Kelas"
+                        description="Pilih kelas di filter atas untuk menampilkan data siswa."
+                    />
                 </Card>
             ) : students.length === 0 ? (
-                <Card className="py-16 flex flex-col items-center gap-3 text-text-inactive">
-                    <i className="fas fa-check-circle text-3xl text-success" />
-                    <p className="text-[14px] font-inter">Semua siswa sudah hadir tepat waktu hari ini.</p>
+                <Card>
+                    <EmptyState
+                        variant="no-data"
+                        icon={<i className="fas fa-check-circle text-3xl text-success" />}
+                        title="Semua Hadir"
+                        description="Semua siswa sudah hadir tepat waktu hari ini."
+                    />
                 </Card>
             ) : (
                 <Table columns={attentionColumns} data={students} keyExtractor={(s) => s.id} />

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table } from "@/Components";
+import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table, Input } from "@/Components";
+import ExportButtonGroup from "@/Components/features/ExportButtonGroup";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -138,13 +139,13 @@ export default function DailyReport({
                     <div className="bg-surface p-5 sm:p-6 border-b border-border flex flex-col sm:flex-row justify-end items-center gap-4">
                         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                             {/* Date Picker */}
-                            <input
+                            <Input
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                     router.get(`/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, {}, { preserveState: true })
                                 }
-                                className="h-10 w-full sm:w-[150px] bg-surface border border-border/80 rounded-lg px-3 text-[13px] font-medium text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                inputClassName="h-10 w-full sm:w-[150px]"
                             />
                             
                             {/* Class Selector */}
@@ -167,18 +168,10 @@ export default function DailyReport({
 
                             {/* Export Buttons */}
                             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                <a
-                                    href={`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-danger text-white px-5 rounded-lg hover:bg-danger/90 text-[13px] font-bold shadow-sm transition-colors"
-                                >
-                                    <i className="fas fa-file-pdf"></i> PDF
-                                </a>
-                                <a
-                                    href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-success text-white px-5 rounded-lg hover:bg-success/90 text-[13px] font-bold shadow-sm transition-colors"
-                                >
-                                    <i className="fas fa-file-excel"></i> Excel
-                                </a>
+                                <ExportButtonGroup
+                                    onExportExcel={() => window.open(`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                                    onExportPdf={() => window.open(`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                                />
                             </div>
                         </div>
                     </div>
@@ -211,13 +204,13 @@ export default function DailyReport({
                                 />
                             </div>
                         </div>
-                        {/* TODO: Move to bare/unstyled prop in Table component */}
-                        <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none">
+                        <div>
                             <Table
                                 columns={studentColumns}
                                 data={paginatedStudents}
                                 keyExtractor={(s) => s.id}
                                 emptyMessage="Tidak ada data siswa."
+                                bare
                             />
                         </div>
                         {filteredStudents.length > pageSize && (
@@ -241,13 +234,13 @@ export default function DailyReport({
                                 Menampilkan rekapitulasi data dari {overview.classes.length} kelas
                             </span>
                         </div>
-                        {/* TODO: Move to bare/unstyled prop in Table component */}
-                        <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none overflow-x-auto -mx-4 sm:-mx-6">
+                        <div className="overflow-x-auto -mx-4 sm:-mx-6">
                             <Table
                                 columns={classColumns}
                                 data={overview.classes}
                                 keyExtractor={(c) => c.id}
                                 emptyMessage="Tidak ada data kelas."
+                                bare
                             />
                         </div>
                         

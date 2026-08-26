@@ -1,7 +1,7 @@
 import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { useState, useMemo } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, Button, Input, Modal, Toggle, StickyContainer } from "@/Components";
+import { PageHeader, Card, Button, Input, Toggle, StickyContainer, Table, ConfirmDialog } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiUser, FiLogOut, FiBell, FiShield } from "react-icons/fi";
 import { profileInfoSchema, passwordSecuritySchema } from "@/schemas";
@@ -304,45 +304,44 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                             {activeTab === "sessions" && (
                                 <div className="space-y-4">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="text-left text-text-inactive text-sm border-b border-border">
-                                                    <th className="pb-3 font-medium">{t("profile.device")}</th>
-                                                    <th className="pb-3 font-medium">{t("profile.lastActive")}</th>
-                                                    <th className="pb-3 font-medium">{t("profile.created")}</th>
-                                                    <th className="pb-3 font-medium text-right">
-                                                        {t("profile.actions")}
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {sessions.map((session) => (
-                                                    <tr
-                                                        key={session.id}
-                                                        className="border-b border-border/50 hover:bg-primary/5"
-                                                    >
-                                                        <td className="py-3 font-medium">{session.name}</td>
-                                                        <td className="py-3 text-text-inactive">
-                                                            {session.last_used_at ?? t("profile.never")}
-                                                        </td>
-                                                        <td className="py-3 text-text-inactive">
-                                                            {session.created_at}
-                                                        </td>
-                                                        <td className="py-3 text-right">
-                                                            <button
-                                                                onClick={() => handleRevoke(session.id)}
-                                                                disabled={revoking}
-                                                                className="text-red-600 hover:text-red-700 text-sm font-medium"
-                                                            >
-                                                                {t("profile.revoke")}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <Table
+                                        columns={[
+                                            {
+                                                key: "name",
+                                                header: t("profile.device"),
+                                                render: (s) => <span className="font-medium">{s.name}</span>,
+                                            },
+                                            {
+                                                key: "last_used_at",
+                                                header: t("profile.lastActive"),
+                                                render: (s) => <span className="text-text-inactive">{s.last_used_at ?? t("profile.never")}</span>,
+                                            },
+                                            {
+                                                key: "created_at",
+                                                header: t("profile.created"),
+                                                render: (s) => <span className="text-text-inactive">{s.created_at}</span>,
+                                            },
+                                            {
+                                                key: "actions",
+                                                header: <div className="text-right w-full">{t("profile.actions")}</div>,
+                                                render: (s) => (
+                                                    <div className="flex justify-end">
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => handleRevoke(s.id)}
+                                                            disabled={revoking}
+                                                        >
+                                                            {t("profile.revoke")}
+                                                        </Button>
+                                                    </div>
+                                                ),
+                                                className: "text-right",
+                                            },
+                                        ]}
+                                        data={sessions}
+                                        keyExtractor={(s) => s.id}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -351,15 +350,15 @@ export default function Profile({ user, sessions }: ProfileProps) {
             </div>
 
             {/* Revoke Modal */}
-            <Modal
+            <ConfirmDialog
                 open={showRevokeModal}
                 onClose={() => setShowRevokeModal(false)}
                 title={t("profile.revokeTitle")}
-                children={<p className="text-text-inactive">{t("profile.revokeDescription")}</p>}
-                onSubmit={confirmRevoke}
-                submitLabel={t("profile.revoke")}
+                message={t("profile.revokeDescription")}
+                onConfirm={confirmRevoke}
+                confirmLabel={t("profile.revoke")}
                 loading={revoking}
-                width="sm"
+                variant="danger"
             />
         </AppShell>
     );

@@ -226,29 +226,21 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
 
                         {/* Tanggal Mulai & Selesai */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-[12px] font-bold text-text-primary uppercase tracking-wide mb-1.5 font-inter">
-                                    Tanggal Mulai <span className="text-danger">*</span>
-                                </label>
-                                <Input
-                                    type="date"
-                                    value={data.start_date}
-                                    onChange={(e) => setData("start_date", e.target.value)}
-                                    error={errors?.start_date}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[12px] font-bold text-text-primary uppercase tracking-wide mb-1.5 font-inter">
-                                    Tanggal Selesai (Opsional)
-                                </label>
-                                <Input
-                                    type="date"
-                                    value={data.end_date}
-                                    onChange={(e) => setData("end_date", e.target.value)}
-                                    error={errors?.end_date}
-                                />
-                            </div>
+                            <Input
+                                label="Tanggal Mulai *"
+                                type="date"
+                                value={data.start_date}
+                                onChange={(e) => setData("start_date", e.target.value)}
+                                error={errors?.start_date}
+                                required
+                            />
+                            <Input
+                                label="Tanggal Selesai (Opsional)"
+                                type="date"
+                                value={data.end_date}
+                                onChange={(e) => setData("end_date", e.target.value)}
+                                error={errors?.end_date}
+                            />
                         </div>
 
                         {/* Keterangan */}

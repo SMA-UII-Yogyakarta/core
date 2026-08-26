@@ -1,6 +1,6 @@
 import { router, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { PageHeader, Card, Button, Modal, NativeSelect, StickyContainer, Pagination } from "@/Components";
+import { PageHeader, Card, Button, Modal, NativeSelect, StickyContainer, Pagination, Input, Table, ConfirmDialog } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiBell, FiTrash2, FiSend, FiCheckSquare } from "react-icons/fi";
 import { notificationSchema } from "@/schemas";
@@ -81,9 +81,19 @@ export default function Notifications({ notifications, sentNotifications, unread
         router.post("/notifications/read/all", {}, { preserveScroll: true });
     };
 
+    const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: number | null }>({
+        open: false,
+        id: null,
+    });
+
     const handleDeleteNotification = (id: number) => {
-        if (confirm("Apakah Anda yakin ingin menghapus notifikasi ini?")) {
-            router.delete(`/notifications/${id}`, { preserveScroll: true });
+        setDeleteConfirm({ open: true, id });
+    };
+
+    const handleConfirmedDeleteNotification = () => {
+        if (deleteConfirm.id) {
+            router.delete(`/notifications/${deleteConfirm.id}`, { preserveScroll: true });
+            setDeleteConfirm({ open: false, id: null });
         }
     };
 
@@ -256,69 +266,53 @@ export default function Notifications({ notifications, sentNotifications, unread
                         <div className="max-w-5xl space-y-4">
                             <Card className="overflow-hidden">
                                 <div className="p-6">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead>
-                                                <tr className="border-b border-border">
-                                                    <th className="pb-3 text-[12px] font-bold text-text-inactive uppercase tracking-wider font-inter">
-                                                        Judul
-                                                    </th>
-                                                    <th className="pb-3 text-[12px] font-bold text-text-inactive uppercase tracking-wider font-inter">
-                                                        Penerima
-                                                    </th>
-                                                    <th className="pb-3 text-[12px] font-bold text-text-inactive uppercase tracking-wider font-inter">
-                                                        Isi Pengumuman
-                                                    </th>
-                                                    <th className="pb-3 text-[12px] font-bold text-text-inactive uppercase tracking-wider font-inter">
-                                                        Waktu Kirim
-                                                    </th>
-                                                    <th className="pb-3 text-[12px] font-bold text-text-inactive uppercase tracking-wider font-inter text-right">
-                                                        Aksi
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border/60">
-                                                {sentNotifications.data.length === 0 ? (
-                                                    <tr>
-                                                        <td
-                                                            colSpan={5}
-                                                            className="py-8 text-center text-text-inactive text-[13px] font-inter"
+                                    <Table
+                                        columns={[
+                                            {
+                                                key: "title",
+                                                header: "Judul",
+                                                render: (n) => <span className="font-bold text-text-primary truncate max-w-[180px] block">{n.title}</span>,
+                                            },
+                                            {
+                                                key: "target_group",
+                                                header: "Penerima",
+                                                render: (n) => (
+                                                    <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+                                                        {getGroupLabel(n.target_group)}
+                                                    </span>
+                                                ),
+                                            },
+                                            {
+                                                key: "content",
+                                                header: "Isi Pengumuman",
+                                                render: (n) => <span className="text-text-secondary truncate max-w-[280px] block">{n.content}</span>,
+                                            },
+                                            {
+                                                key: "created_at",
+                                                header: "Waktu Kirim",
+                                                render: (n) => <span className="text-text-inactive">{formatDate(n.created_at)}</span>,
+                                            },
+                                            {
+                                                key: "actions",
+                                                header: <div className="text-right w-full">Aksi</div>,
+                                                render: (n) => (
+                                                    <div className="flex justify-end">
+                                                        <button
+                                                            onClick={() => handleDeleteNotification(n.id)}
+                                                            className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
+                                                            type="button"
                                                         >
-                                                            Anda belum pernah mengirim notifikasi.
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    sentNotifications.data.map((n) => (
-                                                        <tr key={n.id} className="hover:bg-muted/40 transition-colors">
-                                                            <td className="py-3.5 pr-4 text-[13px] text-text-primary font-bold font-inter truncate max-w-[180px]">
-                                                                {n.title}
-                                                            </td>
-                                                            <td className="py-3.5 pr-4 text-[13px]">
-                                                                <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold font-inter">
-                                                                    {getGroupLabel(n.target_group)}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-3.5 pr-4 text-[13px] text-text-secondary font-inter truncate max-w-[280px]">
-                                                                {n.content}
-                                                            </td>
-                                                            <td className="py-3.5 pr-4 text-[13px] text-text-inactive font-inter">
-                                                                {formatDate(n.created_at)}
-                                                            </td>
-                                                            <td className="py-3.5 text-right">
-                                                                <button
-                                                                    onClick={() => handleDeleteNotification(n.id)}
-                                                                    className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
-                                                                    type="button"
-                                                                >
-                                                                    <FiTrash2 className="text-[14px]" />
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                            <FiTrash2 className="text-[14px]" />
+                                                        </button>
+                                                    </div>
+                                                ),
+                                                className: "text-right",
+                                            },
+                                        ]}
+                                        data={sentNotifications.data}
+                                        keyExtractor={(n) => n.id}
+                                        emptyMessage="Anda belum pernah mengirim notifikasi."
+                                    />
 
                                     {sentNotifications.last_page > 1 && (
                                         <div className="pt-4 border-t border-border/40 mt-4">
@@ -347,20 +341,14 @@ export default function Notifications({ notifications, sentNotifications, unread
                 {isCreateOpen && (
                     <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Buat Notifikasi Baru">
                         <form onSubmit={handleCreateNotification} className="space-y-4 font-inter">
-                            <div>
-                                <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                    Judul Notifikasi
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={data.title}
-                                    onChange={(e) => setData("title", e.target.value)}
-                                    placeholder="Masukkan judul pengumuman..."
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                />
-                                {errors.title && <p className="mt-1 text-[11px] text-danger">{errors.title}</p>}
-                            </div>
+                            <Input
+                                label="Judul Notifikasi"
+                                required
+                                value={data.title}
+                                onChange={(e) => setData("title", e.target.value)}
+                                placeholder="Masukkan judul pengumuman..."
+                                error={errors.title}
+                            />
 
                             <div>
                                 <label className="block text-[13px] font-bold text-text-primary mb-1">
@@ -368,22 +356,14 @@ export default function Notifications({ notifications, sentNotifications, unread
                                 </label>
                                 <NativeSelect
                                     value={data.target_group}
-                                    onChange={(e) =>
-                                        setData(
-                                            "target_group",
-                                            e.target.value as "all" | "student" | "teacher" | "guardian",
-                                        )
-                                    }
-                                    className="w-full text-[13px] py-2 font-normal"
+                                    onChange={(e) => setData("target_group", e.target.value as "all" | "student" | "teacher" | "guardian")}
+                                    className="w-full"
                                 >
-                                    <option value="all">Semua Orang</option>
-                                    <option value="student">Siswa</option>
-                                    <option value="teacher">Guru</option>
-                                    <option value="guardian">Wali Murid</option>
+                                    <option value="all">Semua Pengguna</option>
+                                    <option value="student">Hanya Siswa</option>
+                                    <option value="teacher">Hanya Guru</option>
+                                    <option value="guardian">Hanya Wali Murid</option>
                                 </NativeSelect>
-                                {errors.target_group && (
-                                    <p className="mt-1 text-[11px] text-danger">{errors.target_group}</p>
-                                )}
                             </div>
 
                             <div>
@@ -395,29 +375,34 @@ export default function Notifications({ notifications, sentNotifications, unread
                                     rows={4}
                                     value={data.content}
                                     onChange={(e) => setData("content", e.target.value)}
-                                    placeholder="Tuliskan detail informasi di sini..."
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                                    placeholder="Tuliskan isi pengumuman secara detail..."
+                                    className="w-full border border-border rounded-lg p-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
                                 />
                                 {errors.content && <p className="mt-1 text-[11px] text-danger">{errors.content}</p>}
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-3 border-t border-border">
-                                <Button variant="outline" type="button" onClick={() => setIsCreateOpen(false)}>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button variant="ghost" onClick={() => setIsCreateOpen(false)} type="button">
                                     Batal
                                 </Button>
-                                <Button
-                                    variant="primary"
-                                    type="submit"
-                                    disabled={processing}
-                                    icon={<FiSend className="text-[14px]" />}
-                                >
-                                    Kirim Sekarang
+                                <Button variant="primary" loading={processing} type="submit">
+                                    Kirim Pengumuman
                                 </Button>
                             </div>
                         </form>
                     </Modal>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={deleteConfirm.open}
+                onClose={() => setDeleteConfirm({ open: false, id: null })}
+                onConfirm={handleConfirmedDeleteNotification}
+                title="Hapus Notifikasi"
+                message="Apakah Anda yakin ingin menghapus notifikasi ini?"
+                confirmLabel="Ya, Hapus"
+                variant="danger"
+            />
         </AppShell>
     );
 }

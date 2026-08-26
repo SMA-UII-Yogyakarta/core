@@ -17,6 +17,7 @@ interface TableProps<T> {
     keyExtractor: (item: T) => string | number;
     loading?: boolean;
     emptyMessage?: string;
+    bare?: boolean;
 }
 
 export default function Table<T>({
@@ -25,9 +26,10 @@ export default function Table<T>({
     keyExtractor,
     loading,
     emptyMessage = "Tidak ada data.",
+    bare = false,
 }: TableProps<T>) {
     return (
-        <div className="w-full overflow-x-auto border border-border rounded-lg shadow-sm">
+        <div className={`w-full overflow-x-auto ${bare ? "" : "border border-border rounded-lg shadow-sm"}`}>
             <table className="w-full border-collapse font-inter min-w-[600px] md:min-w-0">
                 <thead>
                     <tr className="bg-muted border-b border-border">
