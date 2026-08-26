@@ -134,6 +134,15 @@ export default function Notifications({ notifications, sentNotifications, unread
                     title="Bilah Notifikasi"
                     description="Pantau pengumuman sekolah serta pemberitahuan sistem absensi."
                 >
+                    {activeTab === "inbox" && unreadCount > 0 && (
+                        <Button
+                            variant="primary"
+                            onClick={handleMarkAllAsRead}
+                            icon={<FiCheckSquare className="text-[14px]" />}
+                        >
+                            Tandai Semua Dibaca
+                        </Button>
+                    )}
                     {isAdmin && activeTab === "sent" && (
                         <Button
                             variant="primary"
@@ -178,17 +187,6 @@ export default function Notifications({ notifications, sentNotifications, unread
 
                 {activeTab === "inbox" ? (
                     <div className="max-w-4xl space-y-4">
-                        {unreadCount > 0 && (
-                            <div className="flex justify-end">
-                                <Button
-                                    variant="outline"
-                                    onClick={handleMarkAllAsRead}
-                                    icon={<FiCheckSquare className="text-[14px]" />}
-                                >
-                                    Tandai Semua Dibaca
-                                </Button>
-                            </div>
-                        )}
 
                         {notifications.data.length === 0 ? (
                             <Card className="p-8 text-center text-text-inactive font-inter">

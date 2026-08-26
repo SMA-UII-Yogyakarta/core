@@ -50,7 +50,7 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
             return [
                 { label: "Home", icon: "fa-home", href: "/dashboard" },
                 { label: "Data Master", icon: "fa-database", href: "/master-data" },
-                { label: "Atur Waktu", icon: "fa-clock", href: "/settings" },
+                { label: "Atur Waktu", icon: "fa-clock", href: "/operational-settings" },
             ];
         }
 

@@ -6,6 +6,7 @@ interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant: ActionVariant;
     icon?: string | ReactNode;
     label: string;
+    iconOnly?: boolean;
 }
 
 const variantStyles: Record<ActionVariant, string> = {
@@ -16,28 +17,35 @@ const variantStyles: Record<ActionVariant, string> = {
     add: "bg-primary text-white hover:bg-primary/90 font-semibold border-0",
 };
 
-const sizeStyles = {
-    sm: "px-[10px] py-[6px] text-[12px] gap-[5px]",
-    md: "px-[15px] py-[8px] text-[13px] gap-[6px]",
-};
-
-export default function ActionButton({ variant, icon, label, className = "", ...props }: ActionButtonProps) {
+export default function ActionButton({
+    variant,
+    icon,
+    label,
+    iconOnly = false,
+    className = "",
+    ...props
+}: ActionButtonProps) {
     return (
         <button
-            className={`inline-flex items-center justify-center rounded-md font-inter font-semibold transition-colors duration-150
-                ${variantStyles[variant]}
-                ${sizeStyles.sm}
-                ${className}`}
+            title={label}
+            aria-label={label}
             type="button"
+            className={`inline-flex items-center justify-center rounded-md font-inter font-semibold transition-all duration-150 cursor-pointer ${
+                variantStyles[variant]
+            } ${
+                iconOnly
+                    ? "w-8 h-8 text-[13px] shrink-0"
+                    : "px-2.5 py-1.5 text-[12px] gap-1.5"
+            } ${className}`}
             {...props}
         >
             {icon &&
                 (typeof icon === "string" ? (
-                    <i className={`fas ${icon} text-[12px]`} />
+                    <i className={`fas ${icon} text-[13px]`} />
                 ) : (
-                    <span className="flex items-center justify-center text-[14px]">{icon}</span>
+                    <span className="flex items-center justify-center text-[13px]">{icon}</span>
                 ))}
-            <span>{label}</span>
+            {!iconOnly && <span>{label}</span>}
         </button>
     );
 }

@@ -60,7 +60,7 @@ class PermissionRegistryNavTest extends TestCase
             '/master-data',
             '/class-enrolment',
             '/guardian-assignment',
-            '/settings',
+            '/operational-settings',
             '/export',
         ], $this->hrefsFor($user));
     }
@@ -80,8 +80,8 @@ class PermissionRegistryNavTest extends TestCase
     {
         $this->assertSame([
             '/teacher/duty',
+            '/export',
             '/leave-requests',
-            '/reports/daily',
         ], $this->navHrefs('piket'));
     }
 
@@ -89,10 +89,8 @@ class PermissionRegistryNavTest extends TestCase
     {
         $this->assertSame([
             '/teacher/homeroom',
+            '/export',
             '/leave-requests/verification',
-            '/reports/daily',
-            '/reports/monthly',
-            '/reports/semester',
         ], $this->navHrefs('wali'));
     }
 
