@@ -118,19 +118,20 @@ export default function AttendanceHistory({ student, attendances, month, year }:
             header: "Foto Bukti",
             render: (att) =>
                 att.photo_url ? (
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() =>
                             setPhotoModal({
                                 url: att.photo_url!,
                                 date: att.attendance_date,
                             })
                         }
-                        className="text-[12px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1.5"
+                        className="text-[12px]"
+                        icon={<FiCamera className="text-[12px]" />}
                     >
-                        <FiCamera className="text-[11px]" />
-                        <span>Cek Foto</span>
-                    </button>
+                        Cek Foto
+                    </Button>
                 ) : (
                     <span className="text-[12px] text-text-muted">—</span>
                 ),
@@ -213,18 +214,19 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                             </span>
                                         </div>
                                         {selectedRecord.photo_url && (
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() =>
                                                     setPhotoModal({
                                                         url: selectedRecord.photo_url!,
                                                         date: selectedRecord.attendance_date,
                                                     })
                                                 }
-                                                className="text-[12px] font-bold text-primary hover:underline cursor-pointer"
+                                                className="text-[12px] text-primary"
                                             >
                                                 Lihat Foto Selfie
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                 ) : (
@@ -304,19 +306,20 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                         <StatusBadge variant={att.status} />
 
                                         {att.photo_url && (
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() =>
                                                     setPhotoModal({
                                                         url: att.photo_url!,
                                                         date: att.attendance_date,
                                                     })
                                                 }
-                                                className="text-primary text-[14px] p-2 hover:bg-muted rounded-xl"
+                                                className="text-primary px-2"
                                                 aria-label="Lihat foto selfie"
                                             >
-                                                <FiCamera />
-                                            </button>
+                                                <FiCamera className="text-[14px]" />
+                                            </Button>
                                         )}
                                     </div>
                                 );

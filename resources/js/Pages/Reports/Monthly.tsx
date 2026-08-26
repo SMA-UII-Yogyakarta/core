@@ -1,8 +1,8 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, StatCard, AttendanceChart } from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, AttendanceChart, Table, ExportButtonGroup } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
-import { FiDownload } from "react-icons/fi";
 
 interface MonthlyReportProps {
     monthlyStats: { year: number; months: Array<{ label: string; present: number; late: number; absent: number }> };
@@ -36,6 +36,42 @@ export default function MonthlyReport({
         "Desember",
     ];
 
+    const columns: Column<{ label: string; present: number; late: number; absent: number }>[] = [
+        {
+            key: "label",
+            header: t("reports.month"),
+            render: (m) => <span className="font-medium">{m.label}</span>,
+        },
+        {
+            key: "present",
+            header: <div className="text-center w-full">{t("reports.present")}</div>,
+            render: (m) => <span className="text-success font-semibold">{m.present}</span>,
+            className: "text-center",
+        },
+        {
+            key: "late",
+            header: <div className="text-center w-full">{t("reports.late")}</div>,
+            render: (m) => <span className="text-warning font-semibold">{m.late}</span>,
+            className: "text-center",
+        },
+        {
+            key: "absent",
+            header: <div className="text-center w-full">{t("reports.absent")}</div>,
+            render: (m) => <span className="text-danger font-semibold">{m.absent}</span>,
+            className: "text-center",
+        },
+        {
+            key: "rate",
+            header: <div className="text-center w-full">{t("reports.rate")}</div>,
+            render: (m) => {
+                const total = m.present + m.late + m.absent;
+                const rate = total > 0 ? (((m.present + m.late) / total) * 100).toFixed(1) : "0.0";
+                return <span className="font-medium">{rate}%</span>;
+            },
+            className: "text-center",
+        },
+    ];
+
     return (
         <AppShell title="Rekap Bulanan">
             <Head>
@@ -48,7 +84,7 @@ export default function MonthlyReport({
                         <SelectInput
                             value={selectedMonth.toString()}
                             onChange={(value: string | number | null) =>
-                                (window.location.href = `/reports/monthly?month=${value ?? ""}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                                router.get("/reports/monthly", { month: value, year: selectedYear, class_id: selectedClassId || undefined }, { preserveState: true })
                             }
                             options={monthNames.map((name, i) => ({ value: (i + 1).toString(), label: name }))}
                             className="w-40"
@@ -56,7 +92,7 @@ export default function MonthlyReport({
                         <SelectInput
                             value={selectedYear.toString()}
                             onChange={(value: string | number | null) =>
-                                (window.location.href = `/reports/monthly?month=${selectedMonth}&year=${value ?? ""}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`)
+                                router.get("/reports/monthly", { month: selectedMonth, year: value, class_id: selectedClassId || undefined }, { preserveState: true })
                             }
                             options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
                                 value: y.toString(),
@@ -67,7 +103,7 @@ export default function MonthlyReport({
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
                             onChange={(value: string | number | null) =>
-                                (window.location.href = `/reports/monthly?month=${selectedMonth}&year=${selectedYear}&class_id=${value ?? ""}`)
+                                router.get("/reports/monthly", { month: selectedMonth, year: selectedYear, class_id: value || undefined }, { preserveState: true })
                             }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
@@ -75,13 +111,9 @@ export default function MonthlyReport({
                             ]}
                             className="w-48"
                         />
-                        <a
-                            href={`/export/monthly-recap?month=${selectedMonth}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                            className="h-10 inline-flex items-center gap-2 bg-primary text-white px-4 rounded-lg hover:bg-primary/90 text-[14px] font-semibold transition-colors shrink-0"
-                        >
-                            <FiDownload className="text-[14px]" />
-                            {t("reports.export")}
-                        </a>
+                        <ExportButtonGroup
+                            onExportExcel={() => window.open(`/export/monthly-recap?month=${selectedMonth}&year=${selectedYear}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                        />
                     </div>
                 </PageHeader>
 
@@ -113,45 +145,10 @@ export default function MonthlyReport({
                 </div>
 
                 {/* Monthly Breakdown Table */}
-                <Card>
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.monthlyBreakdown")}</h3>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="text-left text-text-inactive text-sm border-b border-border">
-                                        <th className="pb-3 font-medium">{t("reports.month")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.present")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.late")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.absent")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.rate")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {monthlyStats.months.map((month) => {
-                                        const total = month.present + month.late + month.absent;
-                                        const rate =
-                                            total > 0
-                                                ? (((month.present + month.late) / total) * 100).toFixed(1)
-                                                : "0.0";
-                                        return (
-                                            <tr
-                                                key={month.label}
-                                                className="border-b border-border/50 hover:bg-primary/5"
-                                            >
-                                                <td className="py-3 font-medium">{month.label}</td>
-                                                <td className="py-3 text-center text-success font-semibold">{month.present}</td>
-                                                <td className="py-3 text-center text-warning font-semibold">{month.late}</td>
-                                                <td className="py-3 text-center text-danger font-semibold">{month.absent}</td>
-                                                <td className="py-3 text-center font-medium">{rate}%</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </Card>
+                <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-text">{t("reports.monthlyBreakdown")}</h3>
+                    <Table columns={columns} data={monthlyStats.months} keyExtractor={(m) => m.label} />
+                </div>
             </div>
         </AppShell>
     );

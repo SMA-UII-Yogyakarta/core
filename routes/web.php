@@ -87,12 +87,17 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::post('/guardian-assignment/assign', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent'])->name('guardian-assignment.assign');
     Route::delete('/guardian-assignment/remove/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent'])->name('guardian-assignment.remove');
 
-    // Settings (Waktu & Libur)
-    Route::get('/settings', [AttendanceSettingController::class, 'index'])->name('settings');
-    Route::post('/settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('settings.time-settings');
-    Route::post('/settings/location-settings', [AttendanceSettingController::class, 'updateLocationSettings'])->name('settings.location-settings');
-    Route::post('/settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('settings.holidays');
-    Route::delete('/settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('settings.holidays.destroy');
+    // Operational Settings (Atur Waktu, Lokasi & Libur)
+    Route::get('/operational-settings', [AttendanceSettingController::class, 'index'])->name('operational-settings');
+    Route::post('/operational-settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('operational-settings.time-settings');
+    Route::post('/operational-settings/location-settings', [AttendanceSettingController::class, 'updateLocationSettings'])->name('operational-settings.location-settings');
+    Route::post('/operational-settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('operational-settings.holidays');
+    Route::delete('/operational-settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('operational-settings.holidays.destroy');
+
+    // System Settings (Pengaturan Sistem Core Backend)
+    Route::get('/settings', [\App\Http\Controllers\Web\AppSettingController::class, 'index'])->name('settings');
+    Route::post('/settings', [\App\Http\Controllers\Web\AppSettingController::class, 'update'])->name('settings.update');
+    Route::post('/settings/location-settings', [\App\Http\Controllers\Web\AppSettingController::class, 'updateLocation'])->name('settings.location-settings');
 
     // Leave Requests
     Route::prefix('leave-requests')->name('leave-requests.')->group(function () {
@@ -105,7 +110,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
         Route::patch('/{id}/revert', [LeaveRequestController::class, 'revert'])->name('revert');
     });
 
-    // Reports
+    // Reports (Unified Laporan Rekap)
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/daily', [DailyReportController::class, 'index'])->name('daily');
         Route::get('/monthly', [MonthlyReportController::class, 'index'])->name('monthly');

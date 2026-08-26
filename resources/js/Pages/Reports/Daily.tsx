@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table } from "@/Components";
+import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table, Input } from "@/Components";
+import ExportButtonGroup from "@/Components/features/ExportButtonGroup";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -132,19 +133,18 @@ export default function DailyReport({
                     description="Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas."
                 />
 
-                {/* Main Card */}
-                <Card className="overflow-hidden">
-                    {/* Filters & Export Toolbar */}
-                    <div className="bg-surface p-5 sm:p-6 border-b border-border flex flex-col sm:flex-row justify-end items-center gap-4">
+                {/* Filters & Export Toolbar Card */}
+                <Card className="p-4 sm:p-5 mb-4">
+                    <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
                         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                             {/* Date Picker */}
-                            <input
+                            <Input
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                     router.get(`/reports/daily?date=${e.target.value}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, {}, { preserveState: true })
                                 }
-                                className="h-10 w-full sm:w-[150px] bg-surface border border-border/80 rounded-lg px-3 text-[13px] font-medium text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                inputClassName="h-10 w-full sm:w-[150px]"
                             />
                             
                             {/* Class Selector */}
@@ -167,27 +167,18 @@ export default function DailyReport({
 
                             {/* Export Buttons */}
                             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                <a
-                                    href={`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-danger text-white px-5 rounded-lg hover:bg-danger/90 text-[13px] font-bold shadow-sm transition-colors"
-                                >
-                                    <i className="fas fa-file-pdf"></i> PDF
-                                </a>
-                                <a
-                                    href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
-                                    className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-success text-white px-5 rounded-lg hover:bg-success/90 text-[13px] font-bold shadow-sm transition-colors"
-                                >
-                                    <i className="fas fa-file-excel"></i> Excel
-                                </a>
+                                <ExportButtonGroup
+                                    onExportExcel={() => window.open(`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                                    onExportPdf={() => window.open(`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                                />
                             </div>
                         </div>
                     </div>
-
-
+                </Card>
 
                 {classDetail ? (
-                    <div className="p-6">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
                             <div>
                                 <h3 className="text-lg font-bold text-primary">
                                     {t("reports.classDetail").replace("{class}", classDetail.class.name)}
@@ -211,17 +202,14 @@ export default function DailyReport({
                                 />
                             </div>
                         </div>
-                        {/* TODO: Move to bare/unstyled prop in Table component */}
-                        <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none">
-                            <Table
-                                columns={studentColumns}
-                                data={paginatedStudents}
-                                keyExtractor={(s) => s.id}
-                                emptyMessage="Tidak ada data siswa."
-                            />
-                        </div>
+                        <Table
+                            columns={studentColumns}
+                            data={paginatedStudents}
+                            keyExtractor={(s) => s.id}
+                            emptyMessage="Tidak ada data siswa."
+                        />
                         {filteredStudents.length > pageSize && (
-                            <div className="mt-4 pt-3 border-t border-border">
+                            <div className="pt-2">
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
@@ -232,8 +220,8 @@ export default function DailyReport({
                         )}
                     </div>
                 ) : (
-                    <div className="p-4 sm:p-6">
-                        <div className="mb-4">
+                    <div className="space-y-3">
+                        <div className="mb-1">
                             <h3 className="text-lg font-bold text-primary">
                                 {t("reports.allClassesSummary")}
                             </h3>
@@ -241,24 +229,20 @@ export default function DailyReport({
                                 Menampilkan rekapitulasi data dari {overview.classes.length} kelas
                             </span>
                         </div>
-                        {/* TODO: Move to bare/unstyled prop in Table component */}
-                        <div className="[&>div]:border-none [&>div]:shadow-none [&>div]:rounded-none overflow-x-auto -mx-4 sm:-mx-6">
-                            <Table
-                                columns={classColumns}
-                                data={overview.classes}
-                                keyExtractor={(c) => c.id}
-                                emptyMessage="Tidak ada data kelas."
-                            />
-                        </div>
+                        <Table
+                            columns={classColumns}
+                            data={overview.classes}
+                            keyExtractor={(c) => c.id}
+                            emptyMessage="Tidak ada data kelas."
+                        />
                         
-                        {/* Notes at the bottom as per Figma */}
-                        <div className="px-4 sm:px-6 py-4 mt-2 sm:mt-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
+                        {/* Notes at the bottom */}
+                        <div className="py-2 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
                             <i className="fas fa-info-circle hidden sm:block"></i>
                             Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
                         </div>
                     </div>
                 )}
-                </Card>
             </div>
         </AppShell>
     );

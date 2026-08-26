@@ -4,21 +4,37 @@ export interface PaginationProps {
     totalItems: number;
     perPage?: number;
     onPageChange: (page: number) => void;
+    compact?: boolean;
+    align?: "auto" | "between" | "center";
+    className?: string;
 }
 
 type PaginationItem = number | "...";
 
-function getPaginationRange(currentPage: number, totalPages: number): PaginationItem[] {
+function getPaginationRange(currentPage: number, totalPages: number, compact: boolean): PaginationItem[] {
+    if (compact) {
+        if (totalPages <= 5) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+        if (currentPage <= 2) {
+            return [1, 2, 3, "...", totalPages];
+        }
+        if (currentPage >= totalPages - 1) {
+            return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+        }
+        return [1, "...", currentPage, "...", totalPages];
+    }
+
     if (totalPages <= 7) {
         return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
     const range: PaginationItem[] = [];
-    const showLeftEllipsis = currentPage > 4;
-    const showRightEllipsis = currentPage < totalPages - 3;
+    const showLeftEllipsis = currentPage > 3;
+    const showRightEllipsis = currentPage < totalPages - 2;
 
     if (!showLeftEllipsis && showRightEllipsis) {
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 4; i++) {
             range.push(i);
         }
         range.push("...");
@@ -26,7 +42,7 @@ function getPaginationRange(currentPage: number, totalPages: number): Pagination
     } else if (showLeftEllipsis && !showRightEllipsis) {
         range.push(1);
         range.push("...");
-        for (let i = totalPages - 4; i <= totalPages; i++) {
+        for (let i = totalPages - 3; i <= totalPages; i++) {
             range.push(i);
         }
     } else {
@@ -48,42 +64,60 @@ export default function Pagination({
     totalItems,
     perPage = 10,
     onPageChange,
+    compact = false,
+    align = "auto",
+    className = "",
 }: PaginationProps) {
     if (totalPages <= 0) return null;
 
-    const paginationRange = getPaginationRange(currentPage, totalPages);
+    const isCentered = align === "center" || compact;
+    const paginationRange = getPaginationRange(currentPage, totalPages, compact);
     const startItem = totalItems > 0 ? (currentPage - 1) * perPage + 1 : 0;
     const endItem = Math.min(currentPage * perPage, totalItems);
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between mt-4 pb-20 sm:pb-0 gap-3 text-[13px] text-text-muted font-inter select-none">
-            <span className="text-[12px] sm:text-[13px]">
+        <div
+            className={`flex ${
+                isCentered
+                    ? "flex-col items-center justify-center text-center"
+                    : "flex-col sm:flex-row sm:items-center justify-between text-center sm:text-left"
+            } mt-3 gap-2.5 text-[13px] text-text-muted font-inter select-none max-w-full ${className}`}
+        >
+            {/* Info Text */}
+            <span className="text-[12px] sm:text-[13px] whitespace-nowrap text-text-secondary">
                 Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
                 <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
                 <strong className="text-text-primary font-bold">{totalItems}</strong> data
             </span>
 
-            <nav className="flex items-center gap-1.5" aria-label="Pagination">
+            {/* Navigation Controls */}
+            <nav
+                className={`flex flex-wrap items-center gap-1 sm:gap-1.5 max-w-full ${
+                    isCentered ? "justify-center" : "justify-center sm:justify-end"
+                }`}
+                aria-label="Pagination"
+            >
                 {/* Previous Button */}
                 <button
                     type="button"
                     disabled={currentPage <= 1}
                     onClick={() => onPageChange(currentPage - 1)}
-                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
                     aria-label="Halaman sebelumnya"
+                    title="Halaman sebelumnya"
                 >
                     <i className="fas fa-chevron-left text-[10px]" />
-                    <span className="hidden sm:inline">Sebelumnya</span>
+                    {!compact && <span className="hidden sm:inline">Sebelumnya</span>}
                 </button>
 
                 {/* Page Number Buttons */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                     {paginationRange.map((item, idx) => {
                         if (item === "...") {
                             return (
                                 <span
                                     key={`ellipsis-${idx}`}
-                                    className="w-8 h-8 flex items-center justify-center text-text-inactive font-bold text-[13px] select-none"
+                                    className="w-7 h-8 sm:w-8 sm:h-8 flex items-center justify-center text-text-inactive font-bold text-[12px] sm:text-[13px] select-none shrink-0"
                                 >
                                     …
                                 </span>
@@ -98,7 +132,7 @@ export default function Pagination({
                                 key={pageNum}
                                 type="button"
                                 onClick={() => onPageChange(pageNum)}
-                                className={`w-8 h-8 rounded-lg text-[13px] font-bold font-inter transition-all flex items-center justify-center cursor-pointer ${
+                                className={`w-7 h-8 sm:w-8 sm:h-8 rounded-lg text-[12px] sm:text-[13px] font-bold font-inter transition-all flex items-center justify-center cursor-pointer shrink-0 ${
                                     isActive
                                         ? "bg-primary text-white shadow-sm"
                                         : "bg-surface border border-border text-text-primary hover:bg-muted hover:border-border/80"
@@ -116,10 +150,11 @@ export default function Pagination({
                     type="button"
                     disabled={currentPage >= totalPages}
                     onClick={() => onPageChange(currentPage + 1)}
-                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
                     aria-label="Halaman selanjutnya"
+                    title="Halaman selanjutnya"
                 >
-                    <span className="hidden sm:inline">Selanjutnya</span>
+                    {!compact && <span className="hidden sm:inline">Selanjutnya</span>}
                     <i className="fas fa-chevron-right text-[10px]" />
                 </button>
             </nav>
