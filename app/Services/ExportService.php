@@ -133,12 +133,12 @@ class ExportService
                 if ($att) {
                     if ($att->status === 'Present') {
                         $statusLabel = 'HADIR';
-                        $waktuKet = $att->check_in_time ? Carbon::parse($att->check_in_time)->format('H:i') . ' WIB' : '06:45 WIB';
+                        $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
                         $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
                         $photoType = 'selfie';
                     } elseif ($att->status === 'Late') {
                         $statusLabel = 'TERLAMBAT';
-                        $waktuKet = $att->check_in_time ? Carbon::parse($att->check_in_time)->format('H:i') . ' WIB' : '07:12 WIB';
+                        $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
                         $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
                         $photoType = 'selfie';
                     }
