@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\LeaveRequest;
+use App\Models\Student;
 use App\Services\HomeroomScope;
 use App\Services\LeaveRequestService;
+use App\Services\TeacherService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,6 +16,7 @@ class LeaveRequestController extends Controller
     public function __construct(
         protected LeaveRequestService $leaveRequestService,
         protected HomeroomScope $homeroomScope,
+        protected TeacherService $teacherService,
     ) {
     }
 
@@ -49,13 +52,62 @@ class LeaveRequestController extends Controller
     {
         $this->authorize('verify', LeaveRequest::class);
 
+        $user = $request->user();
+
+        if ($user->role === 'teacher') {
+            $teacher = $this->teacherService->findByUserId($user->id);
+            $schoolClass = $teacher?->schoolClasses()->first();
+
+            if (! $teacher || ! $schoolClass) {
+                return Inertia::render('Teacher/LeaveVerification', [
+                    'teacher' => $teacher ? ['id' => $teacher->id, 'name' => $teacher->name] : null,
+                    'class' => null,
+                    'leaveRequests' => [],
+                ]);
+            }
+
+            $studentIds = Student::where('class_id', $schoolClass->id)
+                ->where('status', 'Active')
+                ->pluck('id');
+
+            $leaveRequests = LeaveRequest::with(['student', 'guardian'])
+                ->whereIn('student_id', $studentIds)
+                ->latest()
+                ->get()
+                ->map(fn ($lr) => [
+                    'id' => $lr->id,
+                    'student' => [
+                        'id' => $lr->student->id,
+                        'name' => $lr->student->name,
+                        'nis' => $lr->student->nis,
+                        'nisn' => $lr->student->nisn,
+                    ],
+                    'guardian' => ['id' => $lr->guardian->id, 'name' => $lr->guardian->name],
+                    'category' => $lr->category,
+                    'start_date' => $lr->start_date->format('Y-m-d'),
+                    'end_date' => $lr->end_date->format('Y-m-d'),
+                    'description' => $lr->description,
+                    'document_url' => $lr->document_url,
+                    'approval_status' => $lr->approval_status,
+                    'rejection_reason' => $lr->rejection_reason,
+                    'created_at' => $lr->created_at->toIso8601String(),
+                    'updated_at' => $lr->updated_at?->toIso8601String(),
+                ]);
+
+            return Inertia::render('Teacher/LeaveVerification', [
+                'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
+                'class' => ['id' => $schoolClass->id, 'name' => $schoolClass->name],
+                'leaveRequests' => $leaveRequests,
+            ]);
+        }
+
         $filters = $request->only(['status', 'category']);
 
         return Inertia::render('Admin/LeaveVerification', [
             'leaveRequests' => $this->leaveRequestService->paginate(
                 $filters,
                 20,
-                $this->homeroomScope->classIds($request->user()),
+                $this->homeroomScope->classIds($user),
             ),
             'filters' => $filters,
         ]);
@@ -67,7 +119,7 @@ class LeaveRequestController extends Controller
         $this->assertInScope($request, $id);
 
         $this->leaveRequestService->verify($id, 'Approved');
-        return redirect()->back()->with('success', 'Leave request approved.');
+        return redirect()->back();
     }
 
     public function reject(Request $request, int $id)
@@ -75,8 +127,18 @@ class LeaveRequestController extends Controller
         $this->authorize('verify', LeaveRequest::class);
         $this->assertInScope($request, $id);
 
-        $this->leaveRequestService->verify($id, 'Rejected');
-        return redirect()->back()->with('success', 'Leave request rejected.');
+        $reason = $request->input('rejection_reason');
+        $this->leaveRequestService->verify($id, 'Rejected', $reason);
+        return redirect()->back();
+    }
+
+    public function revert(Request $request, int $id)
+    {
+        $this->authorize('verify', LeaveRequest::class);
+        $this->assertInScope($request, $id);
+
+        $this->leaveRequestService->revert($id);
+        return redirect()->back();
     }
 
     public function bulkVerify(Request $request)

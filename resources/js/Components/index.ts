@@ -31,6 +31,7 @@ export { default as TabSwitcher } from "@/Components/common/TabSwitcher";
 export { default as Modal } from "@/Components/common/Modal";
 export { default as ConfirmDialog } from "@/Components/common/ConfirmDialog";
 export { default as Drawer } from "@/Components/common/Drawer";
+export { default as BottomSheet } from "@/Components/common/BottomSheet";
 export { default as BrandLogo } from "@/Components/layout/BrandLogo";
 export { default as AttendanceChart } from "@/Components/features/AttendanceChart";
 export { default as AttendanceCalendar } from "@/Components/features/AttendanceCalendar";

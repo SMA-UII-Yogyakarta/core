@@ -45,14 +45,20 @@ class LeaveRequestService
         ]);
     }
 
-    public function verify(int $id, string $status): LeaveRequest
+    public function verify(int $id, string $status, ?string $reason = null): LeaveRequest
     {
         if (! in_array($status, ['Approved', 'Rejected'])) {
             throw new \InvalidArgumentException('Status must be Approved or Rejected.');
         }
 
         $leave = LeaveRequest::findOrFail($id);
-        $leave->update(['approval_status' => $status]);
+        $data = ['approval_status' => $status];
+        if ($status === 'Rejected' && $reason) {
+            $data['rejection_reason'] = $reason;
+        } elseif ($status === 'Approved') {
+            $data['rejection_reason'] = null;
+        }
+        $leave->update($data);
 
         return $leave->fresh(['student.user', 'student.class', 'guardian']);
     }
@@ -61,13 +67,28 @@ class LeaveRequestService
      * @param  list<int>  $ids
      * @param  string  $status
      */
-    public function bulkVerify(array $ids, string $status): int
+    public function bulkVerify(array $ids, string $status, ?string $reason = null): int
     {
         if (! in_array($status, ['Approved', 'Rejected'], true)) {
             throw new \InvalidArgumentException('Status must be Approved or Rejected.');
         }
 
-        return LeaveRequest::whereIn('id', array_unique($ids))->update(['approval_status' => $status]);
+        $data = ['approval_status' => $status];
+        if ($status === 'Rejected' && $reason) {
+            $data['rejection_reason'] = $reason;
+        } elseif ($status === 'Approved') {
+            $data['rejection_reason'] = null;
+        }
+
+        return LeaveRequest::whereIn('id', array_unique($ids))->update($data);
+    }
+
+    public function revert(int $id): LeaveRequest
+    {
+        $leave = LeaveRequest::findOrFail($id);
+        $leave->update(['approval_status' => 'Pending']);
+
+        return $leave->fresh(['student.user', 'student.class', 'guardian']);
     }
 
     public function pending(): LengthAwarePaginator

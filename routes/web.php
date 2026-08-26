@@ -107,6 +107,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
         Route::get('/{id}', [LeaveRequestController::class, 'show'])->name('show');
         Route::patch('/{id}/approve', [LeaveRequestController::class, 'approve'])->name('approve');
         Route::patch('/{id}/reject', [LeaveRequestController::class, 'reject'])->name('reject');
+        Route::patch('/{id}/revert', [LeaveRequestController::class, 'revert'])->name('revert');
     });
 
     // Reports (Unified Laporan Rekap)

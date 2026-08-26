@@ -15,6 +15,7 @@ class VerifyLeaveRequestRequest extends FormRequest
     {
         return [
             'status' => 'required|string|in:Approved,Rejected',
+            'rejection_reason' => 'nullable|string|max:1000',
         ];
     }
 }

@@ -602,7 +602,7 @@ class DatabaseSeeder extends Seeder
             ['student_idx' => 2, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 3, 'duration' => 3, 'desc' => 'Demam Berdarah (DBD), dirawat di RS PKU Muhammadiyah Kotagede.'],
             ['student_idx' => 4, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 5, 'duration' => 1, 'desc' => 'Menghadiri pernikahan kakak kandung di Solo.'],
             ['student_idx' => 6, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 7, 'duration' => 3, 'desc' => 'Mewakili SMA UII dalam Olimpiade Sains Nasional (OSN) Tingkat DIY.'],
-            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 10, 'duration' => 1, 'desc' => 'Izin tidak masuk tanpa surat dokter yang jelas.'],
+            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 10, 'duration' => 1, 'desc' => 'Izin tidak masuk tanpa surat dokter yang jelas.', 'reject_reason' => 'Izin tidak disertai surat keterangan dokter yang sah.'],
             ['student_idx' => 10, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 12, 'duration' => 2, 'desc' => 'Acara keluarga silaturahmi ke Jawa Timur.'],
             ['student_idx' => 12, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 15, 'duration' => 2, 'desc' => 'Mengikuti Kejuaraan Futsal Pelajar Tingkat Kabupaten Bantul.'],
             ['student_idx' => 14, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 18, 'duration' => 1, 'desc' => 'Sakit flu dan radang tenggorokan.'],
@@ -626,6 +626,7 @@ class DatabaseSeeder extends Seeder
                     'end_date' => $endDate,
                     'description' => $ls['desc'],
                     'approval_status' => $ls['status'],
+                    'rejection_reason' => $ls['reject_reason'] ?? null,
                     'document_url' => 'https://via.placeholder.com/600x800?text=Surat+Izin+' . urlencode($student->name),
                 ],
             );
