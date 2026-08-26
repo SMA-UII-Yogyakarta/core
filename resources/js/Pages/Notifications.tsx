@@ -264,75 +264,71 @@ export default function Notifications({ notifications, sentNotifications, unread
                     isAdmin &&
                     sentNotifications && (
                         <div className="max-w-5xl space-y-4">
-                            <Card className="overflow-hidden">
-                                <div className="p-6">
-                                    <Table
-                                        columns={[
-                                            {
-                                                key: "title",
-                                                header: "Judul",
-                                                render: (n) => <span className="font-bold text-text-primary truncate max-w-[180px] block">{n.title}</span>,
-                                            },
-                                            {
-                                                key: "target_group",
-                                                header: "Penerima",
-                                                render: (n) => (
-                                                    <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold">
-                                                        {getGroupLabel(n.target_group)}
-                                                    </span>
-                                                ),
-                                            },
-                                            {
-                                                key: "content",
-                                                header: "Isi Pengumuman",
-                                                render: (n) => <span className="text-text-secondary truncate max-w-[280px] block">{n.content}</span>,
-                                            },
-                                            {
-                                                key: "created_at",
-                                                header: "Waktu Kirim",
-                                                render: (n) => <span className="text-text-inactive">{formatDate(n.created_at)}</span>,
-                                            },
-                                            {
-                                                key: "actions",
-                                                header: <div className="text-right w-full">Aksi</div>,
-                                                render: (n) => (
-                                                    <div className="flex justify-end">
-                                                        <button
-                                                            onClick={() => handleDeleteNotification(n.id)}
-                                                            className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
-                                                            type="button"
-                                                        >
-                                                            <FiTrash2 className="text-[14px]" />
-                                                        </button>
-                                                    </div>
-                                                ),
-                                                className: "text-right",
-                                            },
-                                        ]}
-                                        data={sentNotifications.data}
-                                        keyExtractor={(n) => n.id}
-                                        emptyMessage="Anda belum pernah mengirim notifikasi."
-                                    />
+                            <Table
+                                columns={[
+                                    {
+                                        key: "title",
+                                        header: "Judul",
+                                        render: (n) => <span className="font-bold text-text-primary truncate max-w-[180px] block">{n.title}</span>,
+                                    },
+                                    {
+                                        key: "target_group",
+                                        header: "Penerima",
+                                        render: (n) => (
+                                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+                                                {getGroupLabel(n.target_group)}
+                                            </span>
+                                        ),
+                                    },
+                                    {
+                                        key: "content",
+                                        header: "Isi Pengumuman",
+                                        render: (n) => <span className="text-text-secondary truncate max-w-[280px] block">{n.content}</span>,
+                                    },
+                                    {
+                                        key: "created_at",
+                                        header: "Waktu Kirim",
+                                        render: (n) => <span className="text-text-inactive">{formatDate(n.created_at)}</span>,
+                                    },
+                                    {
+                                        key: "actions",
+                                        header: <div className="text-right w-full">Aksi</div>,
+                                        render: (n) => (
+                                            <div className="flex justify-end">
+                                                <button
+                                                    onClick={() => handleDeleteNotification(n.id)}
+                                                    className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
+                                                    type="button"
+                                                >
+                                                    <FiTrash2 className="text-[14px]" />
+                                                </button>
+                                            </div>
+                                        ),
+                                        className: "text-right",
+                                    },
+                                ]}
+                                data={sentNotifications.data}
+                                keyExtractor={(n) => n.id}
+                                emptyMessage="Anda belum pernah mengirim notifikasi."
+                            />
 
-                                    {sentNotifications.last_page > 1 && (
-                                        <div className="pt-4 border-t border-border/40 mt-4">
-                                            <Pagination
-                                                currentPage={sentNotifications.current_page}
-                                                totalPages={sentNotifications.last_page}
-                                                totalItems={sentNotifications.total}
-                                                perPage={sentNotifications.per_page}
-                                                onPageChange={(page) =>
-                                                    router.get(
-                                                        "/notifications",
-                                                        { sent_page: page },
-                                                        { preserveState: true },
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    )}
+                            {sentNotifications.last_page > 1 && (
+                                <div className="pt-2">
+                                    <Pagination
+                                        currentPage={sentNotifications.current_page}
+                                        totalPages={sentNotifications.last_page}
+                                        totalItems={sentNotifications.total}
+                                        perPage={sentNotifications.per_page}
+                                        onPageChange={(page) =>
+                                            router.get(
+                                                "/notifications",
+                                                { sent_page: page },
+                                                { preserveState: true },
+                                            )
+                                        }
+                                    />
                                 </div>
-                            </Card>
+                            )}
                         </div>
                     )
                 )}

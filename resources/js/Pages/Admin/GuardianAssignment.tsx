@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination, EmptyState, ConfirmDialog } from "@/Components";
+import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination, EmptyState, ConfirmDialog, Card } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -257,37 +257,39 @@ export default function GuardianAssignment({
                 </div>
 
                 {/* Right Column: Daftar Siswa Terhubung */}
-                <div className="lg:col-span-7 flex flex-col gap-4 bg-surface border border-border rounded-xl p-5 shadow-card min-h-[480px]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
-                        <div>
-                            <h2 className="text-[16px] font-bold text-primary font-inter">
-                                Anak Terhubung: {selectedGuardian?.name ?? "Pilih Wali Murid"}
-                            </h2>
-                            <p className="text-[12px] text-text-secondary">
-                                {selectedGuardian
-                                    ? `Kontak: ${selectedGuardian.phone ?? "-"} · Alamat: ${selectedGuardian.address ?? "-"}`
-                                    : "Silakan pilih salah satu wali murid di kolom sebelah kiri."}
-                            </p>
+                <div className="lg:col-span-7 flex flex-col gap-4 min-h-[480px]">
+                    <Card className="p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h2 className="text-[16px] font-bold text-primary font-inter">
+                                    Anak Terhubung: {selectedGuardian?.name ?? "Pilih Wali Murid"}
+                                </h2>
+                                <p className="text-[12px] text-text-secondary mt-0.5">
+                                    {selectedGuardian
+                                        ? `Kontak: ${selectedGuardian.phone ?? "-"} · Alamat: ${selectedGuardian.address ?? "-"}`
+                                        : "Silakan pilih salah satu wali murid di kolom sebelah kiri."}
+                                </p>
+                            </div>
+                            {selectedGuardian && (
+                                <Button
+                                    onClick={() => {
+                                        setStudentSearch("");
+                                        setModalPage(1);
+                                        setShowAddModal(true);
+                                    }}
+                                    className="shrink-0 whitespace-nowrap"
+                                    data-testid="btn-add-student"
+                                >
+                                    <i className="fas fa-user-plus mr-1.5" />
+                                    Hubungkan Siswa
+                                </Button>
+                            )}
                         </div>
-                        {selectedGuardian && (
-                            <Button
-                                onClick={() => {
-                                    setStudentSearch("");
-                                    setModalPage(1);
-                                    setShowAddModal(true);
-                                }}
-                                className="shrink-0 whitespace-nowrap"
-                                data-testid="btn-add-student"
-                            >
-                                <i className="fas fa-user-plus mr-1.5" />
-                                Hubungkan Siswa
-                            </Button>
-                        )}
-                    </div>
+                    </Card>
 
                     {selectedGuardian ? (
                         linkedStudents.length > 0 ? (
-                            <div className="mt-2 flex flex-col gap-3">
+                            <div className="flex flex-col gap-3">
                                 <Table
                                     columns={columns}
                                     data={paginatedLinked}
@@ -319,10 +321,10 @@ export default function GuardianAssignment({
                             />
                         )
                     ) : (
-                        <div className="text-center py-16 text-text-inactive my-auto">
+                        <Card className="text-center py-16 text-text-inactive my-auto">
                             <i className="fas fa-arrow-left text-3xl mb-3" />
                             <p className="text-[14px]">Pilih salah satu wali murid di panel kiri untuk mengelola siswa terhubung.</p>
-                        </div>
+                        </Card>
                     )}
                 </div>
             </div>

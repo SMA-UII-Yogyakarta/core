@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox, Modal, NativeSelect, ConfirmDialog, EmptyState } from "@/Components";
+import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox, Modal, NativeSelect, ConfirmDialog, EmptyState, Card } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -382,87 +382,87 @@ export default function EnrolmentKelas({
                 </div>
 
                 {/* Column 2: Roster Siswa (Right) */}
-                <div className="lg:col-span-3">
+                <div className="lg:col-span-3 flex flex-col gap-4">
                     {selectedClass ? (
-                        <section className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
+                        <>
                             {/* Card Header & Toolbar */}
-                            <div className="flex flex-col gap-3.5 pb-4 border-b border-border mb-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                    <div>
-                                        <h2 className="text-[16px] font-bold text-primary font-inter">
-                                            Daftar Siswa — {selectedClass.name}
-                                        </h2>
-                                        <span className="text-[12px] text-text-muted">
-                                            Menampilkan {paginatedStudents.length} dari {filteredStudents.length} siswa
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        {/* Bulk Remove Button */}
-                                        {selectedStudentIds.length > 0 && (
+                            <Card className="p-5">
+                                <div className="flex flex-col gap-3.5">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <h2 className="text-[16px] font-bold text-primary font-inter">
+                                                Daftar Siswa — {selectedClass.name}
+                                            </h2>
+                                            <span className="text-[12px] text-text-muted">
+                                                Menampilkan {paginatedStudents.length} dari {filteredStudents.length} siswa
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {/* Bulk Remove Button */}
+                                            {selectedStudentIds.length > 0 && (
+                                                <Button
+                                                    variant="danger"
+                                                    size="md"
+                                                    onClick={handleBulkRemove}
+                                                    icon={<i className="fas fa-user-minus text-[12px]" />}
+                                                    className="shrink-0"
+                                                >
+                                                    Keluarkan ({selectedStudentIds.length})
+                                                </Button>
+                                            )}
+
                                             <Button
-                                                variant="danger"
+                                                variant="primary"
                                                 size="md"
-                                                onClick={handleBulkRemove}
-                                                icon={<i className="fas fa-user-minus text-[12px]" />}
+                                                onClick={() => {
+                                                    setModalSearch("");
+                                                    setModalCurrentPage(1);
+                                                    setSelectedModalStudentIds([]);
+                                                    setShowAddModal(true);
+                                                }}
+                                                disabled={unassignedStudents.length === 0}
+                                                icon={<i className="fas fa-user-plus text-[12px]" />}
                                                 className="shrink-0"
                                             >
-                                                Keluarkan ({selectedStudentIds.length})
+                                                Tambah Siswa
                                             </Button>
-                                        )}
-
-                                        <Button
-                                            variant="primary"
-                                            size="md"
-                                            onClick={() => {
-                                                setModalSearch("");
-                                                setModalCurrentPage(1);
-                                                setSelectedModalStudentIds([]);
-                                                setShowAddModal(true);
+                                        </div>
+                                    </div>
+                                    <div className="w-full pt-1 border-t border-border/60">
+                                        <SearchBar
+                                            value={search}
+                                            onChange={(val) => {
+                                                setSearch(val);
+                                                setCurrentPage(1);
                                             }}
-                                            disabled={unassignedStudents.length === 0}
-                                            icon={<i className="fas fa-user-plus text-[12px]" />}
-                                            className="shrink-0"
-                                        >
-                                            Tambah Siswa
-                                        </Button>
+                                            onSearch={() => setCurrentPage(1)}
+                                            placeholder="Cari NIS / Nama siswa di kelas ini..."
+                                        />
                                     </div>
                                 </div>
-                                <div className="w-full">
-                                    <SearchBar
-                                        value={search}
-                                        onChange={(val) => {
-                                            setSearch(val);
-                                            setCurrentPage(1);
-                                        }}
-                                        onSearch={() => setCurrentPage(1)}
-                                        placeholder="Cari NIS / Nama siswa di kelas ini..."
-                                    />
-                                </div>
-                            </div>
+                            </Card>
 
-                            {/* Table */}
-                            <div className="flex-1 overflow-x-auto">
+                            {/* Standalone Table */}
+                            <div className="flex flex-col gap-3">
                                 <Table
                                     columns={columns}
                                     data={paginatedStudents}
                                     keyExtractor={(s) => s.id}
                                     emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Belum ada siswa di kelas ini."}
                                 />
+                                {filteredStudents.length > pageSize && (
+                                    <div className="pt-2 border-t border-border">
+                                        <Pagination
+                                            currentPage={safePage}
+                                            totalPages={totalPages}
+                                            totalItems={filteredStudents.length}
+                                            perPage={pageSize}
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
                             </div>
-
-                            {/* Pagination */}
-                            {filteredStudents.length > pageSize && (
-                                <div className="mt-4 pt-3 border-t border-border">
-                                    <Pagination
-                                        currentPage={safePage}
-                                        totalPages={totalPages}
-                                        totalItems={filteredStudents.length}
-                                        perPage={pageSize}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                </div>
-                            )}
-
+                            
                             {/* Card Footer */}
                             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                                 <span className="text-[13px] font-semibold text-text-secondary font-inter">
@@ -483,7 +483,7 @@ export default function EnrolmentKelas({
                                     <span>Simpan Pembaruan</span>
                                 </button>
                             </div>
-                        </section>
+                        </>
                     ) : (
                         <div className="bg-surface border border-border rounded-xl p-12 text-center shadow-card flex flex-col items-center justify-center min-h-[440px]">
                             <EmptyState
