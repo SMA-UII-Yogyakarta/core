@@ -18,6 +18,7 @@ import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 import { attendanceCorrectionSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import { FiFilter } from "react-icons/fi";
 
 interface Student {
     id: number;
@@ -253,7 +254,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                             />
                         </div>
                         <Button variant="primary" onClick={applyFilter} className="h-10">
-                            <i className="fas fa-filter mr-2 text-[12px]" />
+                            <FiFilter className="mr-2 text-[12px]" />
                             Terapkan Filter
                         </Button>
                         <div className="w-full sm:w-64 sm:ml-auto">

@@ -14,6 +14,7 @@ import {
     EmptyState,
 } from "@/Components";
 import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
+import { FiCheck, FiX, FiCheckSquare, FiXCircle, FiExternalLink } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -190,7 +191,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                             variant="primary"
                             size="sm"
                             onClick={handleBulkApprove}
-                            icon={<i className="fas fa-check-double text-[11px]" />}
+                            icon={<FiCheckSquare className="text-[11px]" />}
                         >
                             Setujui Semua
                         </Button>
@@ -198,7 +199,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                             variant="danger"
                             size="sm"
                             onClick={handleBulkReject}
-                            icon={<i className="fas fa-times-circle text-[11px]" />}
+                            icon={<FiXCircle className="text-[11px]" />}
                         >
                             Tolak Semua
                         </Button>
@@ -265,14 +266,14 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                                                 onClick={() => handleApprove(lr.id)}
                                                 className="px-3 py-1.5 flex-1 sm:flex-none bg-success/10 text-success border border-success/20 rounded-lg text-[12px] font-bold hover:bg-success/20 transition-colors flex items-center justify-center gap-1.5"
                                             >
-                                                <i className="fas fa-check"></i> Setuju
+                                                <FiCheck /> Setuju
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => handleReject(lr.id)}
                                                 className="px-3 py-1.5 flex-1 sm:flex-none bg-danger/10 text-danger border border-danger/20 rounded-lg text-[12px] font-bold hover:bg-danger/20 transition-colors flex items-center justify-center gap-1.5"
                                             >
-                                                <i className="fas fa-times"></i> Tolak
+                                                <FiX /> Tolak
                                             </button>
                                         </>
                                     ) : undefined
@@ -394,7 +395,7 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1.5 text-primary hover:underline text-[12px] font-bold"
                                     >
-                                        <i className="fas fa-external-link-alt" />
+                                        <FiExternalLink />
                                         <span>Buka Dokumen</span>
                                     </a>
                                 </div>
@@ -405,11 +406,11 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                         {selectedRequest.approval_status === "Pending" && (
                             <div className="pt-4 border-t border-border flex items-center justify-end gap-3">
                                 <Button variant="danger" onClick={() => handleReject(selectedRequest.id)}>
-                                    <i className="fas fa-times mr-2" />
+                                    <FiX className="mr-2" />
                                     Tolak Permohonan
                                 </Button>
                                 <Button variant="primary" onClick={() => handleApprove(selectedRequest.id)}>
-                                    <i className="fas fa-check mr-2" />
+                                    <FiCheck className="mr-2" />
                                     Setujui Permohonan
                                 </Button>
                             </div>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination } from "@/Components";
+import { FiUserX, FiCheckCircle, FiUserPlus, FiPlus, FiArrowLeft } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -174,7 +175,7 @@ export default function GuardianAssignment({
                     aria-label={`Lepas hubungan ${s.name}`}
                     data-testid={`btn-remove-student-${s.id}`}
                 >
-                    <i className="fas fa-unlink text-[14px]" />
+                    <FiUserX className="text-[14px]" />
                 </button>
             ),
         },
@@ -235,7 +236,7 @@ export default function GuardianAssignment({
                                     </div>
                                     {isSelected && (
                                         <span className="text-primary font-bold text-[12px]">
-                                            <i className="fas fa-check-circle" />
+                                            <FiCheckCircle />
                                         </span>
                                     )}
                                 </button>
@@ -260,13 +261,15 @@ export default function GuardianAssignment({
                 <div className="lg:col-span-7 flex flex-col gap-4 bg-surface border border-border rounded-xl p-5 shadow-card min-h-[480px]">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
                         <div>
-                            <h2 className="text-[16px] font-bold text-primary font-inter">
-                                Anak Terhubung: {selectedGuardian?.name ?? "Pilih Wali Murid"}
-                            </h2>
-                            <p className="text-[12px] text-text-secondary">
+                            <h2 className="text-[15px] font-bold text-text-primary font-inter">
                                 {selectedGuardian
-                                    ? `Kontak: ${selectedGuardian.phone ?? "-"} · Alamat: ${selectedGuardian.address ?? "-"}`
-                                    : "Silakan pilih salah satu wali murid di kolom sebelah kiri."}
+                                    ? `Siswa Binaan: ${selectedGuardian.name}`
+                                    : "Siswa Binaan"}
+                            </h2>
+                            <p className="text-[12px] text-text-secondary mt-0.5">
+                                {selectedGuardian
+                                    ? `${linkedStudents.length} siswa terhubung dengan wali murid ini.`
+                                    : "Pilih wali murid di sebelah kiri untuk melihat siswa terhubung."}
                             </p>
                         </div>
                         {selectedGuardian && (
@@ -279,7 +282,7 @@ export default function GuardianAssignment({
                                 className="shrink-0 whitespace-nowrap"
                                 data-testid="btn-add-student"
                             >
-                                <i className="fas fa-user-plus mr-1.5" />
+                                <FiUserPlus className="mr-1.5" />
                                 Hubungkan Siswa
                             </Button>
                         )}
@@ -308,7 +311,7 @@ export default function GuardianAssignment({
                         ) : (
                             <div className="text-center py-12 border-2 border-dashed border-border/80 rounded-xl my-auto">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3 text-lg">
-                                    <i className="fas fa-users-slash" />
+                                    <FiUserX />
                                 </div>
                                 <h3 className="text-[15px] font-bold text-text-primary">Belum Ada Siswa Terhubung</h3>
                                 <p className="text-[13px] text-text-secondary max-w-sm mx-auto mt-1 mb-4">
@@ -321,14 +324,14 @@ export default function GuardianAssignment({
                                         setShowAddModal(true);
                                     }}
                                 >
-                                    <i className="fas fa-plus mr-1.5" />
+                                    <FiPlus className="mr-1.5" />
                                     Hubungkan Siswa Sekarang
                                 </Button>
                             </div>
                         )
                     ) : (
                         <div className="text-center py-16 text-text-inactive my-auto">
-                            <i className="fas fa-arrow-left text-3xl mb-3" />
+                            <FiArrowLeft className="text-3xl mb-3 mx-auto" />
                             <p className="text-[14px]">Pilih salah satu wali murid di panel kiri untuk mengelola siswa terhubung.</p>
                         </div>
                     )}

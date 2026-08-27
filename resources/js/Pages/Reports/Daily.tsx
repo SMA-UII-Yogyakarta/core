@@ -2,6 +2,7 @@ import { useState } from "react";
 import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table } from "@/Components";
+import { FiFileText, FiInfo } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -171,13 +172,13 @@ export default function DailyReport({
                                     href={`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
                                     className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-danger text-white px-5 rounded-lg hover:bg-danger/90 text-[13px] font-bold shadow-sm transition-colors"
                                 >
-                                    <i className="fas fa-file-pdf"></i> PDF
+                                    <FiFileText /> PDF
                                 </a>
                                 <a
                                     href={`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`}
                                     className="h-10 flex-1 sm:flex-none flex items-center justify-center gap-2 bg-success text-white px-5 rounded-lg hover:bg-success/90 text-[13px] font-bold shadow-sm transition-colors"
                                 >
-                                    <i className="fas fa-file-excel"></i> Excel
+                                    <FiFileText /> Excel
                                 </a>
                             </div>
                         </div>
@@ -253,7 +254,7 @@ export default function DailyReport({
                         
                         {/* Notes at the bottom as per Figma */}
                         <div className="px-4 sm:px-6 py-4 mt-2 sm:mt-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
-                            <i className="fas fa-info-circle hidden sm:block"></i>
+                            <FiInfo className="hidden sm:block" />
                             Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
                         </div>
                     </div>

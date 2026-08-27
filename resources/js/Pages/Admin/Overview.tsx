@@ -1,6 +1,7 @@
 import { Head, usePage } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, StatCard, AttendanceChart } from "@/Components";
+import { PageHeader, Card, StatCard, AttendanceChart, Input, Table } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 import { FiVideo, FiCheckCircle, FiFile, FiClock, FiHome, FiList, FiBookOpen, FiSend, FiCamera } from "react-icons/fi";
 
@@ -40,6 +41,56 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
     const isPiket = teacherType === "piket" || teacherType === "both";
     const isWali = teacherType === "wali" || teacherType === "both";
 
+    type ClassItem = OverviewProps["overview"]["classes"][number];
+
+    const classColumns: Column<ClassItem>[] = [
+        {
+            key: "name",
+            header: t("overview.class"),
+            render: (cls) => <span className="font-medium">{cls.name}</span>,
+        },
+        {
+            key: "total",
+            header: t("overview.total"),
+            className: "text-center",
+            render: (cls) => <span className="text-text-inactive">{cls.total}</span>,
+        },
+        {
+            key: "present",
+            header: t("overview.present"),
+            className: "text-center",
+            render: (cls) => <span className="text-success font-semibold">{cls.present}</span>,
+        },
+        {
+            key: "late",
+            header: t("overview.late"),
+            className: "text-center",
+            render: (cls) => <span className="text-warning font-semibold">{cls.late}</span>,
+        },
+        {
+            key: "absent",
+            header: t("overview.absent"),
+            className: "text-center",
+            render: (cls) => (
+                <span className="text-danger font-semibold">
+                    {cls.total - cls.present - cls.late}
+                </span>
+            ),
+        },
+        {
+            key: "rate",
+            header: t("overview.rate"),
+            className: "text-center",
+            render: (cls) => {
+                const rate =
+                    cls.total > 0
+                        ? (((cls.present + cls.late) / cls.total) * 100).toFixed(1)
+                        : "0.0";
+                return <span className="font-medium">{rate}%</span>;
+            },
+        },
+    ];
+
     return (
         <AppShell title="Overview">
             <Head>
@@ -50,13 +101,13 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                 {/* Header with Date Selector */}
                 <PageHeader title={t("overview.title")}>
                     <div className="relative">
-                        <input
+                        <Input
                             type="date"
                             value={selectedDate}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 (window.location.href = `/overview?date=${e.target.value}`)
                             }
-                            className="bg-surface border border-border rounded-lg px-4 py-2 text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            inputClassName="h-10 text-[13px]"
                         />
                     </div>
                 </PageHeader>
@@ -200,8 +251,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                             href="/leave-requests"
                                             className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
                                         >
-                                            <div className="w-10 h-10 bg-amber/10 rounded-lg flex items-center justify-center">
-                                                <FiCheckCircle className="text-amber text-xl" />
+                                            <div className="w-10 h-10 bg-warning/10 rounded-lg flex items-center justify-center">
+                                                <FiCheckCircle className="text-warning text-xl" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text">
@@ -216,8 +267,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                             href="/reports/daily"
                                             className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
                                         >
-                                            <div className="w-10 h-10 bg-blue/10 rounded-lg flex items-center justify-center">
-                                                <FiFile className="text-blue text-xl" />
+                                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                <FiFile className="text-primary text-xl" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text">{t("overview.dailyReport")}</p>
@@ -230,8 +281,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                             href="/reports/monthly"
                                             className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
                                         >
-                                            <div className="w-10 h-10 bg-green/10 rounded-lg flex items-center justify-center">
-                                                <FiFile className="text-green text-xl" />
+                                            <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                                                <FiFile className="text-success text-xl" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text">{t("overview.monthlyReport")}</p>
@@ -265,8 +316,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                             href="/guardian/history"
                                             className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
                                         >
-                                            <div className="w-10 h-10 bg-blue/10 rounded-lg flex items-center justify-center">
-                                                <FiClock className="text-blue text-xl" />
+                                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                <FiClock className="text-primary text-xl" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text">{t("overview.history")}</p>
@@ -298,8 +349,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                             href="/student/history"
                                             className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
                                         >
-                                            <div className="w-10 h-10 bg-blue/10 rounded-lg flex items-center justify-center">
-                                                <FiClock className="text-blue text-xl" />
+                                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                <FiClock className="text-primary text-xl" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-text">{t("overview.history")}</p>
@@ -356,49 +407,12 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                         <Card>
                             <div className="p-6">
                                 <h3 className="text-lg font-semibold text-text mb-4">{t("overview.classBreakdown")}</h3>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="text-left text-text-inactive text-sm border-b border-border">
-                                                <th className="pb-3 font-medium">{t("overview.class")}</th>
-                                                <th className="pb-3 font-medium text-center">{t("overview.total")}</th>
-                                                <th className="pb-3 font-medium text-center">
-                                                    {t("overview.present")}
-                                                </th>
-                                                <th className="pb-3 font-medium text-center">{t("overview.late")}</th>
-                                                <th className="pb-3 font-medium text-center">{t("overview.absent")}</th>
-                                                <th className="pb-3 font-medium text-center">{t("overview.rate")}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {overview.classes.map((cls) => {
-                                                const rate =
-                                                    cls.total > 0
-                                                        ? (((cls.present + cls.late) / cls.total) * 100).toFixed(1)
-                                                        : "0.0";
-                                                return (
-                                                    <tr
-                                                        key={cls.id}
-                                                        className="border-b border-border/50 hover:bg-primary/5"
-                                                    >
-                                                        <td className="py-3 font-medium">{cls.name}</td>
-                                                        <td className="py-3 text-center text-text-inactive">
-                                                            {cls.total}
-                                                        </td>
-                                                        <td className="py-3 text-center text-success font-semibold">
-                                                            {cls.present}
-                                                        </td>
-                                                        <td className="py-3 text-center text-warning font-semibold">{cls.late}</td>
-                                                        <td className="py-3 text-center text-danger font-semibold">
-                                                            {cls.total - cls.present - cls.late}
-                                                        </td>
-                                                        <td className="py-3 text-center font-medium">{rate}%</td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <Table
+                                    columns={classColumns}
+                                    data={overview.classes}
+                                    keyExtractor={(cls) => cls.id}
+                                    emptyMessage="Tidak ada data kelas."
+                                />
                             </div>
                         </Card>
                     )}

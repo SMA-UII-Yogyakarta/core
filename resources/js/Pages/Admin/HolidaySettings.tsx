@@ -5,6 +5,18 @@ import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Component
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema, locationSettingSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import {
+    FiClock,
+    FiMapPin,
+    FiCalendar,
+    FiCheck,
+    FiCrosshair,
+    FiHome,
+    FiInfo,
+    FiExternalLink,
+    FiPlus,
+    FiTrash2,
+} from "react-icons/fi";
 
 // ─── Types ───
 
@@ -363,7 +375,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 : "text-text-muted hover:text-text-primary hover:bg-muted/60"
                         }`}
                     >
-                        <i className="fas fa-business-time text-[14px]" />
+                        <FiClock className="text-[14px]" />
                         <span>Jam Operasional</span>
                     </button>
                     <button
@@ -375,7 +387,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 : "text-text-muted hover:text-text-primary hover:bg-muted/60"
                         }`}
                     >
-                        <i className="fas fa-map-marker-alt text-[14px]" />
+                        <FiMapPin className="text-[14px]" />
                         <span>Lokasi & Geofence</span>
                     </button>
                     <button
@@ -387,7 +399,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 : "text-text-muted hover:text-text-primary hover:bg-muted/60"
                         }`}
                     >
-                        <i className="far fa-calendar-times text-[14px]" />
+                        <FiCalendar className="text-[14px]" />
                         <span>Libur Akademik</span>
                     </button>
                 </div>
@@ -400,7 +412,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                     <section className="flex flex-col gap-6">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                <i className="fas fa-business-time text-[15px] text-text-inactive" />
+                                <FiClock className="text-[15px] text-text-inactive" />
                                 Jam Operasional Harian
                             </h2>
                             <button
@@ -409,7 +421,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
                                 type="button"
                             >
-                                <i className="fas fa-check text-[12px]" />
+                                <FiCheck className="text-[12px]" />
                                 <span>{saving ? "Menyimpan..." : "Simpan Aturan Waktu"}</span>
                             </button>
                         </div>
@@ -424,7 +436,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-3 border-b border-border">
                             <div>
                                 <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                    <i className="fas fa-map-marker-alt text-[16px] text-danger" />
+                                <FiMapPin className="text-[16px] text-danger" />
                                     Titik Lokasi Utama & Radius Geofencing SMA UII Yogyakarta
                                 </h2>
                                 <p className="text-[12px] text-text-muted mt-1">
@@ -437,7 +449,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-60 shrink-0"
                                 type="button"
                             >
-                                <i className="fas fa-check text-[12px]" />
+                                <FiCheck className="text-[12px]" />
                                 <span>{savingLocation ? "Menyimpan..." : "Simpan Lokasi Presensi"}</span>
                             </button>
                         </div>
@@ -547,7 +559,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         })}
                                         className="text-[12px] font-semibold text-primary hover:underline flex items-center gap-1.5 cursor-pointer"
                                     >
-                                        <i className="fas fa-crosshairs text-[11px]" />
+                                        <FiCrosshair className="text-[11px]" />
                                         <span>Set Preset SMA UII Taman Siswa (-7.814257, 110.375944)</span>
                                     </button>
                                 </div>
@@ -566,7 +578,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
 
                                     <div className="bg-surface border border-border rounded-lg p-4 shadow-sm flex flex-col gap-2">
                                         <div className="flex items-start gap-2.5">
-                                            <i className="fas fa-school text-primary text-[16px] mt-0.5" />
+                                            <FiHome className="text-primary text-[16px] mt-0.5" />
                                             <div>
                                                 <h4 className="text-[14px] font-bold text-text-primary">{locationForm.name}</h4>
                                                 <p className="text-[12px] text-text-secondary leading-snug mt-0.5">{locationForm.address}</p>
@@ -579,7 +591,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                     </div>
 
                                     <div className="p-3 bg-warning-bg border border-warning/20 rounded-lg text-[12px] text-warning flex items-start gap-2">
-                                        <i className="fas fa-info-circle text-warning text-[14px] mt-0.5" />
+                                        <FiInfo className="text-warning text-[14px] mt-0.5" />
                                         <span>Siswa hanya dapat melakukan check-in jika posisi GPS HP berada di dalam lingkaran radius <strong>{locationForm.radius_meters} meter</strong> dari titik koordinat pusat SMA UII Yogyakarta.</span>
                                     </div>
                                 </div>
@@ -591,7 +603,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                         rel="noreferrer"
                                         className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface border border-border hover:bg-muted text-text-primary text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
                                     >
-                                        <i className="fas fa-external-link-alt text-[11px] text-primary" />
+                                        <FiExternalLink className="text-[11px] text-primary" />
                                         <span>Buka di Google Maps</span>
                                     </a>
                                 </div>
@@ -606,7 +618,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                         {/* Card Header */}
                         <div className="flex items-center justify-between mb-6 pb-2 border-b border-border/60">
                             <h2 className="text-[16px] font-bold text-text-primary font-inter flex items-center gap-2">
-                                <i className="far fa-calendar-times text-[15px] text-text-inactive" />
+                                <FiCalendar className="text-[15px] text-text-inactive" />
                                 Libur Akademik
                             </h2>
                             <button
@@ -614,7 +626,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                 className="flex items-center gap-1 bg-primary hover:bg-primary/95 text-white rounded-lg px-3 py-1.5 text-[13px] font-bold transition-colors cursor-pointer"
                                 type="button"
                             >
-                                <i className="fas fa-plus text-[11px]" />
+                                <FiPlus className="text-[11px]" />
                                 <span>Tambah</span>
                             </button>
                         </div>
@@ -747,7 +759,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                                     {h.description ?? "Hari Libur"}
                                                 </span>
                                                 <div className="flex items-center gap-1.5 text-[11px] text-text-secondary font-medium font-inter">
-                                                    <i className="far fa-calendar text-text-inactive" />
+                                                    <FiCalendar className="text-text-inactive" />
                                                     <span>{formatIndonesianDate(h.holiday_date)}</span>
                                                 </div>
                                             </div>
@@ -757,7 +769,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                                                 type="button"
                                                 aria-label="Hapus hari libur"
                                             >
-                                                <i className="far fa-trash-alt text-[14px]" />
+                                                <FiTrash2 className="text-[14px]" />
                                             </button>
                                         </div>
                                     );

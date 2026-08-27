@@ -11,6 +11,7 @@ import {
     EmptyState,
 } from "@/Components";
 import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
+import { FiExternalLink } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 import AppShell from "@/Layouts/AppShell";
 
@@ -224,7 +225,7 @@ export default function PengajuanIzin({ leaveRequests, filters }: PageProps) {
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-1.5 text-primary hover:underline text-[12px] font-bold"
                                     >
-                                        <i className="fas fa-external-link-alt" />
+                                        <FiExternalLink />
                                         <span>Buka Dokumen</span>
                                     </a>
                                 </div>

@@ -1,6 +1,7 @@
 import { Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, StatCard, AttendanceChart } from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, AttendanceChart, Table } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 import { FiDownload } from "react-icons/fi";
 
@@ -39,6 +40,47 @@ export default function SemesterReport({
     ];
 
     const filteredMonths = monthlyStats.months.filter((m) => semesterMonths.includes(monthNames.indexOf(m.label) + 1));
+
+    type MonthItem = SemesterReportProps["monthlyStats"]["months"][number];
+
+    const monthColumns: Column<MonthItem>[] = [
+        {
+            key: "label",
+            header: t("reports.month"),
+            render: (month) => <span className="font-medium">{month.label}</span>,
+        },
+        {
+            key: "present",
+            header: t("reports.present"),
+            className: "text-center",
+            render: (month) => <span className="text-success font-semibold">{month.present}</span>,
+        },
+        {
+            key: "late",
+            header: t("reports.late"),
+            className: "text-center",
+            render: (month) => <span className="text-warning font-semibold">{month.late}</span>,
+        },
+        {
+            key: "absent",
+            header: t("reports.absent"),
+            className: "text-center",
+            render: (month) => <span className="text-danger font-semibold">{month.absent}</span>,
+        },
+        {
+            key: "rate",
+            header: t("reports.rate"),
+            className: "text-center",
+            render: (month) => {
+                const total = month.present + month.late + month.absent;
+                const rate =
+                    total > 0
+                        ? (((month.present + month.late) / total) * 100).toFixed(1)
+                        : "0.0";
+                return <span className="font-medium">{rate}%</span>;
+            },
+        },
+    ];
 
     return (
         <AppShell title="Rekap Semester">
@@ -123,40 +165,12 @@ export default function SemesterReport({
                 <Card>
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-text mb-4">{t("reports.semesterBreakdown")}</h3>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="text-left text-text-inactive text-sm border-b border-border">
-                                        <th className="pb-3 font-medium">{t("reports.month")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.present")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.late")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.absent")}</th>
-                                        <th className="pb-3 font-medium text-center">{t("reports.rate")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredMonths.map((month) => {
-                                        const total = month.present + month.late + month.absent;
-                                        const rate =
-                                            total > 0
-                                                ? (((month.present + month.late) / total) * 100).toFixed(1)
-                                                : "0.0";
-                                        return (
-                                            <tr
-                                                key={month.label}
-                                                className="border-b border-border/50 hover:bg-primary/5"
-                                            >
-                                                <td className="py-3 font-medium">{month.label}</td>
-                                                <td className="py-3 text-center text-success font-semibold">{month.present}</td>
-                                                <td className="py-3 text-center text-warning font-semibold">{month.late}</td>
-                                                <td className="py-3 text-center text-danger font-semibold">{month.absent}</td>
-                                                <td className="py-3 text-center font-medium">{rate}%</td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                        <Table
+                            columns={monthColumns}
+                            data={filteredMonths}
+                            keyExtractor={(m) => m.label}
+                            emptyMessage="Tidak ada data."
+                        />
                     </div>
                 </Card>
             </div>

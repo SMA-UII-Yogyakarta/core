@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { PageHeader, Card, ExportButtonGroup, Pagination, SearchBar, StickyContainer, NativeSelect } from "@/Components";
+import { PageHeader, Card, ExportButtonGroup, Pagination, SearchBar, StickyContainer, NativeSelect, Table } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
+import { FiInfo } from "react-icons/fi";
 
 interface ExportRow {
     no: number;
@@ -120,6 +122,67 @@ export default function ExportPage({
               ? `/export/monthly-recap-pdf?${bulananQuery}`
               : `/export/semester-recap-pdf?${semesterQuery}`;
 
+    const exportColumns: Column<ExportRow>[] = [
+        {
+            key: "no",
+            header: "No",
+            className: "w-10 text-center whitespace-nowrap",
+            render: (row) => <span className="text-[13px] sm:text-[14px] text-text-primary">{row.no}</span>,
+        },
+        {
+            key: "name",
+            header: "Nama Lengkap",
+            className: "whitespace-nowrap",
+            render: (row) => (
+                <span className="text-[13px] sm:text-[14px] font-bold text-text-primary block truncate" title={row.name}>
+                    {row.name}
+                </span>
+            ),
+        },
+        {
+            key: "class",
+            header: "Kelas",
+            className: "whitespace-nowrap",
+            render: (row) => <span className="text-[13px] sm:text-[14px] text-text-primary">{row.class}</span>,
+        },
+        {
+            key: "masuk",
+            header: "Masuk",
+            className: "text-center whitespace-nowrap",
+            render: (row) => <span className="text-[13px] sm:text-[14px] text-text-primary font-medium">{row.masuk}</span>,
+        },
+        {
+            key: "izin",
+            header: "Izin",
+            className: "text-center whitespace-nowrap",
+            render: (row) => (
+                <span className={`text-[13px] sm:text-[14px] font-medium ${row.izin > 0 ? "text-primary font-bold" : "text-text-primary"}`}>
+                    {row.izin}
+                </span>
+            ),
+        },
+        {
+            key: "sakit",
+            header: "Sakit",
+            className: "text-center whitespace-nowrap",
+            render: (row) => (
+                <span className={`text-[13px] sm:text-[14px] font-medium ${row.sakit > 0 ? "text-warning font-bold" : "text-text-primary"}`}>
+                    {row.sakit}
+                </span>
+            ),
+        },
+        {
+            key: "alpha",
+            header: "Alpha",
+            className: "text-center whitespace-nowrap",
+            render: (row) => (
+                <span className={`text-[13px] sm:text-[14px] font-medium ${row.alpha > 0 ? "text-danger font-bold" : "text-text-primary"}`}>
+                    {row.alpha}
+                </span>
+            ),
+        },
+    ];
+
     return (
         <AppShell title="Laporan Rekap">
             <div className="space-y-4 pb-20 lg:pb-8">
@@ -202,88 +265,12 @@ export default function ExportPage({
 
                 {/* Preview Table */}
                 <Card className="rounded-2xl shadow-dropdown border border-border overflow-hidden">
-                    <div className="w-full overflow-x-auto">
-                        <table className="w-full font-inter min-w-[560px]">
-                            <thead>
-                                <tr className="bg-muted border-b border-border">
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted w-10 whitespace-nowrap">
-                                        No
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Nama Lengkap
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-left text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Kelas
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Masuk
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Izin
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Sakit
-                                    </th>
-                                    <th className="px-3 sm:px-[15px] py-[12px] text-center text-[12px] font-semibold text-text-muted whitespace-nowrap">
-                                        Alpha
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {paginatedPreview.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="px-4 py-12 text-center text-text-inactive text-[14px]"
-                                        >
-                                            {search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data."}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedPreview.map((row) => (
-                                        <tr
-                                            key={row.no}
-                                            className="border-t border-border hover:bg-muted/50 transition-colors"
-                                        >
-                                            <td className="px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] text-text-primary whitespace-nowrap">
-                                                {row.no}
-                                            </td>
-                                            <td className="px-3 sm:px-[15px] py-[11px] text-[13px] sm:text-[14px] font-bold text-text-primary whitespace-nowrap" title={row.name}>
-                                                {row.name}
-                                            </td>
-                                            <td className="px-3 sm:px-[15px] py-[11px] text-[13px] sm:text-[14px] text-text-primary whitespace-nowrap">
-                                                {row.class}
-                                            </td>
-                                            <td className="px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] text-text-primary font-medium whitespace-nowrap">
-                                                {row.masuk}
-                                            </td>
-                                            <td
-                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
-                                                    row.izin > 0 ? "text-primary font-bold" : "text-text-primary"
-                                                }`}
-                                            >
-                                                {row.izin}
-                                            </td>
-                                            <td
-                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
-                                                    row.sakit > 0 ? "text-warning font-bold" : "text-text-primary"
-                                                }`}
-                                            >
-                                                {row.sakit}
-                                            </td>
-                                            <td
-                                                className={`px-3 sm:px-[15px] py-[11px] text-center text-[13px] sm:text-[14px] font-medium whitespace-nowrap ${
-                                                    row.alpha > 0 ? "text-danger font-bold" : "text-text-primary"
-                                                }`}
-                                            >
-                                                {row.alpha}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <Table
+                        columns={exportColumns}
+                        data={paginatedPreview}
+                        keyExtractor={(row) => row.no}
+                        emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data."}
+                    />
 
                     {/* Pagination Bar */}
                     {filteredPreview.length > pageSize && (
@@ -300,7 +287,7 @@ export default function ExportPage({
 
                     <Card.Footer className="bg-surface flex items-center justify-between gap-2 text-text-muted text-[12px] font-inter">
                         <div className="flex items-center gap-2">
-                            <i className="fas fa-info-circle"></i>
+                            <FiInfo />
                             <span>Tampilan kolom menyesuaikan otomatis berdasarkan filter periode.</span>
                         </div>
                         <span>Menampilkan {paginatedPreview.length} dari {filteredPreview.length} siswa</span>
