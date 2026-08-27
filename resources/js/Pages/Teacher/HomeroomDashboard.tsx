@@ -36,11 +36,14 @@ interface LeaveInfo {
     approval_status: string;
     description: string | null;
     document_url: string | null;
+    start_date: string;
+    created_at: string;
 }
 
 interface Student {
     id: number;
     nis: string;
+    nisn: string;
     name: string;
     attendances: StudentAttendance[];
     pendingLeave: LeaveInfo | null;
@@ -163,7 +166,7 @@ export default function HomeroomDashboard({
                 const st = getRowStatus(s);
                 if (st === "pending") {
                     return (
-                        <Link href="/leave-requests/verification">
+                        <Link href={`/leave-requests/verification?highlight=${s.nis}&submitted=${encodeURIComponent(s.pendingLeave?.created_at ?? "")}`}>
                             <Button variant="primary" size="sm">
                                 Verifikasi Izin
                             </Button>
@@ -313,7 +316,7 @@ export default function HomeroomDashboard({
                                         </div>
 
                                         {st === "pending" && (
-                                            <Link href="/leave-requests/verification" className="w-full">
+                                            <Link href={`/leave-requests/verification?highlight=${s.nis}&submitted=${encodeURIComponent(s.pendingLeave?.created_at ?? "")}`} className="w-full">
                                                 <Button variant="primary" size="sm" className="w-full justify-center">
                                                     Verifikasi Izin
                                                 </Button>

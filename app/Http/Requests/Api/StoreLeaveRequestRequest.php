@@ -16,7 +16,7 @@ class StoreLeaveRequestRequest extends FormRequest
         return [
             'student_id' => 'required|integer|exists:students,id',
             'guardian_id' => 'nullable|integer|exists:guardians,id',
-            'category' => 'required|string|in:Sick,Permission,Other',
+            'category' => 'required|string|in:Sick,Event,Competition,Other',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'document_url' => 'nullable|string',

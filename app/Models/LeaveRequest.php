@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon $end_date
  * @property string|null $document_url
  * @property string $approval_status
+ * @property string|null $rejection_reason
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Guardian $guardian
@@ -50,6 +51,7 @@ class LeaveRequest extends Model
         'description',
         'document_url',
         'approval_status',
+        'rejection_reason',
     ];
 
     protected function casts(): array

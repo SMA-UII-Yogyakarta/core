@@ -187,7 +187,7 @@ class ApiAuthControlTest extends TestCase
             ->postJson('/api/v1/leave-requests', [
                 'student_id' => $student->id,
                 'guardian_id' => $this->createGuardian()->id,
-                'category' => 'Permission',
+                'category' => 'Event',
                 'start_date' => '2026-02-01',
                 'end_date' => '2026-02-01',
             ])

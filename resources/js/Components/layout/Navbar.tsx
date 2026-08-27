@@ -7,6 +7,7 @@ interface NavbarProps {
     brand: string;
     username?: string;
     userInitial?: string;
+    userRole?: string;
     showLogout?: boolean;
     onLogout?: () => void;
     onSearchClick?: () => void;
@@ -18,6 +19,7 @@ export default function Navbar({
     brand,
     username = "Administrator IT",
     userInitial = "AD",
+    userRole = "admin",
     showLogout = true,
     onLogout,
     onSearchClick,
@@ -100,19 +102,31 @@ export default function Navbar({
 
                     {/* Dropdown Menu */}
                     {dropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-48 bg-surface rounded-xl shadow-dropdown border border-border overflow-hidden z-50">
+                        <div className="absolute right-0 mt-2 w-52 bg-surface rounded-xl shadow-dropdown border border-border overflow-hidden z-50">
                             <Link
                                 href="/profile"
-                                className="flex items-center gap-3 px-4 py-3 text-[13px] text-text-primary font-medium hover:bg-background transition-colors"
+                                className="flex items-center gap-3 px-4 py-3 text-[13px] text-text-primary font-medium hover:bg-background transition-colors font-inter"
+                                onClick={() => setDropdownOpen(false)}
                             >
                                 <i className="fas fa-user text-text-muted text-[14px] w-4 text-center" />
                                 Profil Saya
                             </Link>
 
+                            {userRole === "admin" && (
+                                <Link
+                                    href="/settings"
+                                    className="flex items-center gap-3 px-4 py-3 text-[13px] text-text-primary font-medium hover:bg-background transition-colors border-t border-border/60 font-inter"
+                                    onClick={() => setDropdownOpen(false)}
+                                >
+                                    <i className="fas fa-cog text-text-muted text-[14px] w-4 text-center" />
+                                    Pengaturan Sistem
+                                </Link>
+                            )}
+
                             {showLogout && (
                                 <button
                                     onClick={onLogout}
-                                    className="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-danger font-medium hover:bg-danger/10 transition-colors border-t border-border"
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-[13px] text-danger font-medium hover:bg-danger/10 transition-colors border-t border-border font-inter cursor-pointer"
                                 >
                                     <i className="fas fa-sign-out-alt text-[14px] w-4 text-center" />
                                     Keluar

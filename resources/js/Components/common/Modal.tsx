@@ -1,34 +1,42 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
 import Button from "@/Components/ui/Button";
+import type { ButtonVariant } from "@/types/component";
 
 interface ModalProps {
     open: boolean;
     onClose: () => void;
     title: string;
+    subtitle?: string;
     children: ReactNode;
     onSubmit?: (e?: React.FormEvent) => void;
     submitLabel?: string;
+    submitVariant?: ButtonVariant;
     loading?: boolean;
+    disabled?: boolean;
     width?: "sm" | "md" | "lg";
+    className?: string;
 }
 
 const widthClasses = {
     sm: "max-w-sm",
-    md: "max-w-lg",
-    lg: "max-w-2xl",
+    md: "max-w-md",
+    lg: "max-w-lg",
 };
 
 export default function Modal({
     open,
     onClose,
     title,
+    subtitle,
     children,
     onSubmit,
     submitLabel = "Simpan",
+    submitVariant = "primary",
     loading = false,
+    disabled = false,
     width = "md",
+    className = "",
 }: ModalProps) {
     useEffect(() => {
         if (open) {
@@ -55,20 +63,13 @@ export default function Modal({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/50" onClick={onClose} />
             <div
-                className={`relative bg-surface rounded-xl shadow-modal w-full ${widthClasses[width]} max-h-[90vh] overflow-y-auto`}
+                className={`relative bg-surface rounded-xl shadow-modal w-full ${widthClasses[width]} max-h-[90vh] overflow-y-auto ${className}`}
             >
-                <div className="flex items-center justify-between p-5 border-b border-border">
+                <div className="p-5 border-b border-border">
                     <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
-                        type="button"
-                        aria-label="Tutup"
-                        dusk="modal-close-btn"
-                        data-testid="modal-close-btn"
-                    >
-                        <FaTimes className="w-4 h-4" />
-                    </button>
+                    {subtitle && (
+                        <p className="text-sm text-text-muted mt-1">{subtitle}</p>
+                    )}
                 </div>
                 <div className="p-5">{children}</div>
                 {onSubmit && (
@@ -82,8 +83,10 @@ export default function Modal({
                             Batal
                         </Button>
                         <Button
+                            variant={submitVariant}
                             onClick={() => onSubmit?.()}
                             loading={loading}
+                            disabled={disabled}
                             dusk="modal-submit-btn"
                             data-testid="modal-submit-btn"
                         >

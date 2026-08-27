@@ -209,6 +209,10 @@ npx playwright test
 | **[#89](https://github.com/SMA-UII-Yogyakarta/core/pull/89)** | `fix/security-storage-geofence` | Hardening storage proxy authorization & server-side GPS geofence validation. Closes #87. | **MERGED** ✅ |
 | **[#90](https://github.com/SMA-UII-Yogyakarta/core/pull/90)** | `fix/homeroom-scope-least-privilege` | Enforce least-privilege scoping authorization untuk Wali Kelas. Closes #88. | **MERGED** ✅ |
 | **[#91](https://github.com/SMA-UII-Yogyakarta/core/pull/91)** | `refactor/cleanup-empty-state-filter-bar` | Hapus duplikasi interface & warna hardcode di `EmptyState.tsx`, konsistensikan `FiSearch` di `FilterBar.tsx`. Closes #85. | **MERGED** ✅ |
+| **[#92](https://github.com/SMA-UII-Yogyakarta/core/pull/92)** | `refactor/admin-master-data-class-enrolment` | Standarisasi Overlay Admin: Form Master Kelas ke `<Drawer>`, ClassEnrolment overlay ke `<Modal>`, tabel modal ke `<Table>`, eliminiasi `confirm()` ke `<ConfirmDialog>`. | **MERGED** ✅ |
+| **[#93](https://github.com/SMA-UII-Yogyakarta/core/pull/93)** | `refactor/61-62-fix-issues` | Standarisasi Portal Guru: `<FilterBar>`, `<EmptyState>`, `react-icons/fi`, dan ekstensi `ReactNode` pada `ActionButton.tsx`. Closes #61, #62. | **MERGED** ✅ |
+| **[#94](https://github.com/SMA-UII-Yogyakarta/core/pull/94)** | `refactor/admin-settings-leave-correction` | Standarisasi Pengaturan & Operasional Admin: Integrasi `<Toggle>`, `<Input>`, `<Table>`, dan `<ConfirmDialog>` pada `HolidaySettings.tsx`, `AttendanceCorrection.tsx`, dan `LeaveVerification.tsx`. | **MERGED** ✅ |
+| **[#96](https://github.com/SMA-UII-Yogyakarta/core/pull/96)** | `refactor/dashboard-reports-profile-notifications-student` | Standarisasi Komprehensif: Prop `bare` pada `<Table>`, migrasi raw `<table>` ke `<Table>` di Profile/Notifications/Monthly/Semester, integrasi `<ExportButtonGroup>` di Laporan, `<ConfirmDialog>` di Profile/Notifications/GuardianAssignment, `<ErrorAlert>` di LiveAttendance. | **MERGED** ✅ |
 
 ---
 

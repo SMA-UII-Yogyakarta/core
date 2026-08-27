@@ -12,6 +12,7 @@ import {
     Drawer,
     Checkbox,
     EmptyState,
+    ConfirmDialog,
 } from "@/Components";
 import { LeaveRequestCard, statusToVariant } from "@/Components/ui/LeaveRequestCard";
 import { FiCheck, FiX, FiCheckSquare, FiXCircle, FiExternalLink } from "react-icons/fi";
@@ -73,65 +74,55 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
             { preserveState: true },
         );
     };
+    const [approveConfirm, setApproveConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
+    const [rejectConfirm, setRejectConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
 
     const handleApprove = (id: number) => {
-        if (confirm("Setujui permohonan izin ini?")) {
-            router.patch(`/leave-requests/${id}/approve`, undefined, {
-                preserveState: true,
-                onSuccess: () => {
-                    setSelectedRequest(null);
-                    setSelectedLeaveIds((prev) => prev.filter((i) => i !== id));
-                },
-            });
-        }
+        setApproveConfirm({ open: true, id, isBulk: false });
     };
 
     const handleReject = (id: number) => {
-        if (confirm("Tolak permohonan izin ini?")) {
-            router.patch(`/leave-requests/${id}/reject`, undefined, {
-                preserveState: true,
-                onSuccess: () => {
-                    setSelectedRequest(null);
-                    setSelectedLeaveIds((prev) => prev.filter((i) => i !== id));
-                },
-            });
-        }
+        setRejectConfirm({ open: true, id, isBulk: false });
     };
 
     const handleBulkApprove = () => {
         if (selectedLeaveIds.length === 0) return;
-        if (!confirm(`Setujui ${selectedLeaveIds.length} permohonan izin terpilih sekaligus?`)) {
-            return;
-        }
-        router.post(
-            "/leave-requests/bulk-verify",
-            {
-                ids: selectedLeaveIds,
-                status: "Approved",
-            },
-            {
-                preserveState: true,
-                onSuccess: () => setSelectedLeaveIds([]),
-            },
-        );
+        setApproveConfirm({ open: true, id: null, isBulk: true });
     };
 
     const handleBulkReject = () => {
         if (selectedLeaveIds.length === 0) return;
-        if (!confirm(`Tolak ${selectedLeaveIds.length} permohonan izin terpilih sekaligus?`)) {
-            return;
-        }
-        router.post(
-            "/leave-requests/bulk-verify",
-            {
-                ids: selectedLeaveIds,
-                status: "Rejected",
-            },
-            {
+        setRejectConfirm({ open: true, id: null, isBulk: true });
+    };
+
+    const handleConfirmedApprove = () => {
+        if (approveConfirm.isBulk) {
+            router.post(
+                "/leave-requests/bulk-verify",
+                { ids: selectedLeaveIds, status: "Approved" },
+                { preserveState: true, onSuccess: () => { setSelectedLeaveIds([]); setApproveConfirm({ open: false, id: null, isBulk: false }); } }
+            );
+        } else if (approveConfirm.id !== null) {
+            router.patch(`/leave-requests/${approveConfirm.id}/approve`, undefined, {
                 preserveState: true,
-                onSuccess: () => setSelectedLeaveIds([]),
-            },
-        );
+                onSuccess: () => { setSelectedRequest(null); setSelectedLeaveIds(prev => prev.filter(i => i !== approveConfirm.id)); setApproveConfirm({ open: false, id: null, isBulk: false }); }
+            });
+        }
+    };
+
+    const handleConfirmedReject = () => {
+        if (rejectConfirm.isBulk) {
+            router.post(
+                "/leave-requests/bulk-verify",
+                { ids: selectedLeaveIds, status: "Rejected" },
+                { preserveState: true, onSuccess: () => { setSelectedLeaveIds([]); setRejectConfirm({ open: false, id: null, isBulk: false }); } }
+            );
+        } else if (rejectConfirm.id !== null) {
+            router.patch(`/leave-requests/${rejectConfirm.id}/reject`, undefined, {
+                preserveState: true,
+                onSuccess: () => { setSelectedRequest(null); setSelectedLeaveIds(prev => prev.filter(i => i !== rejectConfirm.id)); setRejectConfirm({ open: false, id: null, isBulk: false }); }
+            });
+        }
     };
 
     // Selection math
@@ -163,21 +154,17 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
             <FilterBar className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-wrap gap-2">
                     {categoryFilters.map((tab) => (
-                        <button
+                        <Button
                             key={tab.key}
+                            variant={categoryFilter === tab.key ? "primary" : "ghost"}
+                            size="sm"
                             onClick={() => {
                                 setCategoryFilter(tab.key);
                                 handleFilter(undefined, tab.key);
                             }}
-                            className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-colors cursor-pointer ${
-                                categoryFilter === tab.key
-                                    ? "bg-primary text-white"
-                                    : "bg-surface border border-border text-text-muted hover:text-text-primary"
-                            }`}
-                            type="button"
                         >
                             {tab.label}
-                        </button>
+                        </Button>
                     ))}
                 </div>
 
@@ -261,20 +248,22 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                                 actionSlot={
                                     lr.approval_status === "Pending" ? (
                                         <>
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant="success"
+                                                size="sm"
                                                 onClick={() => handleApprove(lr.id)}
-                                                className="px-3 py-1.5 flex-1 sm:flex-none bg-success/10 text-success border border-success/20 rounded-lg text-[12px] font-bold hover:bg-success/20 transition-colors flex items-center justify-center gap-1.5"
+                                                className="flex-1 sm:flex-none"
                                             >
-                                                <FiCheck /> Setuju
-                                            </button>
-                                            <button
-                                                type="button"
+                                                <FiCheck className="mr-1.5" /> Setuju
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
                                                 onClick={() => handleReject(lr.id)}
-                                                className="px-3 py-1.5 flex-1 sm:flex-none bg-danger/10 text-danger border border-danger/20 rounded-lg text-[12px] font-bold hover:bg-danger/20 transition-colors flex items-center justify-center gap-1.5"
+                                                className="flex-1 sm:flex-none"
                                             >
-                                                <FiX /> Tolak
-                                            </button>
+                                                <FiX className="mr-1.5" /> Tolak
+                                            </Button>
                                         </>
                                     ) : undefined
                                 }
@@ -418,6 +407,25 @@ export default function VerifikasiIzin({ leaveRequests, filters }: VerifikasiIzi
                     </div>
                 )}
             </Drawer>
+
+            <ConfirmDialog
+                open={approveConfirm.open}
+                onClose={() => setApproveConfirm({ open: false, id: null, isBulk: false })}
+                onConfirm={handleConfirmedApprove}
+                title="Setujui Izin"
+                message="Yakin menyetujui pengajuan izin ini?"
+                confirmLabel="Ya, Setujui"
+                variant="primary"
+            />
+            <ConfirmDialog
+                open={rejectConfirm.open}
+                onClose={() => setRejectConfirm({ open: false, id: null, isBulk: false })}
+                onConfirm={handleConfirmedReject}
+                title="Tolak Izin"
+                message="Yakin menolak pengajuan izin ini?"
+                confirmLabel="Ya, Tolak"
+                variant="danger"
+            />
         </AppShell>
     );
 }

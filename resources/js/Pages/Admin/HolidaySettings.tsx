@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Button, Pagination, Table, PageHeader, NativeSelect } from "@/Components";
+import { Pagination, Table, PageHeader, NativeSelect, Toggle, Input, ConfirmDialog, EmptyState, Card, Button } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import { holidaySchema, locationSettingSchema } from "@/schemas";
+import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import {
     FiClock,
-    FiMapPin,
     FiCalendar,
     FiCheck,
-    FiCrosshair,
-    FiHome,
-    FiInfo,
-    FiExternalLink,
     FiPlus,
     FiTrash2,
 } from "react-icons/fi";
@@ -36,16 +31,6 @@ interface Holiday {
     is_holiday: boolean;
 }
 
-interface LocationSetting {
-    id: number;
-    name: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-    radius_meters: number;
-    is_active: boolean;
-}
-
 interface PaginatedData<T> {
     data: T[];
     current_page: number;
@@ -62,7 +47,6 @@ interface Filters {
 interface AturWaktuLiburProps {
     timeSettings: TimeSetting[];
     holidays: PaginatedData<Holiday>;
-    locationSetting?: LocationSetting;
     filters: Filters;
 }
 
@@ -90,6 +74,7 @@ function formatIndonesianDate(dateStr: string): string {
             const fallbackDate = new Date(dateStr);
             if (isNaN(fallbackDate.getTime())) return dateStr;
             return fallbackDate.toLocaleDateString("id-ID", {
+                weekday: "long",
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -97,6 +82,7 @@ function formatIndonesianDate(dateStr: string): string {
         }
 
         return date.toLocaleDateString("id-ID", {
+            weekday: "long",
             day: "numeric",
             month: "long",
             year: "numeric",
@@ -106,10 +92,9 @@ function formatIndonesianDate(dateStr: string): string {
     }
 }
 
-export default function HolidaySettings({ timeSettings, holidays, locationSetting, filters }: AturWaktuLiburProps) {
+export default function HolidaySettings({ timeSettings, holidays, filters }: AturWaktuLiburProps) {
     const [saving, setSaving] = useState(false);
-    const [savingLocation, setSavingLocation] = useState(false);
-    const [activeSettingTab, setActiveSettingTab] = useState<"time" | "location" | "holiday">("time");
+    const [activeSettingTab, setActiveSettingTab] = useState<"time" | "holiday">("time");
 
     const normalizeTime = (value?: string | null, fallback = "06:30") => {
         if (!value) return fallback;
@@ -149,15 +134,6 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         return initial;
     });
 
-    const [locationForm, setLocationForm] = useState({
-        name: locationSetting?.name ?? "SMA UII Yogyakarta",
-        address: locationSetting?.address ?? "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
-        latitude: locationSetting?.latitude ?? -7.814257,
-        longitude: locationSetting?.longitude ?? 110.375944,
-        radius_meters: locationSetting?.radius_meters ?? 100,
-        is_active: locationSetting?.is_active ?? true,
-    });
-
     const {
         data: holidayForm,
         setData: setHolidayForm,
@@ -172,7 +148,12 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         description: "",
         is_holiday: true,
     });
-    const [deleteHolidayId, setDeleteHolidayId] = useState<number | null>(null);
+
+    const [deleteHolidayConfirm, setDeleteHolidayConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
+        open: false,
+        id: null,
+        name: "",
+    });
     const [showAddForm, setShowAddForm] = useState(false);
 
     const handleSaveTimeSettings = () => {
@@ -186,7 +167,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         }));
 
         router.post(
-            "/settings/time-settings",
+            "/operational-settings/time-settings",
             { settings },
             {
                 preserveState: true,
@@ -195,39 +176,19 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         );
     };
 
-    const [locationErrors, setLocationErrors] = useState<Record<string, string>>({});
-
-    const handleSaveLocationSettings = (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
-        setLocationErrors({});
-
-        const valid = validateForm(locationSettingSchema, locationForm);
-        if (!valid.success) {
-            setLocationErrors(valid.errors);
-            return;
-        }
-
-        setSavingLocation(true);
-        router.post("/settings/location-settings", locationForm, {
-            preserveState: true,
-            onFinish: () => setSavingLocation(false),
-        });
-    };
-
     const handleAddHoliday = (e: React.FormEvent) => {
         e.preventDefault();
         clearHolidayErrors();
 
         const valid = validateForm(holidaySchema, holidayForm);
         if (!valid.success) {
-            (Object.keys(valid.errors) as (keyof typeof holidayForm)[]).forEach((key) => {
-                const msg = valid.errors[key];
-                if (msg) setHolidayError(key, msg);
+            Object.entries(valid.errors).forEach(([field, msg]) => {
+                setHolidayError(field as keyof typeof holidayForm, msg);
             });
             return;
         }
 
-        postHoliday("/settings/holidays", {
+        postHoliday("/operational-settings/holidays", {
             preserveState: true,
             onSuccess: () => {
                 resetHoliday();
@@ -236,23 +197,21 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
         });
     };
 
-    const handleDeleteHoliday = (id: number) => {
-        setDeleteHolidayId(id);
+    const handleDeleteHoliday = (id: number, name: string) => {
+        setDeleteHolidayConfirm({ open: true, id, name });
     };
 
     const confirmDeleteHoliday = () => {
-        if (deleteHolidayId === null) return;
-        router.delete(`/settings/holidays/${deleteHolidayId}`, {
+        if (deleteHolidayConfirm.id === null) return;
+        router.delete(`/operational-settings/holidays/${deleteHolidayConfirm.id}`, {
             preserveState: true,
-            onSuccess: () => setDeleteHolidayId(null),
+            onSuccess: () => {
+                setDeleteHolidayConfirm({ open: false, id: null, name: "" });
+            },
         });
     };
 
-    const handleTimeChange = (
-        day: string,
-        field: "check_in_open" | "late_threshold" | "check_in_close",
-        value: string,
-    ) => {
+    const handleTimeChange = (day: string, field: "check_in_open" | "late_threshold" | "check_in_close", value: string) => {
         setForm((prev) => ({
             ...prev,
             [day]: { ...prev[day], [field]: value },
@@ -285,71 +244,73 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
     const timeColumns: Column<string>[] = [
         {
             key: "day",
-            header: "Hari",
-            className: "whitespace-nowrap",
-            render: (day) => <span className="font-bold text-text-primary">{dayNames[day] ?? day}</span>,
+            header: "Hari Operasional",
+            className: "whitespace-nowrap font-inter font-bold text-text-primary w-48",
+            render: (day) => (
+                <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    <span>{dayNames[day] ?? day}</span>
+                </div>
+            ),
         },
         {
             key: "is_active",
-            header: "Buka",
-            className: "text-center justify-center md:justify-center whitespace-nowrap",
+            header: "Status Buka Presensi",
+            className: "text-center whitespace-nowrap w-44",
             render: (day) => (
-                <label className="relative inline-flex items-center cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={form[day].is_active}
-                        onChange={(e) => handleDayToggle(day, e.target.checked)}
-                        className="sr-only peer"
-                        aria-label={`Buka presensi ${dayNames[day] ?? day}`}
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success relative cursor-pointer" />
-                </label>
+                <Toggle
+                    checked={form[day].is_active}
+                    onChange={(e) => handleDayToggle(day, e.target.checked)}
+                    aria-label={`Buka presensi ${dayNames[day] ?? day}`}
+                />
             ),
         },
         {
             key: "check_in_open",
-            header: "Mulai Presensi",
-            className: "whitespace-nowrap",
+            header: "Mulai Presensi (Buka Pintu)",
+            className: "whitespace-nowrap min-w-[160px]",
             render: (day) => (
-                <div className="relative max-w-[130px] w-full">
-                    <input
+                <div className="relative max-w-[140px] w-full">
+                    <Input
                         type="time"
                         value={form[day].check_in_open}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "check_in_open", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-text-primary bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                        inputClassName="!font-bold text-center font-inter"
                     />
                 </div>
             ),
         },
         {
             key: "late_threshold",
-            header: "Terlambat",
-            className: "whitespace-nowrap",
+            header: "Batas Waktu Terlambat",
+            className: "whitespace-nowrap min-w-[160px]",
             render: (day) => (
-                <div className="relative max-w-[130px] w-full">
-                    <input
+                <div className="relative max-w-[140px] w-full">
+                    <Input
                         type="time"
                         value={form[day].late_threshold}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-bold font-inter bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed text-warning"
+                        inputClassName="!font-bold !text-amber-600 !border-amber-300 !bg-amber-50/60 text-center font-inter"
+                        style={form[day].is_active ? { color: "#d97706", borderColor: "#fcd34d", backgroundColor: "rgba(254, 243, 199, 0.5)" } : undefined}
                     />
                 </div>
             ),
         },
         {
             key: "check_in_close",
-            header: "Tutup Akses",
-            className: "whitespace-nowrap",
+            header: "Tutup Akses Presensi",
+            className: "whitespace-nowrap min-w-[160px]",
             render: (day) => (
-                <div className="relative max-w-[130px] w-full">
-                    <input
+                <div className="relative max-w-[140px] w-full">
+                    <Input
                         type="time"
                         value={form[day].check_in_close}
                         disabled={!form[day].is_active}
                         onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
-                        className="border border-border rounded-lg px-3 py-1.5 text-[13px] font-semibold font-inter text-danger bg-surface w-full focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:bg-muted disabled:cursor-not-allowed"
+                        inputClassName="!font-bold !text-red-600 !border-red-300 !bg-red-50/60 text-center font-inter"
+                        style={form[day].is_active ? { color: "#dc2626", borderColor: "#fca5a5", backgroundColor: "rgba(254, 226, 226, 0.5)" } : undefined}
                     />
                 </div>
             ),
@@ -357,15 +318,16 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
     ];
 
     return (
-        <AppShell title="Atur Waktu, Lokasi & Libur - SMA UII Yogyakarta">
+        <AppShell title="Atur Waktu & Libur - SMA UII Yogyakarta">
+            {/* Page Header */}
             <PageHeader
-                title="Pengaturan Presensi & Geofencing"
-                description="Kelola jam operasional presensi harian, titik lokasi GPS sekolah, radius geofence, dan kalender libur akademik SMA UII."
+                title="Atur Jam Operasional & Libur Akademik"
+                description="Kelola jadwal jam presensi harian siswa dan daftar kalender libur sekolah SMA UII Yogyakarta."
             />
 
-            {/* Desktop & Mobile Tab Selection */}
+            {/* Tab Selector */}
             <div className="mb-6">
-                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs max-w-2xl">
+                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs max-w-md">
                     <button
                         type="button"
                         onClick={() => setActiveSettingTab("time")}
@@ -380,19 +342,7 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveSettingTab("location")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                            activeSettingTab === "location"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
-                    >
-                        <FiMapPin className="text-[14px]" />
-                        <span>Lokasi & Geofence</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveSettingTab("holiday")}
+onClick={() => setActiveSettingTab("holiday")}
                         className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             activeSettingTab === "holiday"
                                 ? "bg-primary text-white shadow-sm font-bold"
@@ -405,420 +355,229 @@ export default function HolidaySettings({ timeSettings, holidays, locationSettin
                 </div>
             </div>
 
-            {/* Main Content Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* Section 1: Jam Operasional Harian */}
-                <div className={`lg:col-span-3 ${activeSettingTab === "time" ? "block" : "hidden"}`}>
-                    <section className="flex flex-col gap-6">
-                        <div className="flex items-center justify-between border-b border-border pb-3">
+            {/* Section 1: Jam Operasional Harian (Full Width) */}
+            <div className={`w-full flex flex-col gap-4 ${activeSettingTab === "time" ? "block" : "hidden"}`}>
+                <Card className="p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
                             <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                <FiClock className="text-[15px] text-text-inactive" />
-                                Jam Operasional Harian
+<FiClock className="text-primary text-[16px]" />
+                                Jam Operasional Presensi Harian
                             </h2>
-                            <button
-                                onClick={handleSaveTimeSettings}
-                                disabled={saving}
-                                className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
-                                type="button"
-                            >
-                                <FiCheck className="text-[12px]" />
-                                <span>{saving ? "Menyimpan..." : "Simpan Aturan Waktu"}</span>
-                            </button>
+                            <p className="text-[12px] text-text-muted mt-0.5 font-inter">
+                                Atur jam buka pintu presensi, ambang batas waktu keterlambatan, dan jam tutup akses presensi per hari.
+                            </p>
                         </div>
+                        <Button
+                            onClick={handleSaveTimeSettings}
+                            loading={saving}
+                            variant="success"
+                            className="shrink-0"
+                        >
+                            <FiCheck className="mr-1.5" />
+                            Simpan Aturan Waktu
+                        </Button>
+                    </div>
+                </Card>
 
-                        <Table columns={timeColumns} data={daysOfWeek} keyExtractor={(day) => day} />
-                    </section>
-                </div>
+                {/* Standalone Table without Card Wrapping */}
+                <Table columns={timeColumns} data={daysOfWeek} keyExtractor={(day) => day} />
+            </div>
 
-                {/* Section 2: Titik Lokasi & Geofencing Presensi */}
-                <div className={`lg:col-span-5 ${activeSettingTab === "location" ? "block" : "hidden"}`}>
-                    <div className="bg-surface border border-border rounded-xl p-6 shadow-card">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-3 border-b border-border">
+            {/* Section 2: Libur Akademik (Full Width) */}
+            <div className={`w-full flex flex-col gap-4 ${activeSettingTab === "holiday" ? "block" : "hidden"}`}>
+                <Card className="p-5">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                <FiMapPin className="text-[16px] text-danger" />
-                                    Titik Lokasi Utama & Radius Geofencing SMA UII Yogyakarta
+<FiCalendar className="text-primary text-[16px]" />
+                                    Daftar Kalender Libur Akademik
                                 </h2>
-                                <p className="text-[12px] text-text-muted mt-1">
-                                    Atur koordinat GPS pusat gedung sekolah dan batas jarak (radius) maksimal siswa melakukan presensi selfie.
+                                <p className="text-[12px] text-text-muted mt-0.5 font-inter">
+                                    Hari libur sekolah aktif tidak akan menghitung keterlambatan atau ketidakhadiran siswa.
                                 </p>
                             </div>
-                            <button
-                                onClick={() => handleSaveLocationSettings()}
-                                disabled={savingLocation}
-                                className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-60 shrink-0"
-                                type="button"
-                            >
-                                <FiCheck className="text-[12px]" />
-                                <span>{savingLocation ? "Menyimpan..." : "Simpan Lokasi Presensi"}</span>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSaveLocationSettings} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="flex flex-col gap-4">
-                                <div>
-                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                        Nama Gedung / Lokasi Presensi
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={locationForm.name}
-                                        onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
-                                        placeholder="SMA UII Yogyakarta"
-                                        required
-                                    />
-                                    {locationErrors.name && (
-                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.name}</span>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                        Alamat Lengkap Sekolah
-                                    </label>
-                                    <textarea
-                                        rows={2}
-                                        value={locationForm.address}
-                                        onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
-                                        className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
-                                        placeholder="Jl. Taman Siswa No.158..."
-                                        required
-                                    />
-                                    {locationErrors.address && (
-                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.address}</span>
-                                    )}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                            Latitude (Garis Lintang)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="any"
-                                            value={locationForm.latitude}
-                                            onChange={(e) => setLocationForm({ ...locationForm, latitude: parseFloat(e.target.value) || 0 })}
-                                            className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
-                                            required
-                                        />
-                                        {locationErrors.latitude && (
-                                            <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.latitude}</span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                            Longitude (Garis Bujur)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="any"
-                                            value={locationForm.longitude}
-                                            onChange={(e) => setLocationForm({ ...locationForm, longitude: parseFloat(e.target.value) || 0 })}
-                                            className="w-full border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
-                                            required
-                                        />
-                                        {locationErrors.longitude && (
-                                            <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.longitude}</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-[12px] font-bold text-text-primary mb-1">
-                                        Radius Toleransi Geofence (Meter)
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="number"
-                                            min={10}
-                                            max={5000}
-                                            value={locationForm.radius_meters}
-                                            onChange={(e) => setLocationForm({ ...locationForm, radius_meters: parseInt(e.target.value) || 100 })}
-                                            className="w-32 border border-border rounded-lg px-3 py-2 text-[13px] font-mono font-bold text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
-                                            required
-                                        />
-                                        <span className="text-[12px] text-text-muted">Meter (Disarankan: 100 - 150 meter)</span>
-                                    </div>
-                                    {locationErrors.radius_meters && (
-                                        <span className="text-[11px] text-danger font-medium mt-1 block">{locationErrors.radius_meters}</span>
-                                    )}
-                                </div>
-
-                                <div className="pt-2 flex flex-wrap items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setLocationForm({
-                                            name: "SMA UII Yogyakarta",
-                                            address: "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
-                                            latitude: -7.814257,
-                                            longitude: 110.375944,
-                                            radius_meters: 100,
-                                            is_active: true,
-                                        })}
-                                        className="text-[12px] font-semibold text-primary hover:underline flex items-center gap-1.5 cursor-pointer"
+<div className="flex flex-wrap items-center gap-3 shrink-0">
+                                <div className="w-36">
+                                    <NativeSelect
+                                        value={filters.month ?? ""}
+                                        onChange={(e) =>
+                                            router.get(
+                                                "/operational-settings",
+                                                { year: filters.year, month: e.target.value },
+                                                { preserveState: true },
+                                            )
+                                        }
                                     >
-                                        <FiCrosshair className="text-[11px]" />
-                                        <span>Set Preset SMA UII Taman Siswa (-7.814257, 110.375944)</span>
-                                    </button>
+                                        <option value="">Semua Bulan</option>
+                                        {months.map((m) => (
+                                            <option key={m.value} value={m.value}>
+                                                {m.label}
+                                            </option>
+                                        ))}
+                                    </NativeSelect>
                                 </div>
-                            </div>
-
-                            {/* Visual Preview Box */}
-                            <div className="bg-background border border-border rounded-xl p-5 flex flex-col justify-between">
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[12px] font-bold uppercase tracking-wider text-text-muted">Preview Peta & Status</span>
-                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-success/15 text-success border border-success/30 flex items-center gap-1">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                                            Geofencing Active ({locationForm.radius_meters}m)
-                                        </span>
-                                    </div>
-
-                                    <div className="bg-surface border border-border rounded-lg p-4 shadow-sm flex flex-col gap-2">
-                                        <div className="flex items-start gap-2.5">
-                                            <FiHome className="text-primary text-[16px] mt-0.5" />
-                                            <div>
-                                                <h4 className="text-[14px] font-bold text-text-primary">{locationForm.name}</h4>
-                                                <p className="text-[12px] text-text-secondary leading-snug mt-0.5">{locationForm.address}</p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between text-[11px] font-mono text-text-muted">
-                                            <span>Lat: {locationForm.latitude}</span>
-                                            <span>Lng: {locationForm.longitude}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-3 bg-warning-bg border border-warning/20 rounded-lg text-[12px] text-warning flex items-start gap-2">
-                                        <FiInfo className="text-warning text-[14px] mt-0.5" />
-                                        <span>Siswa hanya dapat melakukan check-in jika posisi GPS HP berada di dalam lingkaran radius <strong>{locationForm.radius_meters} meter</strong> dari titik koordinat pusat SMA UII Yogyakarta.</span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
-                                    <a
-                                        href={`https://www.google.com/maps?q=${locationForm.latitude},${locationForm.longitude}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center gap-2 px-3.5 py-2 bg-surface border border-border hover:bg-muted text-text-primary text-[12px] font-bold rounded-lg transition-colors cursor-pointer"
+                                <div className="w-28">
+                                    <NativeSelect
+                                        value={filters.year ?? String(currentYear)}
+                                        onChange={(e) =>
+                                            router.get(
+                                                "/operational-settings",
+                                                { year: e.target.value, month: filters.month },
+                                                { preserveState: true },
+                                            )
+                                        }
                                     >
-                                        <FiExternalLink className="text-[11px] text-primary" />
-                                        <span>Buka di Google Maps</span>
-                                    </a>
+                                        <option value={String(currentYear - 1)}>{currentYear - 1}</option>
+                                        <option value={String(currentYear)}>{currentYear}</option>
+                                        <option value={String(currentYear + 1)}>{currentYear + 1}</option>
+                                    </NativeSelect>
                                 </div>
+                                <Button
+                                    onClick={() => setShowAddForm((prev) => !prev)}
+                                    variant="primary"
+                                    className="shrink-0"
+                                >
+                                    <FiPlus className="mr-1.5" />
+                                    Tambah Libur
+                                </Button>
                             </div>
-                        </form>
-                    </div>
-                </div>
-
-                {/* Section 3: Libur Akademik */}
-                <div className={`lg:col-span-5 ${activeSettingTab === "holiday" ? "block" : "hidden"}`}>
-                    <div className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
-                        {/* Card Header */}
-                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-border/60">
-                            <h2 className="text-[16px] font-bold text-text-primary font-inter flex items-center gap-2">
-                                <FiCalendar className="text-[15px] text-text-inactive" />
-                                Libur Akademik
-                            </h2>
-                            <button
-                                onClick={() => setShowAddForm((prev) => !prev)}
-                                className="flex items-center gap-1 bg-primary hover:bg-primary/95 text-white rounded-lg px-3 py-1.5 text-[13px] font-bold transition-colors cursor-pointer"
-                                type="button"
-                            >
-                                <FiPlus className="text-[11px]" />
-                                <span>Tambah</span>
-                            </button>
-                        </div>
+</div>
 
                         {/* Inline Form Add Holiday */}
                         {showAddForm && (
                             <form
                                 onSubmit={handleAddHoliday}
-                                className="border border-border/80 rounded-xl p-4 bg-muted/40 flex flex-col gap-3 mb-5"
+                                className="border border-border rounded-xl p-4 bg-muted/30 flex flex-col gap-3.5 mt-2 font-inter"
                             >
-                                <h3 className="text-[13px] font-bold text-text-primary font-inter">
-                                    Tambah Hari Libur Baru
+                                <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
+                                    <FiPlus className="text-primary text-[14px]" />
+                                    Form Tambah Hari Libur Sekolah
                                 </h3>
-                                <div>
-                                    <label className="block text-[11px] text-text-muted font-inter mb-1">
-                                        Tanggal Libur
-                                    </label>
-                                    <input
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Input
+                                        label="Tanggal Hari Libur"
                                         type="date"
                                         value={holidayForm.holiday_date}
                                         onChange={(e) => setHolidayForm("holiday_date", e.target.value)}
-                                        className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        error={holidayErrors.holiday_date}
                                     />
-                                    {holidayErrors.holiday_date && (
-                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
-                                            {holidayErrors.holiday_date}
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] text-text-muted font-inter mb-1">
-                                        Keterangan
-                                    </label>
-                                    <input
+                                    <Input
+                                        label="Keterangan Hari Libur"
                                         type="text"
                                         value={holidayForm.description}
                                         onChange={(e) => setHolidayForm("description", e.target.value)}
-                                        placeholder="Contoh: Libur Nasional"
-                                        className="w-full border border-border rounded-lg px-3 py-1.5 text-[13px] font-inter text-text-primary placeholder:text-text-placeholder bg-surface focus:outline-none focus:ring-1 focus:ring-primary/20"
+                                        placeholder="Contoh: Libur Nasional / Cuti Bersama"
+                                        error={holidayErrors.description}
                                     />
-                                    {holidayErrors.description && (
-                                        <p className="text-[11px] text-danger mt-1 font-medium font-inter">
-                                            {holidayErrors.description}
-                                        </p>
-                                    )}
                                 </div>
-                                <div className="flex gap-2 justify-end mt-1">
-                                    <button
+                                <div className="flex gap-2 justify-end pt-2 border-t border-border">
+                                    <Button
                                         type="button"
+                                        variant="secondary"
+                                        size="sm"
                                         onClick={() => {
                                             resetHoliday();
                                             setShowAddForm(false);
                                         }}
-                                        className="px-3 py-1.5 text-[12px] font-bold text-text-secondary hover:bg-muted rounded-lg transition-colors cursor-pointer"
                                     >
                                         Batal
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="submit"
-                                        disabled={holidayProcessing}
-                                        className="bg-primary hover:bg-primary/95 text-white px-4 py-1.5 rounded-lg text-[12px] font-bold transition-colors cursor-pointer disabled:opacity-60"
+                                        loading={holidayProcessing}
+                                        variant="primary"
+                                        size="sm"
                                     >
-                                        {holidayProcessing ? "Menyimpan..." : "Simpan Libur"}
-                                    </button>
+                                        Simpan Libur
+                                    </Button>
                                 </div>
                             </form>
                         )}
+</div>
+                </Card>
 
-                        {/* Filter Bar */}
-                        <div className="flex gap-3 mb-5 items-center">
-                            <div className="w-40">
-                                <NativeSelect
-                                    value={filters.month ?? ""}
-                                    onChange={(e) =>
-                                        router.get(
-                                            "/settings",
-                                            { year: filters.year, month: e.target.value },
-                                            { preserveState: true },
-                                        )
-                                    }
-                                >
-                                    <option value="">Semua Bulan</option>
-                                    {months.map((m) => (
-                                        <option key={m.value} value={m.value}>
-                                            {m.label}
-                                        </option>
-                                    ))}
-                                </NativeSelect>
-                            </div>
-                            <div className="w-32">
-                                <NativeSelect
-                                    value={filters.year ?? String(currentYear)}
-                                    onChange={(e) =>
-                                        router.get(
-                                            "/settings",
-                                            { year: e.target.value, month: filters.month },
-                                            { preserveState: true },
-                                        )
-                                    }
-                                >
-                                    <option value={String(currentYear - 1)}>{currentYear - 1}</option>
-                                    <option value={String(currentYear)}>{currentYear}</option>
-                                    <option value={String(currentYear + 1)}>{currentYear + 1}</option>
-                                </NativeSelect>
-                            </div>
-                        </div>
-
-                        {/* Holidays List */}
-                        <div className="flex flex-col gap-3 flex-1">
-                            {holidays.data.length === 0 ? (
-                                <div className="flex-1 flex items-center justify-center text-text-muted text-[13px] py-12">
-                                    Belum ada hari libur.
-                                </div>
-                            ) : (
-                                holidays.data.map((h, index) => {
-                                    const borderColors = [
-                                        "border-l-danger",
-                                        "border-l-primary",
-                                        "border-l-success",
-                                        "border-l-warning",
-                                    ];
-                                    const borderColor = borderColors[index % borderColors.length];
-                                    return (
-                                        <div
-                                            key={h.id}
-                                            className={`flex items-center justify-between p-4 bg-surface border border-border border-l-4 ${borderColor} rounded-xl shadow-sm hover:shadow-md transition-shadow`}
-                                        >
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-[13px] font-bold text-text-primary font-inter leading-tight">
-                                                    {h.description ?? "Hari Libur"}
-                                                </span>
-                                                <div className="flex items-center gap-1.5 text-[11px] text-text-secondary font-medium font-inter">
-                                                    <FiCalendar className="text-text-inactive" />
-                                                    <span>{formatIndonesianDate(h.holiday_date)}</span>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDeleteHoliday(h.id)}
-                                                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
-                                                type="button"
-                                                aria-label="Hapus hari libur"
-                                            >
-                                                <FiTrash2 className="text-[14px]" />
-                                            </button>
+                {/* Standalone Table without Double Card Wrapping */}
+                <div className="flex flex-col gap-3">
+                    {holidays.data.length === 0 ? (
+                        <Card className="p-8 text-center">
+                            <EmptyState variant="no-data" description="Belum ada hari libur yang ditambahkan pada periode ini." />
+                        </Card>
+                    ) : (
+                        <Table
+                            columns={[
+                                {
+                                    key: "description",
+                                    header: "Keterangan Hari Libur",
+                                    className: "font-inter font-bold text-text-primary text-[14px]",
+                                    render: (h) => h.description ?? "Hari Libur",
+                                },
+                                {
+                                    key: "holiday_date",
+                                    header: "Tanggal Pelaksanaan",
+                                    className: "font-inter text-text-secondary text-[13px]",
+                                    render: (h) => (
+                                        <div className="flex items-center gap-2">
+                                            <FiCalendar className="text-primary text-[13px]" />
+                                            <span className="font-medium">{formatIndonesianDate(h.holiday_date)}</span>
                                         </div>
-                                    );
-                                })
-                            )}
-                        </div>
+                                    ),
+                                },
+                                {
+                                    key: "actions",
+                                    header: <div className="text-center w-full">Aksi</div>,
+                                    className: "w-20 text-center",
+                                    render: (h) => (
+                                        <button
+                                            onClick={() => handleDeleteHoliday(h.id, h.description ?? "Hari Libur")}
+                                            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
+                                            type="button"
+                                            aria-label="Hapus hari libur"
+                                            title="Hapus hari libur"
+                                        >
+                                            <FiTrash2 className="text-[14px]" />
+                                        </button>
+                                    ),
+                                },
+                            ]}
+                            data={holidays.data}
+                            keyExtractor={(h) => h.id}
+                        />
+                    )}
 
-                        {/* Pagination */}
-                        {holidays.total > holidays.per_page && (
-                            <div className="mt-5 pt-3 border-t border-border/60">
-                                <Pagination
-                                    currentPage={holidays.current_page}
-                                    totalPages={holidays.last_page}
-                                    totalItems={holidays.total}
-                                    perPage={holidays.per_page}
-                                    onPageChange={(page) =>
-                                        router.get(
-                                            "/settings",
-                                            { page, year: filters.year, month: filters.month },
-                                            { preserveState: true },
-                                        )
-                                    }
-                                />
-                            </div>
-                        )}
-                    </div>
+                    {/* Pagination */}
+                    {holidays.total > holidays.per_page && (
+                        <div className="pt-2 border-t border-border">
+                            <Pagination
+                                currentPage={holidays.current_page}
+                                totalPages={holidays.last_page}
+                                totalItems={holidays.total}
+                                perPage={holidays.per_page}
+                                onPageChange={(page) =>
+                                    router.get(
+                                        "/operational-settings",
+                                        { page, year: filters.year, month: filters.month },
+                                        { preserveState: true },
+                                    )
+                                }
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
             {/* Delete Confirmation Modal */}
-            {deleteHolidayId !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setDeleteHolidayId(null)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-sm p-6 text-center">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2">Konfirmasi Hapus</h3>
-                        <p className="text-[13px] text-text-muted mb-6">
-                            Apakah Anda yakin ingin menghapus hari libur ini?
-                        </p>
-                        <div className="flex gap-3 justify-center">
-                            <Button variant="ghost" onClick={() => setDeleteHolidayId(null)}>
-                                Batal
-                            </Button>
-                            <Button variant="danger" onClick={confirmDeleteHoliday}>
-                                Hapus
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                open={deleteHolidayConfirm.open}
+                onClose={() => setDeleteHolidayConfirm({ open: false, id: null, name: "" })}
+                onConfirm={confirmDeleteHoliday}
+                title="Hapus Hari Libur"
+                message={`Apakah Anda yakin ingin menghapus hari libur "${deleteHolidayConfirm.name}"?`}
+                variant="danger"
+            />
         </AppShell>
     );
 }
+
+

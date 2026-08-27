@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox } from "@/Components";
-import { FiUserPlus, FiCheck, FiHome, FiCheckSquare, FiX, FiCheckCircle, FiUser, FiInfo, FiUserMinus } from "react-icons/fi";
+import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox, Modal, NativeSelect, ConfirmDialog, EmptyState, Card } from "@/Components";
+import { FiUserPlus, FiCheckSquare, FiX, FiUser, FiUserMinus, FiUsers, FiMonitor } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -44,7 +44,9 @@ export default function EnrolmentKelas({
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
     const [showAddModal, setShowAddModal] = useState(false);
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
-    const [saveNotice, setSaveNotice] = useState<string | null>(null);
+
+    // Confirm Dialog States
+    const [bulkRemoveConfirm, setBulkRemoveConfirm] = useState(false);
 
     // Multi-selection states
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
@@ -113,15 +115,19 @@ export default function EnrolmentKelas({
 
     const handleBulkRemove = () => {
         if (selectedStudentIds.length === 0) return;
-        if (!confirm(`Keluarkan ${selectedStudentIds.length} siswa terpilih dari kelas ini?`)) {
-            return;
-        }
+        setBulkRemoveConfirm(true);
+    };
+
+    const confirmBulkRemove = () => {
         router.post(
             "/class-enrolment/bulk-remove",
             { student_ids: selectedStudentIds },
             {
                 preserveState: true,
-                onSuccess: () => setSelectedStudentIds([]),
+                onSuccess: () => {
+                    setSelectedStudentIds([]);
+                    setBulkRemoveConfirm(false);
+                },
             },
         );
     };
@@ -205,30 +211,52 @@ export default function EnrolmentKelas({
                     }}
                 />
             ),
-            className: "w-10",
+            className: "w-10 text-center",
         },
         {
             key: "nisn",
             header: "NISN",
-            className: "w-1 whitespace-nowrap",
-            render: (s) => <span className="font-semibold text-text-primary">{s.nisn}</span>,
+            className: "w-36 font-semibold text-text-primary font-inter",
+            render: (s) => s.nisn || "-",
+        },
+        {
+            key: "nis",
+            header: "NIS",
+            className: "w-32 text-text-muted font-inter",
+            render: (s) => s.nis || "-",
         },
         {
             key: "name",
-            header: "Nama Lengkap",
-            className: "w-full min-w-0",
-            render: (s) => <span className="text-text-primary block truncate font-medium" title={s.name}>{s.name}</span>,
+            header: "Nama Lengkap Siswa",
+            className: "min-w-[220px] font-medium text-text-primary font-inter",
+            render: (s) => (
+                <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-[12px] flex items-center justify-center shrink-0 font-inter">
+                        {s.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="font-semibold text-text-primary truncate" title={s.name}>
+                        {s.name}
+                    </span>
+                </div>
+            ),
+        },
+        {
+            key: "email",
+            header: "Email Akun Siswa",
+            className: "min-w-[180px] text-text-muted font-inter text-[13px]",
+            render: (s) => s.user?.email ?? "-",
         },
         {
             key: "actions",
             header: <div className="text-center w-full">Aksi</div>,
-            className: "w-16 text-center",
+            className: "w-20 text-center",
             render: (s) => (
                 <button
                     onClick={() => handleRemove(s.id)}
                     className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
                     type="button"
-                    aria-label="Hapus siswa"
+                    title="Keluarkan dari kelas"
+                    aria-label="Keluarkan siswa"
                 >
                     <FiX className="text-[16px]" />
                 </button>
@@ -258,7 +286,6 @@ export default function EnrolmentKelas({
                     }}
                 />
             ),
-            className: "w-10 text-center",
             render: (s) => (
                 <Checkbox
                     checked={selectedModalStudentIds.includes(s.id)}
@@ -273,6 +300,7 @@ export default function EnrolmentKelas({
                     }}
                 />
             ),
+            className: "w-10 text-center",
         },
         {
             key: "nis",
@@ -291,9 +319,9 @@ export default function EnrolmentKelas({
             ),
         },
         {
-            key: "action",
+            key: "actions",
             header: <div className="text-center w-full">Aksi</div>,
-            className: "text-center w-20 whitespace-nowrap",
+            className: "w-20 text-center whitespace-nowrap",
             render: (s) => (
                 <Button size="sm" onClick={() => handleAssign(s.id)}>
                     Tambah
@@ -310,91 +338,91 @@ export default function EnrolmentKelas({
                 description="Petakan rombongan belajar dan tetapkan Wali Kelas untuk tahun ajaran aktif."
             />
 
-            {saveNotice && (
-                <div className="mb-4 rounded-lg bg-success-bg border border-success/30 text-success px-4 py-2.5 text-[13px] font-medium">
-                    <FiCheckCircle className="mr-2 inline" />
-                    {saveNotice}
-                </div>
-            )}
+            {/* Top Control Panel (Konfigurasi Kelas Horizontal Simetris) */}
+            <div className="bg-surface border border-border rounded-xl p-5 shadow-card mb-6 font-inter">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+                    {/* Col 1: Select Class Dropdown (5 Cols) */}
+                    <div className="md:col-span-5 flex flex-col justify-between">
+                        <label className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
+                            <FiMonitor className="text-primary text-[14px]" />
+                            <span>Pilih Kelas / Rombongan Belajar</span>
+                        </label>
+                        <NativeSelect
+                            value={classId}
+                            onChange={(e) => {
+                                const nextId = e.target.value;
+                                setClassId(nextId);
+                                setSelectedStudentIds([]);
+                                router.get(
+                                    "/class-enrolment",
+                                    { class_id: nextId || undefined },
+                                    { preserveState: true },
+                                );
+                            }}
+                        >
+                            <option value="">-- Pilih Kelas --</option>
+                            {classes.map((c) => (
+                                <option key={c.id} value={c.id.toString()}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                    </div>
 
-            {/* Split Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
-                {/* Column 1: Konfigurasi Kelas (Left) */}
-                <div className="lg:col-span-2">
-                    <div className="bg-surface border border-border rounded-xl p-6 flex flex-col gap-6 shadow-card min-h-[440px]">
-                        <h2 className="text-[16px] font-bold text-primary font-inter border-b border-border pb-3">
-                            Konfigurasi Kelas
-                        </h2>
-
-                        {/* Pilih Kelas Dropdown */}
-                        <div className="flex flex-col gap-1.5">
-                            <label className="text-[13px] font-semibold text-text-secondary font-inter">
-                                Pilih Kelas
-                            </label>
-                            <select
-                                value={classId}
-                                onChange={(e) => {
-                                    const nextId = e.target.value;
-                                    setClassId(nextId);
-                                    setSelectedStudentIds([]);
-                                    router.get(
-                                        "/class-enrolment",
-                                        { class_id: nextId || undefined },
-                                        { preserveState: true },
-                                    );
-                                }}
-                                className="h-10 border border-border rounded-lg px-3.5 text-[14px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/30 min-w-full"
-                            >
-                                <option value="">-- Pilih Kelas --</option>
-                                {classes.map((c) => (
-                                    <option key={c.id} value={c.id.toString()}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Wali Kelas Display */}
-                        <div className="flex flex-col gap-1.5 mt-2">
-                            <label className="text-[13px] font-semibold text-text-secondary font-inter">
-                                Wali Kelas Terdaftar
-                            </label>
-                            <div className="flex items-center gap-3 p-3.5 rounded-lg border border-border bg-background">
-                                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[14px] shrink-0">
-                                    <FiUser />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="font-semibold text-text-primary text-[14px] truncate">
-                                        {selectedClass?.teacher?.name ?? "Belum ada wali kelas"}
-                                    </p>
-                                    <p className="text-[12px] text-text-muted">
-                                        {selectedClass?.teacher ? "Aktif Semester Ini" : "Pilih kelas untuk melihat"}
-                                    </p>
-                                </div>
+                    {/* Col 2: Wali Kelas Badge Info (4 Cols) */}
+                    <div className="md:col-span-4 flex flex-col justify-between">
+                        <span className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
+                            <FiUser className="text-primary text-[14px]" />
+                            <span>Wali Kelas Terdaftar</span>
+                        </span>
+                        <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg border border-border bg-muted/20 h-[42px]">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[11px] shrink-0">
+                                <FiUser />
+                            </div>
+                            <div className="min-w-0 flex-1 flex items-center justify-between">
+                                <p className="font-bold text-text-primary text-[13px] truncate">
+                                    {selectedClass?.teacher?.name ?? "Belum ada wali kelas"}
+                                </p>
+                                {selectedClass?.teacher && (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-success-bg text-success border border-success/20 shrink-0 ml-2">
+                                        Aktif
+                                    </span>
+                                )}
                             </div>
                         </div>
+                    </div>
 
-                        <p className="text-[11px] text-text-muted font-inter mt-auto leading-relaxed border-t border-border/60 pt-4">
-                            <FiInfo className="mr-1 text-text-inactive inline" />
-                            Pastikan data guru sudah terdaftar di Data Master sebelum ditetapkan.
-                        </p>
+                    {/* Col 3: Total Siswa Terdaftar (3 Cols) */}
+                    <div className="md:col-span-3 flex flex-col justify-between md:border-l md:border-border md:pl-6 pt-3 md:pt-0 border-t md:border-t-0">
+                        <span className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
+                            <FiUsers className="text-primary text-[14px]" />
+                            <span>Total Siswa Terdaftar</span>
+                        </span>
+                        <div className="flex items-center justify-between px-3.5 rounded-lg border border-border bg-muted/20 h-[42px]">
+                            <span className="text-[13px] font-semibold text-text-secondary font-inter">Kapasitas Active</span>
+                            <span className="text-[14px] font-extrabold text-primary font-inter">
+                                {selectedClass ? `${students.length} Siswa` : "-"}
+                            </span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Column 2: Roster Siswa (Right) */}
-                <div className="lg:col-span-3">
-                    {selectedClass ? (
-                        <section className="bg-surface border border-border rounded-xl p-6 shadow-card flex flex-col min-h-[440px]">
-                            {/* Card Header & Toolbar */}
-                            <div className="flex flex-col gap-3.5 pb-4 border-b border-border mb-4">
+            {/* Main Roster Layout (Full Width Below Control Panel) */}
+            <div className="w-full flex flex-col gap-4">
+                {selectedClass ? (
+                    <>
+                        {/* Card Header & Toolbar */}
+                        <Card className="p-5">
+                            <div className="flex flex-col gap-3.5">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div>
                                         <h2 className="text-[16px] font-bold text-primary font-inter">
-                                            Daftar Siswa — {selectedClass.name}
+                                            Daftar Siswa Terdaftar — {selectedClass.name}
                                         </h2>
-                                        <span className="text-[12px] text-text-muted">
-                                            Menampilkan {paginatedStudents.length} dari {filteredStudents.length} siswa
-                                        </span>
+                                        <p className="text-[12px] text-text-muted mt-0.5 font-inter">
+                                            Rombongan belajar terdaftar untuk tahun ajaran aktif.
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
                                         {/* Bulk Remove Button */}
@@ -427,7 +455,7 @@ export default function EnrolmentKelas({
                                         </Button>
                                     </div>
                                 </div>
-                                <div className="w-full">
+                                <div className="w-full pt-1 border-t border-border/60">
                                     <SearchBar
                                         value={search}
                                         onChange={(val) => {
@@ -435,24 +463,26 @@ export default function EnrolmentKelas({
                                             setCurrentPage(1);
                                         }}
                                         onSearch={() => setCurrentPage(1)}
-                                        placeholder="Cari NIS / Nama siswa di kelas ini..."
+                                        placeholder="Cari NISN, NIS, atau Nama siswa di kelas ini..."
                                     />
                                 </div>
                             </div>
+                        </Card>
 
-                            {/* Table */}
-                            <div className="flex-1 overflow-x-auto">
-                                <Table
-                                    columns={columns}
-                                    data={paginatedStudents}
-                                    keyExtractor={(s) => s.id}
-                                    emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Belum ada siswa di kelas ini."}
-                                />
-                            </div>
-
-                            {/* Pagination */}
+                        {/* Standalone Table */}
+                        <div className="flex flex-col gap-3">
+                            <Table
+                                columns={columns}
+                                data={paginatedStudents}
+                                keyExtractor={(s) => s.id}
+                                emptyMessage={
+                                    search
+                                        ? "Tidak ditemukan siswa yang cocok dengan pencarian."
+                                        : "Belum ada siswa di kelas ini."
+                                }
+                            />
                             {filteredStudents.length > pageSize && (
-                                <div className="mt-4 pt-3 border-t border-border">
+                                <div className="pt-2 border-t border-border">
                                     <Pagination
                                         currentPage={safePage}
                                         totalPages={totalPages}
@@ -462,134 +492,106 @@ export default function EnrolmentKelas({
                                     />
                                 </div>
                             )}
+                        </div>
+                    </>
+                ) : (
+                    <div className="bg-surface border border-border rounded-xl p-12 text-center shadow-card flex flex-col items-center justify-center min-h-[360px]">
+                        <EmptyState
+                            variant="no-data"
+                            title="Belum Ada Kelas yang Dipilih"
+                            description="Silakan pilih kelas pada panel kontrol di atas untuk mengelola rombongan belajar dan daftar siswa terdaftar."
+                        />
+                    </div>
+                )}
+            </div>
 
-                            {/* Card Footer */}
-                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-                                <span className="text-[13px] font-semibold text-text-secondary font-inter">
-                                    Total: {students.length} Siswa
-                                </span>
-                                <button
-                                    onClick={() => {
-                                        setSaveNotice(
-                                            "Perubahan enrolment sudah tersimpan otomatis saat tambah/hapus siswa.",
-                                        );
-                                        window.setTimeout(() => setSaveNotice(null), 3500);
+            {/* Add Student Modal */}
+            <Modal
+                open={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                title={`Tambah Siswa ke ${selectedClass?.name}`}
+                width="lg"
+            >
+                <div className="flex flex-col">
+                    <p className="text-[12px] text-text-muted mb-4">
+                        {unassignedStudents.length} siswa belum memiliki kelas
+                    </p>
+
+                    {unassignedStudents.length > 0 && (
+                        <div className="pb-4 flex items-center justify-between gap-3">
+                            <div className="flex-1">
+                                <SearchBar
+                                    value={modalSearch}
+                                    onChange={(val) => {
+                                        setModalSearch(val);
+                                        setModalCurrentPage(1);
                                     }}
-                                    className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white rounded-lg px-4 py-2 text-[13px] font-bold transition-colors cursor-pointer"
-                                    type="button"
-                                    title="Perubahan siswa sudah tersimpan otomatis saat tambah/hapus"
-                                >
-                                    <FiCheck className="text-[12px]" />
-                                    <span>Simpan Pembaruan</span>
-                                </button>
+                                    onSearch={() => setModalCurrentPage(1)}
+                                    placeholder="Cari NIS / Nama siswa..."
+                                />
                             </div>
-                        </section>
-                    ) : (
-                        <div className="bg-surface border border-border rounded-xl p-12 text-center shadow-card flex flex-col items-center justify-center min-h-[440px]">
-                            <FiHome className="text-text-inactive text-4xl mb-4" />
-                            <p className="text-text-muted font-inter text-[14px] max-w-sm">
-                                Silakan pilih kelas di kolom sebelah kiri untuk menampilkan daftar siswa terdaftar.
-                            </p>
+                            {selectedModalStudentIds.length > 0 && (
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    onClick={handleBulkAssign}
+                                    icon={<FiCheckSquare className="text-[12px]" />}
+                                >
+                                    Tambahkan ({selectedModalStudentIds.length})
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="overflow-x-auto min-h-[300px]">
+                        <Table
+                            columns={modalColumns}
+                            data={paginatedUnassigned}
+                            keyExtractor={(s) => s.id}
+                            emptyMessage={
+                                modalSearch
+                                    ? "Tidak ada siswa yang cocok dengan pencarian."
+                                    : "Tidak ada siswa yang belum terdaftar di kelas."
+                            }
+                        />
+                    </div>
+
+                    {filteredUnassigned.length > modalPageSize && (
+                        <div className="pt-4 mt-2 border-t border-border">
+                            <Pagination
+                                currentPage={modalSafePage}
+                                totalPages={modalTotalPages}
+                                totalItems={filteredUnassigned.length}
+                                perPage={modalPageSize}
+                                onPageChange={setModalCurrentPage}
+                                compact
+                            />
                         </div>
                     )}
                 </div>
-            </div>
-
-            {/* Add Student Modal with Functional Bulk Selection */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
-                        <div className="flex items-center justify-between p-5 border-b border-border">
-                            <div>
-                                <h3 className="text-[16px] font-bold text-text-primary font-inter">
-                                    Tambah Siswa ke {selectedClass?.name}
-                                </h3>
-                                <p className="text-[12px] text-text-muted">
-                                    {unassignedStudents.length} siswa belum memiliki kelas
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="text-text-muted hover:text-text-primary text-xl cursor-pointer"
-                                type="button"
-                            >
-                                &times;
-                            </button>
-                        </div>
-
-                        {unassignedStudents.length > 0 && (
-                            <div className="p-4 border-b border-border bg-background/50 flex items-center justify-between gap-3">
-                                <div className="flex-1">
-                                    <SearchBar
-                                        value={modalSearch}
-                                        onChange={(val) => {
-                                            setModalSearch(val);
-                                            setModalCurrentPage(1);
-                                        }}
-                                        onSearch={() => setModalCurrentPage(1)}
-                                        placeholder="Cari NIS / Nama siswa..."
-                                    />
-                                </div>
-                                {selectedModalStudentIds.length > 0 && (
-                                    <Button
-                                        variant="primary"
-                                        size="md"
-                                        onClick={handleBulkAssign}
-                                        icon={<FiCheckSquare className="text-[12px]" />}
-                                    >
-                                        Tambahkan ({selectedModalStudentIds.length})
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="p-5 overflow-y-auto flex-1">
-                            <Table
-                                columns={modalColumns}
-                                data={paginatedUnassigned}
-                                keyExtractor={(s) => s.id}
-                                emptyMessage={modalSearch ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa yang belum terdaftar di kelas."}
-                            />
-                        </div>
-
-                        {filteredUnassigned.length > modalPageSize && (
-                            <div className="p-3 border-t border-border bg-surface">
-                                <Pagination
-                                    currentPage={modalSafePage}
-                                    totalPages={modalTotalPages}
-                                    totalItems={filteredUnassigned.length}
-                                    perPage={modalPageSize}
-                                    onPageChange={setModalCurrentPage}
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            </Modal>
 
             {/* Remove Single Confirmation Modal */}
-            {removeConfirmId !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-black/50" onClick={() => setRemoveConfirmId(null)} />
-                    <div className="relative bg-surface rounded-xl shadow-modal p-6 max-w-sm w-full">
-                        <h3 className="text-[16px] font-bold text-text-primary mb-2 font-inter">
-                            Hapus Siswa dari Kelas?
-                        </h3>
-                        <p className="text-[13px] text-text-muted mb-6">
-                            Siswa akan dipindahkan ke daftar siswa tanpa kelas. Tindakan ini dapat dibatalkan nanti.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                            <Button variant="ghost" onClick={() => setRemoveConfirmId(null)}>
-                                Batal
-                            </Button>
-                            <Button variant="danger" onClick={confirmRemove}>
-                                Hapus
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                open={removeConfirmId !== null}
+                onClose={() => setRemoveConfirmId(null)}
+                onConfirm={confirmRemove}
+                title="Hapus Siswa dari Kelas?"
+                message="Siswa akan dipindahkan ke daftar siswa tanpa kelas. Tindakan ini dapat dibatalkan nanti."
+                confirmLabel="Hapus"
+                variant="danger"
+            />
+
+            <ConfirmDialog
+                open={bulkRemoveConfirm}
+                onClose={() => setBulkRemoveConfirm(false)}
+                onConfirm={confirmBulkRemove}
+                title="Keluarkan Siswa"
+                message={`Keluarkan ${selectedStudentIds.length} siswa terpilih dari kelas ini?`}
+                confirmLabel="Keluarkan"
+                variant="danger"
+            />
         </AppShell>
     );
 }
+

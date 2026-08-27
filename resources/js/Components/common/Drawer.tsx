@@ -13,6 +13,7 @@ interface DrawerProps {
     submitLabel?: string;
     loading?: boolean;
     width?: "sm" | "md" | "lg" | "xl";
+    headerActions?: ReactNode;
 }
 
 const widthClasses = {
@@ -31,6 +32,7 @@ export default function Drawer({
     submitLabel = "Simpan",
     loading = false,
     width = "md",
+    headerActions,
 }: DrawerProps) {
     useEffect(() => {
         if (open) {
@@ -78,18 +80,21 @@ export default function Drawer({
                         className={`relative w-screen ${widthClasses[width]} bg-surface shadow-2xl flex flex-col h-full z-10 border-l border-border`}
                     >
                         {/* Drawer Header */}
-                        <div className="flex items-center justify-between p-5 border-b border-border select-none shrink-0 bg-surface">
-                            <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
-                            <button
-                                onClick={onClose}
-                                className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-                                type="button"
-                                aria-label="Tutup"
-                                dusk="drawer-close-btn"
-                                data-testid="drawer-close-btn"
-                            >
-                                <FaTimes className="w-4 h-4" />
-                            </button>
+                        <div className="flex items-center justify-between p-5 border-b border-border select-none shrink-0 bg-surface gap-3">
+                            <h2 className="text-[16px] font-bold text-text-primary font-inter truncate">{title}</h2>
+                            <div className="flex items-center gap-2 shrink-0">
+                                {headerActions}
+                                <button
+                                    onClick={onClose}
+                                    className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                                    type="button"
+                                    aria-label="Tutup"
+                                    dusk="drawer-close-btn"
+                                    data-testid="drawer-close-btn"
+                                >
+                                    <FaTimes className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Drawer Body */}

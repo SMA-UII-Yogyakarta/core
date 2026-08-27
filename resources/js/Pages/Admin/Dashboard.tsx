@@ -1,7 +1,11 @@
 import { useMemo, useState } from "react";
 import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, AttendanceChart, Table, Card, PageHeader, EmptyState } from "@/Components";
+import { StatCard, StatusBadge, Button, AttendanceChart, Table, Card, PageHeader } from "@/Components";
+import TabSwitcher from "@/Components/common/TabSwitcher";
+import EmptyState from "@/Components/common/EmptyState";
+import Input from "@/Components/ui/Input";
+import NativeSelect from "@/Components/ui/NativeSelect";
 import {
     FiDatabase,
     FiClock,
@@ -291,31 +295,12 @@ export default function Dashboard({
                 title="Statistik Kehadiran Sekolah"
                 description="Ringkasan kehadiran institusi berdasarkan periode yang dipilih."
             >
-                <div
-                    className="flex bg-muted p-1 rounded-xl select-none self-start sm:self-auto shadow-xs border border-border"
-                    role="tablist"
-                    aria-label="Periode statistik"
-                >
-                    {PERIODS.map((p) => {
-                        const isPeriodActive = period === p;
-                        return (
-                            <button
-                                key={p}
-                                role="tab"
-                                aria-selected={isPeriodActive}
-                                onClick={() => setPeriod(p)}
-                                className={`px-4 sm:px-5 py-1.5 text-[12px] sm:text-[13px] font-bold font-inter rounded-lg transition-all cursor-pointer ${
-                                    isPeriodActive
-                                        ? "bg-accent text-primary shadow-sm"
-                                        : "text-text-secondary hover:text-text-primary bg-transparent"
-                                }`}
-                                type="button"
-                            >
-                                {p}
-                            </button>
-                        );
-                    })}
-                </div>
+                <TabSwitcher
+                    tabs={PERIODS.map(p => ({ key: p, label: p }))}
+                    activeKey={period}
+                    onChange={(k) => setPeriod(k as Period)}
+                    className="self-start sm:self-auto"
+                />
             </PageHeader>
 
             {/* ── Mobile & Tablet Layout (lg:hidden) ── */}
@@ -374,7 +359,7 @@ export default function Dashboard({
                         </Link>
 
                         <Link
-                            href="/settings"
+                            href="/operational-settings"
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
@@ -478,10 +463,10 @@ export default function Dashboard({
                             <span className="text-[13px] text-text-muted font-inter whitespace-nowrap">
                                 Filter Kelas:
                             </span>
-                            <select
+                            <NativeSelect
                                 value={selectedClassId ?? ""}
                                 onChange={handleClassFilter}
-                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none min-w-[140px]"
+                                className="min-w-[140px]"
                             >
                                 <option value="">Semua Kelas</option>
                                 {classes.map((c) => (
@@ -489,7 +474,7 @@ export default function Dashboard({
                                         {c.name}
                                     </option>
                                 ))}
-                            </select>
+                            </NativeSelect>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -497,11 +482,11 @@ export default function Dashboard({
                                 <FiCalendar className="mr-1 text-text-inactive inline" />
                                 Tanggal:
                             </span>
-                            <input
+                            <Input
                                 type="date"
                                 value={selectedDate}
                                 onChange={handleDateFilter}
-                                className="h-10 border border-border rounded-lg px-3 text-[13px] font-inter text-text-primary bg-surface focus:ring-2 focus:ring-primary/30 focus:outline-none"
+                                inputClassName="h-10"
                             />
                         </div>
                     </div>
@@ -523,7 +508,7 @@ export default function Dashboard({
                     <EmptyState
                         variant="no-data"
                         icon={<FiCheckCircle className="text-4xl text-success" />}
-                        title="Semua Siswa Hadir"
+                        title="Semua Hadir"
                         description="Semua siswa sudah hadir tepat waktu hari ini."
                         className="py-4"
                     />

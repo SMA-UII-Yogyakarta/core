@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-// --- Column Definition ---
-
 export interface Column<T> {
     key: string;
     header: ReactNode;
@@ -9,38 +7,48 @@ export interface Column<T> {
     className?: string;
 }
 
-// --- Table ---
-
-interface TableProps<T> {
+export interface TableProps<T> {
     columns: Column<T>[];
     data: T[];
     keyExtractor: (item: T) => string | number;
-    loading?: boolean;
     emptyMessage?: string;
+    loading?: boolean;
+    bare?: boolean;
 }
+
+const getJustifyClass = (className?: string) => {
+    if (!className) return "justify-start";
+    if (className.includes("text-center")) return "justify-center text-center";
+    if (className.includes("text-right")) return "justify-end text-right";
+    return "justify-start";
+};
 
 export default function Table<T>({
     columns,
     data,
     keyExtractor,
-    loading,
     emptyMessage = "Tidak ada data.",
+    loading = false,
+    bare = false,
 }: TableProps<T>) {
     return (
-        <div className="w-full overflow-x-auto border border-border rounded-lg shadow-sm">
+        <div className={`w-full overflow-x-auto ${bare ? "" : "border border-border rounded-lg shadow-sm"}`}>
             <table className="w-full border-collapse font-inter min-w-[600px] md:min-w-0">
                 <thead>
                     <tr className="bg-muted border-b border-border">
-                        {columns.map((col) => (
-                            <th
-                                key={col.key}
-                                className={`px-4 py-3 text-left text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap align-middle ${col.className ?? ""}`}
-                            >
-                                <div className="inline-flex items-center align-middle gap-2">
-                                    {col.header}
-                                </div>
-                            </th>
-                        ))}
+                        {columns.map((col) => {
+                            const justify = getJustifyClass(col.className);
+                            return (
+                                <th
+                                    key={col.key}
+                                    className={`px-4 py-3 text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap align-middle ${col.className ?? ""}`}
+                                >
+                                    <div className={`flex items-center w-full min-h-[24px] gap-2 ${justify}`}>
+                                        {col.header}
+                                    </div>
+                                </th>
+                            );
+                        })}
                     </tr>
                 </thead>
                 <tbody className="bg-surface">
@@ -68,18 +76,21 @@ export default function Table<T>({
                                 key={keyExtractor(item)}
                                 className="border-b border-border last:border-b-0 hover:bg-muted transition-colors"
                             >
-                                {columns.map((col) => (
-                                    <td
-                                        key={col.key}
-                                        className={`px-4 py-3 text-[14px] text-text-primary align-middle ${col.className ?? ""}`}
-                                    >
-                                        <div className="flex items-center align-middle min-h-[24px]">
-                                            {col.render
-                                                ? col.render(item)
-                                                : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}
-                                        </div>
-                                    </td>
-                                ))}
+                                {columns.map((col) => {
+                                    const justify = getJustifyClass(col.className);
+                                    return (
+                                        <td
+                                            key={col.key}
+                                            className={`px-4 py-3 text-[14px] text-text-primary align-middle whitespace-nowrap ${col.className ?? ""}`}
+                                        >
+                                            <div className={`flex items-center w-full min-h-[24px] ${justify}`}>
+                                                {col.render
+                                                    ? col.render(item)
+                                                    : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}
+                                            </div>
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))
                     )}

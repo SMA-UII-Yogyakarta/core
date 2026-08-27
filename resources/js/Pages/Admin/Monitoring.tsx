@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, EmptyState } from "@/Components";
+import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
+import EmptyState from "@/Components/common/EmptyState";
 import { FiSearch, FiBarChart2 } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";

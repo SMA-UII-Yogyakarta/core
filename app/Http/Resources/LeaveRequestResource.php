@@ -15,6 +15,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property \Illuminate\Support\Carbon|null $end_date
  * @property string|null $document_url
  * @property string $approval_status
+ * @property string|null $rejection_reason
  * @property \App\Models\Student|null $student
  * @property \App\Models\Guardian|null $guardian
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -34,6 +35,7 @@ class LeaveRequestResource extends JsonResource
             'end_date' => $this->end_date?->toDateString(),
             'document_url' => $this->document_url,
             'approval_status' => $this->approval_status,
+            'rejection_reason' => $this->rejection_reason,
             'student' => $this->whenLoaded('student', fn () => new StudentResource($this->student)),
             'guardian' => $this->whenLoaded('guardian', fn () => new GuardianResource($this->guardian)),
             'created_at' => $this->created_at?->toIso8601String(),
