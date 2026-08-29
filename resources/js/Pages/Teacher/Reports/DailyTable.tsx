@@ -25,13 +25,13 @@ function normalizeStatus(status: string): RowStatus {
 }
 
 function getBadgeStyle(status: RowStatus, t: (key: string) => string) {
-    const styles: Record<RowStatus, { label: string; bg: string; color: string }> = {
-        present: { label: t("reports.statusPresent"), bg: "#DCFCE7", color: "#10B981" },
-        late: { label: t("reports.statusLate"), bg: "#FEF3C7", color: "#F59E0B" },
-        sick: { label: t("reports.statusSick"), bg: "#E0E7FF", color: "#2E3391" },
-        permission: { label: t("reports.statusPermission"), bg: "#E0E7FF", color: "#2E3391" },
-        absent: { label: t("reports.statusAbsent"), bg: "#FFE4E6", color: "#EF4444" },
-        pending: { label: t("reports.statusPending"), bg: "#E0E7FF", color: "#2E3391" },
+    const styles: Record<RowStatus, { label: string; classes: string }> = {
+        present: { label: t("reports.statusPresent"), classes: "bg-success-light text-success" },
+        late: { label: t("reports.statusLate"), classes: "bg-warning-light text-warning" },
+        sick: { label: t("reports.statusSick"), classes: "bg-danger-light text-danger" },
+        permission: { label: t("reports.statusPermission"), classes: "bg-primary/10 text-primary" },
+        absent: { label: t("reports.statusAbsent"), classes: "bg-danger-light text-danger" },
+        pending: { label: t("reports.statusPending"), classes: "bg-primary/10 text-primary" },
     };
     return styles[status];
 }
@@ -110,8 +110,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-center">
                                             <span
-                                                className="text-[11px] font-bold px-2.5 py-1 rounded-full"
-                                                style={{ background: badge.bg, color: badge.color }}
+                                                className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${badge.classes}`}
                                             >
                                                 {badge.label}
                                             </span>
@@ -166,8 +165,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         </div>
                                     </div>
                                     <span
-                                        className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0"
-                                        style={{ background: badge.bg, color: badge.color }}
+                                        className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${badge.classes}`}
                                     >
                                         {badge.label}
                                     </span>

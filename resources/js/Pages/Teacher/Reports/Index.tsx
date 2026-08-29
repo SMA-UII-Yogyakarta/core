@@ -22,7 +22,44 @@ interface RecapStudent {
     masuk: number;
     izin: number;
     sakit: number;
+    tertunda: number;
     alpha: number;
+    tepat_waktu: number;
+    discipline_rate: number;
+    attendance_rate: number;
+}
+
+interface Summary {
+    tepat_waktu: number;
+    terlambat: number;
+    izin: number;
+    sakit: number;
+    tertunda: number;
+    alpa: number;
+    attendance_rate: number;
+    school_days?: number;
+    discipline_rate?: number;
+}
+
+interface DailyBreakdown {
+    date: string;
+    label: string;
+    tepat_waktu: number;
+    terlambat: number;
+    izin: number;
+    sakit: number;
+    tertunda: number;
+    alpa: number;
+}
+
+interface MonthlyBreakdown {
+    month_label: string;
+    tepat_waktu: number;
+    terlambat: number;
+    izin: number;
+    sakit: number;
+    tertunda: number;
+    alpa: number;
 }
 
 interface PageProps {
@@ -30,10 +67,14 @@ interface PageProps {
     class: { id: number; name: string } | null;
     tab: string;
     students: DailyStudent[] | RecapStudent[];
+    summary?: Summary;
+    dailyBreakdown?: DailyBreakdown[];
+    monthlyBreakdown?: MonthlyBreakdown[];
     selectedDate?: string;
     selectedMonth?: number;
     selectedYear?: number;
     selectedSemester?: string;
+    isHoliday?: boolean;
 }
 
 const MONTH_KEYS = [
@@ -47,10 +88,14 @@ export default function HomeroomReportIndex({
     class: kelas,
     tab,
     students,
+    summary,
+    dailyBreakdown,
+    monthlyBreakdown,
     selectedDate = "",
     selectedMonth = new Date().getMonth() + 1,
     selectedYear = new Date().getFullYear(),
     selectedSemester = "1",
+    isHoliday = false,
 }: PageProps) {
     const { t } = useLanguage();
 
@@ -133,13 +178,13 @@ export default function HomeroomReportIndex({
         <AppShell title="Laporan Rekap">
             <div className="space-y-6">
                 {/* Page Header */}
-                <div className="flex items-start justify-between flex-wrap gap-3">
-                    <div>
-                        <h1 className="text-[22px] font-bold text-text-primary font-inter">{t("reports.title")}</h1>
-                        <p className="text-[13px] text-text-muted font-inter mt-1">
-                            {t("reports.subtitle").replace("{class}", kelas.name)}
-                        </p>
-                    </div>
+                <div>
+                    <h1 className="text-[22px] font-bold text-text-primary font-inter">
+                        Laporan &amp; Ekspor Rekap {kelas.name}
+                    </h1>
+                    <p className="text-[13px] text-text-muted font-inter mt-1">
+                        Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas.
+                    </p>
                 </div>
 
                 {/* Tab + Filters + Export */}
@@ -188,8 +233,8 @@ export default function HomeroomReportIndex({
                                         onChange={(e) => handleSemesterChange(e.target.value)}
                                         className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     >
-                                        <option value="1">Semester 1 (Jul - Des)</option>
-                                        <option value="2">Semester 2 (Jan - Jun)</option>
+                                        <option value="1">Ganjil {selectedYear}/{selectedYear + 1}</option>
+                                        <option value="2">Genap {selectedYear - 1}/{selectedYear}</option>
                                     </select>
                                     <select
                                         value={selectedYear}
@@ -224,16 +269,42 @@ export default function HomeroomReportIndex({
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="bg-surface border border-border rounded-xl overflow-hidden">
-                    {tab === "daily" && <DailyTable students={students as DailyStudent[]} />}
-                    {tab === "monthly" && <MonthlyTable students={students as RecapStudent[]} />}
-                    {tab === "semester" && <SemesterTable students={students as RecapStudent[]} />}
-                </div>
+                {/* Tab Content */}
+                {tab === "daily" && (
+                    <div className="bg-surface border border-border rounded-xl overflow-hidden">
+                        {isHoliday && (
+                            <div className="px-4 py-3 text-[13px] font-bold text-warning bg-warning-light flex items-center gap-2 border-b border-border">
+                                <i className="fas fa-calendar-day text-[12px]" />
+                                {t("reports.holidayNotice")}
+                            </div>
+                        )}
+                        <DailyTable students={students as DailyStudent[]} />
+                    </div>
+                )}
+
+                {tab === "monthly" && (
+                    <MonthlyTable
+                        students={students as RecapStudent[]}
+                        summary={summary}
+                        chartData={dailyBreakdown}
+                        month={selectedMonth}
+                        year={selectedYear}
+                    />
+                )}
+
+                {tab === "semester" && (
+                    <SemesterTable
+                        students={students as RecapStudent[]}
+                        summary={summary}
+                        chartData={monthlyBreakdown}
+                        semester={selectedSemester}
+                        year={selectedYear}
+                    />
+                )}
 
                 {/* Footer note */}
                 <p className="text-[12px] text-text-muted italic">
-                    {t("reports.footerNote")}
+                    Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
                 </p>
             </div>
         </AppShell>

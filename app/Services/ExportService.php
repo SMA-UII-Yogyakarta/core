@@ -16,6 +16,11 @@ use Carbon\Carbon;
 
 class ExportService
 {
+    public function __construct(
+        protected AcademicCalendarService $calendarService,
+    ) {
+    }
+
     /**
      * Ensure the exports directory exists before writing files.
      * CI and fresh installs may not have storage/app/exports yet.
@@ -69,38 +74,18 @@ class ExportService
             ->where('approval_status', 'Approved')
             ->get();
 
-        $sickDays = [];
-        $permitDays = [];
-
-        foreach ($leaves as $leave) {
-            $overlapStart = $leave->start_date->startOfDay()->greaterThan($start)
-                ? $leave->start_date->startOfDay()
-                : $start->copy();
-            $overlapEnd = $leave->end_date->startOfDay()->lessThan($end)
-                ? $leave->end_date->startOfDay()
-                : $end->copy();
-
-            if ($overlapEnd->lessThan($overlapStart)) {
-                continue;
-            }
-
-            $days = 0;
-            for ($d = $overlapStart->copy(); $d->lte($overlapEnd); $d->addDay()) {
-                if ($d->isWeekday()) {
-                    $days++;
-                }
-            }
-
-            if ($leave->category === 'Sick') {
-                $sickDays[$leave->student_id] = ($sickDays[$leave->student_id] ?? 0) + $days;
-            } elseif ($leave->category === 'Permission') {
-                $permitDays[$leave->student_id] = ($permitDays[$leave->student_id] ?? 0) + $days;
-            }
-        }
+        $summary = $this->calendarService->summarizeApprovedLeaveDays(
+            $leaves,
+            $start,
+            $end,
+        );
+        $sickDays = $summary['sick'];
+        $permitDays = $summary['permit'];
 
         $schoolDays = 0;
         for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
-            if ($d->isWeekday()) {
+            $dateStr = $d->toDateString();
+            if ($this->calendarService->isSchoolDay($dateStr) && $this->calendarService->isAlpaApplicable($dateStr)) {
                 $schoolDays++;
             }
         }
@@ -221,7 +206,7 @@ class ExportService
     public function semesterRecapXlsx(int $semester, int $year, ?int $classId = null): string
     {
         $path = $this->exportPath('semester-recap_' . $semester . '-' . $year . '_' . now()->timestamp . '.xlsx');
-        (new SemesterRecapExport())->export($path, $semester, $year, $classId);
+        app(SemesterRecapExport::class)->export($path, $semester, $year, $classId);
         return $path;
     }
 
@@ -253,38 +238,18 @@ class ExportService
             ->where('approval_status', 'Approved')
             ->get();
 
-        $sickDays = [];
-        $permitDays = [];
-
-        foreach ($leaves as $leave) {
-            $overlapStart = $leave->start_date->startOfDay()->greaterThan($start)
-                ? $leave->start_date->startOfDay()
-                : $start->copy();
-            $overlapEnd = $leave->end_date->startOfDay()->lessThan($end)
-                ? $leave->end_date->startOfDay()
-                : $end->copy();
-
-            if ($overlapEnd->lessThan($overlapStart)) {
-                continue;
-            }
-
-            $days = 0;
-            for ($d = $overlapStart->copy(); $d->lte($overlapEnd); $d->addDay()) {
-                if ($d->isWeekday()) {
-                    $days++;
-                }
-            }
-
-            if ($leave->category === 'Sick') {
-                $sickDays[$leave->student_id] = ($sickDays[$leave->student_id] ?? 0) + $days;
-            } elseif ($leave->category === 'Permission') {
-                $permitDays[$leave->student_id] = ($permitDays[$leave->student_id] ?? 0) + $days;
-            }
-        }
+        $summary = $this->calendarService->summarizeApprovedLeaveDays(
+            $leaves,
+            $start,
+            $end,
+        );
+        $sickDays = $summary['sick'];
+        $permitDays = $summary['permit'];
 
         $schoolDays = 0;
         for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
-            if ($d->isWeekday()) {
+            $dateStr = $d->toDateString();
+            if ($this->calendarService->isSchoolDay($dateStr) && $this->calendarService->isAlpaApplicable($dateStr)) {
                 $schoolDays++;
             }
         }
@@ -305,7 +270,7 @@ class ExportService
                 'izin' => $izin,
                 'sakit' => $sakit,
                 'absent' => max(0, $schoolDays - $present - $late - $izin - $sakit),
-                'percentage' => $schoolDays > 0 ? round(($present / $schoolDays) * 100, 1) . '%' : '0%',
+                'percentage' => $schoolDays > 0 ? round((($present + $late) / $schoolDays) * 100, 1) . '%' : '0%',
             ];
         });
 
@@ -424,7 +389,7 @@ class ExportService
                 'present' => $present,
                 'late' => $late,
                 'absent' => $absent,
-                'percentage' => $total > 0 ? round(($present / $total) * 100, 1) . '%' : '0%',
+                'percentage' => $total > 0 ? round((($present + $late) / $total) * 100, 1) . '%' : '0%',
             ];
         });
 

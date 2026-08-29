@@ -277,6 +277,46 @@ class AttendanceServiceTest extends TestCase
         ]);
     }
 
+    public function test_check_in_rejects_inactive_day(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-06 08:00:00'));
+
+        AttendanceTimeSetting::create([
+            'day' => now()->format('l'),
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '10:00:00',
+            'is_active' => false,
+        ]);
+
+        AcademicCalendar::create([
+            'holiday_date' => now()->toDateString(),
+            'is_holiday' => false,
+        ]);
+
+        $class = SchoolClass::create(['name' => 'X-A']);
+        $user = User::factory()->create();
+        $student = Student::create([
+            'user_id' => $user->id,
+            'name' => 'Test Student',
+            'nis' => '12345',
+            'nisn' => '1234567890',
+            'class_id' => $class->id,
+            'birth_date' => '2010-01-01',
+            'enrollment_year' => 2025,
+            'status' => 'Active',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Attendance is closed for');
+
+        $this->service->checkIn($student->id, [
+            'latitude' => '-7.7959',
+            'longitude' => '110.3695',
+            'photo_url' => 'https://example.com/photo.jpg',
+        ]);
+    }
+
     public function test_check_in_rejects_too_early(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-07-06 05:30:00'));

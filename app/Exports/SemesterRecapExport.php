@@ -5,12 +5,18 @@ namespace App\Exports;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\Student;
+use App\Services\AcademicCalendarService;
 use Carbon\Carbon;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
 
 class SemesterRecapExport
 {
+    public function __construct(
+        protected AcademicCalendarService $calendarService,
+    ) {
+    }
+
     public function export(string $filePath, int $semester, int $year, ?int $classId = null): void
     {
         $semMonths = $semester === 1 ? range(1, 6) : range(7, 12);
@@ -46,38 +52,18 @@ class SemesterRecapExport
             ->where('approval_status', 'Approved')
             ->get();
 
-        $sickDays = [];
-        $permitDays = [];
-
-        foreach ($leaves as $leave) {
-            $overlapStart = $leave->start_date->startOfDay()->greaterThan($start)
-                ? $leave->start_date->startOfDay()
-                : $start->copy();
-            $overlapEnd = $leave->end_date->startOfDay()->lessThan($end)
-                ? $leave->end_date->startOfDay()
-                : $end->copy();
-
-            if ($overlapEnd->lessThan($overlapStart)) {
-                continue;
-            }
-
-            $days = 0;
-            for ($d = $overlapStart->copy(); $d->lte($overlapEnd); $d->addDay()) {
-                if ($d->isWeekday()) {
-                    $days++;
-                }
-            }
-
-            if ($leave->category === 'Sick') {
-                $sickDays[$leave->student_id] = ($sickDays[$leave->student_id] ?? 0) + $days;
-            } elseif ($leave->category === 'Permission') {
-                $permitDays[$leave->student_id] = ($permitDays[$leave->student_id] ?? 0) + $days;
-            }
-        }
+        $summary = $this->calendarService->summarizeApprovedLeaveDays(
+            $leaves,
+            $start,
+            $end,
+        );
+        $sickDays = $summary['sick'];
+        $permitDays = $summary['permit'];
 
         $schoolDays = 0;
         for ($d = $start->copy(); $d->lte($end); $d->addDay()) {
-            if ($d->isWeekday()) {
+            $dateStr = $d->toDateString();
+            if ($this->calendarService->isSchoolDay($dateStr) && $this->calendarService->isAlpaApplicable($dateStr)) {
                 $schoolDays++;
             }
         }
@@ -89,7 +75,7 @@ class SemesterRecapExport
             $izin = $permitDays[$s->id] ?? 0;
             $sakit = $sickDays[$s->id] ?? 0;
             $alpa = max(0, $schoolDays - $present - $late - $izin - $sakit);
-            $persentase = $schoolDays > 0 ? round(($present / $schoolDays) * 100, 1) . '%' : '0%';
+            $persentase = $schoolDays > 0 ? round((($present + $late) / $schoolDays) * 100, 1) . '%' : '0%';
 
             $writer->addRow(Row::fromValues([
                 $s->nis, $s->name, $s->class->name ?? '-',

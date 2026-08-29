@@ -633,31 +633,36 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
+        // 10.5 Extra Leave Requests Khusus Kelas X-A (untuk demo rekap Wali Kelas Budi Hartono)
+        // ─────────────────────────────────────────────────────────────
+        $this->call([LeaveRequestXASeceder::class]);
+
+        // ─────────────────────────────────────────────────────────────
         // 11. Attendances (Presensi Realistis Sepanjang Tahun Berjalan di SMA UII Yogyakarta)
         // ─────────────────────────────────────────────────────────────
         $schoolLat = -7.814257;
         $schoolLng = 110.375944;
         $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
 
-        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI KEMARIN (agar hari ini siswa bisa uji coba kamera & live presensi)
+        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI INI (agar rekap harian wali kelas langsung terisi)
         $startDate = Carbon::create(now()->year, 1, 5);
-        $endDate = now()->subDay();
+        $endDate = now();
         $assignedStudents = $students->filter(fn ($s) => $s->class_id !== null)->values();
 
         $attendanceBatch = [];
-        $approvedLeaves = LeaveRequest::where('approval_status', 'Approved')->get();
-        $approvedLeaveMap = [];
-        foreach ($approvedLeaves as $leave) {
+        $leaveMap = LeaveRequest::whereIn('approval_status', ['Approved', 'Pending'])->get();
+        $leaveDateMap = [];
+        foreach ($leaveMap as $leave) {
             $curL = Carbon::parse($leave->start_date);
             $endL = Carbon::parse($leave->end_date);
             while ($curL->lte($endL)) {
-                $approvedLeaveMap[$leave->student_id . '_' . $curL->format('Y-m-d')] = true;
+                $leaveDateMap[$leave->student_id . '_' . $curL->format('Y-m-d')] = true;
                 $curL->addDay();
             }
         }
 
         for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
-            if ($current->isWeekend()) {
+            if (! $this->isSchoolDay($current)) {
                 continue;
             }
 
@@ -672,7 +677,7 @@ class DatabaseSeeder extends Seeder
                 // Pola probabilistik kehadiran realistis bulanan:
                 $prob = ($idx * 7 + $dayOfYear * 13) % 100;
 
-                if (isset($approvedLeaveMap[$student->id . '_' . $dateString])) {
+                if (isset($leaveDateMap[$student->id . '_' . $dateString])) {
                     continue;
                 }
 
@@ -761,5 +766,16 @@ class DatabaseSeeder extends Seeder
         foreach ($notifications as $notif) {
             Notification::create($notif);
         }
+    }
+
+    private function isSchoolDay(Carbon $date): bool
+    {
+        if ($date->isWeekend()) {
+            return false;
+        }
+
+        return ! AcademicCalendar::whereDate('holiday_date', $date->toDateString())
+            ->where('is_holiday', true)
+            ->exists();
     }
 }

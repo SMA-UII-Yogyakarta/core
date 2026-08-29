@@ -98,7 +98,7 @@ class PermissionRegistry
                     ['key' => 'class-enrolment',    'label' => 'Enrolment Kelas',   'icon' => 'fa-chalkboard-teacher','href' => '/class-enrolment',      'roles' => ['admin']],
                     ['key' => 'guardian-assignment','label' => 'Relasi Wali Murid', 'icon' => 'fa-users-cog',        'href' => '/guardian-assignment',  'roles' => ['admin']],
                     ['key' => 'operational-settings','label' => 'Atur Waktu & Libur','icon' => 'fa-clock',             'href' => '/operational-settings', 'roles' => ['admin']],
-                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:piket', 'teacher:wali']],
+                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:piket']],
 
                     ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:piket']],
                     ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:wali']],
