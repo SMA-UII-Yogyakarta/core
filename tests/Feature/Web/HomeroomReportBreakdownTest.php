@@ -207,6 +207,7 @@ class HomeroomReportBreakdownTest extends TestCase
 
         $this->assertGreaterThan(0, $summary['school_days']);
         $this->assertEquals(1, $studentRow['tepat_waktu']);
+        $this->assertEquals(0, $studentRow['terlambat']);
 
         // micro (per student): tepat_waktu / school_days
         $expectedMicro = round((1 / $summary['school_days']) * 100, 1);
@@ -251,6 +252,7 @@ class HomeroomReportBreakdownTest extends TestCase
 
         $this->assertGreaterThan(0, $summary['school_days']);
         $this->assertEquals(1, $studentRow['tepat_waktu']);
+        $this->assertEquals(0, $studentRow['terlambat']);
 
         $expectedMicro = round((1 / $summary['school_days']) * 100, 1);
         $this->assertEquals($expectedMicro, $studentRow['discipline_rate']);

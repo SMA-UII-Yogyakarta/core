@@ -12,6 +12,7 @@ interface StudentRecap {
     tertunda: number;
     alpha: number;
     tepat_waktu: number;
+    terlambat: number;
     discipline_rate: number;
     attendance_rate: number;
 }
@@ -49,6 +50,8 @@ interface MonthlyTableProps {
     chartData?: DailyBreakdown[];
     month: number;
     year: number;
+    onExportPdf?: () => void;
+    onExportExcel?: () => void;
 }
 
 const MONTH_NAMES_ID = [
@@ -56,7 +59,7 @@ const MONTH_NAMES_ID = [
     "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 
-export default function MonthlyTable({ students, summary, chartData, month, year }: MonthlyTableProps) {
+export default function MonthlyTable({ students, summary, chartData, month, year, onExportPdf, onExportExcel }: MonthlyTableProps) {
     const { t } = useLanguage();
 
     const chartPoints: ChartDataPoint[] = (chartData ?? []).map((d) => ({
@@ -81,6 +84,17 @@ export default function MonthlyTable({ students, summary, chartData, month, year
         info?: string;
     }
 
+    const statCards: StatCardEntry[] = summary
+        ? [
+              { label: t("reports.headerOnTime"), value: summary.tepat_waktu, color: "text-success" },
+              { label: t("reports.statusLate"), value: summary.terlambat, color: "text-warning" },
+              { label: t("reports.permission"), value: summary.izin, color: "text-primary" },
+              { label: t("reports.statusPending"), value: summary.tertunda, color: "text-info" },
+              { label: t("reports.statusSick"), value: summary.sakit, color: "text-purple-600" },
+              { label: t("reports.statusAbsent"), value: summary.alpa, color: "text-danger" },
+          ]
+        : [];
+
     const mainStatCards: StatCardEntry[] = summary
         ? [
               {
@@ -98,25 +112,15 @@ export default function MonthlyTable({ students, summary, chartData, month, year
           ]
         : [];
 
-    const statCards: StatCardEntry[] = summary
-        ? [
-              { label: t("reports.headerOnTime"), value: summary.tepat_waktu, color: "text-success" },
-              { label: t("reports.statusLate"), value: summary.terlambat, color: "text-warning" },
-              { label: t("reports.permission"), value: summary.izin, color: "text-primary" },
-              { label: t("reports.statusPending"), value: summary.tertunda, color: "text-info" },
-              { label: t("reports.statusSick"), value: summary.sakit, color: "text-purple-600" },
-              { label: t("reports.statusAbsent"), value: summary.alpa, color: "text-danger" },
-          ]
-        : [];
-
     const HEADERS = [
         { label: t("reports.headerNo"), align: "left" as const },
         { label: t("reports.headerName"), align: "left" as const, sticky: true },
         { label: t("reports.headerNis"), align: "left" as const },
-        { label: t("reports.present"), align: "center" as const },
+        { label: t("reports.headerOnTime"), align: "center" as const },
+        { label: t("reports.statusLate"), align: "center" as const },
         { label: t("reports.permission"), align: "center" as const },
-        { label: t("reports.statusPending"), align: "center" as const },
         { label: t("reports.statusSick"), align: "center" as const },
+        { label: t("reports.statusPending"), align: "center" as const },
         { label: t("reports.statusAbsent"), align: "center" as const },
         { label: t("reports.headerAttendance"), align: "center" as const },
         { label: t("reports.headerDiscipline"), align: "center" as const },
@@ -124,23 +128,23 @@ export default function MonthlyTable({ students, summary, chartData, month, year
 
     return (
         <div className="space-y-6">
-            {/* Summary Cards */}
+            {/* Desktop Chart + Stats */}
             {summary && (
-                <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="hidden lg:block bg-surface border border-border rounded-xl p-4">
+                    <h3 className="text-[14px] font-semibold text-text-primary mb-4">
+                        Grafik Kehadiran Harian ({MONTH_NAMES_ID[month - 1]} {year})
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
                         {mainStatCards.map((card) => (
                             <div
                                 key={card.label}
-                                className={`relative group bg-surface border border-border rounded-xl p-4 text-center`}
+                                className="relative group bg-background border border-border rounded-xl p-4 text-center"
                             >
                                 <p className={`font-bold text-[32px] ${card.color}`}>{card.value}</p>
                                 <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
                                     {card.info && (
-                                        <i
-                                            className="fa-solid fa-circle-info text-text-muted ml-1"
-                                            aria-label="Detail rumus kehadiran"
-                                        />
+                                        <i className="fa-solid fa-circle-info text-text-muted ml-1" />
                                     )}
                                 </p>
                                 {card.info && (
@@ -151,42 +155,101 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                             </div>
                         ))}
                     </div>
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+                    <div className="grid grid-cols-7 gap-3 mb-4">
                         {statCards.map((card) => (
                             <div
                                 key={card.label}
-                                className="relative group bg-surface border border-border rounded-xl p-4 text-center"
+                                className="relative group bg-background border border-border rounded-xl p-3 text-center"
                             >
-                                <p className={`font-bold text-[24px] ${card.color}`}>{card.value}</p>
-                                <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1">
+                                <p className={`font-bold text-[22px] ${card.color}`}>{card.value}</p>
+                                <p className="text-[10px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
                                 </p>
                             </div>
                         ))}
                     </div>
-                </>
-            )}
-
-            {/* Chart */}
-            {chartPoints.length > 0 && (
-                <div className="bg-surface border border-border rounded-xl p-4">
-                    <h3 className="text-[14px] font-semibold text-text-primary mb-4">
-                        Grafik Kehadiran Harian ({MONTH_NAMES_ID[month - 1]} {year})
-                    </h3>
-                    <AttendanceChart data={chartPoints} type="stacked" height={300} showHolidayBar />
+                    {chartPoints.length > 0 && (
+                        <AttendanceChart data={chartPoints} type="stacked" height={300} showHolidayBar />
+                    )}
                 </div>
             )}
 
-            {/* Table */}
-            <div className="bg-surface border border-border rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-border">
+            {/* Mobile Ringkasan */}
+            {summary && (
+                <div className="lg:hidden bg-surface border border-border rounded-xl p-4 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <i className="fa-solid fa-chart-column text-primary" />
+                        <span className="text-[14px] font-semibold text-text-primary">{t("reports.summary")}</span>
+                    </div>
+
+                    {/* Two ratios side by side */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-background border border-border rounded-xl p-3">
+                            <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioAttendance")}</p>
+                            <p className="text-[22px] font-bold text-text-primary mt-1">{summary.attendance_rate}%</p>
+                        </div>
+                        <div className="bg-background border border-border rounded-xl p-3">
+                            <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioDiscipline")}</p>
+                            <p className="text-[22px] font-bold text-text-primary mt-1">{summary.discipline_rate ?? 0}%</p>
+                        </div>
+                    </div>
+
+                    {/* Progress bar 6 segments */}
+                    {(() => {
+                        const total = summary.tepat_waktu + summary.terlambat + summary.izin + summary.sakit + summary.tertunda + summary.alpa;
+                        if (total === 0) return null;
+                        const segments = [
+                            { value: summary.tepat_waktu, color: "#10B981" },
+                            { value: summary.terlambat, color: "#F59E0B" },
+                            { value: summary.izin, color: "#2E3391" },
+                            { value: summary.sakit, color: "#A855F7" },
+                            { value: summary.tertunda, color: "#0EA5E9" },
+                            { value: summary.alpa, color: "#EF4444" },
+                        ];
+                        return (
+                            <div className="flex h-3 rounded-full overflow-hidden">
+                                {segments.map((seg, idx) => (
+                                    <div
+                                        key={idx}
+                                        style={{ width: `${(seg.value / total) * 100}%`, backgroundColor: seg.color }}
+                                    />
+                                ))}
+                            </div>
+                        );
+                    })()}
+
+                    {/* 6 stat cards — horizontal scroll */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+                        {statCards.map((card) => (
+                            <div
+                                key={card.label}
+                                className="shrink-0 bg-background border border-border rounded-xl p-3 pl-4 min-w-[110px]"
+                                style={{ borderLeftColor: card.color === "text-success" ? "#10B981" : card.color === "text-warning" ? "#F59E0B" : card.color === "text-primary" ? "#2E3391" : card.color === "text-info" ? "#0EA5E9" : card.color === "text-purple-600" ? "#A855F7" : "#EF4444", borderLeftWidth: "3px" }}
+                            >
+                                <p className={`font-bold text-[18px] ${card.color}`}>{card.value}</p>
+                                <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">{card.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Table (Desktop only) */}
+            <div className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-4">
                     <h3 className="text-[14px] font-semibold text-text-primary">
                         Data Rekapitulasi Siswa ({MONTH_NAMES_ID[month - 1]} {year})
                     </h3>
+                    <div className="flex items-center gap-3 shrink-0">
+                        <button type="button" onClick={onExportPdf} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors">
+                            <i className="fas fa-file-pdf text-[12px]" /> PDF
+                        </button>
+                        <button type="button" onClick={onExportExcel} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors">
+                            <i className="fas fa-file-excel text-[12px]" /> Excel
+                        </button>
+                    </div>
                 </div>
-
-                {/* Desktop */}
-                <div className="hidden lg:block overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full border-collapse font-inter min-w-[720px]">
                         <thead>
                             <tr className="bg-background border-b border-border">
@@ -205,7 +268,7 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                         <tbody>
                             {students.length === 0 ? (
                                 <tr>
-                                    <td colSpan={10} className="text-center text-text-muted text-[13px] py-10">
+                                    <td colSpan={11} className="text-center text-text-muted text-[13px] py-10">
                                         {t("reports.emptyMonthly")}
                                     </td>
                                 </tr>
@@ -221,7 +284,10 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-[13px] text-center text-success font-semibold">
-                                            {s.masuk}
+                                            {s.tepat_waktu}
+                                        </td>
+                                        <td className="px-4 py-3 text-[13px] text-center text-warning font-semibold">
+                                            {s.masuk - s.tepat_waktu}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
@@ -231,15 +297,15 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" }}
-                                        >
-                                            {s.tertunda}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
                                             style={{ color: s.sakit > 0 ? "#A855F7" : "#64748B" }}
                                         >
                                             {s.sakit}
+                                        </td>
+                                        <td
+                                            className="px-4 py-3 text-[13px] text-center font-semibold"
+                                            style={{ color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" }}
+                                        >
+                                            {s.tertunda}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
@@ -250,7 +316,7 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                         <td className="px-4 py-3 text-[13px] text-center font-bold text-text-primary">
                                             {s.attendance_rate}%
                                         </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-semibold text-primary">
+                                        <td className="px-4 py-3 text-[13px] text-center font-bold text-text-primary">
                                             {s.discipline_rate}%
                                         </td>
                                     </tr>
@@ -259,53 +325,47 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                {/* Mobile */}
-                <div className="lg:hidden">
-                    {students.length === 0 ? (
-                        <div className="py-12 text-center text-text-muted text-[13px]">
-                            {t("reports.emptyMonthly")}
+            {/* Mobile Student Cards */}
+            <div className="lg:hidden space-y-2">
+                {students.length === 0 ? (
+                    <div className="py-12 text-center text-text-muted text-[13px]">
+                        {t("reports.emptyMonthly")}
+                    </div>
+                ) : (
+                    students.map((s) => (
+                        <div
+                            key={s.id}
+                            className="bg-white border border-border rounded-xl p-3"
+                            style={{
+                                borderLeftColor: s.alpha > 0 ? "#EF4444" : s.tertunda > 0 ? "#0EA5E9" : s.sakit > 0 ? "#A855F7" : s.izin > 0 ? "#2E3391" : "#10B981",
+                                borderLeftWidth: "3px",
+                            }}
+                        >
+                            <div className="min-w-0 mb-1">
+                                <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
+                                <p className="text-[12px] text-text-muted mt-0.5">NIS: {s.nis}</p>
+                            </div>
+                            <div className="bg-background rounded-lg p-2 mt-2">
+                                <p className="text-[13px]">
+                                    <span className="font-bold text-success">{s.tepat_waktu}</span> {t("reports.headerOnTime")}{" | "}
+                                    <span className="font-bold text-warning">{s.terlambat}</span> {t("reports.statusLate")}{" | "}
+                                    <span className="font-semibold" style={{ color: s.izin > 0 ? "#2E3391" : "#64748B" }}>{s.izin}</span> Izin{" | "}
+                                    <span className="font-semibold" style={{ color: s.sakit > 0 ? "#A855F7" : "#64748B" }}>{s.sakit}</span> Sakit{" | "}
+                                    <span className="font-semibold" style={{ color: s.alpha > 0 ? "#EF4444" : "#64748B" }}>{s.alpha}</span> Alpa
+                                </p>
+                                <p className="text-[13px] mt-0.5">
+                                    <span className="font-semibold" style={{ color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" }}>{s.tertunda}</span> {t("reports.statusPending")}
+                                </p>
+                                <p className="text-[13px] mt-0.5">
+                                    <span className="font-bold text-text-primary">{s.attendance_rate}%</span> {t("reports.headerAttendance")}{" | "}
+                                    <span className="font-bold text-text-primary">{s.discipline_rate}%</span> {t("reports.headerDiscipline")}
+                                </p>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="divide-y divide-border">
-                            {students.map((s, i) => (
-                                <div key={s.id} className="px-4 py-3">
-                                    <div className="flex items-center gap-3 min-w-0 mb-2">
-                                        <span className="text-[13px] text-text-muted shrink-0">{i + 1}</span>
-                                        <div className="min-w-0">
-                                            <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
-                                            <p className="text-[12px] text-text-muted mt-0.5">NIS: {s.nis}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 ml-8 items-center">
-                                        {[
-                                            { label: t("reports.present"), value: s.masuk, color: "#10B981" },
-                                            { label: t("reports.permission"), value: s.izin, color: s.izin > 0 ? "#2E3391" : "#64748B" },
-                                            { label: t("reports.statusPending"), value: s.tertunda, color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" },
-                                            { label: t("reports.statusSick"), value: s.sakit, color: s.sakit > 0 ? "#A855F7" : "#64748B" },
-                                            { label: t("reports.statusAbsent"), value: s.alpha, color: s.alpha > 0 ? "#EF4444" : "#64748B" },
-                                        ].map(({ label, value, color }) => (
-                                            <div key={label} className="text-center">
-                                                <p className="text-[16px] font-bold" style={{ color }}>
-                                                    {value}
-                                                </p>
-                                                <p className="text-[10px] text-text-muted uppercase">{label}</p>
-                                            </div>
-                                        ))}
-                                        <div className="text-center ml-auto">
-                                            <p className="text-[16px] font-bold text-text-primary">{s.attendance_rate}%</p>
-                                            <p className="text-[10px] text-text-muted uppercase">{t("reports.headerAttendance")}</p>
-                                        </div>
-                                        <div className="text-center ml-4">
-                                            <p className="text-[16px] font-bold text-primary">{s.discipline_rate}%</p>
-                                            <p className="text-[10px] text-text-muted uppercase">{t("reports.headerDiscipline")}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                    ))
+                )}
             </div>
         </div>
     );

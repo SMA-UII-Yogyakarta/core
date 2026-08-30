@@ -705,6 +705,7 @@ class AnalyticsServiceTest extends TestCase
         // Only Present counts as on-time (Late does not): 1 on-time out of 8
         $studentRow = $report['recap']->first();
         $this->assertEquals(1, $studentRow['tepat_waktu']);
+        $this->assertEquals(1, $studentRow['terlambat']);
         $this->assertEquals(2, $studentRow['masuk']);
         $this->assertEqualsWithDelta(12.5, $studentRow['discipline_rate'], 0.05);
 

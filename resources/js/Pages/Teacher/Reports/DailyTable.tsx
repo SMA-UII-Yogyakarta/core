@@ -110,7 +110,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-center">
                                             <span
-                                                className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${badge.classes}`}
+                                                className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${badge.classes}`}
                                             >
                                                 {badge.label}
                                             </span>
@@ -165,7 +165,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         </div>
                                     </div>
                                     <span
-                                        className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${badge.classes}`}
+                                        className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 uppercase ${badge.classes}`}
                                     >
                                         {badge.label}
                                     </span>

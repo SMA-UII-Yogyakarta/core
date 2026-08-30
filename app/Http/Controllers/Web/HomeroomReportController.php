@@ -131,6 +131,7 @@ class HomeroomReportController extends Controller
                 'tertunda' => $records->sum('tertunda'),
                 'alpha' => $records->sum('alpha'),
                 'tepat_waktu' => $tepatWaktu,
+                'terlambat' => $records->sum('masuk') - $tepatWaktu,
                 'discipline_rate' => $totalHeb > 0
                     ? round(($tepatWaktu / $totalHeb) * 100, 1)
                     : 0,

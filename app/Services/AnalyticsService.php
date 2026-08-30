@@ -436,6 +436,7 @@ class AnalyticsService
                 'tertunda' => $tertunda,
                 'alpha' => $alpha,
                 'tepat_waktu' => $tepatWaktuSiswa,
+                'terlambat' => $masuk - $tepatWaktuSiswa,
                 'discipline_rate' => $schoolDays > 0
                     ? round(($tepatWaktuSiswa / $schoolDays) * 100, 1)
                     : 0,
