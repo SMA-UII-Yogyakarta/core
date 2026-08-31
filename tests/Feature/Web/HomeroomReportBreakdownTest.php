@@ -30,7 +30,7 @@ class HomeroomReportBreakdownTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_monthly_report_counts_pending_leave_as_tertunda_not_izin(): void
+    public function test_monthly_report_counts_pending_leave_as_pending_not_permission(): void
     {
         $this->seedActiveWeekdays();
 
@@ -43,9 +43,9 @@ class HomeroomReportBreakdownTest extends TestCase
             ->get('/reports?tab=monthly&month=8&year=2026')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('summary.tertunda', 1)
-                ->where('summary.izin', 0)
-                ->has('dailyBreakdown.0.tertunda'));
+                ->where('summary.pending', 1)
+                ->where('summary.permission', 0)
+                ->has('dailyBreakdown.0.pending'));
     }
 
     public function test_monthly_report_attendance_wins_over_pending_leave_same_day(): void
@@ -61,7 +61,7 @@ class HomeroomReportBreakdownTest extends TestCase
             ->get('/reports?tab=monthly&month=8&year=2026')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('summary.tertunda', 1));
+                ->where('summary.pending', 1));
     }
 
     public function test_monthly_report_attendance_beats_leave_for_same_student_day(): void
@@ -88,8 +88,8 @@ class HomeroomReportBreakdownTest extends TestCase
             ->get('/reports?tab=monthly&month=8&year=2026')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('summary.tertunda', 0)
-                ->where('summary.tepat_waktu', 1));
+                ->where('summary.pending', 0)
+                ->where('summary.on_time', 1));
     }
 
     public function test_monthly_report_duplicate_approved_leaves_diff_category_prefers_sick(): void
@@ -106,9 +106,9 @@ class HomeroomReportBreakdownTest extends TestCase
             ->get('/reports?tab=monthly&month=8&year=2026')
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('summary.sakit', 1)
-                ->where('summary.izin', 0)
-                ->where('summary.tertunda', 0));
+                ->where('summary.sick', 1)
+                ->where('summary.permission', 0)
+                ->where('summary.pending', 0));
     }
 
     public function test_monthly_report_rate_excludes_pending_from_denominator(): void
@@ -137,11 +137,11 @@ class HomeroomReportBreakdownTest extends TestCase
         $page = $response->viewData('page');
         $summary = $page['props']['summary'];
 
-        // Izin Tertunda is present but excluded from the rate denominator.
-        $this->assertGreaterThan(0, $summary['tertunda']);
-        $denominator = $summary['tepat_waktu'] + $summary['terlambat']
-            + $summary['izin'] + $summary['sakit'] + $summary['alpa'];
-        $expected = $denominator > 0 ? round((($summary['tepat_waktu'] + $summary['terlambat']) / $denominator) * 100, 1) : 0;
+        // Pending is present but excluded from the rate denominator.
+        $this->assertGreaterThan(0, $summary['pending']);
+        $denominator = $summary['on_time'] + $summary['late']
+            + $summary['permission'] + $summary['sick'] + $summary['absent'];
+        $expected = $denominator > 0 ? round((($summary['on_time'] + $summary['late']) / $denominator) * 100, 1) : 0;
         $this->assertEquals($expected, $summary['attendance_rate']);
     }
 
@@ -171,10 +171,10 @@ class HomeroomReportBreakdownTest extends TestCase
         $page = $response->viewData('page');
         $summary = $page['props']['summary'];
 
-        $this->assertGreaterThan(0, $summary['tertunda']);
-        $denominator = $summary['tepat_waktu'] + $summary['terlambat']
-            + $summary['izin'] + $summary['sakit'] + $summary['alpa'];
-        $expected = $denominator > 0 ? round((($summary['tepat_waktu'] + $summary['terlambat']) / $denominator) * 100, 1) : 0;
+        $this->assertGreaterThan(0, $summary['pending']);
+        $denominator = $summary['on_time'] + $summary['late']
+            + $summary['permission'] + $summary['sick'] + $summary['absent'];
+        $expected = $denominator > 0 ? round((($summary['on_time'] + $summary['late']) / $denominator) * 100, 1) : 0;
         $this->assertEquals($expected, $summary['attendance_rate']);
     }
 
@@ -206,20 +206,20 @@ class HomeroomReportBreakdownTest extends TestCase
         $studentRow = $props['students'][0];
 
         $this->assertGreaterThan(0, $summary['school_days']);
-        $this->assertEquals(1, $studentRow['tepat_waktu']);
-        $this->assertEquals(0, $studentRow['terlambat']);
+        $this->assertEquals(1, $studentRow['on_time']);
+        $this->assertEquals(0, $studentRow['late']);
 
-        // micro (per student): tepat_waktu / school_days
+        // micro (per student): on_time / school_days
         $expectedMicro = round((1 / $summary['school_days']) * 100, 1);
         $this->assertEquals($expectedMicro, $studentRow['discipline_rate']);
 
-        // micro (per student) attendance rate: masuk / (masuk + izin + sakit + alpha) = 1 / school_days
+        // micro (per student) attendance rate: present / (present + permission + sick + absent) = 1 / school_days
         $expectedMicroAtt = $summary['school_days'] > 0 ? round((1 / $summary['school_days']) * 100, 1) : 0;
         $this->assertEquals($expectedMicroAtt, $studentRow['attendance_rate']);
         $this->assertEquals($expectedMicroAtt, $summary['attendance_rate']);
 
-        // macro (class): total tepat_waktu / (school_days * total students)
-        $expectedMacro = round(($summary['tepat_waktu'] / ($summary['school_days'] * $summary['total_students'])) * 100, 1);
+        // macro (class): total on_time / (school_days * total students)
+        $expectedMacro = round(($summary['on_time'] / ($summary['school_days'] * $summary['total_students'])) * 100, 1);
         $this->assertEquals($expectedMacro, $summary['discipline_rate']);
     }
 
@@ -251,18 +251,18 @@ class HomeroomReportBreakdownTest extends TestCase
         $studentRow = $props['students'][0];
 
         $this->assertGreaterThan(0, $summary['school_days']);
-        $this->assertEquals(1, $studentRow['tepat_waktu']);
-        $this->assertEquals(0, $studentRow['terlambat']);
+        $this->assertEquals(1, $studentRow['on_time']);
+        $this->assertEquals(0, $studentRow['late']);
 
         $expectedMicro = round((1 / $summary['school_days']) * 100, 1);
         $this->assertEquals($expectedMicro, $studentRow['discipline_rate']);
 
-        // micro (per student) attendance rate: masuk / (masuk + izin + sakit + alpha) = 1 / school_days
+        // micro (per student) attendance rate: present / (present + permission + sick + absent) = 1 / school_days
         $expectedMicroAtt = $summary['school_days'] > 0 ? round((1 / $summary['school_days']) * 100, 1) : 0;
         $this->assertEquals($expectedMicroAtt, $studentRow['attendance_rate']);
         $this->assertEquals($expectedMicroAtt, $summary['attendance_rate']);
 
-        $expectedMacro = round(($summary['tepat_waktu'] / ($summary['school_days'] * $summary['total_students'])) * 100, 1);
+        $expectedMacro = round(($summary['on_time'] / ($summary['school_days'] * $summary['total_students'])) * 100, 1);
         $this->assertEquals($expectedMacro, $summary['discipline_rate']);
     }
 

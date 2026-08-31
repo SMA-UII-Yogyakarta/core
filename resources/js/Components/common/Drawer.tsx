@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/Components/ui/Button";
+import { useLanguage } from "@/Contexts/LanguageContext";
 
 interface DrawerProps {
     open: boolean;
@@ -34,6 +35,7 @@ export default function Drawer({
     width = "md",
     headerActions,
 }: DrawerProps) {
+    const { t } = useLanguage();
     useEffect(() => {
         if (open) {
             document.body.style.overflow = "hidden";
@@ -88,11 +90,11 @@ export default function Drawer({
                                     onClick={onClose}
                                     className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                                     type="button"
-                                    aria-label="Tutup"
+                                    aria-label={t("common.close")}
                                     dusk="drawer-close-btn"
                                     data-testid="drawer-close-btn"
                                 >
-                                    <FaTimes className="w-4 h-4" />
+                                    <FiX className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>

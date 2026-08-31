@@ -99,12 +99,12 @@ class HomeroomReportController extends Controller
 
             $monthlyBreakdown[] = [
                 'month_label' => $monthNames[$m - 1] . ' ' . $y,
-                'tepat_waktu' => $report['summary']['tepat_waktu'],
-                'terlambat' => $report['summary']['terlambat'],
-                'izin' => $report['summary']['izin'],
-                'sakit' => $report['summary']['sakit'],
-                'tertunda' => $report['summary']['tertunda'],
-                'alpa' => $report['summary']['alpa'],
+                'on_time' => $report['summary']['on_time'],
+                'late' => $report['summary']['late'],
+                'permission' => $report['summary']['permission'],
+                'sick' => $report['summary']['sick'],
+                'pending' => $report['summary']['pending'],
+                'absent' => $report['summary']['absent'],
                 'school_days' => $report['summary']['school_days'],
             ];
         }
@@ -114,56 +114,56 @@ class HomeroomReportController extends Controller
 
         $grouped = $allStudentsRecap->groupBy('id')->map(function ($records) use ($totalHeb) {
             $first = $records->first();
-            $tepatWaktu = $records->sum('tepat_waktu');
+            $onTimeTotal = $records->sum('on_time');
 
-            $attendanceDenominator = $records->sum('masuk')
-                + $records->sum('izin')
-                + $records->sum('sakit')
-                + $records->sum('alpha');
+            $attendanceDenominator = $records->sum('present')
+                + $records->sum('permission')
+                + $records->sum('sick')
+                + $records->sum('absent');
 
             return [
                 'id' => $first['id'],
                 'name' => $first['name'],
                 'nis' => $first['nis'],
-                'masuk' => $records->sum('masuk'),
-                'izin' => $records->sum('izin'),
-                'sakit' => $records->sum('sakit'),
-                'tertunda' => $records->sum('tertunda'),
-                'alpha' => $records->sum('alpha'),
-                'tepat_waktu' => $tepatWaktu,
-                'terlambat' => $records->sum('masuk') - $tepatWaktu,
+                'present' => $records->sum('present'),
+                'permission' => $records->sum('permission'),
+                'sick' => $records->sum('sick'),
+                'pending' => $records->sum('pending'),
+                'absent' => $records->sum('absent'),
+                'on_time' => $onTimeTotal,
+                'late' => $records->sum('present') - $onTimeTotal,
                 'discipline_rate' => $totalHeb > 0
-                    ? round(($tepatWaktu / $totalHeb) * 100, 1)
+                    ? round(($onTimeTotal / $totalHeb) * 100, 1)
                     : 0,
                 'attendance_rate' => $attendanceDenominator > 0
-                    ? round(($records->sum('masuk') / $attendanceDenominator) * 100, 1)
+                    ? round(($records->sum('present') / $attendanceDenominator) * 100, 1)
                     : 0,
             ];
         })->values();
 
-        $totalPresent = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'tepat_waktu')) : 0;
-        $totalLate = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'terlambat')) : 0;
-        $totalIzin = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'izin')) : 0;
-        $totalSakit = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'sakit')) : 0;
-        $totalTertunda = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'tertunda')) : 0;
-        $totalAlpa = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'alpa')) : 0;
-        $rateDenominator = $totalPresent + $totalLate + $totalIzin + $totalSakit + $totalAlpa;
+        $totalOnTime = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'on_time')) : 0;
+        $totalLate = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'late')) : 0;
+        $totalPermission = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'permission')) : 0;
+        $totalSick = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'sick')) : 0;
+        $totalPending = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'pending')) : 0;
+        $totalAbsent = $monthlyBreakdown ? array_sum(array_column($monthlyBreakdown, 'absent')) : 0;
+        $rateDenominator = $totalOnTime + $totalLate + $totalPermission + $totalSick + $totalAbsent;
 
         $props['students'] = $grouped;
         $props['monthlyBreakdown'] = $monthlyBreakdown;
         $props['summary'] = [
-            'tepat_waktu' => $totalPresent,
-            'terlambat' => $totalLate,
-            'izin' => $totalIzin,
-            'sakit' => $totalSakit,
-            'tertunda' => $totalTertunda,
-            'alpa' => $totalAlpa,
+            'on_time' => $totalOnTime,
+            'late' => $totalLate,
+            'permission' => $totalPermission,
+            'sick' => $totalSick,
+            'pending' => $totalPending,
+            'absent' => $totalAbsent,
             'attendance_rate' => $rateDenominator > 0
-                ? round((($totalPresent + $totalLate) / $rateDenominator) * 100, 1)
+                ? round((($totalOnTime + $totalLate) / $rateDenominator) * 100, 1)
                 : 0,
             'school_days' => $totalHeb,
             'discipline_rate' => ($totalHeb > 0 && $totalStudentCount > 0)
-                ? round(($totalPresent / ($totalHeb * $totalStudentCount)) * 100, 1)
+                ? round(($totalOnTime / ($totalHeb * $totalStudentCount)) * 100, 1)
                 : 0,
             'total_students' => $totalStudentCount,
         ];

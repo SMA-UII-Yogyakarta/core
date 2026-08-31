@@ -46,7 +46,7 @@ interface AttentionStudent {
     nis: string;
     name: string;
     class: string;
-    status: "alpa" | "terlambat" | "pending" | "diizinkan";
+    status: "absent" | "late" | "pending" | "diizinkan";
     check_in_time: string | null;
     leave_category: string | null;
     leave_approval: string | null;
@@ -73,8 +73,8 @@ interface PageProps {
 type MobileTab = "anomali" | "izin";
 
 function rowNote(s: AttentionStudent): string {
-    if (s.status === "alpa") return "Belum ada kabar";
-    if (s.status === "terlambat") return s.check_in_time ? `${s.check_in_time} WIB` : "-";
+    if (s.status === "absent") return "Belum ada kabar";
+    if (s.status === "late") return s.check_in_time ? `${s.check_in_time} WIB` : "-";
     if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? ""}`;
     return "Pengajuan Izin Diterima";
 }
@@ -163,7 +163,7 @@ export default function DutyDashboard({
             { total: 0, present: 0, late: 0, sick_permission: 0, absent: 0 },
         );
 
-    const anomali = attentionStudents.filter((s) => s.status === "alpa" || s.status === "terlambat");
+    const anomali = attentionStudents.filter((s) => s.status === "absent" || s.status === "late");
     const izinList = attentionStudents.filter((s) => s.status === "pending" || s.status === "diizinkan");
 
     const columns: Column<AttentionStudent>[] = [
@@ -191,7 +191,7 @@ export default function DutyDashboard({
             key: "note",
             header: "Waktu / Keterangan",
             render: (s: AttentionStudent) => (
-                <span className={s.status === "terlambat" ? "text-warning font-semibold" : "text-text-secondary"}>
+                <span className={s.status === "late" ? "text-warning font-semibold" : "text-text-secondary"}>
                     {rowNote(s)}
                 </span>
             ),

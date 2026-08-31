@@ -72,14 +72,14 @@ class SemesterRecapExport
             $stat = $stats->get($s->id);
             $present = (int) ($stat->present ?? 0);
             $late = (int) ($stat->late ?? 0);
-            $izin = $permitDays[$s->id] ?? 0;
-            $sakit = $sickDays[$s->id] ?? 0;
-            $alpa = max(0, $schoolDays - $present - $late - $izin - $sakit);
+            $permission = $permitDays[$s->id] ?? 0;
+            $sick = $sickDays[$s->id] ?? 0;
+            $absent = max(0, $schoolDays - $present - $late - $permission - $sick);
             $persentase = $schoolDays > 0 ? round((($present + $late) / $schoolDays) * 100, 1) . '%' : '0%';
 
             $writer->addRow(Row::fromValues([
                 $s->nis, $s->name, $s->class->name ?? '-',
-                $present + $late, $izin, $sakit, $alpa, $persentase,
+                $present + $late, $permission, $sick, $absent, $persentase,
             ]));
         }
 

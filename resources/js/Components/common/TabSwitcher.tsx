@@ -23,7 +23,7 @@ export default function TabSwitcher({ tabs, activeKey, onChange, variant = "unde
                         className={`px-5 py-2 text-[13px] font-inter font-medium rounded-full transition-colors ${
                             activeKey === tab.key
                                 ? "bg-primary text-white font-bold"
-                                : "bg-white border border-border text-text-secondary hover:bg-background"
+                                : "bg-surface border border-border text-text-secondary hover:bg-background"
                         }`}
                         type="button"
                     >

@@ -137,7 +137,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::delete('/attendance-correction/{id}', [AttendanceOverrideController::class, 'destroy'])->name('attendance-correction.destroy');
 
     // Homeroom Teacher Reports (tabbed: daily, monthly, semester)
-    Route::get('/reports', [HomeroomReportController::class, '__invoke'])->name('reports')->middleware('teacher.type:wali');
+    Route::get('/reports', HomeroomReportController::class)->name('reports')->middleware('teacher.type:wali');
 
     // Teacher Dashboards
     Route::prefix('teacher')->name('teacher.')->group(function () {

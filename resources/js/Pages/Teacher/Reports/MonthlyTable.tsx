@@ -1,4 +1,6 @@
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
+import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid } from "react-icons/fi";
 import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 
@@ -6,24 +8,24 @@ interface StudentRecap {
     id: number;
     name: string;
     nis: string;
-    masuk: number;
-    izin: number;
-    sakit: number;
-    tertunda: number;
-    alpha: number;
-    tepat_waktu: number;
-    terlambat: number;
+    present: number;
+    permission: number;
+    sick: number;
+    pending: number;
+    absent: number;
+    on_time: number;
+    late: number;
     discipline_rate: number;
     attendance_rate: number;
 }
 
 interface Summary {
-    tepat_waktu: number;
-    terlambat: number;
-    izin: number;
-    sakit: number;
-    tertunda: number;
-    alpa: number;
+    on_time: number;
+    late: number;
+    permission: number;
+    sick: number;
+    pending: number;
+    absent: number;
     attendance_rate: number;
     total_students?: number;
     school_days?: number;
@@ -33,12 +35,12 @@ interface Summary {
 interface DailyBreakdown {
     date: string;
     label: string;
-    tepat_waktu: number;
-    terlambat: number;
-    izin: number;
-    sakit: number;
-    tertunda: number;
-    alpa: number;
+    on_time: number;
+    late: number;
+    permission: number;
+    sick: number;
+    pending: number;
+    absent: number;
     is_non_school?: boolean;
     is_past?: boolean;
     note?: string;
@@ -54,23 +56,44 @@ interface MonthlyTableProps {
     onExportExcel?: () => void;
 }
 
-const MONTH_NAMES_ID = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+const MONTH_KEYS = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
 ];
+
+function getMonthKey(month: number): string {
+    return MONTH_KEYS[month - 1] ?? "january";
+}
 
 export default function MonthlyTable({ students, summary, chartData, month, year, onExportPdf, onExportExcel }: MonthlyTableProps) {
     const { t } = useLanguage();
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [hasOverflow, setHasOverflow] = useState({ left: false, right: false });
+
+    const checkOverflow = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const canScroll = el.scrollWidth > el.clientWidth;
+        setHasOverflow({
+            left: canScroll && el.scrollLeft > 0,
+            right: canScroll && el.scrollLeft + el.clientWidth < el.scrollWidth - 1,
+        });
+    }, []);
+
+    useEffect(() => {
+        checkOverflow();
+    }, [students, checkOverflow]);
+
     const chartPoints: ChartDataPoint[] = (chartData ?? []).map((d) => ({
         label: d.label,
         date: d.date,
-        present: d.tepat_waktu,
-        late: d.terlambat,
-        permission: d.izin,
-        sick: d.sakit,
-        tertunda: d.tertunda,
-        absent: d.alpa,
+        present: d.on_time,
+        late: d.late,
+        permission: d.permission,
+        sick: d.sick,
+        pending: d.pending,
+        absent: d.absent,
         isNonSchool: d.is_non_school,
         isPast: d.is_past,
         note: d.note,
@@ -86,14 +109,34 @@ export default function MonthlyTable({ students, summary, chartData, month, year
 
     const statCards: StatCardEntry[] = summary
         ? [
-              { label: t("reports.headerOnTime"), value: summary.tepat_waktu, color: "text-success" },
-              { label: t("reports.statusLate"), value: summary.terlambat, color: "text-warning" },
-              { label: t("reports.permission"), value: summary.izin, color: "text-primary" },
-              { label: t("reports.statusPending"), value: summary.tertunda, color: "text-info" },
-              { label: t("reports.statusSick"), value: summary.sakit, color: "text-purple-600" },
-              { label: t("reports.statusAbsent"), value: summary.alpa, color: "text-danger" },
+              { label: t("reports.statusPending"), value: summary.pending, color: "text-info" },
+              { label: t("reports.statusAbsent"), value: summary.absent, color: "text-danger" },
+              { label: t("reports.statusLate"), value: summary.late, color: "text-warning" },
+              { label: t("reports.permission"), value: summary.permission, color: "text-primary" },
+              { label: t("reports.statusSick"), value: summary.sick, color: "text-medical" },
+              { label: t("reports.headerOnTime"), value: summary.on_time, color: "text-success" },
           ]
         : [];
+
+    const desktopStatCards: StatCardEntry[] = summary
+        ? [
+              { label: t("reports.headerOnTime"), value: summary.on_time, color: "text-success" },
+              { label: t("reports.statusLate"), value: summary.late, color: "text-warning" },
+              { label: t("reports.permission"), value: summary.permission, color: "text-primary" },
+              { label: t("reports.statusPending"), value: summary.pending, color: "text-info" },
+              { label: t("reports.statusSick"), value: summary.sick, color: "text-medical" },
+              { label: t("reports.statusAbsent"), value: summary.absent, color: "text-danger" },
+          ]
+        : [];
+
+    const statCardBg: Record<string, string> = {
+        "text-success": "bg-success-light",
+        "text-warning": "bg-warning-light",
+        "text-primary": "bg-primary-light",
+        "text-info": "bg-info-light",
+        "text-medical": "bg-medical-light",
+        "text-danger": "bg-danger-light",
+    };
 
     const mainStatCards: StatCardEntry[] = summary
         ? [
@@ -101,13 +144,13 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                   label: t("reports.headerAttendance"),
                   value: `${summary.attendance_rate}%`,
                   color: "text-text-primary",
-                  info: `Rumus: (Tepat + Terlambat) ÷ (Tepat + Terlambat + Izin + Sakit + Alpa) → (${summary.tepat_waktu} + ${summary.terlambat}) ÷ (${summary.tepat_waktu} + ${summary.terlambat} + ${summary.izin} + ${summary.sakit} + ${summary.alpa}) = ${summary.attendance_rate}%. Izin Tertunda (${summary.tertunda}) tidak dihitung karena belum divalidasi.`,
+                  info: `Rumus: (Tepat + Terlambat) ÷ (Tepat + Terlambat + Izin + Sakit + Alpa) → (${summary.on_time} + ${summary.late}) ÷ (${summary.on_time} + ${summary.late} + ${summary.permission} + ${summary.sick} + ${summary.absent}) = ${summary.attendance_rate}%. Izin Tertunda (${summary.pending}) tidak dihitung karena belum divalidasi.`,
               },
               {
                   label: t("reports.headerDiscipline"),
                   value: `${summary.discipline_rate ?? 0}%`,
                   color: "text-text-primary",
-                  info: `Rumus (tingkat kelas): Tepat Waktu seluruh siswa ÷ (Hari Efektif × Jumlah Siswa) × 100 → ${summary.tepat_waktu} ÷ (${summary.school_days} × ${summary.total_students ?? 0}) = ${summary.discipline_rate ?? 0}%.`,
+                  info: `Rumus (tingkat kelas): Tepat Waktu seluruh siswa ÷ (Hari Efektif × Jumlah Siswa) × 100 → ${summary.on_time} ÷ (${summary.school_days} × ${summary.total_students ?? 0}) = ${summary.discipline_rate ?? 0}%.`,
               },
           ]
         : [];
@@ -131,9 +174,10 @@ export default function MonthlyTable({ students, summary, chartData, month, year
             {/* Desktop Chart + Stats */}
             {summary && (
                 <div className="hidden lg:block bg-surface border border-border rounded-xl p-4">
-                    <h3 className="text-[14px] font-semibold text-text-primary mb-4">
-                        Grafik Kehadiran Harian ({MONTH_NAMES_ID[month - 1]} {year})
-                    </h3>
+                    <div className="flex items-center gap-2 mb-4">
+                        <FiBarChart2 className="text-primary" />
+                        <span className="text-[14px] font-semibold text-text-primary">{t("reports.summary")}</span>
+                    </div>
                     <div className="grid grid-cols-2 gap-3 mb-4">
                         {mainStatCards.map((card) => (
                             <div
@@ -155,11 +199,11 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                             </div>
                         ))}
                     </div>
-                    <div className="grid grid-cols-7 gap-3 mb-4">
-                        {statCards.map((card) => (
+                    <div className="grid grid-cols-6 gap-3 mb-4">
+                        {desktopStatCards.map((card) => (
                             <div
                                 key={card.label}
-                                className="relative group bg-background border border-border rounded-xl p-3 text-center"
+                                className={`relative group rounded-xl p-3 text-center ${statCardBg[card.color] ?? "bg-background"}`}
                             >
                                 <p className={`font-bold text-[22px] ${card.color}`}>{card.value}</p>
                                 <p className="text-[10px] text-text-muted uppercase tracking-wide mt-1">
@@ -176,9 +220,9 @@ export default function MonthlyTable({ students, summary, chartData, month, year
 
             {/* Mobile Ringkasan */}
             {summary && (
-                <div className="lg:hidden bg-surface border border-border rounded-xl p-4 space-y-4">
+                <div className="lg:hidden bg-surface border border-border rounded-xl p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                        <i className="fa-solid fa-chart-column text-primary" />
+                        <FiBarChart2 className="text-primary" />
                         <span className="text-[14px] font-semibold text-text-primary">{t("reports.summary")}</span>
                     </div>
 
@@ -196,15 +240,15 @@ export default function MonthlyTable({ students, summary, chartData, month, year
 
                     {/* Progress bar 6 segments */}
                     {(() => {
-                        const total = summary.tepat_waktu + summary.terlambat + summary.izin + summary.sakit + summary.tertunda + summary.alpa;
+                        const total = summary.on_time + summary.late + summary.permission + summary.sick + summary.pending + summary.absent;
                         if (total === 0) return null;
                         const segments = [
-                            { value: summary.tepat_waktu, color: "#10B981" },
-                            { value: summary.terlambat, color: "#F59E0B" },
-                            { value: summary.izin, color: "#2E3391" },
-                            { value: summary.sakit, color: "#A855F7" },
-                            { value: summary.tertunda, color: "#0EA5E9" },
-                            { value: summary.alpa, color: "#EF4444" },
+                            { value: summary.on_time, color: "var(--color-success)" },
+                            { value: summary.late, color: "var(--color-warning)" },
+                            { value: summary.permission, color: "var(--color-primary)" },
+                            { value: summary.sick, color: "var(--color-medical)" },
+                            { value: summary.pending, color: "var(--color-info)" },
+                            { value: summary.absent, color: "var(--color-danger)" },
                         ];
                         return (
                             <div className="flex h-3 rounded-full overflow-hidden">
@@ -219,17 +263,24 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                     })()}
 
                     {/* 6 stat cards — horizontal scroll */}
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
-                        {statCards.map((card) => (
-                            <div
-                                key={card.label}
-                                className="shrink-0 bg-background border border-border rounded-xl p-3 pl-4 min-w-[110px]"
-                                style={{ borderLeftColor: card.color === "text-success" ? "#10B981" : card.color === "text-warning" ? "#F59E0B" : card.color === "text-primary" ? "#2E3391" : card.color === "text-info" ? "#0EA5E9" : card.color === "text-purple-600" ? "#A855F7" : "#EF4444", borderLeftWidth: "3px" }}
-                            >
-                                <p className={`font-bold text-[18px] ${card.color}`}>{card.value}</p>
-                                <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">{card.label}</p>
-                            </div>
-                        ))}
+                    <div className="relative -mx-4 px-4">
+                        {hasOverflow.right && (
+                            <div className="absolute right-4 top-0 bottom-2 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                        )}
+                        {hasOverflow.left && (
+                            <div className="absolute left-4 top-0 bottom-2 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                        )}
+                        <div ref={scrollRef} onScroll={checkOverflow} className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                            {statCards.map((card) => (
+                                <div
+                                    key={card.label}
+                                    className={`shrink-0 rounded-xl p-3 pl-4 min-w-[110px] ${statCardBg[card.color] ?? "bg-background"}`}
+                                >
+                                    <p className={`font-bold text-[18px] ${card.color}`}>{card.value}</p>
+                                    <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">{card.label}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
@@ -238,14 +289,14 @@ export default function MonthlyTable({ students, summary, chartData, month, year
             <div className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-4">
                     <h3 className="text-[14px] font-semibold text-text-primary">
-                        Data Rekapitulasi Siswa ({MONTH_NAMES_ID[month - 1]} {year})
+                        {t("reports.dataRecapMonthly", { month: t(`month.${getMonthKey(month)}`), year })}
                     </h3>
                     <div className="flex items-center gap-3 shrink-0">
                         <button type="button" onClick={onExportPdf} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors">
-                            <i className="fas fa-file-pdf text-[12px]" /> PDF
+                            <FiFileText className="text-[12px]" /> PDF
                         </button>
                         <button type="button" onClick={onExportExcel} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors">
-                            <i className="fas fa-file-excel text-[12px]" /> Excel
+                            <FiGrid className="text-[12px]" /> Excel
                         </button>
                     </div>
                 </div>
@@ -284,40 +335,46 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-[13px] text-center text-success font-semibold">
-                                            {s.tepat_waktu}
+                                            {s.on_time}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-center text-warning font-semibold">
-                                            {s.masuk - s.tepat_waktu}
+                                            {s.present - s.on_time}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.izin > 0 ? "#2E3391" : "#64748B" }}
+                                            style={{ color: s.permission > 0 ? "#2E3391" : "#64748B" }}
                                         >
-                                            {s.izin}
+                                            {s.permission}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.sakit > 0 ? "#A855F7" : "#64748B" }}
+                                            style={{ color: s.sick > 0 ? "#A855F7" : "#64748B" }}
                                         >
-                                            {s.sakit}
+                                            {s.sick}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" }}
+                                            style={{ color: s.pending > 0 ? "#0EA5E9" : "#64748B" }}
                                         >
-                                            {s.tertunda}
+                                            {s.pending}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.alpha > 0 ? "#EF4444" : "#64748B" }}
+                                            style={{ color: s.absent > 0 ? "#EF4444" : "#64748B" }}
                                         >
-                                            {s.alpha}
+                                            {s.absent}
                                         </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-bold text-text-primary">
-                                            {s.attendance_rate}%
+                                        <td className="px-4 py-3 text-[13px] text-center font-bold">
+                                            <span className={s.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                                {s.attendance_rate}%
+                                                {s.attendance_rate <= 75 && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                            </span>
                                         </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-bold text-text-primary">
-                                            {s.discipline_rate}%
+                                        <td className="px-4 py-3 text-[13px] text-center font-bold">
+                                            <span className={s.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                                {s.discipline_rate}%
+                                                {s.discipline_rate <= 75 && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))
@@ -337,31 +394,60 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                     students.map((s) => (
                         <div
                             key={s.id}
-                            className="bg-white border border-border rounded-xl p-3"
+                            className="bg-surface border border-border rounded-xl p-3"
                             style={{
-                                borderLeftColor: s.alpha > 0 ? "#EF4444" : s.tertunda > 0 ? "#0EA5E9" : s.sakit > 0 ? "#A855F7" : s.izin > 0 ? "#2E3391" : "#10B981",
+                                borderLeftColor: s.absent > 0 ? "var(--color-danger)" : s.pending > 0 ? "var(--color-info)" : s.sick > 0 ? "var(--color-medical)" : s.permission > 0 ? "var(--color-primary)" : "var(--color-success)",
                                 borderLeftWidth: "3px",
                             }}
                         >
-                            <div className="min-w-0 mb-1">
-                                <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
-                                <p className="text-[12px] text-text-muted mt-0.5">NIS: {s.nis}</p>
+                            <div className="min-w-0 mb-1 flex items-center gap-2">
+                                <p className="text-[14px] font-bold text-text-primary truncate flex-1 min-w-0">{s.name}</p>
+                                {s.pending > 0 && (
+                                    <span className="shrink-0 inline-flex items-center gap-1 bg-info-light text-info text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                        {s.pending} {t("reports.statusPending")}
+                                    </span>
+                                )}
                             </div>
-                            <div className="bg-background rounded-lg p-2 mt-2">
-                                <p className="text-[13px]">
-                                    <span className="font-bold text-success">{s.tepat_waktu}</span> {t("reports.headerOnTime")}{" | "}
-                                    <span className="font-bold text-warning">{s.terlambat}</span> {t("reports.statusLate")}{" | "}
-                                    <span className="font-semibold" style={{ color: s.izin > 0 ? "#2E3391" : "#64748B" }}>{s.izin}</span> Izin{" | "}
-                                    <span className="font-semibold" style={{ color: s.sakit > 0 ? "#A855F7" : "#64748B" }}>{s.sakit}</span> Sakit{" | "}
-                                    <span className="font-semibold" style={{ color: s.alpha > 0 ? "#EF4444" : "#64748B" }}>{s.alpha}</span> Alpa
-                                </p>
-                                <p className="text-[13px] mt-0.5">
-                                    <span className="font-semibold" style={{ color: s.tertunda > 0 ? "#0EA5E9" : "#64748B" }}>{s.tertunda}</span> {t("reports.statusPending")}
-                                </p>
-                                <p className="text-[13px] mt-0.5">
-                                    <span className="font-bold text-text-primary">{s.attendance_rate}%</span> {t("reports.headerAttendance")}{" | "}
-                                    <span className="font-bold text-text-primary">{s.discipline_rate}%</span> {t("reports.headerDiscipline")}
-                                </p>
+                            <p className="text-[12px] text-text-muted mb-1">NIS: {s.nis}</p>
+                            <div className="bg-background rounded-lg p-2 mt-1 space-y-1">
+                                <div className="flex items-center justify-center rounded-lg">
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
+                                        <span className="font-bold text-[13px] text-success">{s.on_time}</span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.headerOnTime")}</span>
+                                    </div>
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
+                                        <span className="font-bold text-[13px] text-warning">{s.late}</span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.statusLate")}</span>
+                                    </div>
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
+                                        <span className="font-semibold text-[13px]" style={{ color: s.permission > 0 ? "var(--color-primary)" : "var(--color-text-muted)" }}>{s.permission}</span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.permission")}</span>
+                                    </div>
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
+                                        <span className="font-semibold text-[13px]" style={{ color: s.sick > 0 ? "var(--color-medical)" : "var(--color-text-muted)" }}>{s.sick}</span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.statusSick")}</span>
+                                    </div>
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
+                                        <span className="font-semibold text-[13px]" style={{ color: s.absent > 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}>{s.absent}</span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.statusAbsent")}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-center rounded-lg">
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
+                                        <span className={`font-bold text-[13px] ${s.attendance_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                            {s.attendance_rate}%
+                                            {s.attendance_rate <= 75 && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.headerAttendance")}</span>
+                                    </div>
+                                    <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
+                                        <span className={`font-bold text-[13px] ${s.discipline_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                            {s.discipline_rate}%
+                                            {s.discipline_rate <= 75 && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">{t("reports.headerDiscipline")}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))

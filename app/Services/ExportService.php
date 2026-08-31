@@ -166,10 +166,10 @@ class ExportService
                     'no' => $no++,
                     'name' => $student->name,
                     'class' => $className,
-                    'masuk' => ($statusLabel === 'HADIR' || $statusLabel === 'TERLAMBAT') ? 1 : 0,
-                    'izin' => ($statusLabel === 'IZIN') ? 1 : 0,
-                    'sakit' => ($statusLabel === 'SAKIT') ? 1 : 0,
-                    'alpha' => ($statusLabel === 'ALPHA') ? 1 : 0,
+                    'present' => ($statusLabel === 'HADIR' || $statusLabel === 'TERLAMBAT') ? 1 : 0,
+                    'permission' => ($statusLabel === 'IZIN') ? 1 : 0,
+                    'sick' => ($statusLabel === 'SAKIT') ? 1 : 0,
+                    'absent' => ($statusLabel === 'ALPHA') ? 1 : 0,
                     'status' => $statusLabel,
                     'waktu_keterangan' => $waktuKet,
                     'photo_url' => $photoUrl,
@@ -193,10 +193,10 @@ class ExportService
                 'no' => $no++,
                 'name' => $student->name,
                 'class' => $className,
-                'masuk' => $present + $late,
-                'izin' => $izin,
-                'sakit' => $sakit,
-                'alpha' => max(0, $schoolDays - $present - $late - $izin - $sakit),
+                'present' => $present + $late,
+                'permission' => $permitDays[$student->id] ?? 0,
+                'sick' => $sickDays[$student->id] ?? 0,
+                'absent' => max(0, $schoolDays - $present - $late - ($permitDays[$student->id] ?? 0) - ($sickDays[$student->id] ?? 0)),
             ];
         }
 
@@ -258,8 +258,8 @@ class ExportService
             $stat = $stats->get($s->id);
             $present = (int) ($stat->present ?? 0);
             $late = (int) ($stat->late ?? 0);
-            $izin = $permitDays[$s->id] ?? 0;
-            $sakit = $sickDays[$s->id] ?? 0;
+            $permission = $permitDays[$s->id] ?? 0;
+            $sick = $sickDays[$s->id] ?? 0;
 
             return [
                 'nis' => $s->nis,
@@ -267,9 +267,9 @@ class ExportService
                 'class' => $s->class->name ?? '-',
                 'present' => $present,
                 'late' => $late,
-                'izin' => $izin,
-                'sakit' => $sakit,
-                'absent' => max(0, $schoolDays - $present - $late - $izin - $sakit),
+                'permission' => $permission,
+                'sick' => $sick,
+                'absent' => max(0, $schoolDays - $present - $late - $permission - $sick),
                 'percentage' => $schoolDays > 0 ? round((($present + $late) / $schoolDays) * 100, 1) . '%' : '0%',
             ];
         });

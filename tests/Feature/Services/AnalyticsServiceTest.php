@@ -359,7 +359,7 @@ class AnalyticsServiceTest extends TestCase
         $this->assertEquals('Permission', $result['students']->first()['status']);
     }
 
-    public function test_class_monthly_recap_counts_non_sick_as_izin(): void
+    public function test_class_monthly_recap_counts_non_sick_as_permission(): void
     {
         $this->seedActiveWeekdays();
 
@@ -379,12 +379,12 @@ class AnalyticsServiceTest extends TestCase
         $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
 
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['izin']);
-        $this->assertEquals(0, $row['sakit']);
-        $this->assertEquals(0, $row['tertunda']);
+        $this->assertEquals(1, $row['permission']);
+        $this->assertEquals(0, $row['sick']);
+        $this->assertEquals(0, $row['pending']);
     }
 
-    public function test_class_monthly_recap_counts_pending_leave_as_tertunda_not_izin(): void
+    public function test_class_monthly_recap_counts_pending_leave_as_pending_not_permission(): void
     {
         $this->seedActiveWeekdays();
 
@@ -404,9 +404,9 @@ class AnalyticsServiceTest extends TestCase
         $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
 
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['tertunda']);
-        $this->assertEquals(0, $row['izin']);
-        $this->assertEquals(0, $row['sakit']);
+        $this->assertEquals(1, $row['pending']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['sick']);
     }
 
     public function test_class_monthly_recap_attendance_wins_over_leave_same_day(): void
@@ -439,9 +439,9 @@ class AnalyticsServiceTest extends TestCase
         $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
 
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['masuk']);
-        $this->assertEquals(0, $row['izin']);
-        $this->assertEquals(0, $row['tertunda']);
+        $this->assertEquals(1, $row['present']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
     }
 
     public function test_class_monthly_recap_dedup_duplicate_leaves_same_day(): void
@@ -471,10 +471,10 @@ class AnalyticsServiceTest extends TestCase
 
         $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
 
-        // Approved takes precedence over Pending, deduped to a single day -> 1 izin, 0 tertunda
+        // Approved takes precedence over Pending, deduped to a single day -> 1 permission, 0 pending
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['izin']);
-        $this->assertEquals(0, $row['tertunda']);
+        $this->assertEquals(1, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
     }
 
     public function test_class_monthly_recap_duplicate_approved_leaves_diff_category_prefers_sick(): void
@@ -506,9 +506,9 @@ class AnalyticsServiceTest extends TestCase
 
         // Two approved leaves on the same day (different category): count once, Sick wins.
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['sakit']);
-        $this->assertEquals(0, $row['izin']);
-        $this->assertEquals(0, $row['tertunda']);
+        $this->assertEquals(1, $row['sick']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
     }
 
     public function test_class_monthly_recap_approved_sick_beats_pending_leave_same_day(): void
@@ -540,9 +540,9 @@ class AnalyticsServiceTest extends TestCase
 
         // Approved (Sick) wins over the pending permit on the same day.
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['sakit']);
-        $this->assertEquals(0, $row['izin']);
-        $this->assertEquals(0, $row['tertunda']);
+        $this->assertEquals(1, $row['sick']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
     }
 
     public function test_class_monthly_recap_per_student_total_never_exceeds_school_days(): void
@@ -565,10 +565,10 @@ class AnalyticsServiceTest extends TestCase
 
         $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
 
-        // Leave spans Fri (10) - Sun (12); only school days count. Juli 1..12 has 8 active weekdays.
+        // Leave spans Fri (10) - Sun (12); only school days count. Jul 1..12 has 8 active weekdays.
         $row = $recap['students']->first();
-        $this->assertEquals(1, $row['izin']);
-        $total = $row['masuk'] + $row['izin'] + $row['sakit'] + $row['tertunda'] + $row['alpha'];
+        $this->assertEquals(1, $row['permission']);
+        $total = $row['present'] + $row['permission'] + $row['sick'] + $row['pending'] + $row['absent'];
         $this->assertEquals(8, $total);
     }
 
@@ -600,7 +600,7 @@ class AnalyticsServiceTest extends TestCase
         }
 
         // Now is fixed at 2026-07-12 10:00 by setUp. Count Mon-Fri from Jul 1..Jul 12
-        // (past days and today-after-close are alpa-applicable, future days are not).
+        // (past days and today-after-close are absent-applicable, future days are not).
         $expectedElapsed = 0;
         for ($d = \Carbon\Carbon::create(2026, 7, 1); $d->lte(\Carbon\Carbon::create(2026, 7, 12)); $d->addDay()) {
             if (in_array($d->format('l'), ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], true)) {
@@ -608,8 +608,8 @@ class AnalyticsServiceTest extends TestCase
             }
         }
 
-        $alpha = $this->service->classMonthlyRecap($data['class']->id, 7, 2026)['students']->first()['alpha'];
-        $this->assertEquals($expectedElapsed, $alpha);
+        $absent = $this->service->classMonthlyRecap($data['class']->id, 7, 2026)['students']->first()['absent'];
+        $this->assertEquals($expectedElapsed, $absent);
     }
 
     public function test_class_monthly_report_rate_excludes_pending_from_denominator(): void
@@ -646,19 +646,19 @@ class AnalyticsServiceTest extends TestCase
         $this->assertArrayHasKey('summary', $report);
 
         $summary = $report['summary'];
-        $this->assertEquals(1, $summary['tepat_waktu']);
-        $this->assertEquals(0, $summary['terlambat']);
-        $this->assertEquals(0, $summary['izin']);
-        $this->assertEquals(0, $summary['sakit']);
-        $this->assertEquals(1, $summary['tertunda']);
-        $this->assertEquals(6, $summary['alpa']);
+        $this->assertEquals(1, $summary['on_time']);
+        $this->assertEquals(0, $summary['late']);
+        $this->assertEquals(0, $summary['permission']);
+        $this->assertEquals(0, $summary['sick']);
+        $this->assertEquals(1, $summary['pending']);
+        $this->assertEquals(6, $summary['absent']);
         $this->assertEquals(1, $summary['total_students']);
 
-        // Rate excludes "Izin Tertunda" from the denominator: (1+0) / (1+0+0+0+6) = 14.3
+        // Rate excludes pending from the denominator: (1+0) / (1+0+0+0+6) = 14.3
         $this->assertEqualsWithDelta(14.3, $summary['attendance_rate'], 0.05);
 
         // Same exclusion applies to the per-student (micro) attendance rate:
-        // masuk(1) / (masuk + izin + sakit + alpha) = 1 / (1+0+0+6) = 14.3 (not 12.5)
+        // present(1) / (present + permission + sick + absent) = 1 / (1+0+0+6) = 14.3 (not 12.5)
         $studentRow = $report['recap']->first();
         $this->assertEqualsWithDelta(14.3, $studentRow['attendance_rate'], 0.05);
 
@@ -704,13 +704,13 @@ class AnalyticsServiceTest extends TestCase
 
         // Only Present counts as on-time (Late does not): 1 on-time out of 8
         $studentRow = $report['recap']->first();
-        $this->assertEquals(1, $studentRow['tepat_waktu']);
-        $this->assertEquals(1, $studentRow['terlambat']);
-        $this->assertEquals(2, $studentRow['masuk']);
+        $this->assertEquals(1, $studentRow['on_time']);
+        $this->assertEquals(1, $studentRow['late']);
+        $this->assertEquals(2, $studentRow['present']);
         $this->assertEqualsWithDelta(12.5, $studentRow['discipline_rate'], 0.05);
 
-        // Micro attendance rate = present+late / (present+late+izin+sakit+alpha) = 2/8
-        // (Izin Tertunda excluded; here there are none)
+        // Micro attendance rate = present+late / (present+late+permission+sick+absent) = 2/8
+        // (pending excluded; here there are none)
         $this->assertEqualsWithDelta(25.0, $studentRow['attendance_rate'], 0.05);
 
         // Summary attendance rate must match the micro figure

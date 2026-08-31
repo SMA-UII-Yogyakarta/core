@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/Contexts/LanguageContext";
 
 interface BottomSheetProps {
     open: boolean;
     onClose: () => void;
     title?: string;
+    subtitle?: string;
     children: ReactNode;
 }
 
@@ -14,8 +16,10 @@ export default function BottomSheet({
     open,
     onClose,
     title,
+    subtitle,
     children,
 }: BottomSheetProps) {
+    const { t } = useLanguage();
     useEffect(() => {
         if (open) {
             document.body.style.overflow = "hidden";
@@ -64,14 +68,19 @@ export default function BottomSheet({
                         {/* Header */}
                         {title && (
                             <div className="flex items-center justify-between px-5 pb-3 border-b border-border select-none shrink-0">
-                                <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
+                                <div>
+                                    <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
+                                    {subtitle && (
+                                        <p className="text-[12px] text-text-muted mt-0.5">{subtitle}</p>
+                                    )}
+                                </div>
                                 <button
                                     onClick={onClose}
                                     className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                                     type="button"
-                                    aria-label="Tutup"
+                                    aria-label={t("common.close")}
                                 >
-                                    <FaTimes className="w-4 h-4" />
+                                    <FiX className="w-4 h-4" />
                                 </button>
                             </div>
                         )}

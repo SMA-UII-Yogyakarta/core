@@ -79,14 +79,14 @@ class AnalyticsService
             ->whereDate('end_date', '>=', $date)
             ->where('approval_status', 'Pending')
             ->whereIn('student_id', $students->pluck('id'))
-            ->pluck('student_id')
-            ->flip();
+            ->get(['student_id', 'document_url'])
+            ->keyBy('student_id');
 
         $approvedLeaves = LeaveRequest::whereDate('start_date', '<=', $date)
             ->whereDate('end_date', '>=', $date)
             ->where('approval_status', 'Approved')
             ->whereIn('student_id', $students->pluck('id'))
-            ->get(['student_id', 'category'])
+            ->get(['student_id', 'category', 'document_url'])
             ->keyBy('student_id');
 
         $studentStats = $students->map(function ($s) use ($attendances, $pendingLeaves, $approvedLeaves) {
@@ -108,6 +108,10 @@ class AnalyticsService
                 'nis' => $s->nis,
                 'status' => $status,
                 'check_in_time' => $attendance?->check_in_time?->format('H:i:s'),
+                'photo_url' => $attendance?->photo_url,
+                'document_url' => $status === 'Pending'
+                    ? $pendingLeaves->get($s->id)?->document_url
+                    : ($approvedLeaves->get($s->id)?->document_url ?? null),
             ];
         });
 
@@ -372,11 +376,11 @@ class AnalyticsService
 
             $studentLeaves = $leavesByStudent->get($student->id, collect());
 
-            $masuk = 0;
-            $izin = 0;
-            $sakit = 0;
-            $tertunda = 0;
-            $tepatWaktuSiswa = 0;
+            $present = 0;
+            $permission = 0;
+            $sick = 0;
+            $pending = 0;
+            $onTimeStudent = 0;
 
             for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
                 $dateStr = $date->toDateString();
@@ -388,9 +392,9 @@ class AnalyticsService
                 $attendance = $studentAttendances->get($dateStr);
 
                 if ($attendance) {
-                    $masuk++;
+                    $present++;
                     if ($attendance->status !== 'Late') {
-                        $tepatWaktuSiswa++;
+                        $onTimeStudent++;
                     }
                     continue;
                 }
@@ -411,37 +415,37 @@ class AnalyticsService
                     ->first();
 
                 if ($dayLeave->approval_status !== 'Approved') {
-                    $tertunda++;
+                    $pending++;
                     continue;
                 }
 
                 if ($dayLeave->category === 'Sick') {
-                    $sakit++;
+                    $sick++;
                 } else {
-                    $izin++;
+                    $permission++;
                 }
             }
 
-            $alpha = max(0, $schoolDays - $masuk - $izin - $sakit - $tertunda);
+            $absent = max(0, $schoolDays - $present - $permission - $sick - $pending);
 
-            $attendanceDenominator = $masuk + $izin + $sakit + $alpha;
+            $attendanceDenominator = $present + $permission + $sick + $absent;
 
             return [
                 'id' => $student->id,
                 'name' => $student->name,
                 'nis' => $student->nis,
-                'masuk' => $masuk,
-                'izin' => $izin,
-                'sakit' => $sakit,
-                'tertunda' => $tertunda,
-                'alpha' => $alpha,
-                'tepat_waktu' => $tepatWaktuSiswa,
-                'terlambat' => $masuk - $tepatWaktuSiswa,
+                'present' => $present,
+                'permission' => $permission,
+                'sick' => $sick,
+                'pending' => $pending,
+                'absent' => $absent,
+                'on_time' => $onTimeStudent,
+                'late' => $present - $onTimeStudent,
                 'discipline_rate' => $schoolDays > 0
-                    ? round(($tepatWaktuSiswa / $schoolDays) * 100, 1)
+                    ? round(($onTimeStudent / $schoolDays) * 100, 1)
                     : 0,
                 'attendance_rate' => $attendanceDenominator > 0
-                    ? round(($masuk / $attendanceDenominator) * 100, 1)
+                    ? round(($present / $attendanceDenominator) * 100, 1)
                     : 0,
             ];
         })->values();
@@ -455,12 +459,12 @@ class AnalyticsService
                 $daily[] = [
                     'date' => $dateStr,
                     'label' => $date->format('d'),
-                    'tepat_waktu' => 0,
-                    'terlambat' => 0,
-                    'izin' => 0,
-                    'sakit' => 0,
-                    'tertunda' => 0,
-                    'alpa' => 0,
+                    'on_time' => 0,
+                    'late' => 0,
+                    'permission' => 0,
+                    'sick' => 0,
+                    'pending' => 0,
+                    'absent' => 0,
                     'is_non_school' => true,
                     'is_past' => $dateStr < now()->toDateString(),
                     'note' => $this->calendarService->nonSchoolDayNote($dateStr) ?? 'hari non-aktif',
@@ -476,20 +480,20 @@ class AnalyticsService
                 fn ($l) => $dateStr >= $l->start_date->toDateString() && $dateStr <= $l->end_date->toDateString(),
             )->groupBy('student_id');
 
-            $tepatWaktu = 0;
-            $terlambat = 0;
-            $izin = 0;
-            $sakit = 0;
-            $tertunda = 0;
+            $onTime = 0;
+            $late = 0;
+            $permission = 0;
+            $sick = 0;
+            $pending = 0;
 
             foreach ($studentIds as $studentId) {
                 $attendance = $dayAttendances->get($studentId);
 
                 if ($attendance) {
                     if ($attendance->status === 'Late') {
-                        $terlambat++;
+                        $late++;
                     } else {
-                        $tepatWaktu++;
+                        $onTime++;
                     }
                     continue;
                 }
@@ -508,56 +512,56 @@ class AnalyticsService
                     ->first();
 
                 if ($dayLeave->approval_status !== 'Approved') {
-                    $tertunda++;
+                    $pending++;
                     continue;
                 }
 
                 if ($dayLeave->category === 'Sick') {
-                    $sakit++;
+                    $sick++;
                 } else {
-                    $izin++;
+                    $permission++;
                 }
             }
 
-            $totalRecorded = $tepatWaktu + $terlambat + $izin + $sakit + $tertunda;
-            $alpa = $this->calendarService->isAlpaApplicable($dateStr)
+            $totalRecorded = $onTime + $late + $permission + $sick + $pending;
+            $absent = $this->calendarService->isAlpaApplicable($dateStr)
                 ? max(0, $totalStudents - $totalRecorded)
                 : 0;
 
             $daily[] = [
                 'date' => $dateStr,
                 'label' => $date->format('d'),
-                'tepat_waktu' => $tepatWaktu,
-                'terlambat' => $terlambat,
-                'izin' => $izin,
-                'sakit' => $sakit,
-                'tertunda' => $tertunda,
-                'alpa' => $alpa,
+                'on_time' => $onTime,
+                'late' => $late,
+                'permission' => $permission,
+                'sick' => $sick,
+                'pending' => $pending,
+                'absent' => $absent,
             ];
         }
 
-        $totalPresent = array_sum(array_column($daily, 'tepat_waktu'));
-        $totalLate = array_sum(array_column($daily, 'terlambat'));
-        $totalIzin = array_sum(array_column($daily, 'izin'));
-        $totalSakit = array_sum(array_column($daily, 'sakit'));
-        $totalTertunda = array_sum(array_column($daily, 'tertunda'));
-        $totalAlpa = array_sum(array_column($daily, 'alpa'));
-        $rateDenominator = $totalPresent + $totalLate + $totalIzin + $totalSakit + $totalAlpa;
+        $totalOnTime = array_sum(array_column($daily, 'on_time'));
+        $totalLate = array_sum(array_column($daily, 'late'));
+        $totalPermission = array_sum(array_column($daily, 'permission'));
+        $totalSick = array_sum(array_column($daily, 'sick'));
+        $totalPending = array_sum(array_column($daily, 'pending'));
+        $totalAbsent = array_sum(array_column($daily, 'absent'));
+        $rateDenominator = $totalOnTime + $totalLate + $totalPermission + $totalSick + $totalAbsent;
 
         $summary = [
-            'tepat_waktu' => $totalPresent,
-            'terlambat' => $totalLate,
-            'izin' => $totalIzin,
-            'sakit' => $totalSakit,
-            'tertunda' => $totalTertunda,
-            'alpa' => $totalAlpa,
+            'on_time' => $totalOnTime,
+            'late' => $totalLate,
+            'permission' => $totalPermission,
+            'sick' => $totalSick,
+            'pending' => $totalPending,
+            'absent' => $totalAbsent,
             'attendance_rate' => $rateDenominator > 0
-                ? round((($totalPresent + $totalLate) / $rateDenominator) * 100, 1)
+                ? round((($totalOnTime + $totalLate) / $rateDenominator) * 100, 1)
                 : 0,
             'total_students' => $totalStudents,
             'school_days' => $schoolDays,
             'discipline_rate' => ($schoolDays > 0 && $totalStudents > 0)
-                ? round(($totalPresent / ($schoolDays * $totalStudents)) * 100, 1)
+                ? round(($totalOnTime / ($schoolDays * $totalStudents)) * 100, 1)
                 : 0,
         ];
 

@@ -34,7 +34,7 @@ export interface ChartDataPoint {
     permission?: number;
     sick?: number;
     /** Pending leave count shown as its own stacked series */
-    tertunda?: number;
+    pending?: number;
     /** Optional precomputed attendance rate 0–100 for single-line mode */
     rate?: number;
     /** True when the point is not a school day (weekend / holiday / inactive) */
@@ -107,7 +107,7 @@ export default function AttendanceChart({ data, type = "bar", height = 300, show
                   },
                   {
                       label: "Izin Tertunda",
-                      data: data.map((d) => (d.isNonSchool ? null : d.tertunda ?? 0)),
+                      data: data.map((d) => (d.isNonSchool ? null : d.pending ?? 0)),
                       backgroundColor: "#0EA5E9",
                       borderRadius: 2,
                   },

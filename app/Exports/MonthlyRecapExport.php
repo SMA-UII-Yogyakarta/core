@@ -25,8 +25,8 @@ class MonthlyRecapExport
 
         $stats = Attendance::query()
             ->selectRaw('student_id, COUNT(*) as total, '
-                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as hadir, "
-                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as terlambat")
+                . "SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as on_time, "
+                . "SUM(CASE WHEN status = 'Late' THEN 1 ELSE 0 END) as late")
             ->whereIn('student_id', $students->pluck('id'))
             ->whereYear('attendance_date', $year)
             ->whereMonth('attendance_date', $month)
@@ -37,14 +37,14 @@ class MonthlyRecapExport
         foreach ($students as $s) {
             $row = $stats->get($s->id);
             $total = (int) ($row->total ?? 0);
-            $hadir = (int) ($row->hadir ?? 0);
-            $terlambat = (int) ($row->terlambat ?? 0);
-            $alpa = max(0, $total - $hadir - $terlambat);
-            $persentase = $total > 0 ? round(($hadir / $total) * 100, 1) . '%' : '0%';
+            $onTime = (int) ($row->on_time ?? 0);
+            $late = (int) ($row->late ?? 0);
+            $absent = max(0, $total - $onTime - $late);
+            $persentase = $total > 0 ? round(($onTime / $total) * 100, 1) . '%' : '0%';
 
             $writer->addRow(Row::fromValues([
                 $s->nis, $s->name, $s->class->name ?? '-',
-                $hadir, $terlambat, $alpa, $persentase,
+                $onTime, $late, $absent, $persentase,
             ]));
         }
 

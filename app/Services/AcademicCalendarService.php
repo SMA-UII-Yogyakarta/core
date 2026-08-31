@@ -158,7 +158,7 @@ class AcademicCalendarService
     }
 
     /**
-     * Whether a given date may still accrue "alpa" (absent without leave).
+     * Whether a given date may still accrue "absent" (absent without leave).
      *
      * - Dates before today: always applicable (the day has fully elapsed).
      * - Today: applicable only once the attendance window has closed

@@ -84,7 +84,7 @@ class GuardianPortalController extends Controller
             $late = (int) ($counts->late ?? 0);
 
             $semesterStats = [
-                'present' => $present + $late, // hadir = tepat + terlambat
+                'present' => $present + $late, // present = on_time + late
                 'sick_permit' => $sickPermit,
                 'absent' => max(0, $total - $present - $late),
             ];

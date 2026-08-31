@@ -73,24 +73,24 @@ function todayFormatted(): string {
     });
 }
 
-type RowStatus = "alpa" | "terlambat" | "pending" | "diizinkan" | "hadir";
+type RowStatus = "absent" | "late" | "pending" | "approved_leave" | "present";
 
 function getRowStatus(s: Student): RowStatus {
     const att = s.attendances[0];
-    if (s.pendingLeave?.approval_status === "Approved") return "diizinkan";
+    if (s.pendingLeave?.approval_status === "Approved") return "approved_leave";
     if (s.pendingLeave?.approval_status === "Pending") return "pending";
-    if (!att) return "alpa";
-    if (att.status.toLowerCase() === "late") return "terlambat";
-    return "hadir";
+    if (!att) return "absent";
+    if (att.status.toLowerCase() === "late") return "late";
+    return "present";
 }
 
 function rowNote(s: Student): string {
     const att = s.attendances[0];
     const status = getRowStatus(s);
-    if (status === "alpa") return "Belum ada kabar";
-    if (status === "terlambat") return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
+    if (status === "absent") return "Belum ada kabar";
+    if (status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
     if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "");
-    if (status === "diizinkan") return "Pengajuan Izin Diterima";
+    if (status === "approved_leave") return "Pengajuan Izin Diterima";
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
 
@@ -106,7 +106,7 @@ export default function HomeroomDashboard({
     const pageSize = 10;
 
     const attentionStudents = useMemo(() => {
-        const raw = students.filter((s) => getRowStatus(s) !== "hadir");
+        const raw = students.filter((s) => getRowStatus(s) !== "present");
         if (!search.trim()) return raw;
         const q = search.toLowerCase();
         return raw.filter((s) => s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q));
@@ -153,7 +153,7 @@ export default function HomeroomDashboard({
             render: (s: Student) => {
                 const st = getRowStatus(s);
                 return (
-                    <span className={st === "terlambat" ? "text-warning font-semibold" : "text-text-secondary"}>
+                    <span className={st === "late" ? "text-warning font-semibold" : "text-text-secondary"}>
                         {rowNote(s)}
                     </span>
                 );
@@ -173,7 +173,7 @@ export default function HomeroomDashboard({
                         </Link>
                     );
                 }
-                if (st === "alpa") {
+                if (st === "absent") {
                     return <span className="text-text-muted text-[13px]">-</span>;
                 }
                 return (
@@ -322,7 +322,7 @@ export default function HomeroomDashboard({
                                                 </Button>
                                             </Link>
                                         )}
-                                        {st === "terlambat" && (
+                                        {st === "late" && (
                                             <Button variant="outline" size="sm" className="w-full justify-center">
                                                 Lihat Detail
                                             </Button>
