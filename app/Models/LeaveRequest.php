@@ -83,6 +83,10 @@ class LeaveRequest extends Model
             return route('storage-s3', ['path' => $path]);
         }
 
+        if (! str_starts_with($value, 'http://') && ! str_starts_with($value, 'https://') && ! str_starts_with($value, '/')) {
+            return route('storage-s3', ['path' => $value]);
+        }
+
         return $value;
     }
 }

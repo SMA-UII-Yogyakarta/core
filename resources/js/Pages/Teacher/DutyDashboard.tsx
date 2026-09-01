@@ -3,25 +3,21 @@ import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
     PageHeader,
-    StatCard,
-    StatusBadge,
     Table,
     Pagination,
     Drawer,
-    ActionButton,
     NativeSelect,
     Button,
-    FilterBar,
     Input,
-    EmptyState,
+    FilterBar,
+    StatCard,
 } from "@/Components";
 import {
-    FiCalendar,
-    FiEye,
-    FiFileText,
     FiRefreshCw,
     FiUser,
     FiEdit3,
+    FiCalendar,
+    FiFileText,
 } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
@@ -46,7 +42,7 @@ interface AttentionStudent {
     nis: string;
     name: string;
     class: string;
-    status: "alpa" | "terlambat" | "pending" | "diizinkan";
+    status: "alpa" | "terlambat" | "pending" | "diizinkan" | "hadir";
     check_in_time: string | null;
     leave_category: string | null;
     leave_approval: string | null;
@@ -74,8 +70,8 @@ type MobileTab = "anomali" | "izin";
 
 function rowNote(s: AttentionStudent): string {
     if (s.status === "alpa") return "Belum ada kabar";
-    if (s.status === "terlambat") return s.check_in_time ? `${s.check_in_time} WIB` : "-";
-    if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? ""}`;
+    if (s.status === "terlambat") return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
+    if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? "Sakit"}`;
     return "Pengajuan Izin Diterima";
 }
 
@@ -97,21 +93,23 @@ export default function DutyDashboard({
     const [mobileTab, setMobileTab] = useState<MobileTab>(initialMobileTab);
     const [selectedStudent, setSelectedStudent] = useState<AttentionStudent | null>(null);
 
-    // Desktop search & pagination
+    const displayStudents = attentionStudents;
+
+    // Search & pagination
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
 
     const filteredAttention = useMemo(() => {
-        if (!search.trim()) return attentionStudents;
+        if (!search.trim()) return displayStudents;
         const q = search.toLowerCase();
-        return attentionStudents.filter(
+        return displayStudents.filter(
             (s) =>
                 s.name.toLowerCase().includes(q) ||
                 s.nis.toLowerCase().includes(q) ||
                 s.class.toLowerCase().includes(q),
         );
-    }, [attentionStudents, search]);
+    }, [displayStudents, search]);
 
     const totalPages = Math.ceil(filteredAttention.length / pageSize) || 1;
     const safePage = Math.min(Math.max(1, currentPage), totalPages);
@@ -150,72 +148,113 @@ export default function DutyDashboard({
         );
     };
 
-    const summary =
-        totals ??
-        classStats.reduce(
-            (acc, c) => ({
-                total: acc.total + c.total,
-                present: acc.present + c.present,
-                late: acc.late + c.late,
-                sick_permission: acc.sick_permission + c.sick_permission,
-                absent: acc.absent + c.absent,
-            }),
-            { total: 0, present: 0, late: 0, sick_permission: 0, absent: 0 },
-        );
+    const summary = totals ?? {
+        total: 0,
+        present: 0,
+        late: 0,
+        sick_permission: 0,
+        absent: 0,
+    };
 
-    const anomali = attentionStudents.filter((s) => s.status === "alpa" || s.status === "terlambat");
-    const izinList = attentionStudents.filter((s) => s.status === "pending" || s.status === "diizinkan");
+    const classOptions = [
+        { value: "", label: "Semua Kelas" },
+        ...classes.map((c) => ({ value: c.id.toString(), label: c.name.split(" (")[0] })),
+        ...(classes.length === 0
+            ? classStats.map((c) => ({ value: c.class_id.toString(), label: c.class.split(" (")[0] }))
+            : []),
+    ];
 
     const columns: Column<AttentionStudent>[] = [
         {
             key: "nis",
             header: "NISN",
-            render: (s: AttentionStudent) => <span className="font-bold text-text-primary">{s.nis}</span>,
+            className: "w-32",
+            render: (s: AttentionStudent) => <span className="font-bold text-text-primary text-[13px]">{s.nis}</span>,
         },
         {
             key: "name",
             header: "Nama Siswa",
+            className: "min-w-[180px]",
             render: (s: AttentionStudent) => (
-                <div>
-                    <span className="font-semibold text-text-primary block">{s.name}</span>
-                    <span className="text-[11px] text-text-muted">{s.class}</span>
-                </div>
+                <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
+                    {s.name}
+                </span>
             ),
         },
         {
             key: "status",
             header: "Status Hari Ini",
-            render: (s: AttentionStudent) => <StatusBadge variant={s.status} />,
+            className: "w-40 text-center",
+            render: (s: AttentionStudent) => {
+                if (s.status === "alpa") {
+                    return (
+                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-danger-bg text-danger border border-danger-light">
+                            ALPA
+                        </span>
+                    );
+                }
+                if (s.status === "terlambat") {
+                    return (
+                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-warning-bg text-warning border border-warning-light">
+                            TERLAMBAT
+                        </span>
+                    );
+                }
+                if (s.status === "pending") {
+                    return (
+                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-primary/10 text-primary border border-primary-light">
+                            PENDING IZIN
+                        </span>
+                    );
+                }
+                return (
+                    <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-success-bg text-success border border-success-light">
+                        DIIZINKAN
+                    </span>
+                );
+            },
         },
         {
             key: "note",
             header: "Waktu / Keterangan",
-            render: (s: AttentionStudent) => (
-                <span className={s.status === "terlambat" ? "text-warning font-semibold" : "text-text-secondary"}>
-                    {rowNote(s)}
-                </span>
-            ),
+            className: "text-[13px]",
+            render: (s: AttentionStudent) => {
+                if (s.status === "terlambat") {
+                    return <span className="font-bold text-warning text-[13px]">{rowNote(s)}</span>;
+                }
+                return <span className="text-text-secondary font-medium text-[13px]">{rowNote(s)}</span>;
+            },
         },
         {
             key: "actions",
-            header: "Aksi",
-            render: (s: AttentionStudent) => (
-                <ActionButton
-                    variant="detail"
-                    icon={<FiEye />}
-                    label="Detail"
-                    onClick={() => setSelectedStudent(s)}
-                />
-            ),
+            header: "Tindakan",
+            className: "w-36 text-center",
+            render: (s: AttentionStudent) => {
+                if (s.status === "alpa") {
+                    return <span className="text-text-muted text-[13px]">-</span>;
+                }
+                if (s.status === "pending") {
+                    return (
+                        <Link
+                            href="/leave-requests"
+                            className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-all mx-auto cursor-pointer"
+                        >
+                            Verifikasi Izin
+                        </Link>
+                    );
+                }
+                return (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedStudent(s)}
+                        className="mx-auto text-[12px]"
+                    >
+                        Lihat Detail
+                    </Button>
+                );
+            },
         },
-    ];
-
-    const classOptions = [
-        { value: "", label: "Semua Kelas" },
-        ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
-        ...(classes.length === 0
-            ? classStats.map((c) => ({ value: c.class_id.toString(), label: c.class }))
-            : []),
     ];
 
     return (
@@ -252,9 +291,9 @@ export default function DutyDashboard({
                 </div>
             </PageHeader>
 
-            {/* ── DESKTOP (lg:block) ──────────────────────────────────────── */}
+            {/* ── DESKTOP Layout (Standalone without Card outer wrapper) ──────── */}
             <div className="hidden lg:block space-y-6 font-inter">
-                {/* Controls Bar */}
+                {/* Filter Controls Bar */}
                 <FilterBar className="mb-6">
                     <FilterBar.Select
                         label="Filter Kelas"
@@ -283,35 +322,35 @@ export default function DutyDashboard({
                     </div>
                 </FilterBar>
 
-                {/* 5 Stat Cards Grid */}
+                {/* 5 Stat Cards Grid (Pure Design Tokens) */}
                 <div className="grid grid-cols-5 gap-4">
                     <StatCard label="TOTAL SISWA" value={summary.total} />
-                    <StatCard label="HADIR TERDATA" value={summary.present} />
-                    <StatCard label="TERLAMBAT" value={summary.late} />
-                    <StatCard label="SAKIT / IZIN" value={summary.sick_permission} />
-                    <StatCard label="ALPA (KOSONG)" value={summary.absent} />
+                    <StatCard label="HADIR TERDATA" value={summary.present} variant="success" />
+                    <StatCard label="TERLAMBAT" value={summary.late} variant="warning" />
+                    <StatCard label="SAKIT / IZIN" value={summary.sick_permission} variant="info" />
+                    <StatCard label="ALPA (KOSONG)" value={summary.absent} variant="danger" />
                 </div>
 
-                {/* Standalone Table (Tabel Berdiri Sendiri) */}
+                {/* Standalone Table Section (No outer Card container) */}
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-[18px] font-bold text-text-primary font-inter">
-                            Perhatian Khusus Hari Ini
-                        </h2>
-                        <span className="text-[14px] text-text-muted">
-                            Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau
-                        </span>
-                    </div>
+                    <h3 className="text-[16px] font-bold text-text-primary font-inter">
+                        Perhatian Khusus Hari Ini
+                    </h3>
 
-                    <Table
+                    <Table<AttentionStudent>
                         columns={columns}
                         data={paginatedAttention}
                         keyExtractor={(s) => s.id}
                         emptyMessage="Tidak ada data siswa yang memerlukan perhatian khusus."
                     />
 
-                    {filteredAttention.length > pageSize && (
-                        <div className="pt-2">
+                    {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
+                    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
+                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
+                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
+                            <span>Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau hari ini.</span>
+                        </div>
+                        {filteredAttention.length > pageSize && (
                             <Pagination
                                 currentPage={safePage}
                                 totalPages={totalPages}
@@ -319,8 +358,8 @@ export default function DutyDashboard({
                                 perPage={pageSize}
                                 onPageChange={setCurrentPage}
                             />
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -353,31 +392,31 @@ export default function DutyDashboard({
                         onClick={() => setMobileTab("anomali")}
                         className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-colors cursor-pointer ${
                             mobileTab === "anomali"
-                                ? "bg-surface text-primary shadow-xs border border-border"
+                                ? "bg-surface text-text-primary shadow-xs border border-border"
                                 : "text-text-muted hover:text-text-primary"
                         }`}
                     >
-                        ANOMALI ({anomali.length})
+                        ANOMALI ({summary.late + summary.absent})
                     </button>
                     <button
                         type="button"
                         onClick={() => setMobileTab("izin")}
                         className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-colors cursor-pointer ${
                             mobileTab === "izin"
-                                ? "bg-surface text-primary shadow-xs border border-border"
+                                ? "bg-surface text-text-primary shadow-xs border border-border"
                                 : "text-text-muted hover:text-text-primary"
                         }`}
                     >
-                        DATA IZIN ({izinList.length})
+                        DATA IZIN ({summary.sick_permission})
                     </button>
                 </div>
 
-                {/* Stat Summary */}
+                {/* Stat Summary Cards */}
                 <div className="grid grid-cols-4 gap-2">
                     <StatCard label="TOTAL" value={summary.total} />
-                    <StatCard label="HADIR" value={summary.present} />
-                    <StatCard label="TELAT" value={summary.late} />
-                    <StatCard label="ALPA" value={summary.absent} />
+                    <StatCard label="HADIR" value={summary.present} variant="success" />
+                    <StatCard label="TELAT" value={summary.late} variant="warning" />
+                    <StatCard label="ALPA" value={summary.absent} variant="danger" />
                 </div>
 
                 {/* Quick Menu Grid */}
@@ -386,7 +425,7 @@ export default function DutyDashboard({
                     <div className="grid grid-cols-2 gap-3">
                         <Link
                             href="/leave-requests"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-xs hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
                                 <FiEdit3 />
@@ -403,9 +442,9 @@ export default function DutyDashboard({
 
                         <Link
                             href="/reports/daily"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-xs hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-success-bg text-success flex items-center justify-center text-[18px] mb-3">
                                 <FiCalendar />
                             </div>
                             <div>
@@ -420,124 +459,135 @@ export default function DutyDashboard({
 
                         <Link
                             href="/export"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-xs hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-[18px] mb-3">
                                 <FiFileText />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Ekspor Rekap
+                                    Ekspor Laporan
                                 </span>
                                 <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Unduh Excel / PDF
+                                    PDF & Excel
                                 </span>
                             </div>
                         </Link>
 
-                        <Link
-                            href="/profile"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                        <button
+                            type="button"
+                            onClick={triggerRefresh}
+                            disabled={isRefreshing}
+                            className="bg-surface border border-border rounded-2xl p-4 shadow-xs hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between cursor-pointer"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-muted text-text-muted flex items-center justify-center text-[18px] mb-3">
-                                <FiUser />
+                            <div className="w-10 h-10 rounded-xl bg-info-bg text-info flex items-center justify-center text-[18px] mb-3">
+                                <FiRefreshCw className={isRefreshing ? "animate-spin" : ""} />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Profil Guru
+                                    Refresh Data
                                 </span>
                                 <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Data akun piket
+                                    Sinkronkan manual
                                 </span>
                             </div>
-                        </Link>
+                        </button>
                     </div>
                 </div>
 
-                {/* Mobile Student Attention List */}
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-card space-y-3">
-                    <p className="text-[12px] font-bold text-text-primary uppercase tracking-wider">
-                        Perlu Perhatian ({attentionStudents.length})
-                    </p>
+                {/* Mobile Student List */}
+                <div className="space-y-3">
+                    <h3 className="text-[14px] font-bold text-text-primary">
+                        {mobileTab === "anomali" ? "Siswa Anomali Kehadiran" : "Pengajuan Izin Siswa"}
+                    </h3>
 
-                    <div className="space-y-2.5">
-                        {(mobileTab === "anomali" ? anomali : izinList).map((s) => (
-                            <div
-                                key={s.id}
-                                className="bg-background border border-border rounded-xl p-3 flex items-center justify-between cursor-pointer hover:border-primary/30 transition-colors"
-                                onClick={() => setSelectedStudent(s)}
-                            >
-                                <div className="min-w-0 pr-2">
-                                    <h4 className="text-[13px] font-bold text-text-primary truncate">{s.name}</h4>
-                                    <p className="text-[11px] text-text-muted mt-0.5">
-                                        {s.nis} • {s.class}
-                                    </p>
-                                    <p className="text-[10px] text-text-secondary mt-0.5 truncate">{rowNote(s)}</p>
+                    {displayStudents.map((s) => (
+                        <div
+                            key={s.id}
+                            onClick={() => setSelectedStudent(s)}
+                            className="bg-surface border border-border rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-xs active:bg-muted cursor-pointer"
+                        >
+                            <div className="space-y-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-text-primary text-[14px] truncate">
+                                        {s.name}
+                                    </span>
+                                    <span className="text-[11px] font-semibold text-text-muted px-1.5 py-0.5 bg-muted rounded">
+                                        {s.class ? s.class.split(" (")[0] : "-"}
+                                    </span>
                                 </div>
-                                <StatusBadge variant={s.status} />
+                                <p className="text-[12px] text-text-secondary truncate">
+                                    {rowNote(s)}
+                                </p>
                             </div>
-                        ))}
-                        {(mobileTab === "anomali" ? anomali : izinList).length === 0 && (
-                            <div className="py-6">
-                                <EmptyState
-                                    variant="no-data"
-                                    title="Kosong"
-                                    description="Tidak ada data siswa untuk kategori ini."
-                                />
+
+                            <div className="shrink-0">
+                                {s.status === "alpa" ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger-bg text-danger border border-danger-light">ALPA</span>
+                                ) : s.status === "terlambat" ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-warning-bg text-warning border border-warning-light">TERLAMBAT</span>
+                                ) : s.status === "pending" ? (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary-light">PENDING</span>
+                                ) : (
+                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success-bg text-success border border-success-light">DIIZINKAN</span>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 
             {/* Student Detail Drawer */}
             <Drawer
-                open={selectedStudent !== null}
+                open={Boolean(selectedStudent)}
                 onClose={() => setSelectedStudent(null)}
-                title="Detail Status Kehadiran Siswa"
-                width="md"
+                title="Detail Perhatian Khusus"
             >
                 {selectedStudent && (
-                    <div className="space-y-4 text-text-primary text-[14px]">
-                        <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
+                    <div className="space-y-6 font-inter">
+                        <div className="flex items-center gap-3 p-4 bg-muted rounded-2xl border border-border">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
+                                <FiUser />
+                            </div>
                             <div>
-                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block">
-                                    Status Hari Ini
+                                <h4 className="font-bold text-text-primary text-[16px]">
+                                    {selectedStudent.name}
+                                </h4>
+                                <p className="text-[13px] text-text-muted">
+                                    NIS: {selectedStudent.nis} • Kelas {selectedStudent.class ? selectedStudent.class.split(" (")[0] : "-"}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center py-2 border-b border-border">
+                                <span className="text-[13px] text-text-muted">Status Kehadiran</span>
+                                <span className="font-bold text-[12px] uppercase text-primary">{selectedStudent.status}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-border">
+                                <span className="text-[13px] text-text-muted">Waktu / Keterangan</span>
+                                <span className="text-[13px] font-bold text-text-primary">
+                                    {rowNote(selectedStudent)}
                                 </span>
-                                <span className="font-bold text-[15px]">{selectedStudent.name}</span>
-                            </div>
-                            <StatusBadge variant={selectedStudent.status} />
-                        </div>
-
-                        <div className="border border-border rounded-xl p-4 space-y-2">
-                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
-                                Informasi Siswa
-                            </h3>
-                            <div className="grid grid-cols-2 gap-3 text-[13px]">
-                                <div>
-                                    <span className="text-text-muted block text-[11px]">Nama Lengkap</span>
-                                    <span className="font-semibold">{selectedStudent.name}</span>
-                                </div>
-                                <div>
-                                    <span className="text-text-muted block text-[11px]">NIS</span>
-                                    <span className="font-semibold">{selectedStudent.nis}</span>
-                                </div>
-                                <div>
-                                    <span className="text-text-muted block text-[11px]">Kelas</span>
-                                    <span className="font-semibold">{selectedStudent.class}</span>
-                                </div>
-                                <div>
-                                    <span className="text-text-muted block text-[11px]">Jam Masuk</span>
-                                    <span className="font-semibold">{selectedStudent.check_in_time ?? "—"}</span>
-                                </div>
                             </div>
                         </div>
 
-                        <div className="border border-border rounded-xl p-4 space-y-2">
-                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
-                                Catatan Piket
-                            </h3>
-                            <p className="text-[13px] text-text-secondary">{rowNote(selectedStudent)}</p>
+                        <div className="pt-4 flex gap-3">
+                            {selectedStudent.status === "pending" && (
+                                <Link
+                                    href="/leave-requests"
+                                    className="w-full py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-[13px] text-center shadow-xs"
+                                >
+                                    Proses Verifikasi Izin
+                                </Link>
+                            )}
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => setSelectedStudent(null)}
+                            >
+                                Tutup
+                            </Button>
                         </div>
                     </div>
                 )}

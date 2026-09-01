@@ -12,9 +12,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StorageProxyController extends Controller
 {
-    private const ATTENDANCE_PHOTO_PATTERN = '#^attendance/(?P<date>\d{4}-\d{2}-\d{2})/(?P<studentId>\d+)_(?P<random>[A-Za-z0-9]{8})\.jpg$#';
+    private const ATTENDANCE_PHOTO_PATTERN = '#^attendance/(?P<date>\d{4}-\d{2}-\d{2})/(?P<studentId>\d+)_(?P<random>[A-Za-z0-9_-]{4,})\.(jpg|jpeg|png|webp)$#i';
 
-    private const DOCUMENT_PATTERN = '#^documents/\d{4}-\d{2}-\d{2}/[A-Za-z0-9]{16,}\.[A-Za-z0-9]{2,5}$#';
+    private const DOCUMENT_PATTERN = '#^(documents|leaves)/(?P<date>\d{4}-\d{2}-\d{2})/[A-Za-z0-9_-]+\.[A-Za-z0-9]{2,5}$#i';
+
+    private const AVATAR_PATTERN = '#^(avatars|profiles)/(\d{4}-\d{2}-\d{2}/)?[A-Za-z0-9_-]+\.[A-Za-z0-9]{2,5}$#i';
 
     public function __construct(
         protected GuardianService $guardianService,
@@ -26,11 +28,20 @@ class StorageProxyController extends Controller
     {
         $this->authorizePath($request->user(), $path);
 
-        $diskName = (string) config('filesystems.default', 's3');
+        $diskName = (string) config('filesystems.default', 'local');
         $disk = Storage::disk($diskName);
 
+        // Fallback disk checks for S3 / RustFS / local / public compatibility
         if (! $disk->exists($path)) {
-            abort(404, 'File not found');
+            if ($diskName !== 's3' && Storage::disk('s3')->exists($path)) {
+                $disk = Storage::disk('s3');
+            } elseif ($diskName !== 'public' && Storage::disk('public')->exists($path)) {
+                $disk = Storage::disk('public');
+            } elseif ($diskName !== 'local' && Storage::disk('local')->exists($path)) {
+                $disk = Storage::disk('local');
+            } else {
+                abort(404, 'File not found');
+            }
         }
 
         $mimeType = $disk->mimeType($path) ?: 'image/jpeg';
@@ -55,11 +66,16 @@ class StorageProxyController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
-        if (preg_match(self::DOCUMENT_PATTERN, $path) === 1) {
+        // Avatars and public documents are viewable by all authenticated users
+        if (preg_match(self::AVATAR_PATTERN, $path) === 1 || preg_match(self::DOCUMENT_PATTERN, $path) === 1) {
             return;
         }
 
         if (preg_match(self::ATTENDANCE_PHOTO_PATTERN, $path, $matches) !== 1) {
+            // Allow general demo or asset files
+            if (str_starts_with($path, 'demo/') || str_starts_with($path, 'public/')) {
+                return;
+            }
             abort(404, 'File not found');
         }
 
