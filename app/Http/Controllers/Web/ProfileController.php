@@ -28,12 +28,18 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'current_password' => 'nullable|required_with:password',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
+
+        if ($request->hasFile('avatar')) {
+            $storageService = app(\App\Services\StorageService::class);
+            $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
+        }
 
         if ($request->filled('password')) {
             if (! Hash::check($request->current_password, $user->password)) {

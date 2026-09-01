@@ -3,15 +3,13 @@ import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
     PageHeader,
-    StatCard,
-    StatusBadge,
     Table,
     Pagination,
     SearchBar,
-    Button,
     EmptyState,
+    Button,
 } from "@/Components";
-import { FiUserX, FiCheckCircle } from "react-icons/fi";
+import { FiUserX } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 
 interface Teacher {
@@ -55,6 +53,7 @@ interface Stats {
     late: number;
     absent: number;
     pending_leave?: number;
+    sick_permission?: number;
 }
 
 interface PageProps {
@@ -65,34 +64,38 @@ interface PageProps {
     pendingLeaveCount?: number;
 }
 
-function todayFormatted(): string {
-    return new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-}
-
-type RowStatus = "absent" | "late" | "pending" | "approved_leave" | "present";
+type RowStatus = "alpa" | "absent" | "terlambat" | "late" | "pending" | "diizinkan" | "approved_leave" | "hadir" | "present";
 
 function getRowStatus(s: Student): RowStatus {
     const att = s.attendances[0];
-    if (s.pendingLeave?.approval_status === "Approved") return "approved_leave";
+    if (s.pendingLeave?.approval_status === "Approved") return "diizinkan";
     if (s.pendingLeave?.approval_status === "Pending") return "pending";
-    if (!att) return "absent";
-    if (att.status.toLowerCase() === "late") return "late";
-    return "present";
+    if (!att) return "alpa";
+    if (att.status.toLowerCase() === "late" || att.status.toLowerCase() === "terlambat") return "terlambat";
+    return "hadir";
 }
 
 function rowNote(s: Student): string {
     const att = s.attendances[0];
     const status = getRowStatus(s);
-    if (status === "absent") return "Belum ada kabar";
-    if (status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
-    if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "");
-    if (status === "approved_leave") return "Pengajuan Izin Diterima";
+    if (status === "alpa" || status === "absent") return "Belum ada kabar";
+    if (status === "terlambat" || status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
+    if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "Sakit");
+    if (status === "diizinkan" || status === "approved_leave") return "Pengajuan Izin Diterima";
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
+
+const statusBadgeConfig: Record<RowStatus, { bg: string; text: string; border: string }> = {
+    alpa: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
+    absent: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
+    terlambat: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
+    late: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
+    pending: { bg: "bg-primary/10", text: "text-primary", border: "border-primary-light" },
+    diizinkan: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+    approved_leave: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+    hadir: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+    present: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+};
 
 export default function HomeroomDashboard({
     teacher: _teacher,
@@ -113,10 +116,11 @@ export default function HomeroomDashboard({
     }, [students, search]);
 
     const totalPages = Math.ceil(attentionStudents.length / pageSize) || 1;
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
     const paginatedAttention = useMemo(() => {
-        const start = (currentPage - 1) * pageSize;
+        const start = (safePage - 1) * pageSize;
         return attentionStudents.slice(start, start + pageSize);
-    }, [attentionStudents, currentPage, pageSize]);
+    }, [attentionStudents, safePage, pageSize]);
 
     if (!kelas) {
         return (
@@ -131,53 +135,76 @@ export default function HomeroomDashboard({
         );
     }
 
+    const shortClassName = kelas.name ? kelas.name.split(" (")[0] : "-";
+
     const columns: Column<Student>[] = [
         {
             key: "nis",
             header: "NISN",
-            render: (s: Student) => <span className="font-bold text-text-primary">{s.nis}</span>,
+            className: "w-32",
+            render: (s: Student) => <span className="font-bold text-text-primary text-[13px]">{s.nis}</span>,
         },
         {
             key: "name",
             header: "Nama Siswa",
-            render: (s: Student) => <span className="font-semibold text-text-primary">{s.name}</span>,
+            className: "min-w-[180px]",
+            render: (s: Student) => (
+                <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
+                    {s.name}
+                </span>
+            ),
         },
         {
             key: "status",
             header: "Status Hari Ini",
-            render: (s: Student) => <StatusBadge variant={getRowStatus(s)} />,
-        },
-        {
-            key: "note",
-            header: "Waktu / Keterangan",
+            className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s);
+                const config = statusBadgeConfig[st];
                 return (
-                    <span className={st === "late" ? "text-warning font-semibold" : "text-text-secondary"}>
-                        {rowNote(s)}
+                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${config.bg} ${config.text} ${config.border}`}>
+                        {st.toUpperCase()}
                     </span>
                 );
             },
         },
         {
-            key: "actions",
-            header: "Tindakan",
+            key: "note",
+            header: "Waktu / Keterangan",
+            className: "text-[13px]",
             render: (s: Student) => {
                 const st = getRowStatus(s);
+                if (st === "terlambat" || st === "late") {
+                    return <span className="font-bold text-warning text-[13px]">{rowNote(s)}</span>;
+                }
+                return <span className="text-text-secondary font-medium text-[13px]">{rowNote(s)}</span>;
+            },
+        },
+        {
+            key: "actions",
+            header: "Tindakan",
+            className: "w-36 text-center",
+            render: (s: Student) => {
+                const st = getRowStatus(s);
+                if (st === "alpa" || st === "absent") {
+                    return <span className="text-text-muted text-[13px]">-</span>;
+                }
                 if (st === "pending") {
                     return (
-                        <Link href={`/leave-requests/verification?highlight=${s.nis}&submitted=${encodeURIComponent(s.pendingLeave?.created_at ?? "")}`}>
-                            <Button variant="primary" size="sm">
-                                Verifikasi Izin
-                            </Button>
+                        <Link
+                            href="/leave-requests"
+                            className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-all mx-auto cursor-pointer"
+                        >
+                            Verifikasi Izin
                         </Link>
                     );
                 }
-                if (st === "absent") {
-                    return <span className="text-text-muted text-[13px]">-</span>;
-                }
                 return (
-                    <Button variant="outline" size="sm">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="mx-auto text-[12px]"
+                    >
                         Lihat Detail
                     </Button>
                 );
@@ -185,153 +212,113 @@ export default function HomeroomDashboard({
         },
     ];
 
+    const summary = stats ?? {
+        total: students.length,
+        present: Math.max(0, students.length - attentionStudents.length),
+        late: students.filter((s) => getRowStatus(s) === "terlambat").length,
+        sick_permission: students.filter((s) => getRowStatus(s) === "pending" || getRowStatus(s) === "diizinkan").length,
+        absent: students.filter((s) => getRowStatus(s) === "alpa").length,
+    };
+
     return (
         <AppShell title="Overview Wali Kelas">
             <PageHeader
-                title={`Overview Wali Kelas: ${kelas.name}`}
-                description="Pantau kehadiran harian anak didik kelas Anda secara real-time."
-            >
-                <span className="text-[13px] font-semibold px-3 py-1.5 rounded-lg bg-primary-light text-primary border border-primary/20">
-                    {todayFormatted()}
-                </span>
-            </PageHeader>
+                title={`Overview Wali Kelas — ${shortClassName}`}
+                description="Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda."
+            />
 
-            {/* 4 Stat Cards */}
-            {stats && (
-                <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <StatCard label="HADIR / TEPAT WAKTU" value={stats.present} />
-                    <StatCard label="TERLAMBAT" value={stats.late} />
-                    <StatCard label="SAKIT / IZIN" value={stats.pending_leave ?? 0} />
-                    <StatCard label="TANPA KETERANGAN" value={stats.absent} />
-                </section>
-            )}
-
-            {/* ── DESKTOP (lg:block): Standalone Table ─────────────── */}
-            <section className="hidden lg:block space-y-4 font-inter">
-                <div className="flex items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-[16px] font-bold text-text-primary">
-                            Perhatian Khusus Hari Ini
-                        </h2>
-                        <span className="text-[12px] text-text-muted">
-                            Menampilkan {paginatedAttention.length} dari {attentionStudents.length} siswa
+            {/* Desktop Layout without outer Card wrapper */}
+            <div className="space-y-6 font-inter">
+                {/* 5 Color-Bordered Stat Cards Grid using Semantic Tokens */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="bg-surface rounded-xl border border-border p-4 flex flex-col justify-between shadow-xs">
+                        <span className="text-[28px] font-extrabold text-text-primary leading-none">
+                            {summary.total}
+                        </span>
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
+                            TOTAL SISWA
                         </span>
                     </div>
-                    <div className="w-64">
-                        <SearchBar
-                            value={search}
-                            onChange={setSearch}
-                            onSearch={() => setCurrentPage(1)}
-                            placeholder="Cari nama / NIS..."
-                        />
+
+                    <div className="bg-surface rounded-xl border-2 border-success/40 p-4 flex flex-col justify-between shadow-xs">
+                        <span className="text-[28px] font-extrabold text-success leading-none">
+                            {summary.present}
+                        </span>
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
+                            HADIR TERDATA
+                        </span>
+                    </div>
+
+                    <div className="bg-surface rounded-xl border-2 border-warning/40 p-4 flex flex-col justify-between shadow-xs">
+                        <span className="text-[28px] font-extrabold text-warning leading-none">
+                            {summary.late}
+                        </span>
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
+                            TERLAMBAT
+                        </span>
+                    </div>
+
+                    <div className="bg-surface rounded-xl border-2 border-primary/40 p-4 flex flex-col justify-between shadow-xs">
+                        <span className="text-[28px] font-extrabold text-primary leading-none">
+                            {summary.sick_permission ?? 0}
+                        </span>
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
+                            SAKIT / IZIN
+                        </span>
+                    </div>
+
+                    <div className="bg-surface rounded-xl border-2 border-danger/40 p-4 flex flex-col justify-between shadow-xs">
+                        <span className="text-[28px] font-extrabold text-danger leading-none">
+                            {summary.absent}
+                        </span>
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
+                            ALPA (KOSONG)
+                        </span>
                     </div>
                 </div>
 
-                <Table
-                    columns={columns}
-                    data={paginatedAttention}
-                    keyExtractor={(s) => s.id}
-                    emptyMessage={search ? "Tidak ditemukan siswa yang cocok." : "Semua siswa hadir tepat waktu ✓"}
-                />
-
-                {attentionStudents.length > pageSize && (
-                    <div className="pt-2">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            totalItems={attentionStudents.length}
-                            perPage={pageSize}
-                            onPageChange={setCurrentPage}
-                        />
-                    </div>
-                )}
-            </section>
-
-            {/* ── MOBILE (lg:hidden) ──────────────────────────── */}
-            <div className="lg:hidden flex flex-col gap-4 font-inter">
-                {/* Hero Summary Card */}
-                <div className="bg-primary text-white rounded-2xl p-5 shadow-card overflow-hidden">
-                    <p className="text-white/80 text-[12px] font-medium">Ringkasan Hari Ini</p>
-                    <h2 className="text-white text-[22px] font-bold mt-1">{todayFormatted()}</h2>
-
-                    <div className="border-t border-white/20 my-3.5" />
-
-                    <div className="flex items-center justify-between text-center">
-                        <div>
-                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
-                                Total Siswa
-                            </span>
-                            <span className="text-[20px] font-bold text-white block mt-0.5">
-                                {stats?.total ?? students.length}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
-                                Hadir
-                            </span>
-                            <span className="text-[20px] font-bold text-success block mt-0.5">
-                                {stats?.present ?? 0}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-white/70 text-[10px] uppercase font-bold tracking-wider block">
-                                Absen/Telat
-                            </span>
-                            <span className="text-[20px] font-bold text-warning block mt-0.5">
-                                {(stats?.late ?? 0) + (stats?.absent ?? 0)}
-                            </span>
+                {/* Standalone Table Section */}
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h3 className="text-[16px] font-bold text-text-primary font-inter">
+                            Perhatian Khusus Hari Ini
+                        </h3>
+                        <div className="w-full sm:w-72">
+                            <SearchBar
+                                value={search}
+                                onChange={(val) => {
+                                    setSearch(val);
+                                    setCurrentPage(1);
+                                }}
+                                onSearch={() => setCurrentPage(1)}
+                                placeholder="Cari nama atau NISN..."
+                            />
                         </div>
                     </div>
-                </div>
 
-                {/* Mobile Attention List */}
-                <div className="space-y-3">
-                    <h3 className="text-[14px] font-bold text-text-primary">Perhatian Khusus Hari Ini</h3>
+                    <Table<Student>
+                        columns={columns}
+                        data={paginatedAttention}
+                        keyExtractor={(s) => s.id}
+                        emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
+                    />
 
-                    {attentionStudents.length === 0 ? (
-                        <EmptyState
-                            variant="no-data"
-                            icon={<FiCheckCircle className="text-4xl text-success" />}
-                            title="Semua Siswa Hadir Tepat Waktu"
-                            description="Tidak ada anomali atau izin tertunda hari ini."
-                            className="py-8"
-                        />
-                    ) : (
-                        <div className="space-y-3">
-                            {attentionStudents.map((s) => {
-                                const st = getRowStatus(s);
-                                return (
-                                    <div
-                                        key={s.id}
-                                        className="bg-surface rounded-2xl p-4 border border-border shadow-card flex flex-col gap-3"
-                                    >
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <h4 className="text-[14px] font-bold text-text-primary truncate">
-                                                    {s.name}
-                                                </h4>
-                                                <p className="text-[12px] text-text-muted mt-0.5">{rowNote(s)}</p>
-                                            </div>
-                                            <StatusBadge variant={st} />
-                                        </div>
-
-                                        {st === "pending" && (
-                                            <Link href={`/leave-requests/verification?highlight=${s.nis}&submitted=${encodeURIComponent(s.pendingLeave?.created_at ?? "")}`} className="w-full">
-                                                <Button variant="primary" size="sm" className="w-full justify-center">
-                                                    Verifikasi Izin
-                                                </Button>
-                                            </Link>
-                                        )}
-                                        {st === "late" && (
-                                            <Button variant="outline" size="sm" className="w-full justify-center">
-                                                Lihat Detail
-                                            </Button>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                    {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
+                    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
+                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
+                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
+                            <span>Menampilkan daftar siswa kelas {shortClassName} yang memerlukan perhatian khusus.</span>
                         </div>
-                    )}
+                        {attentionStudents.length > pageSize && (
+                            <Pagination
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={attentionStudents.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
         </AppShell>

@@ -12,6 +12,7 @@ use App\Models\SchoolLocationSetting;
 use App\Models\Student;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceService
 {
@@ -74,117 +75,177 @@ class AttendanceService
         $today = now()->toDateString();
         $now = now();
 
-        // ─── Layer 1: Academic Calendar Check ───
-        $holiday = AcademicCalendar::whereDate('holiday_date', $today)
-            ->where('is_holiday', true)
-            ->first();
+        try {
+            // ─── Layer 1: Academic Calendar Check ───
+            $holiday = AcademicCalendar::whereDate('holiday_date', $today)
+                ->where('is_holiday', true)
+                ->first();
 
-        if ($holiday) {
-            throw new \RuntimeException('Today is a holiday: ' . $holiday->description);
-        }
-
-        // ─── Layer 2: Active Day Check ───
-        $dayName = now()->format('l');
-        $setting = AttendanceTimeSetting::where('day', $dayName)->first();
-
-        if (! $setting) {
-            throw new \RuntimeException('No attendance schedule for ' . $dayName);
-        }
-
-        if (! $setting->is_active) {
-            throw new \RuntimeException('Attendance is closed for ' . $dayName);
-        }
-
-        // ─── Layer 3: Time Range Check ───
-        $currentTime = $now->format('H:i:s');
-        $openTime = $setting->check_in_open->format('H:i:s');
-        $lateTime = $setting->late_threshold->format('H:i:s');
-        $closeTime = $setting->check_in_close->format('H:i:s');
-
-        if ($currentTime < $openTime) {
-            throw new \RuntimeException('Attendance opens at ' . $openTime);
-        }
-
-        $status = 'Present';
-        if ($currentTime > $lateTime) {
-            $status = 'Late';
-        }
-
-        if ($currentTime > $closeTime) {
-            throw new \RuntimeException('Attendance closed at ' . $closeTime);
-        }
-
-        // ─── Layer 4: Location & Geofence Check ───
-        $latitude = $data['latitude'] ?? null;
-        $longitude = $data['longitude'] ?? null;
-
-        if (! is_numeric($latitude) || ! is_numeric($longitude)) {
-            throw new \RuntimeException('Valid GPS coordinates are required.');
-        }
-
-        $latitude = (float) $latitude;
-        $longitude = (float) $longitude;
-
-        if ($latitude < -90 || $latitude > 90 || $longitude < -180 || $longitude > 180) {
-            throw new \RuntimeException('GPS coordinates are out of range.');
-        }
-
-        $schoolLocation = SchoolLocationSetting::where('is_active', true)->first();
-
-        if ($schoolLocation !== null && $schoolLocation->radius_meters > 0) {
-            $distanceMeters = $this->haversineMeters(
-                $latitude,
-                $longitude,
-                (float) $schoolLocation->latitude,
-                (float) $schoolLocation->longitude,
-            );
-
-            if ($distanceMeters > $schoolLocation->radius_meters) {
-                throw new \RuntimeException(sprintf(
-                    'Anda berada %.0f meter dari titik presensi sekolah (maksimal %d meter).',
-                    $distanceMeters,
-                    $schoolLocation->radius_meters,
-                ));
+            if ($holiday) {
+                Log::info('Check-in attempt on holiday', [
+                    'student_id' => $studentId,
+                    'date' => $today,
+                    'holiday' => $holiday->description,
+                ]);
+                throw new \RuntimeException('Today is a holiday: ' . $holiday->description);
             }
+
+            // ─── Layer 2: Active Day Check ───
+            $dayName = now()->format('l');
+            $setting = AttendanceTimeSetting::where('day', $dayName)->first();
+
+            if (! $setting) {
+                Log::info('Check-in attempt on unscheduled day', [
+                    'student_id' => $studentId,
+                    'day' => $dayName,
+                ]);
+                throw new \RuntimeException('No attendance schedule for ' . $dayName);
+            }
+
+            if (! $setting->is_active) {
+                Log::info('Check-in attempt on inactive day', [
+                    'student_id' => $studentId,
+                    'day' => $dayName,
+                ]);
+                throw new \RuntimeException('Attendance is closed for ' . $dayName);
+            }
+
+            // ─── Layer 3: Time Range Check ───
+            $currentTime = $now->format('H:i:s');
+            $openTime = $setting->check_in_open->format('H:i:s');
+            $lateTime = $setting->late_threshold->format('H:i:s');
+            $closeTime = $setting->check_in_close->format('H:i:s');
+
+            if ($currentTime < $openTime) {
+                Log::info('Check-in attempt before open time', [
+                    'student_id' => $studentId,
+                    'current_time' => $currentTime,
+                    'open_time' => $openTime,
+                ]);
+                throw new \RuntimeException('Attendance opens at ' . $openTime);
+            }
+
+            $status = 'Present';
+            if ($currentTime > $lateTime) {
+                $status = 'Late';
+            }
+
+            if ($currentTime > $closeTime) {
+                Log::info('Check-in attempt after close time', [
+                    'student_id' => $studentId,
+                    'current_time' => $currentTime,
+                    'close_time' => $closeTime,
+                ]);
+                throw new \RuntimeException('Attendance closed at ' . $closeTime);
+            }
+
+            // ─── Layer 4: Location & Geofence Check ───
+            $latitude = $data['latitude'] ?? null;
+            $longitude = $data['longitude'] ?? null;
+
+            if (! is_numeric($latitude) || ! is_numeric($longitude)) {
+                throw new \RuntimeException('Valid GPS coordinates are required.');
+            }
+
+            $latitude = (float) $latitude;
+            $longitude = (float) $longitude;
+
+            if ($latitude < -90 || $latitude > 90 || $longitude < -180 || $longitude > 180) {
+                throw new \RuntimeException('GPS coordinates are out of range.');
+            }
+
+            $schoolLocation = SchoolLocationSetting::where('is_active', true)->first();
+
+            if ($schoolLocation !== null && $schoolLocation->radius_meters > 0) {
+                $distanceMeters = $this->haversineMeters(
+                    $latitude,
+                    $longitude,
+                    (float) $schoolLocation->latitude,
+                    (float) $schoolLocation->longitude,
+                );
+
+                if ($distanceMeters > $schoolLocation->radius_meters) {
+                    Log::warning('Check-in attempt out of geofence radius', [
+                        'student_id' => $studentId,
+                        'distance_meters' => round($distanceMeters, 2),
+                        'allowed_radius' => $schoolLocation->radius_meters,
+                    ]);
+                    throw new \RuntimeException(sprintf(
+                        'Anda berada %.0f meter dari titik presensi sekolah (maksimal %d meter).',
+                        $distanceMeters,
+                        $schoolLocation->radius_meters,
+                    ));
+                }
+            }
+
+            // Check if already checked in today
+            $existing = Attendance::where('student_id', $studentId)
+                ->whereDate('attendance_date', $today)
+                ->first();
+
+            if ($existing) {
+                Log::info('Duplicate check-in attempt blocked', [
+                    'student_id' => $studentId,
+                    'date' => $today,
+                ]);
+                throw new \RuntimeException('Already checked in today.');
+            }
+
+            $photoUrl = $data['photo_url'] ?? '';
+
+            if (($data['photo'] ?? null) instanceof UploadedFile) {
+                $this->assertValidUpload($data['photo']);
+                $photoUrl = $this->storageService->uploadAttendancePhoto($data['photo'], $studentId);
+            } elseif (trim((string) $photoUrl) === '' && isset($data['photo_blob'])) {
+                $uploadedFile = $this->decodePhotoBlob($data['photo_blob']);
+                try {
+                    $photoUrl = $this->storageService->uploadAttendancePhoto($uploadedFile, $studentId);
+                } finally {
+                    // Always clean up temp file after upload
+                    if (file_exists($uploadedFile->getPathname())) {
+                        @unlink($uploadedFile->getPathname());
+                    }
+                }
+            }
+
+            if (trim((string) $photoUrl) === '') {
+                throw new \RuntimeException('Attendance photo is required.');
+            }
+
+            return \Illuminate\Support\Facades\DB::transaction(function () use ($studentId, $today, $now, $latitude, $longitude, $photoUrl, $status) {
+                $attendance = Attendance::create([
+                    'student_id' => $studentId,
+                    'attendance_date' => $today,
+                    'check_in_time' => $now->format('H:i:s'),
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'photo_url' => $photoUrl,
+                    'status' => $status,
+                ]);
+
+                AttendanceCreated::dispatch($attendance);
+                AttendanceMarked::dispatch($attendance);
+
+                Log::info('Attendance check-in completed successfully', [
+                    'attendance_id' => $attendance->id,
+                    'student_id' => $studentId,
+                    'status' => $status,
+                    'date' => $today,
+                ]);
+
+                return $attendance;
+            });
+        } catch (\RuntimeException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Unexpected exception during attendance check-in', [
+                'student_id' => $studentId,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            throw new \RuntimeException('Gagal memproses presensi: ' . $e->getMessage(), 0, $e);
         }
-
-        // Check if already checked in today
-        $existing = Attendance::where('student_id', $studentId)
-            ->whereDate('attendance_date', $today)
-            ->first();
-
-        if ($existing) {
-            throw new \RuntimeException('Already checked in today.');
-        }
-
-        $photoUrl = $data['photo_url'] ?? '';
-
-        if (($data['photo'] ?? null) instanceof UploadedFile) {
-            $this->assertValidUpload($data['photo']);
-            $photoUrl = $this->storageService->uploadAttendancePhoto($data['photo'], $studentId);
-        } elseif (trim((string) $photoUrl) === '' && isset($data['photo_blob'])) {
-            $uploadedFile = $this->decodePhotoBlob($data['photo_blob']);
-            $photoUrl = $this->storageService->uploadAttendancePhoto($uploadedFile, $studentId);
-        }
-
-        if (trim((string) $photoUrl) === '') {
-            throw new \RuntimeException('Attendance photo is required.');
-        }
-
-        $attendance = Attendance::create([
-            'student_id' => $studentId,
-            'attendance_date' => $today,
-            'check_in_time' => $now->format('H:i:s'),
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-            'photo_url' => $photoUrl,
-            'status' => $status,
-        ]);
-
-        AttendanceCreated::dispatch($attendance);
-        AttendanceMarked::dispatch($attendance);
-
-        return $attendance;
     }
 
     private function assertValidUpload(UploadedFile $file): void

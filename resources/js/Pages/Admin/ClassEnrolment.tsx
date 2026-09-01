@@ -7,7 +7,7 @@ import type { Column } from "@/Components/ui/Table";
 interface SchoolClass {
     id: number;
     name: string;
-    teacher: { id: number; name: string } | null;
+    teacher: { id: number; name: string; avatar?: string; user?: { avatar?: string } } | null;
 }
 
 interface Student {
@@ -371,9 +371,26 @@ export default function EnrolmentKelas({
                             <span>Wali Kelas Terdaftar</span>
                         </span>
                         <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg border border-border bg-muted/20 h-[42px]">
-                            <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[11px] shrink-0">
-                                <i className="fas fa-user-tie" />
-                            </div>
+                            {(selectedClass?.teacher?.user?.avatar || selectedClass?.teacher?.avatar) ? (
+                                <img
+                                    src={selectedClass.teacher.user?.avatar || selectedClass.teacher.avatar}
+                                    alt={selectedClass.teacher.name}
+                                    className="w-6 h-6 rounded-full object-cover border border-border shrink-0"
+                                />
+                            ) : (
+                                <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center font-extrabold text-[10px] shrink-0 uppercase tracking-tighter">
+                                    {selectedClass?.teacher?.name
+                                        ? selectedClass.teacher.name
+                                            .replace(/^(Drs\.|Dr\.|H\.|Hj\.|Ir\.)\s+/i, "")
+                                            .trim()
+                                            .split(/\s+/)
+                                            .slice(0, 2)
+                                            .map((p) => p[0])
+                                            .join("")
+                                            .toUpperCase()
+                                        : "?"}
+                                </div>
+                            )}
                             <div className="min-w-0 flex-1 flex items-center justify-between">
                                 <p className="font-bold text-text-primary text-[13px] truncate">
                                     {selectedClass?.teacher?.name ?? "Belum ada wali kelas"}

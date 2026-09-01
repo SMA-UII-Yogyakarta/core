@@ -59,7 +59,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTeam($teams)
  * @mixin \Eloquent
  */
-#[Fillable(['username', 'name', 'email', 'password', 'role'])]
+#[Fillable(['username', 'name', 'email', 'password', 'role', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -75,6 +75,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getAvatarAttribute(?string $value): ?string
+    {
+        if (empty($value)) {
+            return $value;
+        }
+
+        if (str_contains($value, 'rustfs:9000') || str_contains($value, 'localhost:9000') || str_contains($value, '127.0.0.1:9000')) {
+            $path = preg_replace('#^https?://[^/]+/(smauii-attendance/)?#', '', $value);
+            return route('storage-s3', ['path' => $path]);
+        }
+
+        if (! str_starts_with($value, 'http://') && ! str_starts_with($value, 'https://') && ! str_starts_with($value, '/')) {
+            return route('storage-s3', ['path' => $value]);
+        }
+
+        return $value;
     }
 
     protected static function booted(): void
