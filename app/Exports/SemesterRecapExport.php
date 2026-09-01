@@ -6,7 +6,6 @@ use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\Student;
 use App\Services\AcademicCalendarService;
-use Carbon\Carbon;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
 
@@ -19,9 +18,9 @@ class SemesterRecapExport
 
     public function export(string $filePath, int $semester, int $year, ?int $classId = null): void
     {
-        $semMonths = $semester === 1 ? range(1, 6) : range(7, 12);
-        $start = Carbon::create($year, $semMonths[0], 1);
-        $end = Carbon::create($year, $semMonths[5], Carbon::create($year, $semMonths[5], 1)->daysInMonth);
+        $resolved = \App\Services\SemesterHelper::resolveDates($year, $semester);
+        $start = $resolved['start'];
+        $end = $resolved['end'];
 
         $writer = new Writer();
         $writer->openToFile($filePath);

@@ -34,8 +34,13 @@ class ExportController extends Controller
             : 'bulanan';
         $date = $request->query('date', now()->toDateString());
         $month = (int) $request->query('month', now()->month);
-        $year = (int) $request->query('year', now()->year);
-        $semester = (int) $request->query('semester', now()->month <= 6 ? 1 : 2);
+
+        $isSemester = $period === 'semester';
+        $defaultAcademicYear = now()->month <= 6 ? now()->year - 1 : now()->year;
+        $defaultYear = $isSemester ? $defaultAcademicYear : now()->year;
+
+        $year = (int) $request->query('year', $defaultYear);
+        $semester = (int) $request->query('semester', now()->month <= 6 ? 2 : 1);
         $classId = $request->integer('class_id') ?: null;
 
         $this->homeroomScope->assertClassAllowed($request->user(), $classId);

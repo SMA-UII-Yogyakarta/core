@@ -45,8 +45,9 @@ class ExportService
             $start = Carbon::create($year, $month, 1)->startOfDay();
             $end = $start->copy()->endOfMonth()->startOfDay();
         } elseif ($period === 'semester') {
-            $start = Carbon::create($year, $semester === 1 ? 1 : 7, 1)->startOfDay();
-            $end = Carbon::create($year, $semester === 1 ? 6 : 12, $semester === 1 ? 30 : 31)->startOfDay();
+            $resolved = \App\Services\SemesterHelper::resolveDates($year, $semester);
+            $start = $resolved['start'];
+            $end = $resolved['end'];
         }
 
         $students = Student::with('class')
@@ -212,9 +213,9 @@ class ExportService
 
     public function semesterRecapPdf(int $semester, int $year, ?int $classId = null): string
     {
-        $semMonths = $semester === 1 ? range(1, 6) : range(7, 12);
-        $start = Carbon::create($year, $semMonths[0], 1);
-        $end = Carbon::create($year, $semMonths[5], Carbon::create($year, $semMonths[5], 1)->daysInMonth);
+        $resolved = \App\Services\SemesterHelper::resolveDates($year, $semester);
+        $start = $resolved['start'];
+        $end = $resolved['end'];
 
         $students = Student::with('class')
             ->where('status', 'Active')

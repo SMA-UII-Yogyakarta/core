@@ -92,9 +92,9 @@ const columns: Column<{ label: string; present: number; late: number; absent: nu
                             }
                             options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
                                 value: y.toString(),
-                                label: y.toString(),
+                                label: `TA ${y}/${y + 1}`,
                             }))}
-                            className="w-28"
+                            className="w-32"
                         />
                         <SelectInput
                             value={selectedSemester.toString()}
@@ -102,10 +102,10 @@ const columns: Column<{ label: string; present: number; late: number; absent: nu
                                 router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
                             }
                             options={[
-                                { value: "1", label: t("reports.semester1") },
-                                { value: "2", label: t("reports.semester2") },
+                                { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
+                                { value: "2", label: `${t("reports.semester2")} (Jan-Jun)` },
                             ]}
-                            className="w-40"
+                            className="w-48"
                         />
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}

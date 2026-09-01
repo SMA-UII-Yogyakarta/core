@@ -27,14 +27,19 @@ class ReportRequest extends FormRequest
             $month = $now->month;
         }
 
-        $year = (int) $this->query('year', $now->year);
+        $isSemester = $tab === 'semester';
+        $defaultAcademicYear = $now->month <= 6 ? $now->year - 1 : $now->year;
+        $defaultYear = $isSemester ? $defaultAcademicYear : $now->year;
+
+        $year = (int) $this->query('year', $defaultYear);
         if ($year < 2020) {
-            $year = $now->year;
+            $year = $defaultYear;
         }
 
-        $semester = $this->query('semester', '1');
+        $defaultSemester = $now->month <= 6 ? '2' : '1';
+        $semester = $this->query('semester', $defaultSemester);
         if (! in_array($semester, ['1', '2'], true)) {
-            $semester = '1';
+            $semester = $defaultSemester;
         }
 
         $this->merge([

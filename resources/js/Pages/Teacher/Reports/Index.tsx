@@ -179,11 +179,11 @@ export default function HomeroomReportIndex({
                             {tab === "semester" && (
                                 <>
                                     <select value={selectedSemester} onChange={(e) => handleSemesterChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                        <option value="1">{t("reports.odd")} {selectedYear}/{selectedYear + 1}</option>
-                                        <option value="2">{t("reports.even")} {selectedYear - 1}/{selectedYear}</option>
+                                        <option value="1">{t("reports.odd")} (Jul-Des)</option>
+                                        <option value="2">{t("reports.even")} (Jan-Jun)</option>
                                     </select>
-                                    <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-24">
-                                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
+                                    <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-32">
+                                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>TA {y}/{y + 1}</option>))}
                                     </select>
                                 </>
                             )}
@@ -221,11 +221,11 @@ export default function HomeroomReportIndex({
                                 {tab === "semester" && (
                                     <div className="flex gap-2">
                                         <select value={selectedSemester} onChange={(e) => handleSemesterChange(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                            <option value="1">{t("reports.odd")} {selectedYear}/{selectedYear + 1}</option>
-                                            <option value="2">{t("reports.even")} {selectedYear - 1}/{selectedYear}</option>
+                                            <option value="1">{t("reports.odd")} (Jul-Des)</option>
+                                            <option value="2">{t("reports.even")} (Jan-Jun)</option>
                                         </select>
-                                        <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-20">
-                                            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
+                                        <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-32">
+                                            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>TA {y}/{y + 1}</option>))}
                                         </select>
                                     </div>
                                 )}
