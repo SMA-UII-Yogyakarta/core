@@ -82,15 +82,16 @@ class PermissionRegistryNavTest extends TestCase
             '/teacher/duty',
             '/export',
             '/leave-requests',
+            '/reports?tab=daily',
         ], $this->navHrefs('piket'));
     }
 
-    public function test_wali_teacher_nav_matches_figma_sidebar(): void
+    public function test_wali_teacher_nav_uses_reports_instead_of_global_export(): void
     {
         $this->assertSame([
             '/teacher/homeroom',
-            '/export',
             '/leave-requests/verification',
+            '/reports',
         ], $this->navHrefs('wali'));
     }
 

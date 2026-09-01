@@ -8,10 +8,10 @@ interface ExportRow {
     no: number;
     name: string;
     class: string;
-    masuk: number;
-    izin: number;
-    sakit: number;
-    alpha: number;
+    present: number;
+    permission: number;
+    sick: number;
+    absent: number;
     status?: string;
     waktu_keterangan?: string;
     photo_url?: string | null;
@@ -419,38 +419,38 @@ export default function ExportPage({
                                 ),
                             },
                             {
-                                key: "masuk",
+                                key: "present",
                                 header: "Masuk",
                                 className: "w-24 text-center font-bold text-text-primary text-[14px]",
-                                render: (r: ExportRow) => r.masuk,
+                                render: (r: ExportRow) => r.present,
                             },
                             {
-                                key: "izin",
+                                key: "permission",
                                 header: "Izin",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.izin > 0 ? "font-extrabold text-primary" : "text-text-muted font-normal"}>
-                                        {r.izin}
+                                    <span className={r.permission > 0 ? "font-extrabold text-primary" : "text-text-muted font-normal"}>
+                                        {r.permission}
                                     </span>
                                 ),
                             },
                             {
-                                key: "sakit",
+                                key: "sick",
                                 header: "Sakit",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.sakit > 0 ? "font-extrabold text-warning" : "text-text-muted font-normal"}>
-                                        {r.sakit}
+                                    <span className={r.sick > 0 ? "font-extrabold text-warning" : "text-text-muted font-normal"}>
+                                        {r.sick}
                                     </span>
                                 ),
                             },
                             {
-                                key: "alpha",
+                                key: "absent",
                                 header: "Alpha",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.alpha > 0 ? "font-extrabold text-danger" : "text-text-muted font-normal"}>
-                                        {r.alpha}
+                                    <span className={r.absent > 0 ? "font-extrabold text-danger" : "text-text-muted font-normal"}>
+                                        {r.absent}
                                     </span>
                                 ),
                             },

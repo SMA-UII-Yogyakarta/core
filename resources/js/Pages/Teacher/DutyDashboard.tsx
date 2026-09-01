@@ -42,7 +42,7 @@ interface AttentionStudent {
     nis: string;
     name: string;
     class: string;
-    status: "alpa" | "terlambat" | "pending" | "diizinkan" | "hadir";
+    status: "alpa" | "absent" | "terlambat" | "late" | "pending" | "diizinkan" | "hadir";
     check_in_time: string | null;
     leave_category: string | null;
     leave_approval: string | null;
@@ -69,8 +69,8 @@ interface PageProps {
 type MobileTab = "anomali" | "izin";
 
 function rowNote(s: AttentionStudent): string {
-    if (s.status === "alpa") return "Belum ada kabar";
-    if (s.status === "terlambat") return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
+    if (s.status === "alpa" || s.status === "absent") return "Belum ada kabar";
+    if (s.status === "terlambat" || s.status === "late") return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
     if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? "Sakit"}`;
     return "Pengajuan Izin Diterima";
 }
@@ -219,7 +219,7 @@ export default function DutyDashboard({
             header: "Waktu / Keterangan",
             className: "text-[13px]",
             render: (s: AttentionStudent) => {
-                if (s.status === "terlambat") {
+                if (s.status === "terlambat" || s.status === "late") {
                     return <span className="font-bold text-warning text-[13px]">{rowNote(s)}</span>;
                 }
                 return <span className="text-text-secondary font-medium text-[13px]">{rowNote(s)}</span>;

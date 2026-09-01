@@ -18,6 +18,16 @@ class ExportController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'period' => 'nullable|in:harian,bulanan,semester',
+            'tab' => 'nullable|in:harian,bulanan,semester',
+            'date' => 'nullable|date',
+            'month' => 'nullable|integer|between:1,12',
+            'year' => 'nullable|integer|min:2020',
+            'semester' => 'nullable|integer|between:1,2',
+            'class_id' => 'nullable|integer|exists:school_classes,id',
+        ]);
+
         $periodParam = $request->query('period') ?? $request->query('tab');
         $period = in_array($periodParam, ['harian', 'bulanan', 'semester'], true)
             ? $periodParam

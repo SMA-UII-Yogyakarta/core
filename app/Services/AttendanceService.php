@@ -102,6 +102,14 @@ class AttendanceService
                 throw new \RuntimeException('No attendance schedule for ' . $dayName);
             }
 
+            if (! $setting->is_active) {
+                Log::info('Check-in attempt on inactive day', [
+                    'student_id' => $studentId,
+                    'day' => $dayName,
+                ]);
+                throw new \RuntimeException('Attendance is closed for ' . $dayName);
+            }
+
             // ─── Layer 3: Time Range Check ───
             $currentTime = $now->format('H:i:s');
             $openTime = $setting->check_in_open->format('H:i:s');

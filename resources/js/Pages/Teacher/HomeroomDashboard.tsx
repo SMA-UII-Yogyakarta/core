@@ -64,33 +64,37 @@ interface PageProps {
     pendingLeaveCount?: number;
 }
 
-type RowStatus = "alpa" | "terlambat" | "pending" | "diizinkan" | "hadir";
+type RowStatus = "alpa" | "absent" | "terlambat" | "late" | "pending" | "diizinkan" | "approved_leave" | "hadir" | "present";
 
 function getRowStatus(s: Student): RowStatus {
     const att = s.attendances[0];
     if (s.pendingLeave?.approval_status === "Approved") return "diizinkan";
     if (s.pendingLeave?.approval_status === "Pending") return "pending";
     if (!att) return "alpa";
-    if (att.status.toLowerCase() === "late") return "terlambat";
+    if (att.status.toLowerCase() === "late" || att.status.toLowerCase() === "terlambat") return "terlambat";
     return "hadir";
 }
 
 function rowNote(s: Student): string {
     const att = s.attendances[0];
     const status = getRowStatus(s);
-    if (status === "alpa") return "Belum ada kabar";
-    if (status === "terlambat") return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
+    if (status === "alpa" || status === "absent") return "Belum ada kabar";
+    if (status === "terlambat" || status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
     if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "Sakit");
-    if (status === "diizinkan") return "Pengajuan Izin Diterima";
+    if (status === "diizinkan" || status === "approved_leave") return "Pengajuan Izin Diterima";
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
 
 const statusBadgeConfig: Record<RowStatus, { bg: string; text: string; border: string }> = {
     alpa: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
+    absent: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
     terlambat: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
+    late: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
     pending: { bg: "bg-primary/10", text: "text-primary", border: "border-primary-light" },
     diizinkan: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+    approved_leave: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
     hadir: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
+    present: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
 };
 
 export default function HomeroomDashboard({
@@ -105,7 +109,7 @@ export default function HomeroomDashboard({
     const pageSize = 10;
 
     const attentionStudents = useMemo(() => {
-        const raw = students.filter((s) => getRowStatus(s) !== "hadir");
+        const raw = students.filter((s) => getRowStatus(s) !== "present");
         if (!search.trim()) return raw;
         const q = search.toLowerCase();
         return raw.filter((s) => s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q));
@@ -170,7 +174,7 @@ export default function HomeroomDashboard({
             className: "text-[13px]",
             render: (s: Student) => {
                 const st = getRowStatus(s);
-                if (st === "terlambat") {
+                if (st === "terlambat" || st === "late") {
                     return <span className="font-bold text-warning text-[13px]">{rowNote(s)}</span>;
                 }
                 return <span className="text-text-secondary font-medium text-[13px]">{rowNote(s)}</span>;
@@ -182,7 +186,7 @@ export default function HomeroomDashboard({
             className: "w-36 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s);
-                if (st === "alpa") {
+                if (st === "alpa" || st === "absent") {
                     return <span className="text-text-muted text-[13px]">-</span>;
                 }
                 if (st === "pending") {

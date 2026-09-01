@@ -3,15 +3,18 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\AttendanceTimeSetting;
 use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
 use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class AnalyticsService
 {
     public function __construct(
         protected AttendanceService $attendanceService,
+        protected AcademicCalendarService $calendarService,
     ) {
     }
 
@@ -73,13 +76,67 @@ class AnalyticsService
             ->get()
             ->keyBy('student_id');
 
-        $studentStats = $students->map(fn ($s) => [
-            'id' => $s->id,
-            'name' => $s->name,
-            'nis' => $s->nis,
-            'status' => $attendances->get($s->id)->status ?? 'Absent',
-            'check_in_time' => $attendances->get($s->id)?->check_in_time,
-        ]);
+        $pendingLeaves = LeaveRequest::whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->where('approval_status', 'Pending')
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get(['student_id', 'document_url'])
+            ->keyBy('student_id');
+
+        $approvedLeaves = LeaveRequest::whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->where('approval_status', 'Approved')
+            ->whereIn('student_id', $students->pluck('id'))
+            ->get(['student_id', 'category', 'document_url', 'description'])
+            ->keyBy('student_id');
+
+        $studentStats = $students->map(function ($s) use ($attendances, $pendingLeaves, $approvedLeaves, $date) {
+            $attendance = $attendances->get($s->id);
+            $statusMessage = null;
+
+            if ($attendance) {
+                $status = $attendance->status;
+            } elseif ($pendingLeaves->has($s->id)) {
+                $status = 'Pending';
+            } elseif ($approvedLeaves->has($s->id)) {
+                $status = $approvedLeaves->get($s->id)->category === 'Sick' ? 'Sick' : 'Permission';
+            } else {
+                if ($this->calendarService->isAlpaApplicable($date)) {
+                    $status = 'Absent';
+                } else {
+                    $parsedDate = Carbon::parse($date);
+
+                    if ($parsedDate->isFuture()) {
+                        $status = 'NoUpdate';
+                    } else {
+                        $setting = AttendanceTimeSetting::where('day', $parsedDate->format('l'))->first();
+
+                        if ($setting && now()->lessThan($setting->check_in_open)) {
+                            $status = 'NotOpen';
+                            $statusMessage = 'Dibuka pukul ' . Carbon::parse($setting->check_in_open)->format('H:i');
+                        } else {
+                            $status = 'NoCheckIn';
+                        }
+                    }
+                }
+            }
+
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'nis' => $s->nis,
+                'status' => $status,
+                'status_message' => $statusMessage,
+                'check_in_time' => $attendance?->check_in_time?->format('H:i:s'),
+                'photo_url' => $attendance?->photo_url,
+                'document_url' => $status === 'Pending'
+                    ? $pendingLeaves->get($s->id)?->document_url
+                    : $approvedLeaves->get($s->id)?->document_url,
+                'leave_reason' => in_array($status, ['Sick', 'Permission'])
+                    ? $approvedLeaves->get($s->id)?->description
+                    : null,
+            ];
+        });
 
         return [
             'class' => ['id' => $class->id, 'name' => $class->name],
@@ -309,6 +366,247 @@ class AnalyticsService
         return $weekly;
     }
 
+    public function classMonthlyReport(int $classId, int $month, int $year): array
+    {
+        $startOfMonth = now()->setDate($year, $month, 1)->startOfMonth();
+        $endOfMonth = now()->setDate($year, $month, 1)->endOfMonth();
+        $daysInMonth = (int) $startOfMonth->daysInMonth;
+
+        $students = Student::where('class_id', $classId)
+            ->where('status', 'Active')
+            ->get();
+        $studentIds = $students->pluck('id');
+        $totalStudents = $studentIds->count();
+
+        $attendances = Attendance::whereIn('student_id', $studentIds)
+            ->whereDate('attendance_date', '>=', $startOfMonth)
+            ->whereDate('attendance_date', '<=', $endOfMonth)
+            ->get();
+        $attendancesByStudent = $attendances->groupBy('student_id');
+
+        $leaveRequests = LeaveRequest::whereIn('student_id', $studentIds)
+            ->whereDate('start_date', '<=', $endOfMonth)
+            ->whereDate('end_date', '>=', $startOfMonth)
+            ->whereIn('approval_status', ['Approved', 'Pending'])
+            ->get();
+        $leavesByStudent = $leaveRequests->groupBy('student_id');
+
+        $schoolDays = $this->countSchoolDays($startOfMonth, $endOfMonth);
+
+        $recap = $students->map(function ($student) use ($attendancesByStudent, $leavesByStudent, $schoolDays, $startOfMonth, $endOfMonth) {
+            $studentAttendances = $attendancesByStudent->get($student->id, collect())
+                ->keyBy(fn ($a) => $a->attendance_date->toDateString());
+
+            $studentLeaves = $leavesByStudent->get($student->id, collect());
+
+            $present = 0;
+            $permission = 0;
+            $sick = 0;
+            $pending = 0;
+            $onTimeStudent = 0;
+
+            for ($date = $startOfMonth->copy(); $date->lte($endOfMonth); $date->addDay()) {
+                $dateStr = $date->toDateString();
+
+                if (! $this->calendarService->isSchoolDay($dateStr)) {
+                    continue;
+                }
+
+                $attendance = $studentAttendances->get($dateStr);
+
+                if ($attendance) {
+                    $present++;
+                    if ($attendance->status !== 'Late') {
+                        $onTimeStudent++;
+                    }
+                    continue;
+                }
+
+                $dayLeaves = $studentLeaves->filter(
+                    fn ($l) => $dateStr >= $l->start_date->toDateString() && $dateStr <= $l->end_date->toDateString(),
+                );
+
+                if ($dayLeaves->isEmpty()) {
+                    continue;
+                }
+
+                $dayLeave = $dayLeaves
+                    ->sortByDesc(fn ($l) => [
+                        $l->approval_status === 'Approved' ? 1 : 0,
+                        $l->category === 'Sick' ? 1 : 0,
+                    ])
+                    ->first();
+
+                if ($dayLeave->approval_status !== 'Approved') {
+                    $pending++;
+                    continue;
+                }
+
+                if ($dayLeave->category === 'Sick') {
+                    $sick++;
+                } else {
+                    $permission++;
+                }
+            }
+
+            $absent = max(0, $schoolDays - $present - $permission - $sick - $pending);
+
+            $attendanceDenominator = $present + $permission + $sick + $absent;
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'nis' => $student->nis,
+                'present' => $present,
+                'permission' => $permission,
+                'sick' => $sick,
+                'pending' => $pending,
+                'absent' => $absent,
+                'on_time' => $onTimeStudent,
+                'late' => $present - $onTimeStudent,
+                'discipline_rate' => $schoolDays > 0
+                    ? round(($onTimeStudent / $schoolDays) * 100, 1)
+                    : 0,
+                'attendance_rate' => $attendanceDenominator > 0
+                    ? round(($present / $attendanceDenominator) * 100, 1)
+                    : 0,
+            ];
+        })->values();
+
+        $daily = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $date = $startOfMonth->copy()->day($d);
+            $dateStr = $date->toDateString();
+
+            if (! $this->calendarService->isSchoolDay($dateStr)) {
+                $daily[] = [
+                    'date' => $dateStr,
+                    'label' => $date->format('d'),
+                    'on_time' => 0,
+                    'late' => 0,
+                    'permission' => 0,
+                    'sick' => 0,
+                    'pending' => 0,
+                    'absent' => 0,
+                    'is_non_school' => true,
+                    'is_past' => $dateStr < now()->toDateString(),
+                    'note' => $this->calendarService->nonSchoolDayNote($dateStr) ?? 'hari non-aktif',
+                ];
+                continue;
+            }
+
+            $dayAttendances = $attendances->filter(
+                fn ($a) => $a->attendance_date->toDateString() === $dateStr,
+            )->keyBy('student_id');
+
+            $dayLeaves = $leaveRequests->filter(
+                fn ($l) => $dateStr >= $l->start_date->toDateString() && $dateStr <= $l->end_date->toDateString(),
+            )->groupBy('student_id');
+
+            $onTime = 0;
+            $late = 0;
+            $permission = 0;
+            $sick = 0;
+            $pending = 0;
+
+            foreach ($studentIds as $studentId) {
+                $attendance = $dayAttendances->get($studentId);
+
+                if ($attendance) {
+                    if ($attendance->status === 'Late') {
+                        $late++;
+                    } else {
+                        $onTime++;
+                    }
+                    continue;
+                }
+
+                $studentDayLeaves = $dayLeaves->get($studentId, collect());
+
+                if ($studentDayLeaves->isEmpty()) {
+                    continue;
+                }
+
+                $dayLeave = $studentDayLeaves
+                    ->sortByDesc(fn ($l) => [
+                        $l->approval_status === 'Approved' ? 1 : 0,
+                        $l->category === 'Sick' ? 1 : 0,
+                    ])
+                    ->first();
+
+                if ($dayLeave->approval_status !== 'Approved') {
+                    $pending++;
+                    continue;
+                }
+
+                if ($dayLeave->category === 'Sick') {
+                    $sick++;
+                } else {
+                    $permission++;
+                }
+            }
+
+            $totalRecorded = $onTime + $late + $permission + $sick + $pending;
+            $absent = $this->calendarService->isAlpaApplicable($dateStr)
+                ? max(0, $totalStudents - $totalRecorded)
+                : 0;
+
+            $daily[] = [
+                'date' => $dateStr,
+                'label' => $date->format('d'),
+                'on_time' => $onTime,
+                'late' => $late,
+                'permission' => $permission,
+                'sick' => $sick,
+                'pending' => $pending,
+                'absent' => $absent,
+            ];
+        }
+
+        $totalOnTime = array_sum(array_column($daily, 'on_time'));
+        $totalLate = array_sum(array_column($daily, 'late'));
+        $totalPermission = array_sum(array_column($daily, 'permission'));
+        $totalSick = array_sum(array_column($daily, 'sick'));
+        $totalPending = array_sum(array_column($daily, 'pending'));
+        $totalAbsent = array_sum(array_column($daily, 'absent'));
+        $rateDenominator = $totalOnTime + $totalLate + $totalPermission + $totalSick + $totalAbsent;
+
+        $summary = [
+            'on_time' => $totalOnTime,
+            'late' => $totalLate,
+            'permission' => $totalPermission,
+            'sick' => $totalSick,
+            'pending' => $totalPending,
+            'absent' => $totalAbsent,
+            'attendance_rate' => $rateDenominator > 0
+                ? round((($totalOnTime + $totalLate) / $rateDenominator) * 100, 1)
+                : 0,
+            'total_students' => $totalStudents,
+            'school_days' => $schoolDays,
+            'discipline_rate' => ($schoolDays > 0 && $totalStudents > 0)
+                ? round(($totalOnTime / ($schoolDays * $totalStudents)) * 100, 1)
+                : 0,
+        ];
+
+        return [
+            'recap' => $recap,
+            'daily' => $daily,
+            'summary' => $summary,
+        ];
+    }
+
+    public function classMonthlyRecap(int $classId, int $month, int $year): array
+    {
+        $report = $this->classMonthlyReport($classId, $month, $year);
+
+        return [
+            'class' => ['id' => $classId, 'name' => SchoolClass::find($classId)->name],
+            'month' => $month,
+            'year' => $year,
+            'students' => $report['recap'],
+        ];
+    }
+
     public function kelasPerbandingan(?string $date = null): Collection
     {
         $date = $date ?? now()->toDateString();
@@ -329,5 +627,18 @@ class AnalyticsService
             'present' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
             'late' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
         ]);
+    }
+
+    private function countSchoolDays(Carbon $start, Carbon $end): int
+    {
+        $days = 0;
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dateStr = $date->toDateString();
+            if ($this->calendarService->isSchoolDay($dateStr) && $this->calendarService->isAlpaApplicable($dateStr)) {
+                $days++;
+            }
+        }
+
+        return $days;
     }
 }

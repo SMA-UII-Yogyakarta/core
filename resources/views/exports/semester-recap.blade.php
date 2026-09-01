@@ -40,8 +40,8 @@
                 <td>{{ $s['name'] }}</td>
                 <td>{{ $s['class'] }}</td>
                 <td>{{ $s['present'] + $s['late'] }}</td>
-                <td>{{ $s['izin'] }}</td>
-                <td>{{ $s['sakit'] }}</td>
+                <td>{{ $s['permission'] }}</td>
+                <td>{{ $s['sick'] }}</td>
                 <td>{{ $s['absent'] }}</td>
                 <td>{{ $s['percentage'] }}</td>
             </tr>

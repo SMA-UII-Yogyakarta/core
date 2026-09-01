@@ -66,7 +66,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
         }).length;
         const late = attendances.filter((a) => {
             const s = a.status.toLowerCase();
-            return s === "late" || s === "terlambat";
+            return s === "late";
         }).length;
         const rate = total > 0 ? Math.round(((present + late) / total) * 100) : 100;
         return { total, present, late, rate };

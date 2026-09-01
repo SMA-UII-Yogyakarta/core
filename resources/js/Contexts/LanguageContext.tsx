@@ -7,7 +7,7 @@ type Language = "id" | "en";
 interface LanguageContextType {
     locale: Language;
     setLanguage: (lang: Language) => void;
-    t: (key: string) => string;
+    t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -43,9 +43,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     // Translation function (supports nested key if needed, or simple direct key lookup)
-    const t = (key: string): string => {
+    const t = (key: string, params?: Record<string, string | number>): string => {
         const dict = translations[locale] || translations.id;
-        return dict[key] || key;
+        let value = dict[key] || key;
+        if (params) {
+            Object.entries(params).forEach(([k, v]) => {
+                value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+            });
+        }
+        return value;
     };
 
     return <LanguageContext.Provider value={{ locale, setLanguage, t }}>{children}</LanguageContext.Provider>;
