@@ -68,6 +68,8 @@ function getMonthKey(month: number): string {
 export default function MonthlyTable({ students, summary, chartData, month, year, onExportPdf, onExportExcel }: MonthlyTableProps) {
     const { t } = useLanguage();
 
+    const isZero = (v: string | number) => Number(v) === 0;
+
     const scrollRef = useRef<HTMLDivElement>(null);
     const [hasOverflow, setHasOverflow] = useState({ left: false, right: false });
 
@@ -138,6 +140,8 @@ export default function MonthlyTable({ students, summary, chartData, month, year
         "text-danger": "bg-danger-light",
     };
 
+    const ratiosZero = summary ? summary.attendance_rate === 0 && summary.discipline_rate === 0 : false;
+
     const mainStatCards: StatCardEntry[] = summary
         ? [
               {
@@ -184,7 +188,7 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                 key={card.label}
                                 className="relative group bg-background border border-border rounded-xl p-4 text-center"
                             >
-                                <p className={`font-bold text-[32px] ${card.color}`}>{card.value}</p>
+                                <p className={`font-bold text-[32px] ${ratiosZero ? "text-text-muted" : card.color}`}>{card.value}</p>
                                 <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
                                     {card.info && (
@@ -203,9 +207,9 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                         {desktopStatCards.map((card) => (
                             <div
                                 key={card.label}
-                                className={`relative group rounded-xl p-3 text-center ${statCardBg[card.color] ?? "bg-background"}`}
+                                className={`relative group rounded-xl p-3 text-center ${isZero(card.value) ? "bg-background" : statCardBg[card.color] ?? "bg-background"}`}
                             >
-                                <p className={`font-bold text-[22px] ${card.color}`}>{card.value}</p>
+                                <p className={`font-bold text-[22px] ${isZero(card.value) ? "text-text-muted" : card.color}`}>{card.value}</p>
                                 <p className="text-[10px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
                                 </p>
@@ -230,11 +234,11 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-background border border-border rounded-xl p-3">
                             <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioAttendance")}</p>
-                            <p className="text-[22px] font-bold text-text-primary mt-1">{summary.attendance_rate}%</p>
+                            <p className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}>{summary.attendance_rate}%</p>
                         </div>
                         <div className="bg-background border border-border rounded-xl p-3">
                             <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioDiscipline")}</p>
-                            <p className="text-[22px] font-bold text-text-primary mt-1">{summary.discipline_rate ?? 0}%</p>
+                            <p className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}>{summary.discipline_rate ?? 0}%</p>
                         </div>
                     </div>
 
@@ -265,18 +269,18 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                     {/* 6 stat cards — horizontal scroll */}
                     <div className="relative -mx-4 px-4">
                         {hasOverflow.right && (
-                            <div className="absolute right-4 top-0 bottom-2 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                            <div className="absolute right-4 top-0 bottom-2 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" style={{ marginBottom: -4 }} />
                         )}
                         {hasOverflow.left && (
-                            <div className="absolute left-4 top-0 bottom-2 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                            <div className="absolute left-4 top-0 bottom-2 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" style={{ marginBottom: -4 }} />
                         )}
                         <div ref={scrollRef} onScroll={checkOverflow} className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                             {statCards.map((card) => (
                                 <div
                                     key={card.label}
-                                    className={`shrink-0 rounded-xl p-3 pl-4 min-w-[110px] ${statCardBg[card.color] ?? "bg-background"}`}
+                                    className={`shrink-0 rounded-xl p-3 pl-4 min-w-[110px] ${isZero(card.value) ? "bg-background" : statCardBg[card.color] ?? "bg-background"}`}
                                 >
-                                    <p className={`font-bold text-[18px] ${card.color}`}>{card.value}</p>
+                                    <p className={`font-bold text-[18px] ${isZero(card.value) ? "text-text-muted" : card.color}`}>{card.value}</p>
                                     <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">{card.label}</p>
                                 </div>
                             ))}
@@ -334,10 +338,10 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                             {s.name}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
-                                        <td className="px-4 py-3 text-[13px] text-center text-success font-semibold">
+                                        <td className="px-4 py-3 text-[13px] text-center font-semibold" style={{ color: s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)" }}>
                                             {s.on_time}
                                         </td>
-                                        <td className="px-4 py-3 text-[13px] text-center text-warning font-semibold">
+                                        <td className="px-4 py-3 text-[13px] text-center font-semibold" style={{ color: (s.present - s.on_time) > 0 ? "var(--color-warning)" : "var(--color-text-muted)" }}>
                                             {s.present - s.on_time}
                                         </td>
                                         <td
@@ -365,15 +369,15 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                             {s.absent}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span className={s.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                            <span className={s.attendance_rate === 0 && s.discipline_rate === 0 ? "text-text-muted" : s.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}>
                                                 {s.attendance_rate}%
-                                                {s.attendance_rate <= 75 && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                                {s.attendance_rate <= 75 && !(s.attendance_rate === 0 && s.discipline_rate === 0) && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span className={s.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                            <span className={s.discipline_rate === 0 && s.attendance_rate === 0 ? "text-text-muted" : s.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}>
                                                 {s.discipline_rate}%
-                                                {s.discipline_rate <= 75 && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                                {s.discipline_rate <= 75 && !(s.discipline_rate === 0 && s.attendance_rate === 0) && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
                                             </span>
                                         </td>
                                     </tr>
@@ -396,7 +400,7 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                             key={s.id}
                             className="bg-surface border border-border rounded-xl p-3"
                             style={{
-                                borderLeftColor: s.absent > 0 ? "var(--color-danger)" : s.pending > 0 ? "var(--color-info)" : s.sick > 0 ? "var(--color-medical)" : s.permission > 0 ? "var(--color-primary)" : "var(--color-success)",
+                                borderLeftColor: s.absent > 0 ? "var(--color-danger)" : s.pending > 0 ? "var(--color-info)" : s.sick > 0 ? "var(--color-medical)" : s.permission > 0 ? "var(--color-primary)" : s.late > 0 ? "var(--color-warning)" : s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)",
                                 borderLeftWidth: "3px",
                             }}
                         >
@@ -412,11 +416,11 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                             <div className="bg-background rounded-lg p-2 mt-1 space-y-1">
                                 <div className="flex items-center justify-center rounded-lg">
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
-                                        <span className="font-bold text-[13px] text-success">{s.on_time}</span>
+                                        <span className={`font-bold text-[13px] ${s.on_time > 0 ? "text-success" : "text-text-muted"}`}>{s.on_time}</span>
                                         <span className="text-[10px] text-text-muted block">{t("reports.headerOnTime")}</span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className="font-bold text-[13px] text-warning">{s.late}</span>
+                                        <span className={`font-bold text-[13px] ${s.late > 0 ? "text-warning" : "text-text-muted"}`}>{s.late}</span>
                                         <span className="text-[10px] text-text-muted block">{t("reports.statusLate")}</span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
@@ -434,16 +438,16 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                 </div>
                                 <div className="flex items-center justify-center rounded-lg">
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
-                                        <span className={`font-bold text-[13px] ${s.attendance_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                        <span className={`font-bold text-[13px] ${s.attendance_rate === 0 && s.discipline_rate === 0 ? 'text-text-muted' : s.attendance_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
                                             {s.attendance_rate}%
-                                            {s.attendance_rate <= 75 && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                            {s.attendance_rate <= 75 && !(s.attendance_rate === 0 && s.discipline_rate === 0) && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
                                         </span>
                                         <span className="text-[10px] text-text-muted block">{t("reports.headerAttendance")}</span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className={`font-bold text-[13px] ${s.discipline_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                        <span className={`font-bold text-[13px] ${s.discipline_rate === 0 && s.attendance_rate === 0 ? 'text-text-muted' : s.discipline_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
                                             {s.discipline_rate}%
-                                            {s.discipline_rate <= 75 && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                            {s.discipline_rate <= 75 && !(s.discipline_rate === 0 && s.attendance_rate === 0) && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
                                         </span>
                                         <span className="text-[10px] text-text-muted block">{t("reports.headerDiscipline")}</span>
                                     </div>

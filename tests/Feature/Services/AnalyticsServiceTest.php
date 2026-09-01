@@ -308,15 +308,60 @@ class AnalyticsServiceTest extends TestCase
         $this->assertEquals('Present', $result['students']->first()['status']);
     }
 
-    public function test_class_detail_marks_absent_students(): void
+    public function test_class_detail_marks_absent_students_when_window_closed(): void
     {
         $data = $this->createClassWithStudent();
         $student = $data['student'];
         $class = $data['class'];
 
-        $result = $this->service->classDetail($class->id, '2026-07-12');
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 16:00:00')); // Monday, after check_in_close
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
 
         $this->assertEquals('Absent', $result['students']->first()['status']);
+    }
+
+    public function test_class_detail_returns_no_update_for_future_date(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-15 08:00:00'));
+
+        $result = $this->service->classDetail($class->id, '2026-07-16');
+
+        $this->assertEquals('NoUpdate', $result['students']->first()['status']);
+        $this->assertNull($result['students']->first()['status_message']);
+    }
+
+    public function test_class_detail_returns_not_open_today_before_check_in(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 05:00:00')); // Monday, before check_in_open
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
+
+        $this->assertEquals('NotOpen', $result['students']->first()['status']);
+        $this->assertStringContainsString('Dibuka pukul', $result['students']->first()['status_message']);
+    }
+
+    public function test_class_detail_returns_no_check_in_today_within_window(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 07:00:00')); // Monday, within open..close
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
+
+        $this->assertEquals('NoCheckIn', $result['students']->first()['status']);
+        $this->assertNull($result['students']->first()['status_message']);
     }
 
     public function test_class_detail_marks_approved_sick_leave_as_sick(): void
@@ -331,12 +376,14 @@ class AnalyticsServiceTest extends TestCase
             'category' => 'Sick',
             'start_date' => '2026-07-12',
             'end_date' => '2026-07-12',
+            'description' => 'Demam tinggi, perlu istirahat',
             'approval_status' => 'Approved',
         ]);
 
         $result = $this->service->classDetail($class->id, '2026-07-12');
 
         $this->assertEquals('Sick', $result['students']->first()['status']);
+        $this->assertEquals('Demam tinggi, perlu istirahat', $result['students']->first()['leave_reason']);
     }
 
     public function test_class_detail_marks_approved_non_sick_leave_as_permission(): void
@@ -351,12 +398,14 @@ class AnalyticsServiceTest extends TestCase
             'category' => 'Event',
             'start_date' => '2026-07-12',
             'end_date' => '2026-07-12',
+            'description' => 'Mengikuti lomba olimpiade',
             'approval_status' => 'Approved',
         ]);
 
         $result = $this->service->classDetail($class->id, '2026-07-12');
 
         $this->assertEquals('Permission', $result['students']->first()['status']);
+        $this->assertEquals('Mengikuti lomba olimpiade', $result['students']->first()['leave_reason']);
     }
 
     public function test_class_monthly_recap_counts_non_sick_as_permission(): void

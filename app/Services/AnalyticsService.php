@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Attendance;
+use App\Models\AttendanceTimeSetting;
 use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
 use App\Models\Student;
@@ -86,11 +87,12 @@ class AnalyticsService
             ->whereDate('end_date', '>=', $date)
             ->where('approval_status', 'Approved')
             ->whereIn('student_id', $students->pluck('id'))
-            ->get(['student_id', 'category', 'document_url'])
+            ->get(['student_id', 'category', 'document_url', 'description'])
             ->keyBy('student_id');
 
-        $studentStats = $students->map(function ($s) use ($attendances, $pendingLeaves, $approvedLeaves) {
+        $studentStats = $students->map(function ($s) use ($attendances, $pendingLeaves, $approvedLeaves, $date) {
             $attendance = $attendances->get($s->id);
+            $statusMessage = null;
 
             if ($attendance) {
                 $status = $attendance->status;
@@ -99,7 +101,24 @@ class AnalyticsService
             } elseif ($approvedLeaves->has($s->id)) {
                 $status = $approvedLeaves->get($s->id)->category === 'Sick' ? 'Sick' : 'Permission';
             } else {
-                $status = 'Absent';
+                if ($this->calendarService->isAlpaApplicable($date)) {
+                    $status = 'Absent';
+                } else {
+                    $parsedDate = Carbon::parse($date);
+
+                    if ($parsedDate->isFuture()) {
+                        $status = 'NoUpdate';
+                    } else {
+                        $setting = AttendanceTimeSetting::where('day', $parsedDate->format('l'))->first();
+
+                        if ($setting && now()->lessThan($setting->check_in_open)) {
+                            $status = 'NotOpen';
+                            $statusMessage = 'Dibuka pukul ' . Carbon::parse($setting->check_in_open)->format('H:i');
+                        } else {
+                            $status = 'NoCheckIn';
+                        }
+                    }
+                }
             }
 
             return [
@@ -107,11 +126,15 @@ class AnalyticsService
                 'name' => $s->name,
                 'nis' => $s->nis,
                 'status' => $status,
+                'status_message' => $statusMessage,
                 'check_in_time' => $attendance?->check_in_time?->format('H:i:s'),
                 'photo_url' => $attendance?->photo_url,
                 'document_url' => $status === 'Pending'
                     ? $pendingLeaves->get($s->id)?->document_url
-                    : ($approvedLeaves->get($s->id)?->document_url ?? null),
+                    : $approvedLeaves->get($s->id)?->document_url,
+                'leave_reason' => in_array($status, ['Sick', 'Permission'])
+                    ? $approvedLeaves->get($s->id)?->description
+                    : null,
             ];
         });
 

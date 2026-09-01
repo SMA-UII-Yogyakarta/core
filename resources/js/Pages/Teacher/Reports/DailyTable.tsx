@@ -8,6 +8,8 @@ interface Student {
     name: string;
     nis: string;
     status: string;
+    status_message?: string | null;
+    leave_reason?: string | null;
     check_in_time: string | null;
     photo_url?: string | null;
     document_url?: string | null;
@@ -17,7 +19,7 @@ interface DailyTableProps {
     students: Student[];
 }
 
-type RowStatus = "present" | "late" | "sick" | "permission" | "absent" | "pending";
+type RowStatus = "present" | "late" | "sick" | "permission" | "absent" | "pending" | "no_update" | "no_check_in" | "not_open";
 
 function normalizeStatus(status: string): RowStatus {
     const s = status.toLowerCase();
@@ -26,6 +28,9 @@ function normalizeStatus(status: string): RowStatus {
     if (s === "permission") return "permission";
     if (s === "present") return "present";
     if (s === "pending") return "pending";
+    if (s === "noupdate") return "no_update";
+    if (s === "nocheckin") return "no_check_in";
+    if (s === "notopen") return "not_open";
     return "absent";
 }
 
@@ -37,6 +42,9 @@ function getBadgeStyle(status: RowStatus, t: (key: string) => string) {
         permission: { label: t("reports.statusPermission"), classes: "bg-primary/10 text-primary" },
         absent: { label: t("reports.statusAbsent"), classes: "bg-danger-light text-danger" },
         pending: { label: t("reports.statusPending"), classes: "bg-info-light text-info" },
+        no_update: { label: "-", classes: "bg-transparent text-text-muted" },
+        no_check_in: { label: t("reports.noteNotCheckedIn"), classes: "bg-background text-text-muted border border-border" },
+        not_open: { label: t("reports.statusNotOpen"), classes: "bg-background text-text-muted border border-border" },
     };
     return styles[status];
 }
@@ -63,10 +71,27 @@ function TimeDisplay({ time, t }: { time: string; t: (key: string) => string }) 
     );
 }
 
-function rowNote(status: RowStatus, checkInTime: string | null, t: (key: string) => string): React.ReactNode {
+function LeaveNote({ text }: { text: string }) {
+    return (
+        <span
+            title={text}
+            className="block max-w-[200px] mx-auto truncate"
+            style={{ color: "var(--color-text-secondary)" }}
+        >
+            {text}
+        </span>
+    );
+}
+
+function rowNote(status: RowStatus, checkInTime: string | null, t: (key: string) => string, message?: string | null, leaveReason?: string | null): React.ReactNode {
     if (status === "absent") return t("reports.noteNoUpdate");
-    if (status === "sick" || status === "permission") return t("reports.noteLeaveRequest");
+    if (status === "sick" || status === "permission") {
+        const reason = leaveReason?.trim();
+        return reason ? <LeaveNote text={reason} /> : t("reports.noteLeaveRequest");
+    }
     if (status === "pending") return t("reports.notePendingVerification");
+    if (status === "no_update") return "-";
+    if (status === "not_open") return message || t("reports.statusNotOpen");
     if (checkInTime) return <TimeDisplay time={checkInTime} t={t} />;
     return "-";
 }
@@ -78,6 +103,9 @@ const BORDER_COLORS: Record<RowStatus, string> = {
     permission: "var(--color-primary)",
     absent: "var(--color-danger)",
     pending: "var(--color-info)",
+    no_update: "var(--color-text-muted)",
+    no_check_in: "var(--color-text-muted)",
+    not_open: "var(--color-text-muted)",
 };
 
 export default function DailyTable({ students }: DailyTableProps) {
@@ -135,17 +163,21 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-center">
-                                            <span
-                                                className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${badge.classes}`}
-                                            >
-                                                {badge.label}
-                                            </span>
+                                            {status === "no_update" ? (
+                                                <span className="text-[13px] font-bold text-text-muted">-</span>
+                                            ) : (
+                                                <span
+                                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${badge.classes}`}
+                                                >
+                                                    {badge.label}
+                                                </span>
+                                            )}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center"
                                             style={{ color: status === "late" ? "var(--color-warning)" : "var(--color-text-muted)" }}
                                         >
-                                            {rowNote(status, s.check_in_time, t)}
+                                            {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             {btn ? (
@@ -193,16 +225,20 @@ export default function DailyTable({ students }: DailyTableProps) {
                                 >
                                     <div className="flex items-start justify-between gap-2 mb-1">
                                         <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
-                                        <span
-                                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase ${badge.classes}`}
-                                        >
-                                            {badge.label}
-                                        </span>
+                                        {status === "no_update" ? (
+                                            <span className="text-[13px] font-bold text-text-muted shrink-0">-</span>
+                                        ) : (
+                                            <span
+                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase ${badge.classes}`}
+                                            >
+                                                {badge.label}
+                                            </span>
+                                        )}
                                     </div>
                                     <p className="text-[12px] text-text-muted mb-2">NIS: {s.nis}</p>
                                     <div className="bg-background rounded-lg px-3 py-2 mb-2">
                                         <p className="text-[13px] text-text-secondary">
-                                            {rowNote(status, s.check_in_time, t)}
+                                            {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
                                         </p>
                                     </div>
                                     {btn && (
