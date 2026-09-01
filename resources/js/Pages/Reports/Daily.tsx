@@ -3,6 +3,7 @@ import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { PageHeader, Card, SelectInput, Pagination, SearchBar, Table, Input } from "@/Components";
 import ExportButtonGroup from "@/Components/features/ExportButtonGroup";
+import { FiInfo } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -167,7 +168,7 @@ export default function DailyReport({
 
                             {/* Export Buttons */}
                             <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                <ExportButtonGroup
+<ExportButtonGroup
                                     onExportExcel={() => window.open(`/export/daily-recap?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
                                     onExportPdf={() => window.open(`/export/daily-recap-pdf?date=${selectedDate}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
                                 />
@@ -236,9 +237,8 @@ export default function DailyReport({
                             emptyMessage="Tidak ada data kelas."
                         />
                         
-                        {/* Notes at the bottom */}
-                        <div className="py-2 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
-                            <i className="fas fa-info-circle hidden sm:block"></i>
+<div className="px-4 sm:px-6 py-4 mt-2 sm:mt-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
+                            <FiInfo className="hidden sm:block" />
                             Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
                         </div>
                     </div>
@@ -247,3 +247,5 @@ export default function DailyReport({
         </AppShell>
     );
 }
+
+

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import { Button, Table, PageHeader, Pagination, SearchBar, Checkbox, Modal, NativeSelect, ConfirmDialog, EmptyState, Card } from "@/Components";
+import { FiUserPlus, FiCheckSquare, FiX, FiUser, FiUserMinus, FiUsers, FiMonitor } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -257,7 +258,7 @@ export default function EnrolmentKelas({
                     title="Keluarkan dari kelas"
                     aria-label="Keluarkan siswa"
                 >
-                    <i className="fas fa-times text-[15px]" />
+                    <FiX className="text-[16px]" />
                 </button>
             ),
         },
@@ -305,13 +306,17 @@ export default function EnrolmentKelas({
             key: "nis",
             header: "NIS",
             className: "w-1 whitespace-nowrap",
-            render: (s) => s.nis,
+            render: (s) => <span className="text-[13px] text-text-muted">{s.nis}</span>,
         },
         {
             key: "name",
             header: "Nama",
-            className: "min-w-0 max-w-[200px] truncate",
-            render: (s) => <span title={s.name}>{s.name}</span>,
+            className: "min-w-0 max-w-[200px]",
+            render: (s) => (
+                <span className="text-[13px] font-medium text-text-primary truncate block" title={s.name}>
+                    {s.name}
+                </span>
+            ),
         },
         {
             key: "actions",
@@ -339,7 +344,7 @@ export default function EnrolmentKelas({
                     {/* Col 1: Select Class Dropdown (5 Cols) */}
                     <div className="md:col-span-5 flex flex-col justify-between">
                         <label className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                            <i className="fas fa-chalkboard-teacher text-primary text-[14px]" />
+                            <FiMonitor className="text-primary text-[14px]" />
                             <span>Pilih Kelas / Rombongan Belajar</span>
                         </label>
                         <NativeSelect
@@ -367,7 +372,7 @@ export default function EnrolmentKelas({
                     {/* Col 2: Wali Kelas Badge Info (4 Cols) */}
                     <div className="md:col-span-4 flex flex-col justify-between">
                         <span className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                            <i className="fas fa-user-tie text-primary text-[14px]" />
+                            <FiUser className="text-primary text-[14px]" />
                             <span>Wali Kelas Terdaftar</span>
                         </span>
                         <div className="flex items-center gap-3 px-3.5 py-2 rounded-lg border border-border bg-muted/20 h-[42px]">
@@ -407,7 +412,7 @@ export default function EnrolmentKelas({
                     {/* Col 3: Total Siswa Terdaftar (3 Cols) */}
                     <div className="md:col-span-3 flex flex-col justify-between md:border-l md:border-border md:pl-6 pt-3 md:pt-0 border-t md:border-t-0">
                         <span className="text-[13px] font-bold text-text-primary flex items-center gap-2 mb-2">
-                            <i className="fas fa-users text-primary text-[14px]" />
+                            <FiUsers className="text-primary text-[14px]" />
                             <span>Total Siswa Terdaftar</span>
                         </span>
                         <div className="flex items-center justify-between px-3.5 rounded-lg border border-border bg-muted/20 h-[42px]">
@@ -443,7 +448,7 @@ export default function EnrolmentKelas({
                                                 variant="danger"
                                                 size="md"
                                                 onClick={handleBulkRemove}
-                                                icon={<i className="fas fa-user-minus text-[12px]" />}
+                                                icon={<FiUserMinus className="text-[12px]" />}
                                                 className="shrink-0"
                                             >
                                                 Keluarkan ({selectedStudentIds.length})
@@ -460,7 +465,7 @@ export default function EnrolmentKelas({
                                                 setShowAddModal(true);
                                             }}
                                             disabled={unassignedStudents.length === 0}
-                                            icon={<i className="fas fa-user-plus text-[12px]" />}
+                                            icon={<FiUserPlus className="text-[12px]" />}
                                             className="shrink-0"
                                         >
                                             Tambah Siswa
@@ -547,7 +552,7 @@ export default function EnrolmentKelas({
                                     variant="primary"
                                     size="md"
                                     onClick={handleBulkAssign}
-                                    icon={<i className="fas fa-check-double text-[12px]" />}
+                                    icon={<FiCheckSquare className="text-[12px]" />}
                                 >
                                     Tambahkan ({selectedModalStudentIds.length})
                                 </Button>
@@ -606,3 +611,4 @@ export default function EnrolmentKelas({
         </AppShell>
     );
 }
+

@@ -3,6 +3,7 @@ import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
+import { FiSearch, FiBarChart2 } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 
@@ -186,7 +187,7 @@ export default function Monitoring({
                     />
                     <Input type="date" label="Tanggal" defaultValue={today} className="w-full sm:w-[200px]" />
                     <Button variant="primary" size="md" onClick={handleFilter}>
-                        <i className="fas fa-search mr-2" />
+                        <FiSearch className="mr-2" />
                         Tampilkan
                     </Button>
                 </Card.Body>
@@ -204,7 +205,6 @@ export default function Monitoring({
             )}
 
             {/* Students Table */}
-            {/* Students Table */}
             {selectedClassId && (
                 <section>
                     <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Daftar Kehadiran Siswa</h2>
@@ -218,12 +218,13 @@ export default function Monitoring({
             )}
 
             {!selectedClassId && (
-                <Card>
+                <Card className="p-8">
                     <EmptyState
                         variant="no-data"
-                        icon={<i className="fas fa-chart-bar text-4xl" />}
+                        icon={<FiBarChart2 className="text-4xl text-text-inactive" />}
                         title="Pilih Kelas"
                         description="Silakan pilih kelas untuk menampilkan data monitoring."
+                        className="py-4"
                     />
                 </Card>
             )}

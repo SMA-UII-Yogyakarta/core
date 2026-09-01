@@ -36,7 +36,7 @@ export default function MonthlyReport({
         "Desember",
     ];
 
-    const columns: Column<{ label: string; present: number; late: number; absent: number }>[] = [
+const columns: Column<{ label: string; present: number; late: number; absent: number }>[] = [
         {
             key: "label",
             header: t("reports.month"),
@@ -145,11 +145,14 @@ export default function MonthlyReport({
                 </div>
 
                 {/* Monthly Breakdown Table */}
-                <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-text">{t("reports.monthlyBreakdown")}</h3>
-                    <Table columns={columns} data={monthlyStats.months} keyExtractor={(m) => m.label} />
-                </div>
+<Card>
+                    <div className="p-6">
+                        <h3 className="text-lg font-semibold text-text mb-4">{t("reports.monthlyBreakdown")}</h3>
+                        <Table columns={columns} data={monthlyStats.months} keyExtractor={(m) => m.label} emptyMessage="Tidak ada data." />
+                    </div>
+                </Card>
             </div>
         </AppShell>
     );
 }
+

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import { Button, Table, PageHeader, Avatar, Modal, SearchBar, Pagination, EmptyState, ConfirmDialog, Card } from "@/Components";
+import { FiUserX, FiCheckCircle, FiUserPlus, FiArrowLeft } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
 import type { Column } from "@/Components/ui/Table";
 
@@ -174,7 +175,7 @@ export default function GuardianAssignment({
                     aria-label={`Lepas hubungan ${s.name}`}
                     data-testid={`btn-remove-student-${s.id}`}
                 >
-                    <i className="fas fa-unlink text-[14px]" />
+                    <FiUserX className="text-[14px]" />
                 </button>
             ),
         },
@@ -235,7 +236,7 @@ export default function GuardianAssignment({
                                     </div>
                                     {isSelected && (
                                         <span className="text-primary font-bold text-[12px]">
-                                            <i className="fas fa-check-circle" />
+                                            <FiCheckCircle />
                                         </span>
                                     )}
                                 </button>
@@ -281,7 +282,7 @@ export default function GuardianAssignment({
                                     className="shrink-0 whitespace-nowrap"
                                     data-testid="btn-add-student"
                                 >
-                                    <i className="fas fa-user-plus mr-1.5" />
+                                    <FiUserPlus className="mr-1.5" />
                                     Hubungkan Siswa
                                 </Button>
                             )}
@@ -323,7 +324,7 @@ export default function GuardianAssignment({
                         )
                     ) : (
                         <Card className="text-center py-16 text-text-inactive my-auto">
-                            <i className="fas fa-arrow-left text-3xl mb-3" />
+                            <FiArrowLeft className="text-3xl mb-3 mx-auto" />
                             <p className="text-[14px]">Pilih salah satu wali murid di panel kiri untuk mengelola siswa terhubung.</p>
                         </Card>
                     )}
@@ -442,3 +443,4 @@ export default function GuardianAssignment({
         </AppShell>
     );
 }
+

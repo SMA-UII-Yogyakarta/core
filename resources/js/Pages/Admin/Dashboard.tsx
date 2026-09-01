@@ -6,6 +6,15 @@ import TabSwitcher from "@/Components/common/TabSwitcher";
 import EmptyState from "@/Components/common/EmptyState";
 import Input from "@/Components/ui/Input";
 import NativeSelect from "@/Components/ui/NativeSelect";
+import {
+    FiDatabase,
+    FiClock,
+    FiUsers,
+    FiFileText,
+    FiCalendar,
+    FiFilter,
+    FiCheckCircle,
+} from "react-icons/fi";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import type { StatusVariant } from "@/types/component";
 import type { Column } from "@/Components/ui/Table";
@@ -337,7 +346,7 @@ export default function Dashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-database" />
+                                <FiDatabase />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -354,7 +363,7 @@ export default function Dashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-clock" />
+                                <FiClock />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -371,7 +380,7 @@ export default function Dashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-chalkboard-teacher" />
+                                <FiUsers />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -388,7 +397,7 @@ export default function Dashboard({
                             className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
                         >
                             <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
-                                <i className="fas fa-file-alt" />
+                                <FiFileText />
                             </div>
                             <div>
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
@@ -470,7 +479,7 @@ export default function Dashboard({
 
                         <div className="flex items-center gap-2">
                             <span className="text-[13px] text-text-muted font-inter whitespace-nowrap">
-                                <i className="fas fa-calendar-alt mr-1 text-text-inactive" />
+                                <FiCalendar className="mr-1 text-text-inactive inline" />
                                 Tanggal:
                             </span>
                             <Input
@@ -485,21 +494,23 @@ export default function Dashboard({
             </Card>
 
             {!selectedClassId ? (
-                <Card>
+                <Card className="p-8">
                     <EmptyState
                         variant="no-data"
-                        icon={<i className="fas fa-filter text-3xl" />}
+                        icon={<FiFilter className="text-4xl text-text-inactive" />}
                         title="Pilih Kelas"
                         description="Pilih kelas di filter atas untuk menampilkan data siswa."
+                        className="py-4"
                     />
                 </Card>
             ) : students.length === 0 ? (
-                <Card>
+                <Card className="p-8">
                     <EmptyState
                         variant="no-data"
-                        icon={<i className="fas fa-check-circle text-3xl text-success" />}
+                        icon={<FiCheckCircle className="text-4xl text-success" />}
                         title="Semua Hadir"
                         description="Semua siswa sudah hadir tepat waktu hari ini."
+                        className="py-4"
                     />
                 </Card>
             ) : (

@@ -14,6 +14,7 @@ import {
     PageHeader,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
+import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -207,6 +208,31 @@ export default function VerifikasiIzin({
                         </Button>
                     ))}
                 </div>
+
+                {/* Bulk Action Controls */}
+                {selectedLeaveIds.length > 0 && (
+                    <div className="flex items-center gap-2 shrink-0 bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-lg">
+                        <span className="text-[13px] font-bold text-primary mr-1">
+                            {selectedLeaveIds.length} dipilih:
+                        </span>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleBulkApprove}
+                            icon={<FiCheckSquare className="text-[11px]" />}
+                        >
+                            Setujui Semua
+                        </Button>
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleBulkReject}
+                            icon={<FiXCircle className="text-[11px]" />}
+                        >
+                            Tolak Semua
+                        </Button>
+                    </div>
+                )}
                 <FilterBar.Select
                     label="Kelas"
                     options={[
@@ -225,6 +251,59 @@ export default function VerifikasiIzin({
                 />
             </FilterBar>
 
+
+
+            {/* List */}
+            <div className="flex flex-col gap-4">
+                    {leaveRequests.data.length > 0 ? (
+                        leaveRequests.data.map((lr) => (
+                            <LeaveRequestCard 
+                                key={lr.id} 
+                                leaveRequest={lr} 
+                                onDetailClick={setSelectedRequest}
+                                checkboxSlot={
+                                    lr.approval_status === "Pending" ? (
+                                        <Checkbox
+                                            checked={selectedLeaveIds.includes(lr.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedLeaveIds((prev) => [...prev, lr.id]);
+                                                } else {
+                                                    setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
+                                                }
+                                            }}
+                                        />
+                                    ) : undefined
+                                }
+                                actionSlot={
+                                    lr.approval_status === "Pending" ? (
+                                        <>
+                                            <Button
+                                                variant="success"
+                                                size="sm"
+                                                onClick={() => handleApprove(lr.id)}
+                                                className="flex-1 sm:flex-none"
+                                            >
+                                                <FiCheck className="mr-1.5" /> Setuju
+                                            </Button>
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                onClick={() => handleReject(lr.id)}
+                                                className="flex-1 sm:flex-none"
+                                            >
+                                                <FiX className="mr-1.5" /> Tolak
+                                            </Button>
+                                        </>
+                                    ) : undefined
+                                }
+                            />
+                        ))
+                    ) : (
+                        <EmptyState variant="no-leaves" />
+                    )}
+                </div>
+
             <div className="space-y-6 font-inter">
                 {/* Bulk Actions Bar */}
                 {statusFilter === "" && leaveRequests.data.length > 0 && (
@@ -242,24 +321,6 @@ export default function VerifikasiIzin({
                                 Pilih Semua ({selectedLeaveIds.length} dipilih)
                             </label>
                         </div>
-                        {selectedLeaveIds.length > 0 && (
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="danger-outline"
-                                    size="sm"
-                                    onClick={handleBulkReject}
-                                >
-                                    Tolak Massal ({selectedLeaveIds.length})
-                                </Button>
-                                <Button
-                                    variant="success"
-                                    size="sm"
-                                    onClick={handleBulkApprove}
-                                >
-                                    Setujui Massal ({selectedLeaveIds.length})
-                                </Button>
-                            </div>
-                        )}
                     </div>
                 )}
 

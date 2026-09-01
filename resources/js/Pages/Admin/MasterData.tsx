@@ -25,6 +25,7 @@ import type { Column } from "@/Components/ui/Table";
 import { studentSchema, teacherSchema, guardianSchema, schoolClassSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import { useScrollFabTrigger } from "@/hooks/useScrollFabTrigger";
+import { FiUsers, FiAlertCircle, FiTrash2, FiUpload, FiPlus } from "react-icons/fi";
 
 // ─── Shared Types ───
 
@@ -687,12 +688,12 @@ export default function MasterData({
             render: (s) => (
                 s.class?.name ? (
                     <span className="flex items-center gap-1.5 font-medium text-text-secondary whitespace-nowrap">
-                        <i className="fas fa-chalkboard-teacher text-[13px] text-primary/70" />
+                        <FiUsers className="text-[13px] text-primary/70" />
                         {s.class.name}
                     </span>
                 ) : (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-warning-bg text-warning border border-warning/20 whitespace-nowrap">
-                        <i className="fas fa-exclamation-circle text-[10px] text-warning" />
+                        <FiAlertCircle className="text-[10px] text-warning" />
                         Belum Ada Kelas
                     </span>
                 )
@@ -1671,7 +1672,7 @@ function Toolbar({
                     <Button
                         variant="danger"
                         onClick={onDeleteSelected}
-                        icon={<i className="fas fa-trash-alt text-[12px]" />}
+                        icon={<FiTrash2 className="text-[12px]" />}
                         className="flex-1 sm:flex-none justify-center"
                     >
                         Hapus ({selectedCount})
@@ -1683,7 +1684,7 @@ function Toolbar({
                     <Button
                         variant="secondary"
                         onClick={onImport}
-                        icon={<i className="fas fa-file-import text-[12px]" />}
+                        icon={<FiUpload className="text-[12px]" />}
                         className="flex-1 sm:flex-none justify-center"
                     >
                         Import
@@ -1696,7 +1697,7 @@ function Toolbar({
                         <Button
                             variant="primary"
                             onClick={onAdd}
-                            icon={<i className="fas fa-plus text-[12px]" />}
+                            icon={<FiPlus className="text-[12px]" />}
                             className="inline-flex justify-center"
                         >
                             Tambah
@@ -1707,3 +1708,4 @@ function Toolbar({
         </div>
     );
 }
+

@@ -5,6 +5,13 @@ import { Pagination, Table, PageHeader, NativeSelect, Toggle, Input, ConfirmDial
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import {
+    FiClock,
+    FiCalendar,
+    FiCheck,
+    FiPlus,
+    FiTrash2,
+} from "react-icons/fi";
 
 // ─── Types ───
 
@@ -330,19 +337,19 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                 : "text-text-muted hover:text-text-primary hover:bg-muted/60"
                         }`}
                     >
-                        <i className="fas fa-business-time text-[14px]" />
+                        <FiClock className="text-[14px]" />
                         <span>Jam Operasional</span>
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveSettingTab("holiday")}
+onClick={() => setActiveSettingTab("holiday")}
                         className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             activeSettingTab === "holiday"
                                 ? "bg-primary text-white shadow-sm font-bold"
                                 : "text-text-muted hover:text-text-primary hover:bg-muted/60"
                         }`}
                     >
-                        <i className="far fa-calendar-times text-[14px]" />
+                        <FiCalendar className="text-[14px]" />
                         <span>Libur Akademik</span>
                     </button>
                 </div>
@@ -354,7 +361,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                <i className="fas fa-business-time text-primary text-[16px]" />
+<FiClock className="text-primary text-[16px]" />
                                 Jam Operasional Presensi Harian
                             </h2>
                             <p className="text-[12px] text-text-muted mt-0.5 font-inter">
@@ -367,7 +374,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                             variant="success"
                             className="shrink-0"
                         >
-                            <i className="fas fa-check mr-1.5" />
+                            <FiCheck className="mr-1.5" />
                             Simpan Aturan Waktu
                         </Button>
                     </div>
@@ -384,14 +391,14 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-                                    <i className="far fa-calendar-times text-primary text-[16px]" />
+<FiCalendar className="text-primary text-[16px]" />
                                     Daftar Kalender Libur Akademik
                                 </h2>
                                 <p className="text-[12px] text-text-muted mt-0.5 font-inter">
                                     Hari libur sekolah aktif tidak akan menghitung keterlambatan atau ketidakhadiran siswa.
                                 </p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3 shrink-0">
+<div className="flex flex-wrap items-center gap-3 shrink-0">
                                 <div className="w-36">
                                     <NativeSelect
                                         value={filters.month ?? ""}
@@ -432,11 +439,11 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                     variant="primary"
                                     className="shrink-0"
                                 >
-                                    <i className="fas fa-plus mr-1.5" />
+                                    <FiPlus className="mr-1.5" />
                                     Tambah Libur
                                 </Button>
                             </div>
-                        </div>
+</div>
 
                         {/* Inline Form Add Holiday */}
                         {showAddForm && (
@@ -446,7 +453,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                             >
                                 <div className="flex items-center justify-between gap-4 pb-3 border-b border-border">
                                     <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
-                                        <i className="fas fa-calendar-plus text-primary text-[14px]" />
+                                        <FiPlus className="text-primary text-[14px]" />
                                         Form Tambah Hari Libur Sekolah
                                     </h3>
                                     <div className="flex gap-2 items-center">
@@ -490,7 +497,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                 </div>
                             </form>
                         )}
-                    </div>
+</div>
                 </Card>
 
                 {/* Standalone Table without Double Card Wrapping */}
@@ -514,7 +521,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                     className: "font-inter text-text-secondary text-[13px]",
                                     render: (h) => (
                                         <div className="flex items-center gap-2">
-                                            <i className="far fa-calendar-alt text-primary text-[13px]" />
+                                            <FiCalendar className="text-primary text-[13px]" />
                                             <span className="font-medium">{formatIndonesianDate(h.holiday_date)}</span>
                                         </div>
                                     ),
@@ -531,7 +538,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                             aria-label="Hapus hari libur"
                                             title="Hapus hari libur"
                                         >
-                                            <i className="far fa-trash-alt text-[14px]" />
+                                            <FiTrash2 className="text-[14px]" />
                                         </button>
                                     ),
                                 },
@@ -574,3 +581,5 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
         </AppShell>
     );
 }
+
+

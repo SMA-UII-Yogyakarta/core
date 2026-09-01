@@ -11,6 +11,7 @@ import {
     PageHeader,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
+import { FiExternalLink } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -256,15 +257,20 @@ export default function LeaveRequestsIndex({
                                 <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
                                     Berkas Pendukung
                                 </h3>
-                                <a
-                                    href={selectedRequest.document_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-[13px] font-semibold hover:bg-primary/90 transition-colors"
-                                >
-                                    <i className="fas fa-external-link-alt" />
-                                    Buka Berkas
-                                </a>
+                                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
+                                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[200px]">
+                                        Dokumen Lampiran Izin
+                                    </span>
+                                    <a
+                                        href={selectedRequest.document_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-primary hover:underline text-[12px] font-bold"
+                                    >
+                                        <FiExternalLink />
+                                        <span>Buka Dokumen</span>
+                                    </a>
+                                </div>
                             </div>
                         )}
                     </div>
