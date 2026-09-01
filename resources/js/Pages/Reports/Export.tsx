@@ -152,8 +152,8 @@ export default function ExportPage({
                                 onClick={() => navigate(p.key)}
                                 className={`flex-1 py-2 px-5 text-[13px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                                     isActive
-                                        ? "bg-primary text-white shadow-sm font-bold"
-                                        : "text-text-muted hover:text-text-primary hover:bg-muted/60"
+                                        ? "bg-primary text-white shadow-xs"
+                                        : "text-text-muted hover:text-text-primary hover:bg-muted"
                                 }`}
                             >
                                 {p.label}
@@ -171,7 +171,7 @@ export default function ExportPage({
                                 type="date"
                                 value={selectedDate}
                                 onChange={(e) => navigate("harian", { date: e.target.value })}
-                                inputClassName="h-[40px] font-bold text-text-primary text-[13px]"
+                                inputClassName="h-[40px] font-bold text-text-primary text-[13px] bg-surface border-border"
                             />
                         </div>
                     )}
@@ -182,7 +182,7 @@ export default function ExportPage({
                                 <NativeSelect
                                     value={selectedClassId ?? ""}
                                     onChange={(e) => navigate("bulanan", { class_id: e.target.value || null })}
-                                    className="h-[40px]"
+                                    className="h-[40px] bg-surface border-border"
                                 >
                                     <option value="">Semua Kelas</option>
                                     {classes.map((c) => (
@@ -196,7 +196,7 @@ export default function ExportPage({
                                 <NativeSelect
                                     value={String(selectedMonth)}
                                     onChange={(e) => navigate("bulanan", { month: Number(e.target.value) })}
-                                    className="h-[40px]"
+                                    className="h-[40px] bg-surface border-border"
                                 >
                                     {months.map((m) => (
                                         <option key={m.value} value={m.value}>
@@ -214,7 +214,7 @@ export default function ExportPage({
                                 <NativeSelect
                                     value={selectedClassId ?? ""}
                                     onChange={(e) => navigate("semester", { class_id: e.target.value || null })}
-                                    className="h-[40px]"
+                                    className="h-[40px] bg-surface border-border"
                                 >
                                     <option value="">Semua Kelas</option>
                                     {classes.map((c) => (
@@ -228,7 +228,7 @@ export default function ExportPage({
                                 <NativeSelect
                                     value={String(selectedSemester)}
                                     onChange={(e) => navigate("semester", { semester: Number(e.target.value) })}
-                                    className="h-[40px]"
+                                    className="h-[40px] bg-surface border-border"
                                 >
                                     <option value="1">Semester 1 (Ganjil)</option>
                                     <option value="2">Semester 2 (Genap)</option>
@@ -237,13 +237,13 @@ export default function ExportPage({
                         </div>
                     )}
 
-                    {/* Export Action Buttons */}
+                    {/* Export Action Buttons using Semantic Variant Design Tokens */}
                     <Button
                         variant="danger"
                         onClick={() => {
                             window.location.href = pdfHref;
                         }}
-                        className="h-[40px] px-4 font-bold text-[13px] shadow-sm rounded-lg"
+                        className="h-[40px] px-4 font-bold text-[13px] shadow-xs rounded-xl"
                         icon={<i className="fas fa-file-pdf text-[13px]" />}
                     >
                         PDF
@@ -253,7 +253,7 @@ export default function ExportPage({
                         onClick={() => {
                             window.location.href = excelHref;
                         }}
-                        className="h-[40px] px-4 font-bold text-[13px] shadow-sm rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="h-[40px] px-4 font-bold text-[13px] shadow-xs rounded-xl"
                         icon={<i className="fas fa-file-excel text-[13px]" />}
                     >
                         Excel
@@ -261,7 +261,7 @@ export default function ExportPage({
                 </div>
             </div>
 
-            {/* Standalone Table Component */}
+            {/* Standalone Table Component with Pure Design Tokens */}
             <div className="w-full font-inter">
                 {selectedPeriod === "harian" ? (
                     <Table<ExportRow>
@@ -300,34 +300,41 @@ export default function ExportPage({
                                     const st = r.status ?? "ALPHA";
                                     if (st === "HADIR") {
                                         return (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-success-bg text-success border border-success/20 uppercase">
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-success-bg text-success border border-success-light">
                                                 HADIR
                                             </span>
                                         );
                                     }
                                     if (st === "TERLAMBAT") {
                                         return (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700 border border-amber-300 uppercase">
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-warning-bg text-warning border border-warning-light">
                                                 TERLAMBAT
                                             </span>
                                         );
                                     }
                                     if (st === "BELUM VERIFIKASI") {
                                         return (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-muted/60 text-text-secondary border border-dashed border-border uppercase">
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-muted text-text-muted border border-dashed border-border">
                                                 BELUM VERIFIKASI
                                             </span>
                                         );
                                     }
-                                    if (st === "SAKIT" || st === "IZIN") {
+                                    if (st === "SAKIT") {
                                         return (
-                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 uppercase">
-                                                {st}
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-medical-bg text-medical border border-medical-light">
+                                                SAKIT
+                                            </span>
+                                        );
+                                    }
+                                    if (st === "IZIN") {
+                                        return (
+                                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-permit-bg text-permit border border-permit-light">
+                                                IZIN
                                             </span>
                                         );
                                     }
                                     return (
-                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger border border-danger/20 uppercase">
+                                        <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-danger-bg text-danger border border-danger-light">
                                             ALPHA
                                         </span>
                                     );
@@ -340,7 +347,7 @@ export default function ExportPage({
                                 render: (r: ExportRow) => {
                                     const st = r.status ?? "ALPHA";
                                     if (st === "TERLAMBAT") {
-                                        return <span className="font-bold text-amber-600">{r.waktu_keterangan}</span>;
+                                        return <span className="font-bold text-warning">{r.waktu_keterangan}</span>;
                                     }
                                     if (st === "BELUM VERIFIKASI") {
                                         return <span className="text-text-muted font-normal italic">{r.waktu_keterangan}</span>;
@@ -432,7 +439,7 @@ export default function ExportPage({
                                 header: "Sakit",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.sakit > 0 ? "font-extrabold text-amber-600" : "text-text-muted font-normal"}>
+                                    <span className={r.sakit > 0 ? "font-extrabold text-warning" : "text-text-muted font-normal"}>
                                         {r.sakit}
                                     </span>
                                 ),
@@ -454,15 +461,12 @@ export default function ExportPage({
                 )}
             </div>
 
-            {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
+            {/* Symmetrical Footer Info & Full-Width Pagination Bar with Design Tokens */}
             <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
-                {/* Info Note Row */}
                 <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
                     <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
                     <span>Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih (Saat ini: {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)}).</span>
                 </div>
-
-                {/* Symmetrical Full-Width Pagination Bar */}
                 {preview.length > pageSize && (
                     <Pagination
                         currentPage={safePage}

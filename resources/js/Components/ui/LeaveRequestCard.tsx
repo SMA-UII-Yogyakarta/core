@@ -1,20 +1,17 @@
 import React from "react";
-import { StatusBadge } from "@/Components";
-import type { StatusVariant } from "@/types/component";
 import type { LeaveRequest } from "@/types";
+import Button from "./Button";
 
 interface LeaveRequestCardProps {
     leaveRequest: LeaveRequest;
     onDetailClick?: (lr: LeaveRequest) => void;
+    onImagePreview?: (url: string) => void;
+    onApprove?: (lr: LeaveRequest) => void;
+    onReject?: (lr: LeaveRequest) => void;
     checkboxSlot?: React.ReactNode;
     actionSlot?: React.ReactNode;
+    isHomeroom?: boolean;
 }
-
-export const statusToVariant: Record<string, StatusVariant> = {
-    Pending: "pending",
-    Approved: "approved",
-    Rejected: "rejected",
-};
 
 const statusBorderClass: Record<string, string> = {
     Pending: "border-l-warning",
@@ -22,32 +19,37 @@ const statusBorderClass: Record<string, string> = {
     Rejected: "border-l-danger",
 };
 
-const statusLabels: Record<string, string> = {
-    Pending: "MENUNGGU",
-    Approved: "DISETUJUI",
-    Rejected: "DITOLAK",
-};
-
 const categoryLabels: Record<string, string> = {
     Sick: "Sakit",
-    Event: "Kegiatan",
+    Event: "Izin Acara",
     Competition: "Lomba",
     Other: "Lainnya",
+};
+
+const categoryBadgeConfig: Record<string, { bg: string; text: string }> = {
+    Sick: { bg: "bg-medical-bg", text: "text-medical" },
+    Event: { bg: "bg-permit-bg", text: "text-permit" },
+    Competition: { bg: "bg-achievement-bg", text: "text-achievement" },
+    Other: { bg: "bg-info-bg", text: "text-info" },
 };
 
 export function LeaveRequestCard({
     leaveRequest,
     onDetailClick,
+    onImagePreview,
+    onApprove,
+    onReject,
     checkboxSlot,
     actionSlot,
+    isHomeroom = true,
 }: LeaveRequestCardProps) {
-    const variant = statusToVariant[leaveRequest.approval_status] || "pending";
     const borderClass = statusBorderClass[leaveRequest.approval_status] || "border-l-border";
-    const label = statusLabels[leaveRequest.approval_status] || leaveRequest.approval_status;
 
-    const guardianInfo = leaveRequest.guardian?.name
-        ? `Ibu/Bapak ${leaveRequest.guardian.name} (Wali Murid)`
-        : "Siswa";
+    const guardianName = leaveRequest.guardian?.name
+        ? `Ibu/Bapak ${leaveRequest.guardian.name}`
+        : "Ibu/Bapak Wali Murid";
+
+    const guardianInfo = `${guardianName} (Wali Murid)`;
 
     const formatDate = (dateString: string) => {
         try {
@@ -63,120 +65,153 @@ export function LeaveRequestCard({
         }
     };
 
-    const formatDateTime = (dateString: string) => {
+    const formatRelativeOrTime = (dateString: string) => {
         if (!dateString) return "Baru saja";
         try {
             const d = new Date(dateString);
             if (isNaN(d.getTime())) return dateString;
-            return d.toLocaleString("id-ID", {
+            return d.toLocaleDateString("id-ID", {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            }) + " WIB";
+            });
         } catch {
             return dateString;
         }
     };
 
+    const durationDays = () => {
+        if (!leaveRequest.start_date || !leaveRequest.end_date) return "1 Hari";
+        const start = new Date(leaveRequest.start_date.split("T")[0]);
+        const end = new Date(leaveRequest.end_date.split("T")[0]);
+        const diff = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1);
+        return `${diff} Hari`;
+    };
+
+    const catConfig = categoryBadgeConfig[leaveRequest.category] || { bg: "bg-info-bg", text: "text-info" };
+    const catLabel = (categoryLabels[leaveRequest.category] || leaveRequest.category || "LAINNYA").toUpperCase();
+
     return (
         <div
-            className={`flex flex-row bg-surface border border-border rounded-xl p-0 overflow-hidden shadow-sm relative transition-colors hover:border-primary/30 border-l-[6px] ${borderClass}`}
+            className={`bg-surface border border-border rounded-2xl p-5 sm:p-6 overflow-hidden shadow-xs relative border-l-[6px] ${borderClass} font-inter flex flex-col sm:flex-row gap-5 items-start mb-5 transition-all hover:border-primary/30`}
         >
-            {/* Image Placeholder / Attachment side */}
-            <div className="flex w-[80px] sm:w-[150px] pt-4 sm:pt-6 pl-2 sm:pl-0 justify-center shrink-0">
-                <div className="w-[60px] h-[60px] sm:w-[110px] sm:h-[110px] bg-slate-200/60 rounded-lg sm:rounded-xl overflow-hidden flex flex-col relative">
+            {/* Left Thumbnail (130px Aspect Ratio with 🔍 Perbesar) */}
+            <div className="w-full sm:w-[130px] shrink-0">
+                <div className="w-full sm:w-[130px] h-[130px] bg-slate-200/60 border border-border rounded-xl overflow-hidden flex flex-col justify-between relative shadow-2xs">
+                    <div className="flex-1 flex items-center justify-center text-text-muted">
+                        <i className="fas fa-file-prescription text-3xl opacity-70"></i>
+                    </div>
                     {leaveRequest.document_url ? (
-                        <>
-                            <div className="flex-1 flex items-center justify-center">
-                                <i className="fas fa-file-prescription text-2xl sm:text-4xl text-slate-400"></i>
-                            </div>
-                            <a
-                                href={leaveRequest.document_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="h-[20px] sm:h-[30px] bg-slate-600 hover:bg-slate-700 transition-colors flex items-center justify-center text-[9px] sm:text-[11.5px] text-white font-medium"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <i className="fas fa-search-plus sm:mr-1.5"></i> <span className="hidden sm:inline">Perbesar</span>
-                            </a>
-                        </>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onImagePreview) onImagePreview(leaveRequest.document_url!);
+                                else window.open(leaveRequest.document_url!, "_blank");
+                            }}
+                            className="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-t border-border/50"
+                        >
+                            <i className="fas fa-search-plus text-[10px]"></i> Perbesar
+                        </button>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-                            <i className="fas fa-image text-xl sm:text-3xl mb-0.5 sm:mb-1 opacity-50"></i>
-                            <h3 className="text-[14px] sm:text-[17px] font-bold text-primary font-inter leading-tight">Kosong</h3>
+                        <div className="w-full py-1.5 bg-muted border-t border-border/50 flex items-center justify-center text-[10px] text-text-muted font-semibold">
+                            Tidak ada berkas
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Content side */}
-            <div className="flex-1 p-3 sm:p-5 flex flex-col min-w-0">
-                <div className="flex justify-between items-start mb-1 gap-2">
-                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        {checkboxSlot && <div className="mt-1 shrink-0" onClick={(e) => e.stopPropagation()}>{checkboxSlot}</div>}
-                        <h3 className="font-bold text-primary text-[15px] sm:text-[18px] truncate">
-                            {leaveRequest.student?.name || "Tanpa Nama"}
-                        </h3>
+            {/* Right Main Content */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between w-full">
+                <div>
+                    {/* Top Row: Name on Left, Category Pill Badge on Right */}
+                    <div className="flex justify-between items-center mb-1 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                            {checkboxSlot && <div className="shrink-0" onClick={(e) => e.stopPropagation()}>{checkboxSlot}</div>}
+                            <h3 className="font-bold text-primary text-[18px] leading-snug truncate">
+                                {leaveRequest.student?.name || "Tanpa Nama"}
+                            </h3>
+                        </div>
+                        <div className="shrink-0">
+                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${catConfig.bg} ${catConfig.text}`}>
+                                {catLabel}
+                            </span>
+                        </div>
                     </div>
-                    <div className="shrink-0">
-                        <StatusBadge variant={variant} label={label} />
+
+                    {/* Subtitle Line: Diajukan oleh */}
+                    <p className="text-[12px] text-text-muted mb-3 flex items-center gap-1.5 leading-none">
+                        <i className="fas fa-user text-[11px]"></i> Diajukan oleh: {guardianInfo} - {formatRelativeOrTime(leaveRequest.created_at || "")}
+                    </p>
+
+                    {/* Metadata Gray Box */}
+                    <div className="bg-muted/70 border border-border/60 rounded-xl p-4 text-[13px] font-inter">
+                        <div className="flex flex-col gap-1.5">
+                            <div>
+                                <span className="font-semibold text-text-muted mr-2">Tanggal:</span>
+                                <span className="text-danger font-bold">
+                                    {formatDate(leaveRequest.start_date)} ({durationDays()})
+                                </span>
+                            </div>
+                            <div>
+                                <span className="font-semibold text-text-muted mr-2">Keterangan:</span>
+                                <span className="text-text-primary font-medium leading-relaxed">
+                                    {leaveRequest.description || "Tidak ada keterangan."}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <p className="text-[11px] sm:text-[13px] text-text-muted mb-4 sm:mb-6 flex items-start sm:items-center gap-1.5 leading-tight">
-                    <i className="fas fa-user-edit"></i> Diajukan oleh: {guardianInfo} - {formatDateTime(leaveRequest.created_at || "")}
-                </p>
-
-                <div className="bg-slate-50/80 rounded-xl p-3 sm:p-4 text-[12px] sm:text-[13.5px] grid grid-cols-1 md:grid-cols-2 gap-y-2 sm:gap-y-3 gap-x-6">
-                    <div>
-                        <span className="font-semibold text-slate-600 mr-2">Kategori:</span>
-                        <span className={leaveRequest.category === 'Sick' ? "text-danger font-bold" : "text-primary font-bold"}>
-                            {categoryLabels[leaveRequest.category] ?? leaveRequest.category}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="font-semibold text-slate-600 mr-2">Tanggal:</span>
-                        <span className="text-text-secondary">
-                            {leaveRequest.start_date === leaveRequest.end_date
-                                ? formatDate(leaveRequest.start_date)
-                                : `${formatDate(leaveRequest.start_date)} s/d ${formatDate(leaveRequest.end_date)}`}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="font-semibold text-slate-600 mr-2">Kelas:</span>
-                        <span className="text-text-secondary">{leaveRequest.student?.class?.name ?? "-"}</span>
-                    </div>
-                    <div>
-                        <span className="font-semibold text-slate-600 mr-2">Wali Murid:</span>
-                        <span className="text-text-secondary">{leaveRequest.guardian?.name ?? "-"}</span>
-                    </div>
-                    <div className="md:col-span-2 mt-1">
-                        <span className="font-semibold text-slate-600 mr-2">Keterangan:</span>
-                        <span className="text-text-secondary leading-relaxed">
-                            {leaveRequest.description || "Tidak ada keterangan tertulis."}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Actions Section */}
-                <div className="mt-5 flex flex-col sm:flex-row justify-between items-end gap-3">
-                    <div className="text-[11px] text-danger border border-dashed border-danger/40 bg-danger/5 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                        <i className="fas fa-lock"></i> Hak akses persetujuan disesuaikan dengan peran Anda.
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
-                        {onDetailClick && (
-                            <button
-                                type="button"
-                                onClick={() => onDetailClick(leaveRequest)}
-                                className="px-3 py-1.5 flex-1 sm:flex-none bg-surface border border-border rounded-lg text-[12px] font-bold text-text-primary hover:bg-muted transition-colors flex items-center justify-center gap-1.5"
-                            >
-                                <i className="fas fa-eye"></i> Detail
-                            </button>
-                        )}
-                        {actionSlot}
-                    </div>
+                {/* Bottom Actions Row */}
+                <div className="mt-4 flex justify-end items-center gap-2.5">
+                    {actionSlot ? (
+                        actionSlot
+                    ) : !isHomeroom && leaveRequest.approval_status === "Pending" ? (
+                        <div className="text-[12px] font-bold text-danger border border-dashed border-danger/40 bg-danger-bg px-3.5 py-1.5 rounded-xl inline-flex items-center gap-1.5">
+                            <i className="fas fa-lock text-[11px]"></i> Hak akses persetujuan hanya untuk Wali Kelas.
+                        </div>
+                    ) : leaveRequest.approval_status === "Pending" && (onApprove || onReject) ? (
+                        <div className="flex gap-2.5">
+                            {onReject && (
+                                <Button
+                                    type="button"
+                                    variant="danger-outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onReject(leaveRequest);
+                                    }}
+                                >
+                                    <i className="fas fa-times mr-1 text-[11px]" /> Tolak
+                                </Button>
+                            )}
+                            {onApprove && (
+                                <Button
+                                    type="button"
+                                    variant="success"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onApprove(leaveRequest);
+                                    }}
+                                >
+                                    <i className="fas fa-check mr-1 text-[11px]" /> Setujui Izin
+                                </Button>
+                            )}
+                        </div>
+                    ) : onDetailClick ? (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDetailClick(leaveRequest);
+                            }}
+                            className="px-4 py-1.5 bg-surface border border-border rounded-xl text-[12px] font-bold text-text-primary hover:bg-muted transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                            <i className="fas fa-eye text-[11px]"></i> Detail
+                        </button>
+                    ) : null}
                 </div>
             </div>
         </div>

@@ -1094,14 +1094,38 @@ export default function LeaveVerification({
                 </h1>
             </div>
 
+            {/* 100% Figma Replica Top Header Card (uploaded_media_0_1787751665774.png) */}
+            <div className="hidden lg:flex bg-surface border border-border rounded-2xl p-4 shadow-xs items-center justify-between gap-4 mb-6 font-inter">
+                <h2 className="text-[18px] font-bold text-text-primary">
+                    Monitoring Live
+                </h2>
+
+                <div className="flex items-center gap-4">
+                    {/* Filter Kelas */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-bold text-text-muted whitespace-nowrap">Filter Kelas:</span>
+                        <div className="bg-muted border border-border px-3.5 py-1.5 rounded-xl font-bold text-text-primary text-[13px]">
+                            {resolvedClass?.name ? resolvedClass.name.split(" (")[0] : "X-A (Reguler)"}
+                        </div>
+                    </div>
+
+                    {/* Tanggal */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-bold text-text-muted whitespace-nowrap">📅 Tanggal:</span>
+                        <div className="bg-muted border border-border px-3.5 py-1.5 rounded-xl font-bold text-text-primary text-[13px]">
+                            {new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "2-digit", year: "numeric" })} 📅
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Desktop Header */}
-            <div className="hidden lg:block mb-6">
-                <h1 className="text-xl font-bold text-text-primary font-inter">
+            <div className="hidden lg:block mb-6 font-inter">
+                <h1 className="text-[24px] font-extrabold text-text-primary">
                     {t("leave-verification.title")}
                 </h1>
-                <p className="text-sm text-text-muted font-inter mt-1">
-                    {t("leave-verification.classLabel")}{" "}
-                    {resolvedClass?.name ?? "..."}
+                <p className="text-[14px] text-text-muted mt-1">
+                    Tinjau pengajuan izin dari wali murid kelas {resolvedClass?.name ? resolvedClass.name.split(" (")[0] : "—"}.
                 </p>
             </div>
 
