@@ -317,4 +317,43 @@ class HomeroomReportBreakdownTest extends TestCase
             ]);
         }
     }
+
+    public function test_daily_report_defaults_invalid_date_without_error(): void
+    {
+        $this->seedActiveWeekdays();
+
+        [$user, $teacher] = $this->makeWali();
+        SchoolClass::factory()->create(['name' => 'X-A', 'teacher_id' => $teacher->id]);
+
+        $this->actingAs($user)
+            ->get('/reports?tab=daily&date=abc')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('tab', 'daily')->where('selectedDate', '2026-08-28'));
+    }
+
+    public function test_monthly_report_defaults_invalid_month_without_error(): void
+    {
+        $this->seedActiveWeekdays();
+
+        [$user, $teacher] = $this->makeWali();
+        SchoolClass::factory()->create(['name' => 'X-A', 'teacher_id' => $teacher->id]);
+
+        $this->actingAs($user)
+            ->get('/reports?tab=monthly&month=13&year=2026')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('tab', 'monthly')->where('selectedMonth', 8));
+    }
+
+    public function test_semester_report_defaults_invalid_semester_without_error(): void
+    {
+        $this->seedActiveWeekdays();
+
+        [$user, $teacher] = $this->makeWali();
+        SchoolClass::factory()->create(['name' => 'X-A', 'teacher_id' => $teacher->id]);
+
+        $this->actingAs($user)
+            ->get('/reports?tab=semester&semester=3&year=2026')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('tab', 'semester')->where('selectedSemester', '1'));
+    }
 }

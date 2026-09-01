@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReportRequest;
 use App\Services\AcademicCalendarService;
 use App\Services\AnalyticsService;
 use App\Services\TeacherService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class HomeroomReportController extends Controller
@@ -18,7 +18,7 @@ class HomeroomReportController extends Controller
     ) {
     }
 
-    public function __invoke(Request $request)
+    public function __invoke(ReportRequest $request)
     {
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
@@ -27,7 +27,7 @@ class HomeroomReportController extends Controller
         }
 
         $schoolClass = $teacher->schoolClasses()->first();
-        $tab = $request->query('tab', 'daily');
+        $tab = $request->input('tab', 'daily');
 
         $props = [
             'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
@@ -37,10 +37,10 @@ class HomeroomReportController extends Controller
 
         if (! $schoolClass) {
             $props['students'] = [];
-            $props['selectedDate'] = $request->query('date', now()->toDateString());
-            $props['selectedMonth'] = (int) $request->query('month', now()->month);
-            $props['selectedYear'] = (int) $request->query('year', now()->year);
-            $props['selectedSemester'] = $request->query('semester', '1');
+            $props['selectedDate'] = $request->input('date', now()->toDateString());
+            $props['selectedMonth'] = (int) $request->input('month', now()->month);
+            $props['selectedYear'] = (int) $request->input('year', now()->year);
+            $props['selectedSemester'] = $request->input('semester', '1');
 
             return Inertia::render('Teacher/Reports/Index', $props);
         }
@@ -55,9 +55,9 @@ class HomeroomReportController extends Controller
         return Inertia::render('Teacher/Reports/Index', $props);
     }
 
-    private function loadDaily(Request $request, $schoolClass, array &$props): void
+    private function loadDaily(ReportRequest $request, $schoolClass, array &$props): void
     {
-        $date = $request->query('date', now()->toDateString());
+        $date = $request->input('date', now()->toDateString());
         $isHoliday = ! $this->calendarService->isSchoolDay($date);
 
         $props['students'] = $isHoliday ? [] : $this->analyticsService->classDetail($schoolClass->id, $date)['students'];
@@ -65,10 +65,10 @@ class HomeroomReportController extends Controller
         $props['isHoliday'] = $isHoliday;
     }
 
-    private function loadMonthly(Request $request, $schoolClass, array &$props): void
+    private function loadMonthly(ReportRequest $request, $schoolClass, array &$props): void
     {
-        $month = (int) $request->query('month', now()->month);
-        $year = (int) $request->query('year', now()->year);
+        $month = (int) $request->input('month', now()->month);
+        $year = (int) $request->input('year', now()->year);
         $report = $this->analyticsService->classMonthlyReport($schoolClass->id, $month, $year);
 
         $props['students'] = $report['recap'];
@@ -78,10 +78,10 @@ class HomeroomReportController extends Controller
         $props['selectedYear'] = $year;
     }
 
-    private function loadSemester(Request $request, $schoolClass, array &$props): void
+    private function loadSemester(ReportRequest $request, $schoolClass, array &$props): void
     {
-        $semester = $request->query('semester', '1');
-        $year = (int) $request->query('year', now()->year);
+        $semester = $request->input('semester', '1');
+        $year = (int) $request->input('year', now()->year);
 
         $monthStart = $semester === '1' ? 7 : 1;
         $monthEnd = $semester === '1' ? 12 : 6;
