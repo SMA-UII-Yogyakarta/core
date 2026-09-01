@@ -7,6 +7,7 @@ import Button from "@/Components/ui/Button";
 import Card from "@/Components/ui/Card";
 import NativeSelect from "@/Components/ui/NativeSelect";
 import Toggle from "@/Components/ui/Toggle";
+import { MapPreview } from "@/Components/common/MapPreview";
 import { validateForm } from "@/utils/zodHelper";
 import { locationSettingSchema } from "@/schemas/locationSetting.schema";
 
@@ -375,16 +376,11 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                                         Live Satellite Sync
                                     </span>
                                 </div>
-                                <div className="w-full h-[320px] sm:h-[360px] rounded-xl border border-border overflow-hidden bg-muted relative shadow-inner">
-                                    <iframe
-                                        title="Peta Lokasi SMA UII"
-                                        width="100%"
-                                        height="100%"
-                                        frameBorder="0"
-                                        scrolling="no"
-                                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${locationForm.longitude - 0.003}%2C${locationForm.latitude - 0.003}%2C${locationForm.longitude + 0.003}%2C${locationForm.latitude + 0.003}&layer=mapnik&marker=${locationForm.latitude}%2C${locationForm.longitude}`}
-                                    />
-                                </div>
+                                <MapPreview
+                                    latitude={locationForm.latitude}
+                                    longitude={locationForm.longitude}
+                                    radiusMeters={locationForm.radius_meters}
+                                />
                                 <div className="flex items-center justify-between text-[12px] text-text-muted bg-muted/20 px-4 py-2.5 rounded-lg border border-border">
                                     <span className="flex items-center gap-2 font-medium">
                                         <i className="fas fa-crosshairs text-primary" />

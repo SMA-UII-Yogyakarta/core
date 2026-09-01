@@ -81,9 +81,9 @@ class TeacherPortalController extends Controller
                 if ($leave) {
                     $status = $leave->approval_status === 'Pending' ? 'pending' : 'diizinkan';
                 } elseif (! $att) {
-                    $status = 'alpa';
+                    $status = 'absent';
                 } elseif (strcasecmp($att->status, 'Late') === 0) {
-                    $status = 'terlambat';
+                    $status = 'late';
                 }
 
                 if ($status) {

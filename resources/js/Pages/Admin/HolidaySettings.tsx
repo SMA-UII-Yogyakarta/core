@@ -449,12 +449,35 @@ onClick={() => setActiveSettingTab("holiday")}
                         {showAddForm && (
                             <form
                                 onSubmit={handleAddHoliday}
-                                className="border border-border rounded-xl p-4 bg-muted/30 flex flex-col gap-3.5 mt-2 font-inter"
+                                className="border border-border rounded-xl p-4 bg-muted/30 flex flex-col gap-4 mt-2 font-inter"
                             >
-                                <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
-                                    <FiPlus className="text-primary text-[14px]" />
-                                    Form Tambah Hari Libur Sekolah
-                                </h3>
+                                <div className="flex items-center justify-between gap-4 pb-3 border-b border-border">
+                                    <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
+                                        <FiPlus className="text-primary text-[14px]" />
+                                        Form Tambah Hari Libur Sekolah
+                                    </h3>
+                                    <div className="flex gap-2 items-center">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => {
+                                                resetHoliday();
+                                                setShowAddForm(false);
+                                            }}
+                                        >
+                                            Batal
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            loading={holidayProcessing}
+                                            variant="primary"
+                                            size="sm"
+                                        >
+                                            Simpan Libur
+                                        </Button>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <Input
                                         label="Tanggal Hari Libur"
@@ -471,27 +494,6 @@ onClick={() => setActiveSettingTab("holiday")}
                                         placeholder="Contoh: Libur Nasional / Cuti Bersama"
                                         error={holidayErrors.description}
                                     />
-                                </div>
-                                <div className="flex gap-2 justify-end pt-2 border-t border-border">
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => {
-                                            resetHoliday();
-                                            setShowAddForm(false);
-                                        }}
-                                    >
-                                        Batal
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        loading={holidayProcessing}
-                                        variant="primary"
-                                        size="sm"
-                                    >
-                                        Simpan Libur
-                                    </Button>
                                 </div>
                             </form>
                         )}

@@ -34,7 +34,7 @@ interface PageProps {
 }
 
 export default function StudentDashboard({ student, todayAttendance, stats }: PageProps) {
-    const alpa = stats.absent ?? 0;
+    const absent = stats.absent ?? 0;
     const className = student.class?.name ?? "-";
 
     const [currentTime, setCurrentTime] = useState<string>("");
@@ -139,7 +139,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                     <div className="grid grid-cols-3 gap-3">
                         <StatCard label="HADIR" value={stats.present} />
                         <StatCard label="TELAT" value={stats.late} />
-                        <StatCard label="ALPA" value={alpa} />
+                        <StatCard label="ALPA" value={absent} />
                     </div>
                 </div>
 

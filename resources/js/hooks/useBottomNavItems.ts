@@ -36,13 +36,13 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
                 return [
                     { label: "Home", icon: "fa-home", href: "/teacher/duty" },
                     { label: "Pantauan", icon: "fa-clipboard-list", href: "/leave-requests" },
-                    { label: "Rekap", icon: "fa-chart-bar", href: "/reports/daily" },
+                { label: "Rekap", icon: "fa-chart-bar", href: "/reports?tab=daily" },
                 ];
             }
             return [
                 { label: "Home", icon: "fa-home", href: "/teacher/homeroom" },
                 { label: "Verifikasi", icon: "fa-check-circle", href: "/leave-requests/verification" },
-                { label: "Rekap", icon: "fa-chart-bar", href: "/reports/daily" },
+                { label: "Rekap", icon: "fa-chart-bar", href: "/reports" },
             ];
         }
 

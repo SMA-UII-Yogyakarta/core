@@ -54,6 +54,9 @@ class PermissionRegistry
             'teacher.duty' => ['teacher:piket'],
             'teacher.homeroom' => ['teacher:wali'],
 
+            // Homeroom Teacher Reports
+            'reports' => ['teacher:piket', 'teacher:wali'],
+
             // Guardian
             'guardian.dashboard' => ['guardian'],
             'guardian.leave-application' => ['guardian'],
@@ -95,10 +98,13 @@ class PermissionRegistry
                     ['key' => 'class-enrolment',    'label' => 'Enrolment Kelas',   'icon' => 'fa-chalkboard-teacher','href' => '/class-enrolment',      'roles' => ['admin']],
                     ['key' => 'guardian-assignment','label' => 'Relasi Wali Murid', 'icon' => 'fa-users-cog',        'href' => '/guardian-assignment',  'roles' => ['admin']],
                     ['key' => 'operational-settings','label' => 'Atur Waktu & Libur','icon' => 'fa-clock',             'href' => '/operational-settings', 'roles' => ['admin']],
-                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:piket', 'teacher:wali']],
+                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:piket']],
 
                     ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:piket']],
                     ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:wali']],
+
+                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:wali']],
+                    ['key' => 'reports.daily',      'label' => 'Rekap Harian',      'icon' => 'fa-history',           'href' => '/reports?tab=daily',    'roles' => ['teacher:piket']],
 
                     ['key' => 'guardian.leave-application', 'label' => 'Pengajuan Izin', 'icon' => 'fa-paper-plane', 'href' => '/guardian/leave-application', 'roles' => ['guardian']],
                     ['key' => 'guardian.history',           'label' => 'Riwayat',        'icon' => 'fa-history',      'href' => '/guardian/history',           'roles' => ['guardian']],

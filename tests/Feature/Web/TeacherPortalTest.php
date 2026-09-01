@@ -147,7 +147,7 @@ class TeacherPortalTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Teacher/DutyDashboard')
                 ->where('attentionStudents.0.name', 'Budi Terlambat')
-                ->where('attentionStudents.0.status', 'terlambat')
+                ->where('attentionStudents.0.status', 'late')
                 ->has('attentionStudents.0.check_in_time'));
 
         Carbon::setTestNow();
@@ -166,7 +166,7 @@ class TeacherPortalTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Teacher/DutyDashboard')
                 ->where('attentionStudents.0.name', 'Citra Alpa')
-                ->where('attentionStudents.0.status', 'alpa'));
+                ->where('attentionStudents.0.status', 'absent'));
 
         Carbon::setTestNow();
     }

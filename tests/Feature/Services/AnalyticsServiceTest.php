@@ -308,14 +308,464 @@ class AnalyticsServiceTest extends TestCase
         $this->assertEquals('Present', $result['students']->first()['status']);
     }
 
-    public function test_class_detail_marks_absent_students(): void
+    public function test_class_detail_marks_absent_students_when_window_closed(): void
     {
         $data = $this->createClassWithStudent();
         $student = $data['student'];
         $class = $data['class'];
 
-        $result = $this->service->classDetail($class->id, '2026-07-12');
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 16:00:00')); // Monday, after check_in_close
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
 
         $this->assertEquals('Absent', $result['students']->first()['status']);
+    }
+
+    public function test_class_detail_returns_no_update_for_future_date(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-15 08:00:00'));
+
+        $result = $this->service->classDetail($class->id, '2026-07-16');
+
+        $this->assertEquals('NoUpdate', $result['students']->first()['status']);
+        $this->assertNull($result['students']->first()['status_message']);
+    }
+
+    public function test_class_detail_returns_not_open_today_before_check_in(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 05:00:00')); // Monday, before check_in_open
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
+
+        $this->assertEquals('NotOpen', $result['students']->first()['status']);
+        $this->assertStringContainsString('Dibuka pukul', $result['students']->first()['status_message']);
+    }
+
+    public function test_class_detail_returns_no_check_in_today_within_window(): void
+    {
+        $data = $this->createClassWithStudent();
+        $class = $data['class'];
+
+        $this->seedActiveWeekdays();
+        Carbon::setTestNow(Carbon::parse('2026-07-13 07:00:00')); // Monday, within open..close
+
+        $result = $this->service->classDetail($class->id, '2026-07-13');
+
+        $this->assertEquals('NoCheckIn', $result['students']->first()['status']);
+        $this->assertNull($result['students']->first()['status_message']);
+    }
+
+    public function test_class_detail_marks_approved_sick_leave_as_sick(): void
+    {
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => '2026-07-12',
+            'end_date' => '2026-07-12',
+            'description' => 'Demam tinggi, perlu istirahat',
+            'approval_status' => 'Approved',
+        ]);
+
+        $result = $this->service->classDetail($class->id, '2026-07-12');
+
+        $this->assertEquals('Sick', $result['students']->first()['status']);
+        $this->assertEquals('Demam tinggi, perlu istirahat', $result['students']->first()['leave_reason']);
+    }
+
+    public function test_class_detail_marks_approved_non_sick_leave_as_permission(): void
+    {
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-12',
+            'end_date' => '2026-07-12',
+            'description' => 'Mengikuti lomba olimpiade',
+            'approval_status' => 'Approved',
+        ]);
+
+        $result = $this->service->classDetail($class->id, '2026-07-12');
+
+        $this->assertEquals('Permission', $result['students']->first()['status']);
+        $this->assertEquals('Mengikuti lomba olimpiade', $result['students']->first()['leave_reason']);
+    }
+
+    public function test_class_monthly_recap_counts_non_sick_as_permission(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['permission']);
+        $this->assertEquals(0, $row['sick']);
+        $this->assertEquals(0, $row['pending']);
+    }
+
+    public function test_class_monthly_recap_counts_pending_leave_as_pending_not_permission(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Pending',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['pending']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['sick']);
+    }
+
+    public function test_class_monthly_recap_attendance_wins_over_leave_same_day(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        Attendance::create([
+            'student_id' => $student->id,
+            'attendance_date' => '2026-07-10',
+            'check_in_time' => '06:50:00',
+            'status' => 'Present',
+            'latitude' => -7.79,
+            'longitude' => 110.36,
+            'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+        ]);
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['present']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
+    }
+
+    public function test_class_monthly_recap_dedup_duplicate_leaves_same_day(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Competition',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Pending',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        // Approved takes precedence over Pending, deduped to a single day -> 1 permission, 0 pending
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
+    }
+
+    public function test_class_monthly_recap_duplicate_approved_leaves_diff_category_prefers_sick(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        // Two approved leaves on the same day (different category): count once, Sick wins.
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['sick']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
+    }
+
+    public function test_class_monthly_recap_approved_sick_beats_pending_leave_same_day(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Sick',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Approved',
+        ]);
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-10',
+            'approval_status' => 'Pending',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        // Approved (Sick) wins over the pending permit on the same day.
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['sick']);
+        $this->assertEquals(0, $row['permission']);
+        $this->assertEquals(0, $row['pending']);
+    }
+
+    public function test_class_monthly_recap_per_student_total_never_exceeds_school_days(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        // leave spanning a weekend must only count school days
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-10', // Friday
+            'end_date' => '2026-07-12', // Sunday
+            'approval_status' => 'Approved',
+        ]);
+
+        $recap = $this->service->classMonthlyRecap($class->id, 7, 2026);
+
+        // Leave spans Fri (10) - Sun (12); only school days count. Jul 1..12 has 8 active weekdays.
+        $row = $recap['students']->first();
+        $this->assertEquals(1, $row['permission']);
+        $total = $row['present'] + $row['permission'] + $row['sick'] + $row['pending'] + $row['absent'];
+        $this->assertEquals(8, $total);
+    }
+
+    private function seedActiveWeekdays(): void
+    {
+        foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day) {
+            \App\Models\AttendanceTimeSetting::create([
+                'day' => $day,
+                'check_in_open' => '06:30:00',
+                'late_threshold' => '07:00:00',
+                'check_in_close' => '07:30:00',
+                'is_active' => true,
+            ]);
+        }
+    }
+
+    public function test_class_monthly_recap_alpha_uses_elapsed_active_school_days(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as $day) {
+            \App\Models\AttendanceTimeSetting::create([
+                'day' => $day,
+                'check_in_open' => '06:30:00',
+                'late_threshold' => '07:00:00',
+                'check_in_close' => '07:30:00',
+                'is_active' => true,
+            ]);
+        }
+
+        // Now is fixed at 2026-07-12 10:00 by setUp. Count Mon-Fri from Jul 1..Jul 12
+        // (past days and today-after-close are absent-applicable, future days are not).
+        $expectedElapsed = 0;
+        for ($d = \Carbon\Carbon::create(2026, 7, 1); $d->lte(\Carbon\Carbon::create(2026, 7, 12)); $d->addDay()) {
+            if (in_array($d->format('l'), ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], true)) {
+                $expectedElapsed++;
+            }
+        }
+
+        $absent = $this->service->classMonthlyRecap($data['class']->id, 7, 2026)['students']->first()['absent'];
+        $this->assertEquals($expectedElapsed, $absent);
+    }
+
+    public function test_class_monthly_report_rate_excludes_pending_from_denominator(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        Attendance::create([
+            'student_id' => $student->id,
+            'attendance_date' => '2026-07-08',
+            'check_in_time' => '06:50:00',
+            'status' => 'Present',
+            'latitude' => -7.79,
+            'longitude' => 110.36,
+            'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+        ]);
+
+        LeaveRequest::create([
+            'student_id' => $student->id,
+            'guardian_id' => $data['guardian']->id,
+            'category' => 'Event',
+            'start_date' => '2026-07-09',
+            'end_date' => '2026-07-09',
+            'approval_status' => 'Pending',
+        ]);
+
+        $report = $this->service->classMonthlyReport($class->id, 7, 2026);
+
+        $this->assertArrayHasKey('recap', $report);
+        $this->assertArrayHasKey('daily', $report);
+        $this->assertArrayHasKey('summary', $report);
+
+        $summary = $report['summary'];
+        $this->assertEquals(1, $summary['on_time']);
+        $this->assertEquals(0, $summary['late']);
+        $this->assertEquals(0, $summary['permission']);
+        $this->assertEquals(0, $summary['sick']);
+        $this->assertEquals(1, $summary['pending']);
+        $this->assertEquals(6, $summary['absent']);
+        $this->assertEquals(1, $summary['total_students']);
+
+        // Rate excludes pending from the denominator: (1+0) / (1+0+0+0+6) = 14.3
+        $this->assertEqualsWithDelta(14.3, $summary['attendance_rate'], 0.05);
+
+        // Same exclusion applies to the per-student (micro) attendance rate:
+        // present(1) / (present + permission + sick + absent) = 1 / (1+0+0+6) = 14.3 (not 12.5)
+        $studentRow = $report['recap']->first();
+        $this->assertEqualsWithDelta(14.3, $studentRow['attendance_rate'], 0.05);
+
+        // Every daily row carries the ISO date (needed by the tooltip weekday)
+        foreach ($report['daily'] as $day) {
+            $this->assertArrayHasKey('date', $day);
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', $day['date']);
+        }
+    }
+
+    public function test_class_monthly_report_discipline_rate_micro_and_macro(): void
+    {
+        $this->seedActiveWeekdays();
+
+        $data = $this->createClassWithStudent();
+        $student = $data['student'];
+        $class = $data['class'];
+
+        Attendance::create([
+            'student_id' => $student->id,
+            'attendance_date' => '2026-07-08',
+            'check_in_time' => '06:50:00',
+            'status' => 'Present',
+            'latitude' => -7.79,
+            'longitude' => 110.36,
+            'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+        ]);
+        Attendance::create([
+            'student_id' => $student->id,
+            'attendance_date' => '2026-07-09',
+            'check_in_time' => '07:10:00',
+            'status' => 'Late',
+            'latitude' => -7.79,
+            'longitude' => 110.36,
+            'photo_url' => 'https://via.placeholder.com/320x240?text=Selfie',
+        ]);
+
+        $report = $this->service->classMonthlyReport($class->id, 7, 2026);
+        $summary = $report['summary'];
+
+        // 8 elapsed active school days (Jul 1..12, Mon-Fri, now = Jul 12 10:00)
+        $this->assertEquals(8, $summary['school_days']);
+
+        // Only Present counts as on-time (Late does not): 1 on-time out of 8
+        $studentRow = $report['recap']->first();
+        $this->assertEquals(1, $studentRow['on_time']);
+        $this->assertEquals(1, $studentRow['late']);
+        $this->assertEquals(2, $studentRow['present']);
+        $this->assertEqualsWithDelta(12.5, $studentRow['discipline_rate'], 0.05);
+
+        // Micro attendance rate = present+late / (present+late+permission+sick+absent) = 2/8
+        // (pending excluded; here there are none)
+        $this->assertEqualsWithDelta(25.0, $studentRow['attendance_rate'], 0.05);
+
+        // Summary attendance rate must match the micro figure
+        $this->assertEqualsWithDelta(25.0, $summary['attendance_rate'], 0.05);
+
+        // Macro uses total on-time across all students / (school_days * students)
+        $this->assertEqualsWithDelta(12.5, $summary['discipline_rate'], 0.05);
     }
 }
