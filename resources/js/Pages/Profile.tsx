@@ -29,7 +29,6 @@ import {
     FiLogOut,
     FiCamera,
     FiTrash2,
-    FiUploadCloud,
 } from "react-icons/fi";
 import { profileInfoSchema, passwordSecuritySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";

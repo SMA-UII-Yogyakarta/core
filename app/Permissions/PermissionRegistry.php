@@ -2,7 +2,6 @@
 
 namespace App\Permissions;
 
-use App\Enums\TeacherType;
 use App\Models\User;
 
 class PermissionRegistry
@@ -196,8 +195,12 @@ class PermissionRegistry
                 if ($activeTeacherRole) {
                     return $subType === $activeTeacherRole;
                 }
-                if ($subType === 'homeroom') return $user->teacher->isHomeroom();
-                if ($subType === 'duty') return $user->teacher->isDuty();
+                if ($subType === 'homeroom') {
+                    return $user->teacher->isHomeroom();
+                }
+                if ($subType === 'duty') {
+                    return $user->teacher->isDuty();
+                }
                 return true;
             }
             return false;

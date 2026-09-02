@@ -99,8 +99,8 @@ class ProfileController extends Controller
             return redirect()->back()->with('error', 'Hanya guru yang dapat mengubah peran aktif.');
         }
 
-        $teacherTypes = $user->teacher->teacher_type?->map(fn($t) => $t->value)->toArray() ?? [];
-        if (!is_array($teacherTypes) || !in_array($request->role, $teacherTypes)) {
+        $teacherTypes = $user->teacher->teacher_type?->map(fn ($t) => $t->value)->toArray() ?? [];
+        if (! in_array($request->role, $teacherTypes, true)) {
             return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk peran tersebut.');
         }
 

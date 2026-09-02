@@ -93,12 +93,15 @@ class StorageService
     {
         if ($this->disk === 's3') {
             try {
-                /** @var \Aws\S3\S3Client $client */
-                $client = Storage::disk('s3')->getClient();
-                $bucket = (string) config('filesystems.disks.s3.bucket');
-                if (! empty($bucket) && ! $client->doesBucketExist($bucket)) {
-                    $client->createBucket(['Bucket' => $bucket]);
-                    \Illuminate\Support\Facades\Log::info("Created S3 bucket: {$bucket}");
+                $s3Disk = Storage::disk('s3');
+                if (method_exists($s3Disk, 'getClient')) {
+                    /** @var \Aws\S3\S3Client $client */
+                    $client = $s3Disk->getClient();
+                    $bucket = (string) config('filesystems.disks.s3.bucket');
+                    if (! empty($bucket) && ! $client->doesBucketExist($bucket)) {
+                        $client->createBucket(['Bucket' => $bucket]);
+                        \Illuminate\Support\Facades\Log::info("Created S3 bucket: {$bucket}");
+                    }
                 }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('S3 bucket existence check/creation warning: ' . $e->getMessage());
@@ -124,7 +127,8 @@ class StorageService
             if ($this->disk !== 'public') {
                 try {
                     Storage::disk('public')->put($filename, $image);
-                } catch (\Throwable) {}
+                } catch (\Throwable) {
+                }
             }
 
             \Illuminate\Support\Facades\Log::info('Avatar uploaded successfully', [

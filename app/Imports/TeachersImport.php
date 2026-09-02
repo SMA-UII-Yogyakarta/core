@@ -86,7 +86,7 @@ class TeachersImport
             $typeMap = [
                 'wali' => 'homeroom', 'homeroom' => 'homeroom',
                 'piket' => 'duty', 'duty' => 'duty',
-                'both' => 'both'
+                'both' => 'both',
             ];
             $typeStr = $typeMap[$typeRaw] ?? 'duty';
             $type = $typeStr === 'both' ? ['duty', 'homeroom'] : [$typeStr];

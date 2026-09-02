@@ -37,14 +37,13 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        
+
         $activeRole = null;
         if ($user && $user->role === 'teacher' && $user->teacher) {
-            $types = $user->teacher->teacher_type?->map(fn($t) => $t->value)->toArray() ?? [];
-            if (!is_array($types)) $types = [];
-            
+            $types = $user->teacher->teacher_type?->map(fn ($t) => $t->value)->toArray() ?? [];
+
             $activeRole = session('active_teacher_role');
-            if (!$activeRole || !in_array($activeRole, $types)) {
+            if (! $activeRole || ! in_array($activeRole, $types)) {
                 $activeRole = in_array('homeroom', $types) ? 'homeroom' : (in_array('duty', $types) ? 'duty' : null);
                 if ($activeRole) {
                     session(['active_teacher_role' => $activeRole]);

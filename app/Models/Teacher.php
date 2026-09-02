@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $user_id
  * @property string $name
  * @property string $teacher_code
- * @property string $teacher_type
+ * @property \Illuminate\Support\Collection<int, \App\Enums\TeacherType>|null $teacher_type
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DutySchedule> $dutySchedules
@@ -69,8 +69,12 @@ class Teacher extends Model
                 if ($item instanceof \App\Enums\TeacherType) {
                     return $item->value;
                 }
-                if ($item === 'wali') return 'homeroom';
-                if ($item === 'piket') return 'duty';
+                if ($item === 'wali') {
+                    return 'homeroom';
+                }
+                if ($item === 'piket') {
+                    return 'duty';
+                }
                 return (string) $item;
             }, $value);
             $this->attributes['teacher_type'] = json_encode(array_values(array_unique($normalized)));

@@ -30,7 +30,7 @@ class AnalyticsService
 
         $total = $studentCounts->sum();
 
-        $attendanceCounts = Attendance::query()
+        $attendanceCounts = \Illuminate\Support\Facades\DB::table('attendances')
             ->join('students', 'students.id', '=', 'attendances.student_id')
             ->whereDate('attendances.attendance_date', $date)
             ->where('students.status', 'Active')

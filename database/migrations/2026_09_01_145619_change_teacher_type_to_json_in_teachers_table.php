@@ -2,17 +2,16 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         // Safe conversion for PostgreSQL
         if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE teachers DROP CONSTRAINT IF EXISTS teachers_teacher_type_check");
-            DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT");
+            DB::statement('ALTER TABLE teachers DROP CONSTRAINT IF EXISTS teachers_teacher_type_check');
+            DB::statement('ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT');
             DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type TYPE json USING (
                 CASE 
                     WHEN teacher_type = 'duty' THEN '[\"piket\"]'::json
@@ -35,7 +34,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT");
+            DB::statement('ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT');
             DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type TYPE varchar(255) USING (
                 CASE 
                     WHEN teacher_type::text = '[\"piket\",\"wali\"]' THEN 'both'

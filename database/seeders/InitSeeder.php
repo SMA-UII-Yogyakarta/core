@@ -27,7 +27,7 @@ class InitSeeder extends Seeder
             ],
         );
         $user->assignRole('admin');
-        
+
         // Buat akun Hanif dan Mahfud sebagai admin
         $hanif = User::updateOrCreate(
             ['username' => 'hanif'],
@@ -39,7 +39,7 @@ class InitSeeder extends Seeder
             ],
         );
         $hanif->assignRole('admin');
-        
+
         $mahfud = User::updateOrCreate(
             ['username' => 'mahfud'],
             [
