@@ -1,6 +1,6 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Drawer, DrawerHeaderActions, Input, Button } from "@/Components";
+import { Drawer, DrawerHeaderActions, Input } from "@/Components";
 import { guardianSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import type { Guardian } from "./types";
@@ -75,8 +75,8 @@ export default function GuardianDrawerForm({
         clearErrors();
     }, [open, mode, guardian, isCreate, setData, clearErrors, reset]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!isUnlocked) return;
 
         const result = validateForm(guardianSchema, data);
@@ -109,9 +109,9 @@ export default function GuardianDrawerForm({
 
     const copyFields = guardian
         ? [
-              { label: "Nama Lengkap Wali", value: guardian.name },
-              { label: "Nomor WhatsApp", value: guardian.phone || "-" },
-              { label: "Alamat Domisili", value: guardian.address || "-" },
+              { label: "Nama Lengkap", value: guardian.name },
+              { label: "No. HP/WA", value: guardian.phone || "-" },
+              { label: "Alamat", value: guardian.address || "-" },
               { label: "Email Akun", value: guardian.user?.email || "-" },
               {
                   label: "Siswa Terhubung",
@@ -130,12 +130,13 @@ export default function GuardianDrawerForm({
         ? "Buat akun wali murid baru untuk pemantauan presensi."
         : undefined;
 
-    const headerActions = !isCreate && guardian ? (
+    const headerActions = (
         <DrawerHeaderActions
+            mode={isCreate ? "create" : isUnlocked ? "edit" : "detail"}
             isUnlocked={isUnlocked}
             onToggleUnlock={() => setUnlockedByUser((prev) => !prev)}
             onDelete={
-                onRequestDelete
+                !isCreate && guardian && onRequestDelete
                     ? () => {
                           handleClose();
                           onRequestDelete("guardians", guardian.id, guardian.name);
@@ -143,9 +144,9 @@ export default function GuardianDrawerForm({
                     : undefined
             }
             copyFields={copyFields}
-            entityTitle={`Data Wali - ${guardian.name}`}
+            entityTitle={`Data Wali - ${guardian?.name || "Baru"}`}
         />
-    ) : null;
+    );
 
     return (
         <Drawer
@@ -155,68 +156,80 @@ export default function GuardianDrawerForm({
             description={description}
             headerActions={headerActions}
             width="md"
+            onSubmit={handleSubmit}
+            onCancel={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
+            submitLabel={isCreate ? "Simpan Wali" : "Perbarui Wali"}
+            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            loading={processing}
             showFooter={isUnlocked}
         >
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Nama Lengkap Orang Tua / Wali <span className="text-danger">*</span>
-                    </label>
-                    <Input
-                        placeholder="Contoh: Ir. Wahyu Hidayat, M.T."
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.name && (
-                        <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                    )}
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Nama Lengkap Orang Tua / Wali <span className="text-danger">*</span>
+                </label>
+                <Input
+                    placeholder="Contoh: Ir. Wahyu Hidayat, M.T."
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.name && (
+                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Nomor WhatsApp / Telepon Aktif
-                    </label>
-                    <Input
-                        placeholder="Contoh: 08123456789"
-                        value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.phone && (
-                        <p className="text-[12px] text-danger mt-1">{errors.phone}</p>
-                    )}
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Nomor WhatsApp / Telepon Aktif
+                </label>
+                <Input
+                    placeholder="Contoh: 081298765432"
+                    value={data.phone}
+                    onChange={(e) => setData("phone", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.phone && (
+                    <p className="text-[12px] text-danger mt-1">{errors.phone}</p>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Alamat Domisili
-                    </label>
-                    <Input
-                        placeholder="Alamat lengkap orang tua / wali"
-                        value={data.address}
-                        onChange={(e) => setData("address", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Alamat Domisili
+                </label>
+                <Input
+                    placeholder="Contoh: Jl. Sorowajan Baru No. 8"
+                    value={data.address}
+                    onChange={(e) => setData("address", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.address && (
+                    <p className="text-[12px] text-danger mt-1">{errors.address}</p>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Email Akun Login (Opsional)
-                    </label>
-                    <Input
-                        type="email"
-                        placeholder="wali@smauii.sch.id"
-                        value={data.email}
-                        onChange={(e) => setData("email", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.email && (
-                        <p className="text-[12px] text-danger mt-1">{errors.email}</p>
-                    )}
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Email Akun Pengguna (Opsional)
+                </label>
+                <Input
+                    type="email"
+                    placeholder="wali@gmail.com"
+                    value={data.email}
+                    onChange={(e) => setData("email", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.email && (
+                    <p className="text-[12px] text-danger mt-1">{errors.email}</p>
+                )}
+            </div>
 
-                {isUnlocked && (
+            {/* Account Credentials (Only when unlocked) */}
+            {isUnlocked && (
+                <div className="p-3 bg-muted/40 border border-border rounded-xl space-y-2">
+                    <p className="text-[12px] font-bold text-text-primary">
+                        Kredensial Akun Pengguna
+                    </p>
                     <div>
                         <label className="block text-[13px] font-medium text-text-primary mb-1">
                             {isCreate
@@ -235,27 +248,8 @@ export default function GuardianDrawerForm({
                             </p>
                         )}
                     </div>
-                )}
-
-                {isUnlocked && (
-                    <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                        <Button
-                            variant="secondary"
-                            type="button"
-                            onClick={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
-                        >
-                            Batal
-                        </Button>
-                        <Button variant="primary" type="submit" disabled={processing}>
-                            {processing
-                                ? "Menyimpan..."
-                                : isCreate
-                                ? "Simpan Wali"
-                                : "Perbarui Wali"}
-                        </Button>
-                    </div>
-                )}
-            </form>
+                </div>
+            )}
         </Drawer>
     );
 }

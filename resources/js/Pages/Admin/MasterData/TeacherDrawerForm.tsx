@@ -1,6 +1,6 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Drawer, DrawerHeaderActions, Input, Button } from "@/Components";
+import { Drawer, DrawerHeaderActions, Input } from "@/Components";
 import { teacherSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import { FiCheck, FiUserCheck, FiShield } from "react-icons/fi";
@@ -130,8 +130,8 @@ export default function TeacherDrawerForm({
         else setData("teacher_type", "");
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!isUnlocked) return;
 
         if (!isDuty && !isHomeroom) {
@@ -198,12 +198,13 @@ export default function TeacherDrawerForm({
         ? "Lengkapi data guru untuk membuat akun dan penugasan baru."
         : undefined;
 
-    const headerActions = !isCreate && teacher ? (
+    const headerActions = (
         <DrawerHeaderActions
+            mode={isCreate ? "create" : isUnlocked ? "edit" : "detail"}
             isUnlocked={isUnlocked}
             onToggleUnlock={() => setUnlockedByUser((prev) => !prev)}
             onDelete={
-                onRequestDelete
+                !isCreate && teacher && onRequestDelete
                     ? () => {
                           handleClose();
                           onRequestDelete("teachers", teacher.id, teacher.name);
@@ -211,9 +212,9 @@ export default function TeacherDrawerForm({
                     : undefined
             }
             copyFields={copyFields}
-            entityTitle={`Data Guru - ${teacher.name}`}
+            entityTitle={`Data Guru - ${teacher?.name || "Baru"}`}
         />
-    ) : null;
+    );
 
     return (
         <Drawer
@@ -223,134 +224,143 @@ export default function TeacherDrawerForm({
             description={description}
             headerActions={headerActions}
             width="md"
+            onSubmit={handleSubmit}
+            onCancel={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
+            submitLabel={isCreate ? "Simpan Guru" : "Perbarui Guru"}
+            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            loading={processing}
             showFooter={isUnlocked}
         >
-            <form onSubmit={handleSubmit} className="space-y-4 font-inter">
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Kode Guru / NIP <span className="text-danger">*</span>
-                    </label>
-                    <Input
-                        placeholder="Contoh: TCH-001 atau NIP"
-                        value={data.teacher_code}
-                        onChange={(e) => setData("teacher_code", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.teacher_code && (
-                        <p className="text-[12px] text-danger mt-1">
-                            {errors.teacher_code}
-                        </p>
-                    )}
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Kode Guru / NIP <span className="text-danger">*</span>
+                </label>
+                <Input
+                    placeholder="Contoh: TCH-001 atau NIP"
+                    value={data.teacher_code}
+                    onChange={(e) => setData("teacher_code", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.teacher_code && (
+                    <p className="text-[12px] text-danger mt-1">
+                        {errors.teacher_code}
+                    </p>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Nama Lengkap Beserta Gelar <span className="text-danger">*</span>
-                    </label>
-                    <Input
-                        placeholder="Contoh: Budi Hartono, S.Pd., M.Pd."
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.name && (
-                        <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                    )}
-                </div>
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Nama Lengkap Beserta Gelar <span className="text-danger">*</span>
+                </label>
+                <Input
+                    placeholder="Contoh: Budi Hartono, S.Pd., M.Pd."
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.name && (
+                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
+                )}
+            </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                        Tipe Penugasan Guru <span className="text-danger">*</span>
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {/* Option 1: Wali Kelas */}
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1.5">
+                    Tipe Penugasan Guru <span className="text-danger">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Option 1: Wali Kelas */}
+                    <div
+                        onClick={handleToggleHomeroom}
+                        className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
+                            isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
+                        } ${
+                            isHomeroom
+                                ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
+                                : "bg-surface border-border hover:bg-muted/40"
+                        }`}
+                    >
                         <div
-                            onClick={handleToggleHomeroom}
-                            className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
-                                isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
-                            } ${
+                            className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                                 isHomeroom
-                                    ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
-                                    : "bg-surface border-border hover:bg-muted/40"
+                                    ? "bg-primary border-primary text-white"
+                                    : "border-border bg-surface text-transparent"
                             }`}
                         >
-                            <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                                    isHomeroom
-                                        ? "bg-primary border-primary text-white"
-                                        : "border-border bg-surface text-transparent"
-                                }`}
-                            >
-                                <FiCheck size={13} className="stroke-[3]" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                    <FiUserCheck className={`text-[13px] ${isHomeroom ? "text-primary" : "text-text-muted"}`} />
-                                    <span className="text-[13px] font-bold text-text-primary">Wali Kelas</span>
-                                </div>
-                                <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
-                                    Mendampingi kelas binaan & rekap siswa
-                                </p>
-                            </div>
+                            <FiCheck size={13} className="stroke-[3]" />
                         </div>
-
-                        {/* Option 2: Guru Piket */}
-                        <div
-                            onClick={handleToggleDuty}
-                            className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
-                                isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
-                            } ${
-                                isDuty
-                                    ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
-                                    : "bg-surface border-border hover:bg-muted/40"
-                            }`}
-                        >
-                            <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                                    isDuty
-                                        ? "bg-primary border-primary text-white"
-                                        : "border-border bg-surface text-transparent"
-                                }`}
-                            >
-                                <FiCheck size={13} className="stroke-[3]" />
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                                <FiUserCheck className={`text-[13px] ${isHomeroom ? "text-primary" : "text-text-muted"}`} />
+                                <span className="text-[13px] font-bold text-text-primary">Wali Kelas</span>
                             </div>
-                            <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                    <FiShield className={`text-[13px] ${isDuty ? "text-primary" : "text-text-muted"}`} />
-                                    <span className="text-[13px] font-bold text-text-primary">Guru Piket</span>
-                                </div>
-                                <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
-                                    Kelola presensi harian & verifikasi izin
-                                </p>
-                            </div>
+                            <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                                Mendampingi kelas binaan & rekap siswa
+                            </p>
                         </div>
                     </div>
-                    {roleError && (
-                        <p className="text-[12px] text-danger mt-1.5 font-medium">{roleError}</p>
-                    )}
-                </div>
 
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Email Resmi Sekolah (Opsional)
-                    </label>
-                    <Input
-                        type="email"
-                        placeholder="nama@smauii.sch.id"
-                        value={data.email}
-                        onChange={(e) => setData("email", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.email && (
-                        <p className="text-[12px] text-danger mt-1">{errors.email}</p>
-                    )}
+                    {/* Option 2: Guru Piket */}
+                    <div
+                        onClick={handleToggleDuty}
+                        className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
+                            isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
+                        } ${
+                            isDuty
+                                ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
+                                : "bg-surface border-border hover:bg-muted/40"
+                        }`}
+                    >
+                        <div
+                            className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                isDuty
+                                    ? "bg-primary border-primary text-white"
+                                    : "border-border bg-surface text-transparent"
+                            }`}
+                        >
+                            <FiCheck size={13} className="stroke-[3]" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                                <FiShield className={`text-[13px] ${isDuty ? "text-primary" : "text-text-muted"}`} />
+                                <span className="text-[13px] font-bold text-text-primary">Guru Piket</span>
+                            </div>
+                            <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                                Kelola presensi harian & verifikasi izin
+                            </p>
+                        </div>
+                    </div>
                 </div>
+                {roleError && (
+                    <p className="text-[12px] text-danger mt-1.5 font-medium">{roleError}</p>
+                )}
+            </div>
 
-                {isUnlocked && (
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Email Resmi Sekolah (Opsional)
+                </label>
+                <Input
+                    type="email"
+                    placeholder="nama@smauii.sch.id"
+                    value={data.email}
+                    onChange={(e) => setData("email", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.email && (
+                    <p className="text-[12px] text-danger mt-1">{errors.email}</p>
+                )}
+            </div>
+
+            {/* Account Credentials (Only when unlocked) */}
+            {isUnlocked && (
+                <div className="p-3 bg-muted/40 border border-border rounded-xl space-y-2">
+                    <p className="text-[12px] font-bold text-text-primary">
+                        Kredensial Akun Login
+                    </p>
                     <div>
                         <label className="block text-[13px] font-medium text-text-primary mb-1">
                             {isCreate
-                                ? "Password Akun Login"
+                                ? "Password Akun"
                                 : "Password Baru (Kosongkan jika tetap)"}
                         </label>
                         <Input
@@ -365,27 +375,8 @@ export default function TeacherDrawerForm({
                             </p>
                         )}
                     </div>
-                )}
-
-                {isUnlocked && (
-                    <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                        <Button
-                            variant="secondary"
-                            type="button"
-                            onClick={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
-                        >
-                            Batal
-                        </Button>
-                        <Button variant="primary" type="submit" disabled={processing}>
-                            {processing
-                                ? "Menyimpan..."
-                                : isCreate
-                                ? "Simpan Guru"
-                                : "Perbarui Guru"}
-                        </Button>
-                    </div>
-                )}
-            </form>
+                </div>
+            )}
         </Drawer>
     );
 }

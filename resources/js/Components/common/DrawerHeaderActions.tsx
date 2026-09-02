@@ -9,6 +9,8 @@ export interface CopyField {
 }
 
 interface DrawerHeaderActionsProps {
+    mode?: "create" | "edit" | "detail" | null;
+    isCreate?: boolean;
     isUnlocked?: boolean;
     onToggleUnlock?: () => void;
     onDelete?: () => void;
@@ -20,6 +22,8 @@ interface DrawerHeaderActionsProps {
 }
 
 export default function DrawerHeaderActions({
+    mode,
+    isCreate = false,
     isUnlocked = false,
     onToggleUnlock,
     onDelete,
@@ -32,6 +36,8 @@ export default function DrawerHeaderActions({
     const [menuOpen, setMenuOpen] = useState(false);
     const [copiedType, setCopiedType] = useState<"csv" | "md" | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    const isInCreateMode = isCreate || mode === "create";
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -82,6 +88,16 @@ export default function DrawerHeaderActions({
             }, 1200);
         });
     };
+
+    if (isInCreateMode) {
+        return (
+            <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                    Tambah Baru
+                </span>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center gap-1 sm:gap-1.5 font-inter">

@@ -15,11 +15,15 @@ export interface DrawerProps {
     description?: string;
     children: ReactNode;
     onSubmit?: (e?: React.FormEvent) => void;
+    onCancel?: () => void;
     submitLabel?: string;
+    cancelLabel?: string;
     loading?: boolean;
+    disabled?: boolean;
     width?: "sm" | "md" | "lg" | "xl";
     headerActions?: ReactNode;
     showFooter?: boolean;
+    footer?: ReactNode;
 }
 
 const widthClasses = {
@@ -36,11 +40,15 @@ export default function Drawer({
     description,
     children,
     onSubmit,
+    onCancel,
     submitLabel = "Simpan",
+    cancelLabel = "Batal",
     loading = false,
+    disabled = false,
     width = "md",
     headerActions,
     showFooter = true,
+    footer,
 }: DrawerProps) {
     const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
@@ -76,6 +84,42 @@ export default function Drawer({
         if (!isDesktop && (info.offset.y > 100 || info.velocity.y > 500)) {
             onClose();
         }
+    };
+
+    const handleCancelClick = () => {
+        if (onCancel) {
+            onCancel();
+        } else {
+            onClose();
+        }
+    };
+
+    const renderFooterContent = () => {
+        if (footer) return footer;
+
+        return (
+            <>
+                <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleCancelClick}
+                    dusk="drawer-cancel-btn"
+                    data-testid="drawer-cancel-btn"
+                >
+                    {cancelLabel}
+                </Button>
+                <Button
+                    type="submit"
+                    variant="primary"
+                    loading={loading}
+                    disabled={disabled}
+                    dusk="drawer-submit-btn"
+                    data-testid="drawer-submit-btn"
+                >
+                    {submitLabel}
+                </Button>
+            </>
+        );
     };
 
     return (
@@ -114,7 +158,7 @@ export default function Drawer({
                         </div>
 
                         {/* Drawer Header */}
-                        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-b border-border select-none shrink-0 bg-surface gap-2.5">
+                        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-b border-border select-none shrink-0 bg-surface gap-2.5 min-h-[52px]">
                             <div className="min-w-0 flex-1">
                                 <TruncatedText
                                     as="h2"
@@ -152,39 +196,31 @@ export default function Drawer({
                         {onSubmit ? (
                             <form
                                 onSubmit={handleSubmitClick}
-                                className="flex-1 flex flex-col min-h-0 overflow-hidden"
+                                className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter"
                             >
-                                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain">
+                                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain">
                                     {children}
                                 </div>
 
                                 {/* Sticky Footer (Only shown when showFooter is true) */}
                                 {showFooter && (
-                                    <div className="flex items-center justify-end gap-3 p-4 sm:p-5 border-t border-border select-none shrink-0 bg-surface pb-safe">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={onClose}
-                                            dusk="drawer-cancel-btn"
-                                            data-testid="drawer-cancel-btn"
-                                        >
-                                            Batal
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            variant="primary"
-                                            loading={loading}
-                                            dusk="drawer-submit-btn"
-                                            data-testid="drawer-submit-btn"
-                                        >
-                                            {submitLabel}
-                                        </Button>
+                                    <div className="flex items-center justify-end gap-2.5 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe">
+                                        {renderFooterContent()}
                                     </div>
                                 )}
                             </form>
                         ) : (
-                            <div className="flex-1 overflow-y-auto p-5 sm:p-6 pb-safe overscroll-contain">
-                                {children}
+                            <div className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter">
+                                <div className={`flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain ${!showFooter ? "pb-safe" : ""}`}>
+                                    {children}
+                                </div>
+
+                                {/* Custom Sticky Footer without onSubmit */}
+                                {showFooter && footer && (
+                                    <div className="flex items-center justify-end gap-2.5 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe">
+                                        {footer}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </motion.div>

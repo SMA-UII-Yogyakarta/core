@@ -1,6 +1,7 @@
 import { useForm } from "@inertiajs/react";
-import { useEffect, useState, useMemo } from "react";
-import { Drawer, DrawerHeaderActions, Input, SelectInput, Button } from "@/Components";
+import { useEffect, useMemo } from "react";
+import { useState } from "react";
+import { Drawer, DrawerHeaderActions, Input, SelectInput } from "@/Components";
 import { schoolClassSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import { FiTag, FiCalendar } from "react-icons/fi";
@@ -91,8 +92,8 @@ export default function ClassDrawerForm({
         setData("name", name);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (!isUnlocked) return;
 
         const validationData = {
@@ -152,12 +153,13 @@ export default function ClassDrawerForm({
         ? "Buat rombongan belajar baru atau gunakan tag nama kelas."
         : undefined;
 
-    const headerActions = !isCreate && schoolClass ? (
+    const headerActions = (
         <DrawerHeaderActions
+            mode={isCreate ? "create" : isUnlocked ? "edit" : "detail"}
             isUnlocked={isUnlocked}
             onToggleUnlock={() => setUnlockedByUser((prev) => !prev)}
             onDelete={
-                onRequestDelete
+                !isCreate && schoolClass && onRequestDelete
                     ? () => {
                           handleClose();
                           onRequestDelete("classes", schoolClass.id, schoolClass.name);
@@ -165,9 +167,9 @@ export default function ClassDrawerForm({
                     : undefined
             }
             copyFields={copyFields}
-            entityTitle={`Data Kelas - ${schoolClass.name}`}
+            entityTitle={`Data Kelas - ${schoolClass?.name || "Baru"}`}
         />
-    ) : null;
+    );
 
     return (
         <Drawer
@@ -177,143 +179,127 @@ export default function ClassDrawerForm({
             description={description}
             headerActions={headerActions}
             width="md"
+            onSubmit={handleSubmit}
+            onCancel={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
+            submitLabel={isCreate ? "Simpan Kelas" : "Perbarui Kelas"}
+            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            loading={processing}
             showFooter={isUnlocked}
         >
-            <form onSubmit={handleSubmit} className="space-y-4 font-inter">
-                <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Nama Kelas / Rombel <span className="text-danger">*</span>
-                    </label>
-                    <Input
-                        placeholder="Contoh: X-A atau X-A (Fase E - 1)"
-                        value={data.name}
-                        onChange={(e) => setData("name", e.target.value)}
-                        disabled={isReadOnly}
-                    />
-                    {errors.name && (
-                        <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                    )}
+            <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    Nama Kelas / Rombel <span className="text-danger">*</span>
+                </label>
+                <Input
+                    placeholder="Contoh: X-A atau X-A (Fase E - 1)"
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                    disabled={isReadOnly}
+                />
+                {errors.name && (
+                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
+                )}
 
-                    {/* Quick Tag Suggestions for Existing Class Names */}
-                    {isUnlocked && existingClassNames.length > 0 && (
-                        <div className="mt-2 p-2.5 bg-muted/20 border border-border rounded-xl">
-                            <p className="text-[11px] font-bold text-text-secondary mb-1.5 flex items-center gap-1.5">
-                                <FiTag className="text-primary text-[11px]" />
-                                Tag Nama Kelas Yang Sudah Ada:
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {existingClassNames.map((name) => {
-                                    const isSelected = data.name.trim().toLowerCase() === name.toLowerCase();
-                                    return (
-                                        <button
-                                            key={name}
-                                            type="button"
-                                            onClick={() => handleSelectExistingName(name)}
-                                            className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors cursor-pointer ${
-                                                isSelected
-                                                    ? "bg-primary text-white border-primary shadow-xs"
-                                                    : "bg-surface text-text-primary border-border hover:border-primary/40 hover:bg-primary/5"
-                                            }`}
-                                        >
-                                            {name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <p className="text-[10px] text-text-muted mt-1.5 leading-snug">
-                                Klik nama kelas di atas jika ingin membuat kelas yang sama untuk angkatan / tahun ajaran baru.
-                            </p>
+                {/* Quick Tag Suggestions for Existing Class Names */}
+                {isUnlocked && existingClassNames.length > 0 && (
+                    <div className="mt-2 p-2.5 bg-muted/20 border border-border rounded-xl">
+                        <p className="text-[11px] font-bold text-text-secondary mb-1.5 flex items-center gap-1.5">
+                            <FiTag className="text-primary text-[11px]" />
+                            Tag Nama Kelas Yang Sudah Ada:
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {existingClassNames.map((name) => {
+                                const isSelected = data.name.trim().toLowerCase() === name.toLowerCase();
+                                return (
+                                    <button
+                                        key={name}
+                                        type="button"
+                                        onClick={() => handleSelectExistingName(name)}
+                                        className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors cursor-pointer ${
+                                            isSelected
+                                                ? "bg-primary text-white border-primary shadow-xs"
+                                                : "bg-surface text-text-primary border-border hover:border-primary/40 hover:bg-primary/5"
+                                        }`}
+                                    >
+                                        {name}
+                                    </button>
+                                );
+                            })}
                         </div>
-                    )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-[13px] font-medium text-text-primary mb-1">
-                            Tingkat / Jenjang <span className="text-danger">*</span>
-                        </label>
-                        <SelectInput
-                            value={data.level}
-                            onChange={(val) => setData("level", val ? String(val) : "X")}
-                            options={[
-                                { value: "X", label: "Kelas X (Fase E)" },
-                                { value: "XI", label: "Kelas XI (Fase F)" },
-                                { value: "XII", label: "Kelas XII (Fase F)" },
-                            ]}
-                            disabled={isReadOnly}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[13px] font-medium text-text-primary mb-1 flex items-center gap-1.5">
-                            <FiCalendar className="text-primary text-[12px]" />
-                            Tahun Ajaran / Angkatan <span className="text-danger">*</span>
-                        </label>
-                        <Input
-                            placeholder="Contoh: 2024/2025"
-                            value={data.academic_year}
-                            onChange={(e) => setData("academic_year", e.target.value)}
-                            disabled={isReadOnly}
-                        />
-                        {errors.academic_year && (
-                            <p className="text-[12px] text-danger mt-1">{errors.academic_year}</p>
-                        )}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-[13px] font-medium text-text-primary mb-1">
-                            Kapasitas Maksimal Siswa <span className="text-danger">*</span>
-                        </label>
-                        <Input
-                            type="number"
-                            placeholder="Contoh: 36"
-                            value={data.capacity}
-                            onChange={(e) => setData("capacity", e.target.value)}
-                            disabled={isReadOnly}
-                        />
-                        {errors.capacity && (
-                            <p className="text-[12px] text-danger mt-1">{errors.capacity}</p>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-[13px] font-medium text-text-primary mb-1">
-                            Wali Kelas Terpilih
-                        </label>
-                        <SelectInput
-                            value={data.teacher_id ? String(data.teacher_id) : ""}
-                            onChange={(val) => setData("teacher_id", val ? String(val) : "")}
-                            options={[
-                                { value: "", label: "Belum Ditentukan" },
-                                ...allTeachers.map((t) => ({
-                                    value: String(t.id),
-                                    label: `${t.name} (${t.teacher_code})`,
-                                })),
-                            ]}
-                            disabled={isReadOnly}
-                        />
-                    </div>
-                </div>
-
-                {isUnlocked && (
-                    <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                        <Button
-                            variant="secondary"
-                            type="button"
-                            onClick={() => (isCreate ? handleClose() : setUnlockedByUser(false))}
-                        >
-                            Batal
-                        </Button>
-                        <Button variant="primary" type="submit" disabled={processing}>
-                            {processing
-                                ? "Menyimpan..."
-                                : isCreate
-                                ? "Simpan Kelas"
-                                : "Perbarui Kelas"}
-                        </Button>
+                        <p className="text-[10px] text-text-muted mt-1.5 leading-snug">
+                            Klik nama kelas di atas jika ingin membuat kelas yang sama untuk angkatan / tahun ajaran baru.
+                        </p>
                     </div>
                 )}
-            </form>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">
+                        Tingkat / Jenjang <span className="text-danger">*</span>
+                    </label>
+                    <SelectInput
+                        value={data.level}
+                        onChange={(val) => setData("level", val ? String(val) : "X")}
+                        options={[
+                            { value: "X", label: "Kelas X (Fase E)" },
+                            { value: "XI", label: "Kelas XI (Fase F)" },
+                            { value: "XII", label: "Kelas XII (Fase F)" },
+                        ]}
+                        disabled={isReadOnly}
+                    />
+                </div>
+                <div>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1 flex items-center gap-1.5">
+                        <FiCalendar className="text-primary text-[12px]" />
+                        Tahun Ajaran / Angkatan <span className="text-danger">*</span>
+                    </label>
+                    <Input
+                        placeholder="Contoh: 2024/2025"
+                        value={data.academic_year}
+                        onChange={(e) => setData("academic_year", e.target.value)}
+                        disabled={isReadOnly}
+                    />
+                    {errors.academic_year && (
+                        <p className="text-[12px] text-danger mt-1">{errors.academic_year}</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">
+                        Kapasitas Maksimal Siswa <span className="text-danger">*</span>
+                    </label>
+                    <Input
+                        type="number"
+                        placeholder="Contoh: 36"
+                        value={data.capacity}
+                        onChange={(e) => setData("capacity", e.target.value)}
+                        disabled={isReadOnly}
+                    />
+                    {errors.capacity && (
+                        <p className="text-[12px] text-danger mt-1">{errors.capacity}</p>
+                    )}
+                </div>
+                <div>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">
+                        Wali Kelas Terpilih
+                    </label>
+                    <SelectInput
+                        value={data.teacher_id ? String(data.teacher_id) : ""}
+                        onChange={(val) => setData("teacher_id", val ? String(val) : "")}
+                        options={[
+                            { value: "", label: "Belum Ditentukan" },
+                            ...allTeachers.map((t) => ({
+                                value: String(t.id),
+                                label: `${t.name} (${t.teacher_code})`,
+                            })),
+                        ]}
+                        disabled={isReadOnly}
+                    />
+                </div>
+            </div>
         </Drawer>
     );
 }
