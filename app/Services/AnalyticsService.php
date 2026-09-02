@@ -21,40 +21,59 @@ class AnalyticsService
     public function schoolOverview(?string $date = null): array
     {
         $date = $date ?? now()->toDateString();
-        $classes = SchoolClass::all();
+        $classes = SchoolClass::select('id', 'name')->orderBy('name')->get();
 
-        $studentsByClass = Student::where('status', 'Active')
-            ->get()
-            ->groupBy('class_id');
-        $total = $studentsByClass->flatten()->count();
+        $studentCounts = Student::where('status', 'Active')
+            ->selectRaw('class_id, count(*) as total')
+            ->groupBy('class_id')
+            ->pluck('total', 'class_id');
 
-        $attendances = Attendance::with('student')
-            ->whereDate('attendance_date', $date)
+        $total = $studentCounts->sum();
+
+        $attendanceCounts = \Illuminate\Support\Facades\DB::table('attendances')
+            ->join('students', 'students.id', '=', 'attendances.student_id')
+            ->whereDate('attendances.attendance_date', $date)
+            ->where('students.status', 'Active')
+            ->selectRaw('students.class_id, attendances.status, count(*) as count')
+            ->groupBy('students.class_id', 'attendances.status')
             ->get();
 
-        $present = $attendances->where('status', 'Present')->count();
-        $late = $attendances->where('status', 'Late')->count();
+        $presentByClass = [];
+        $lateByClass = [];
+        $totalPresent = 0;
+        $totalLate = 0;
+
+        foreach ($attendanceCounts as $row) {
+            if ($row->status === 'Present') {
+                $presentByClass[$row->class_id] = (int) $row->count;
+                $totalPresent += (int) $row->count;
+            } elseif ($row->status === 'Late') {
+                $lateByClass[$row->class_id] = (int) $row->count;
+                $totalLate += (int) $row->count;
+            }
+        }
+
         $sick = LeaveRequest::where('approval_status', 'Approved')
             ->whereDate('start_date', '<=', $date)
             ->whereDate('end_date', '>=', $date)
             ->count();
 
-        $hadirTerdata = $present + $late;
+        $hadirTerdata = $totalPresent + $totalLate;
 
         $classStats = $classes->map(fn ($c) => [
             'id' => $c->id,
             'name' => $c->name,
-            'total' => $studentsByClass->get($c->id)?->count() ?? 0,
-            'present' => $attendances->where('student.class_id', $c->id)->where('status', 'Present')->count(),
-            'late' => $attendances->where('student.class_id', $c->id)->where('status', 'Late')->count(),
+            'total' => (int) ($studentCounts[$c->id] ?? 0),
+            'present' => $presentByClass[$c->id] ?? 0,
+            'late' => $lateByClass[$c->id] ?? 0,
         ]);
 
         return [
             'date' => $date,
             'total_students' => $total,
             'verified_present' => $hadirTerdata,
-            'present' => $present,
-            'late' => $late,
+            'present' => $totalPresent,
+            'late' => $totalLate,
             'sick_permission' => $sick,
             'absent' => max(0, $total - $hadirTerdata - $sick),
             'classes' => $classStats,

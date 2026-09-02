@@ -2,7 +2,6 @@
 
 namespace App\Permissions;
 
-use App\Enums\TeacherType;
 use App\Models\User;
 
 class PermissionRegistry
@@ -16,7 +15,7 @@ class PermissionRegistry
             'dashboard' => ['*'], // redirector
 
             // Operational
-            'monitoring' => ['admin', 'teacher:piket'],
+            'monitoring' => ['admin', 'teacher:duty'],
             'master-data' => ['admin'],
             'master-data.*' => ['admin'],
             'class-enrolment' => ['admin'],
@@ -30,32 +29,32 @@ class PermissionRegistry
             'attendance-correction' => ['admin'],
 
             // Leave
-            'leave-requests' => ['admin', 'teacher:piket', 'teacher:wali'],
-            'leave-requests.verification' => ['admin', 'teacher:wali'],
-            'leave-requests.approve' => ['admin', 'teacher:wali'],
-            'leave-requests.reject' => ['admin', 'teacher:wali'],
-            'leave-requests.bulk-verify' => ['admin', 'teacher:wali'],
+            'leave-requests' => ['admin', 'teacher:duty', 'teacher:homeroom'],
+            'leave-requests.verification' => ['admin', 'teacher:homeroom'],
+            'leave-requests.approve' => ['admin', 'teacher:homeroom'],
+            'leave-requests.reject' => ['admin', 'teacher:homeroom'],
+            'leave-requests.bulk-verify' => ['admin', 'teacher:homeroom'],
 
             // Attendance
             'student.attendance' => ['student'],
             'student.attendance.*' => ['student'], // covers check-in
 
             // Reports
-            'reports.daily' => ['admin', 'teacher:piket', 'teacher:wali'],
-            'reports.monthly' => ['admin', 'teacher:wali'],
-            'reports.semester' => ['admin', 'teacher:wali'],
+            'reports.daily' => ['admin', 'teacher:duty', 'teacher:homeroom'],
+            'reports.monthly' => ['admin', 'teacher:homeroom'],
+            'reports.semester' => ['admin', 'teacher:homeroom'],
 
             // Export
-            'export' => ['admin', 'teacher:piket', 'teacher:wali'],
+            'export' => ['admin', 'teacher:duty', 'teacher:homeroom'],
             'export.teachers' => ['admin'],
-            'export.*' => ['admin', 'teacher:piket', 'teacher:wali'],
+            'export.*' => ['admin', 'teacher:duty', 'teacher:homeroom'],
 
             // Teacher
-            'teacher.duty' => ['teacher:piket'],
-            'teacher.homeroom' => ['teacher:wali'],
+            'teacher.duty' => ['teacher:duty'],
+            'teacher.homeroom' => ['teacher:homeroom'],
 
             // Homeroom Teacher Reports
-            'reports' => ['teacher:piket', 'teacher:wali'],
+            'reports' => ['teacher:duty', 'teacher:homeroom'],
 
             // Guardian
             'guardian.dashboard' => ['guardian'],
@@ -89,8 +88,8 @@ class PermissionRegistry
                 'label' => 'Utama',
                 'items' => [
                     ['key' => 'dashboard-admin',    'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/dashboard',               'roles' => ['admin']],
-                    ['key' => 'dashboard-piket',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:piket']],
-                    ['key' => 'dashboard-wali',     'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:wali']],
+                    ['key' => 'dashboard-piket',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:duty']],
+                    ['key' => 'dashboard-wali',     'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:homeroom']],
                     ['key' => 'dashboard-guardian', 'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/guardian',                'roles' => ['guardian']],
                     ['key' => 'dashboard-siswa',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/student/dashboard',       'roles' => ['student']],
 
@@ -98,13 +97,13 @@ class PermissionRegistry
                     ['key' => 'class-enrolment',    'label' => 'Enrolment Kelas',   'icon' => 'fa-chalkboard-teacher','href' => '/class-enrolment',      'roles' => ['admin']],
                     ['key' => 'guardian-assignment','label' => 'Relasi Wali Murid', 'icon' => 'fa-users-cog',        'href' => '/guardian-assignment',  'roles' => ['admin']],
                     ['key' => 'operational-settings','label' => 'Atur Waktu & Libur','icon' => 'fa-clock',             'href' => '/operational-settings', 'roles' => ['admin']],
-                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:piket']],
+                    ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:duty']],
 
-                    ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:piket']],
-                    ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:wali']],
+                    ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:duty']],
+                    ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:homeroom']],
 
-                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:wali']],
-                    ['key' => 'reports.daily',      'label' => 'Rekap Harian',      'icon' => 'fa-history',           'href' => '/reports?tab=daily',    'roles' => ['teacher:piket']],
+                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:homeroom']],
+                    ['key' => 'reports.daily',      'label' => 'Rekap Harian',      'icon' => 'fa-history',           'href' => '/reports?tab=daily',    'roles' => ['teacher:duty']],
 
                     ['key' => 'guardian.leave-application', 'label' => 'Pengajuan Izin', 'icon' => 'fa-paper-plane', 'href' => '/guardian/leave-application', 'roles' => ['guardian']],
                     ['key' => 'guardian.history',           'label' => 'Riwayat',        'icon' => 'fa-history',      'href' => '/guardian/history',           'roles' => ['guardian']],
@@ -139,14 +138,13 @@ class PermissionRegistry
                 [$baseRole, $subType] = explode(':', $role);
                 if ($user->role === $baseRole) {
                     if ($baseRole === 'teacher' && $user->teacher) {
-                        $teacherType = $user->teacher->teacher_type;
                         if ($subType === 'both') {
                             return true;
                         }
-                        if ($teacherType === $subType) {
+                        if ($subType === 'homeroom' && $user->teacher->isHomeroom()) {
                             return true;
                         }
-                        if ($teacherType === TeacherType::BOTH->value) {
+                        if ($subType === 'duty' && $user->teacher->isDuty()) {
                             return true;
                         }
                     }
@@ -159,22 +157,22 @@ class PermissionRegistry
     }
 
     /** @return list<array<string, mixed>> */
-    public static function getNavFor(User $user): array
+    public static function getNavFor(User $user, ?string $activeTeacherRole = null): array
     {
         $sections = [];
         foreach (self::navSections() as $sectionKey => $section) {
             $sectionRoles = $section['roles'] ?? ['*'];
             $hasAccess = in_array('*', $sectionRoles) ||
-                collect($sectionRoles)->contains(fn ($r) => self::roleMatches($user, $r));
+                collect($sectionRoles)->contains(fn ($r) => self::roleMatches($user, $r, $activeTeacherRole));
 
             if (! $hasAccess) {
                 continue;
             }
 
-            $filteredItems = collect($section['items'])->filter(function ($item) use ($user) {
+            $filteredItems = collect($section['items'])->filter(function ($item) use ($user, $activeTeacherRole) {
                 $itemRoles = $item['roles'] ?? ['*'];
                 return in_array('*', $itemRoles) ||
-                    collect($itemRoles)->contains(fn ($r) => self::roleMatches($user, $r));
+                    collect($itemRoles)->contains(fn ($r) => self::roleMatches($user, $r, $activeTeacherRole));
             })->values()->all();
 
             if (empty($filteredItems)) {
@@ -186,7 +184,7 @@ class PermissionRegistry
         return $sections;
     }
 
-    private static function roleMatches(User $user, string $role): bool
+    private static function roleMatches(User $user, string $role, ?string $activeTeacherRole = null): bool
     {
         if (str_contains($role, ':')) {
             [$baseRole, $subType] = explode(':', $role);
@@ -194,8 +192,16 @@ class PermissionRegistry
                 return false;
             }
             if ($baseRole === 'teacher' && $user->teacher) {
-                $teacherType = $user->teacher->teacher_type;
-                return $teacherType === $subType || $teacherType === TeacherType::BOTH->value;
+                if ($activeTeacherRole) {
+                    return $subType === $activeTeacherRole;
+                }
+                if ($subType === 'homeroom') {
+                    return $user->teacher->isHomeroom();
+                }
+                if ($subType === 'duty') {
+                    return $user->teacher->isDuty();
+                }
+                return true;
             }
             return false;
         }

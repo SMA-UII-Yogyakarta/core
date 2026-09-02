@@ -38,12 +38,29 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        $activeRole = null;
+        if ($user && $user->role === 'teacher' && $user->teacher) {
+            $types = $user->teacher->teacher_type?->map(fn ($t) => $t->value)->toArray() ?? [];
+
+            $activeRole = session('active_teacher_role');
+            if (! $activeRole || ! in_array($activeRole, $types)) {
+                $activeRole = in_array('homeroom', $types) ? 'homeroom' : (in_array('duty', $types) ? 'duty' : null);
+                if ($activeRole) {
+                    session(['active_teacher_role' => $activeRole]);
+                }
+            }
+        }
+
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'auth' => [
                 'user' => $user
-                    ? $user->only('id', 'name', 'email', 'role', 'teacher')
+                    ? array_merge($user->only('id', 'name', 'email', 'role', 'teacher'), [
+                        'avatar' => $user->avatar,
+                        'avatar_url' => $user->avatar,
+                        'active_teacher_role' => $activeRole,
+                    ])
                     : null,
                 'unreadCount' => $user
                     ? \App\Models\Notification::where(function ($query) use ($user) {
@@ -90,7 +107,7 @@ class HandleInertiaRequests extends Middleware
                     })
                     : [],
             ],
-            'navSections' => $user ? PermissionRegistry::getNavFor($user) : [],
+            'navSections' => $user ? PermissionRegistry::getNavFor($user, $activeRole) : [],
             // Flash Messages untuk Toast component
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

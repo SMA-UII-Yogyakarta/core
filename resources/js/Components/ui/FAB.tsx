@@ -10,9 +10,9 @@ export interface FABProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const positionClasses = {
-    "bottom-right": "bottom-20 right-5 lg:bottom-8 lg:right-8",
-    "bottom-left": "bottom-20 left-5 lg:bottom-8 lg:left-8",
-    "bottom-center": "bottom-20 left-1/2 -translate-x-1/2",
+    "bottom-right": "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-5 lg:bottom-8 lg:right-8",
+    "bottom-left": "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-5 lg:bottom-8 lg:left-8",
+    "bottom-center": "bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2",
 };
 
 const variantClasses = {

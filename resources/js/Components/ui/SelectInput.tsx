@@ -132,11 +132,11 @@ export default function SelectInput({
                     disabled={disabled}
                     onClick={() => !disabled && (isOpen ? close() : openDropdown())}
                     onKeyDown={handleKeyDown}
-                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-lg text-[14px] font-inter text-left bg-surface
-                        focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
+                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-xl text-[13px] font-medium font-inter text-left bg-surface
+                        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150
                         disabled:opacity-50 disabled:cursor-not-allowed
                         ${error ? "border-danger ring-1 ring-danger/40" : "border-border"}
-                        ${isOpen ? "ring-2 ring-primary/40 border-transparent" : ""}`}
+                        ${isOpen ? "ring-2 ring-primary/20 border-primary/40" : ""}`}
                 >
                     <span className={selectedOption ? "text-text-primary" : "text-text-inactive"}>
                         {selectedOption?.label || placeholder}
@@ -166,7 +166,7 @@ export default function SelectInput({
                 </button>
 
                 {isOpen && (
-                    <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-lg shadow-lg z-50">
+                    <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">
                         <div className="px-3 py-2 border-b border-border">
                             <input
                                 ref={searchInputRef}

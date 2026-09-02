@@ -17,7 +17,7 @@ class OverviewController extends Controller
         }
 
         return match ($user->role) {
-            'teacher' => $user->teacher?->isWaliKelas()
+            'teacher' => $user->teacher?->isHomeroom()
                 ? redirect()->route('teacher.homeroom')
                 : redirect()->route('teacher.duty'),
             'guardian' => redirect()->route('guardian.dashboard', $request->query()),

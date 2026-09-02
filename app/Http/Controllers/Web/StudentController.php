@@ -67,7 +67,7 @@ class StudentController extends Controller
                 request()->only(['search']),
             );
             return Inertia::render('Admin/MasterData', [
-                'activeTab' => 'wali',
+                'activeTab' => 'guardians',
                 'guardians' => $guardians,
                 'filters' => request()->only(['search', 'tab']),
             ]);

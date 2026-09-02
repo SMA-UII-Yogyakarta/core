@@ -32,7 +32,7 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
         }
 
         if (role === "teacher") {
-            if (teacherType === "piket") {
+            if (teacherType === "duty") {
                 return [
                     { label: "Home", icon: "fa-home", href: "/teacher/duty" },
                     { label: "Pantauan", icon: "fa-clipboard-list", href: "/leave-requests" },

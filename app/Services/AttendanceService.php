@@ -313,24 +313,19 @@ class AttendanceService
 
     public function getStudentStats(int $studentId, ?int $month = null, ?int $year = null): array
     {
-        $query = Attendance::where('student_id', $studentId);
-        $presentQuery = Attendance::where('student_id', $studentId)->where('status', 'Present');
-        $lateQuery = Attendance::where('student_id', $studentId)->where('status', 'Late');
+        $stats = Attendance::where('student_id', $studentId)
+            ->when($month, fn ($q, $v) => $q->whereMonth('attendance_date', $v))
+            ->when($year, fn ($q, $v) => $q->whereYear('attendance_date', $v))
+            ->selectRaw("
+                count(*) as total,
+                count(case when status = 'Present' then 1 end) as present,
+                count(case when status = 'Late' then 1 end) as late
+            ")
+            ->first();
 
-        if ($month) {
-            $query->whereMonth('attendance_date', $month);
-            $presentQuery->whereMonth('attendance_date', $month);
-            $lateQuery->whereMonth('attendance_date', $month);
-        }
-        if ($year) {
-            $query->whereYear('attendance_date', $year);
-            $presentQuery->whereYear('attendance_date', $year);
-            $lateQuery->whereYear('attendance_date', $year);
-        }
-
-        $total = $query->count();
-        $present = $presentQuery->count();
-        $late = $lateQuery->count();
+        $total = (int) ($stats->total ?? 0);
+        $present = (int) ($stats->present ?? 0);
+        $late = (int) ($stats->late ?? 0);
 
         return [
             'total_days' => $total,
@@ -357,9 +352,20 @@ class AttendanceService
             ->where('status', 'Active')
             ->count();
 
-        $attendances = Attendance::whereDate('attendance_date', $date)
-            ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
-            ->get();
+        $attStats = Attendance::query()
+            ->join('students', 'students.id', '=', 'attendances.student_id')
+            ->where('students.class_id', $classId)
+            ->whereDate('attendances.attendance_date', $date)
+            ->selectRaw("
+                count(*) as total_recorded,
+                count(case when attendances.status = 'Present' then 1 end) as present,
+                count(case when attendances.status = 'Late' then 1 end) as late
+            ")
+            ->first();
+
+        $present = (int) ($attStats->present ?? 0);
+        $late = (int) ($attStats->late ?? 0);
+        $totalRecorded = (int) ($attStats->total_recorded ?? 0);
 
         $sickCount = LeaveRequest::where('approval_status', 'Approved')
             ->where('category', 'Sick')
@@ -370,9 +376,9 @@ class AttendanceService
 
         return [
             'total' => $students,
-            'present' => $attendances->where('status', 'Present')->count(),
-            'late' => $attendances->where('status', 'Late')->count(),
-            'absent' => $students - $attendances->count(),
+            'present' => $present,
+            'late' => $late,
+            'absent' => max(0, $students - $totalRecorded),
             'sick_permission' => $sickCount,
         ];
     }

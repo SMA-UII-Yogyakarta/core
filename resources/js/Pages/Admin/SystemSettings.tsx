@@ -7,9 +7,11 @@ import Button from "@/Components/ui/Button";
 import Card from "@/Components/ui/Card";
 import NativeSelect from "@/Components/ui/NativeSelect";
 import Toggle from "@/Components/ui/Toggle";
+import TabSwitcher from "@/Components/common/TabSwitcher";
 import { MapPreview } from "@/Components/common/MapPreview";
 import { validateForm } from "@/utils/zodHelper";
 import { locationSettingSchema } from "@/schemas/locationSetting.schema";
+import { toast, getSavedToastPosition, setSavedToastPosition, type ToastPosition } from "@/Components/common/Toast";
 
 interface SchoolLocationSetting {
     id?: number;
@@ -48,6 +50,7 @@ interface SystemSettingsProps {
 
 export default function SystemSettings({ systemInfo, locationSetting }: SystemSettingsProps) {
     const [activeTab, setActiveTab] = useState<"identity" | "location" | "integration" | "security">("identity");
+    const [toastPosition, setToastPositionState] = useState<ToastPosition>(getSavedToastPosition);
 
     // Form 1: Identity & Security Preferences
     const { data, setData, post, processing, errors } = useForm({
@@ -106,60 +109,22 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
             <PageHeader
                 title="Pengaturan Sistem Core Backend"
                 description="Kelola konfigurasi identitas sekolah, titik lokasi geofencing presensi, integrasi API, serta preferensi keamanan SMA UII Core."
+                className="shrink-0 mb-4"
             />
 
-            {/* Navigation Tabs (Responsive & Full Width Compatible) */}
-            <div className="mb-6">
-                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs max-w-2xl overflow-x-auto">
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("identity")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
-                            activeTab === "identity"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
-                    >
-                        <i className="fas fa-school text-[14px]" />
-                        <span>Identitas Sekolah</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("location")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
-                            activeTab === "location"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
-                    >
-                        <i className="fas fa-map-marker-alt text-[14px]" />
-                        <span>Lokasi & Geofence</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("integration")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
-                            activeTab === "integration"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
-                    >
-                        <i className="fas fa-network-wired text-[14px]" />
-                        <span>Integrasi & API</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab("security")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
-                            activeTab === "security"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
-                    >
-                        <i className="fas fa-shield-alt text-[14px]" />
-                        <span>Keamanan System</span>
-                    </button>
-                </div>
+            {/* Navigation Tabs Row (Standard 16px Spacing) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+                <TabSwitcher
+                    tabs={[
+                        { key: "identity", label: "Identitas Sekolah", icon: <i className="fas fa-school text-[14px]" /> },
+                        { key: "location", label: "Lokasi & Geofence", icon: <i className="fas fa-map-marker-alt text-[14px]" /> },
+                        { key: "integration", label: "Integrasi & API", icon: <i className="fas fa-network-wired text-[14px]" /> },
+                        { key: "security", label: "Keamanan System", icon: <i className="fas fa-shield-alt text-[14px]" /> },
+                    ]}
+                    activeKey={activeTab}
+                    onChange={(key) => setActiveTab(key as "identity" | "location" | "integration" | "security")}
+                    variant="segmented"
+                />
             </div>
 
             {/* Tab 1: Identitas Sekolah (Full Width & Clean Grid) */}
@@ -521,6 +486,57 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                                 onChange={(e) => setData("sessionTimeoutMinutes", Number(e.target.value))}
                                 error={errors.sessionTimeoutMinutes}
                             />
+                        </div>
+
+                        {/* Section 3: Preferensi Posisi Notifikasi (Toast) */}
+                        <div className="flex flex-col gap-4 pt-4 border-t border-border/60">
+                            <div>
+                                <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
+                                    <i className="fas fa-bell text-primary text-[14px]" />
+                                    Posisi Notifikasi Sistem (Toaster Notification)
+                                </h3>
+                                <p className="text-[12px] text-text-muted mt-0.5">
+                                    Tentukan sudut layar default untuk menampilkan pesan pop-up notifikasi (sukses, error, informasi).
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                                <div>
+                                    <label className="block text-[13px] font-semibold text-text-primary mb-1.5">
+                                        Pilih Posisi Pop-up Notifikasi
+                                    </label>
+                                    <NativeSelect
+                                        value={toastPosition}
+                                        onChange={(e) => {
+                                            const newPos = e.target.value as ToastPosition;
+                                            setToastPositionState(newPos);
+                                            setSavedToastPosition(newPos);
+                                            toast.success(`Posisi notifikasi diatur ke: ${newPos}`);
+                                        }}
+                                    >
+                                        <option value="bottom-right">Pojok Kanan Bawah (Default)</option>
+                                        <option value="bottom-left">Pojok Kiri Bawah</option>
+                                        <option value="top-right">Pojok Kanan Atas</option>
+                                        <option value="top-left">Pojok Kiri Atas</option>
+                                        <option value="bottom-center">Bawah Tengah</option>
+                                        <option value="top-center">Atas Tengah</option>
+                                    </NativeSelect>
+                                </div>
+
+                                <div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                            toast.success("Ini adalah pratinjau pesan notifikasi berhasil di posisi yang Anda pilih!");
+                                        }}
+                                        className="w-full sm:w-auto h-10 font-bold"
+                                    >
+                                        <i className="fas fa-play text-[11px] mr-1.5" />
+                                        Uji Coba Posisi Notifikasi
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </Card>

@@ -83,16 +83,30 @@ class User extends Authenticatable
             return $value;
         }
 
+        // If it contains /storage-s3/, extract the path
+        if (str_contains($value, '/storage-s3/')) {
+            $path = preg_replace('#^.*\/storage-s3\/#', '', $value);
+            return route('storage-s3', ['path' => $path]);
+        }
+
+        // If it contains rustfs or other storage endpoints
         if (str_contains($value, 'rustfs:9000') || str_contains($value, 'localhost:9000') || str_contains($value, '127.0.0.1:9000')) {
             $path = preg_replace('#^https?://[^/]+/(smauii-attendance/)?#', '', $value);
             return route('storage-s3', ['path' => $path]);
         }
 
-        if (! str_starts_with($value, 'http://') && ! str_starts_with($value, 'https://') && ! str_starts_with($value, '/')) {
-            return route('storage-s3', ['path' => $value]);
+        // If it's a relative storage path (e.g. avatars/2026-09-02/...)
+        if (! str_starts_with($value, 'http://') && ! str_starts_with($value, 'https://')) {
+            $cleanPath = ltrim($value, '/');
+            return route('storage-s3', ['path' => $cleanPath]);
         }
 
         return $value;
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar;
     }
 
     protected static function booted(): void

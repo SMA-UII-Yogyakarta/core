@@ -7,6 +7,7 @@ import MobileSidebarDrawer from "@/Components/layout/MobileSidebarDrawer";
 import MobileBottomNav from "@/Components/layout/MobileBottomNav";
 import DesktopSidebar from "@/Components/layout/DesktopSidebar";
 import TabletIconSidebar from "@/Components/layout/TabletIconSidebar";
+import RoleSwitcherModal from "@/Components/layout/RoleSwitcherModal";
 import { CommandPalette } from "@/Components";
 import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import Toast from "@/Components/common/Toast";
@@ -16,6 +17,11 @@ import { useBottomNavItems } from "@/hooks/useBottomNavItems";
 
 export interface AppShellProps {
     title?: string;
+    onBack?: () => void;
+    headerActions?: ReactNode;
+    showBottomNav?: boolean;
+    showSearch?: boolean;
+    showNotificationBell?: boolean;
     children: ReactNode;
 }
 
@@ -30,13 +36,30 @@ function getInitials(name: string): string {
         .slice(0, 2);
 }
 
-export default function AppShell({ title, children }: AppShellProps) {
+export default function AppShell({
+    title,
+    onBack,
+    headerActions,
+    showBottomNav = true,
+    showSearch = true,
+    showNotificationBell,
+    children,
+}: AppShellProps) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+    const [roleSwitcherOpen, setRoleSwitcherOpen] = useState(false);
 
     const { url, props: pageProps } = usePage<{
         auth?: {
-            user?: { role?: string; teacher?: { teacher_type?: string }; name?: string };
+            user?: {
+                id?: number;
+                role?: string;
+                teacher?: { teacher_type?: string[] };
+                active_teacher_role?: string;
+                name?: string;
+                avatar?: string | null;
+                avatar_url?: string | null;
+            };
             unreadCount?: number;
             recentNotifications?: {
                 id: number;
@@ -49,6 +72,9 @@ export default function AppShell({ title, children }: AppShellProps) {
         navSections?: NavSection[];
     }>();
 
+    const isNotificationPage = url.split("?")[0] === "/notifications";
+    const resolvedShowNotificationBell = showNotificationBell ?? !isNotificationPage;
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -56,8 +82,15 @@ export default function AppShell({ title, children }: AppShellProps) {
                 setCommandPaletteOpen((open) => !open);
             }
         };
+        
+        const openRoleSwitcher = () => setRoleSwitcherOpen(true);
         window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("open-role-switcher", openRoleSwitcher);
+        
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("open-role-switcher", openRoleSwitcher);
+        };
     }, []);
 
     const user = pageProps.auth?.user;
@@ -71,8 +104,9 @@ export default function AppShell({ title, children }: AppShellProps) {
 
     const userName = user?.name ?? "User";
     const userInitial = getInitials(userName);
+    const userAvatar = user?.avatar || user?.avatar_url || null;
     const userRole = user?.role;
-    const teacherType = user?.teacher?.teacher_type;
+    const teacherType = user?.active_teacher_role ?? "duty";
     const mobileBrand =
         userRole === "admin"
             ? "ADMIN SMA UII"
@@ -126,7 +160,12 @@ export default function AppShell({ title, children }: AppShellProps) {
                         brand="SMA UII YOGYAKARTA"
                         username={userName}
                         userInitial={userInitial}
+                        userAvatar={userAvatar}
                         userRole={userRole}
+                        teacherTypes={user?.teacher?.teacher_type || []}
+                        headerActions={headerActions}
+                        showSearch={showSearch}
+                        showNotificationBell={resolvedShowNotificationBell}
                         onLogout={handleLogout}
                         onSearchClick={() => setCommandPaletteOpen(true)}
                         unreadCount={pageProps.auth?.unreadCount ?? 0}
@@ -150,24 +189,27 @@ export default function AppShell({ title, children }: AppShellProps) {
                             mobileBrand={mobileBrand}
                             userRole={userRole}
                             userInitial={userInitial}
+                            userAvatar={userAvatar}
                             unreadCount={pageProps.auth?.unreadCount ?? 0}
+                            headerActions={headerActions}
+                            showSearch={showSearch}
+                            showNotificationBell={resolvedShowNotificationBell}
+                            onBack={onBack}
                             onOpenSidebar={() => setMobileSidebarOpen(true)}
                             onOpenSearch={() => setCommandPaletteOpen(true)}
                         />
 
                         {/* Main Content Card Container */}
                         <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
-                            <main className="flex-1 min-h-0 overflow-y-auto">
-                                <div className="p-4 sm:p-6 pb-20 sm:pb-6 lg:pb-6">
-                                    <ErrorBoundary>{children}</ErrorBoundary>
-                                </div>
+                            <main className={`flex-1 min-h-0 overflow-y-auto flex flex-col p-4 ${showBottomNav ? "pb-24" : ""}`}>
+                                <ErrorBoundary>{children}</ErrorBoundary>
                             </main>
                         </div>
                     </div>
                 </div>
 
                 {/* Mobile Bottom Nav */}
-                <MobileBottomNav items={bottomNavItems} currentUrl={url} />
+                {showBottomNav && <MobileBottomNav items={bottomNavItems} currentUrl={url} />}
 
                 {/* Mobile Sidebar Drawer */}
                 <MobileSidebarDrawer
@@ -175,6 +217,9 @@ export default function AppShell({ title, children }: AppShellProps) {
                     userRole={userRole}
                     userName={userName}
                     userInitial={userInitial}
+                    userAvatar={userAvatar}
+                    teacherTypes={user?.teacher?.teacher_type || []}
+                    teacherType={teacherType}
                     navSections={navSections}
                     activeItemKey={activeItem?.key}
                     onClose={() => setMobileSidebarOpen(false)}
@@ -182,6 +227,12 @@ export default function AppShell({ title, children }: AppShellProps) {
                 />
             </div>
 
+            <RoleSwitcherModal
+                isOpen={roleSwitcherOpen}
+                onClose={() => setRoleSwitcherOpen(false)}
+                activeRole={teacherType}
+                availableRoles={user?.teacher?.teacher_type || []}
+            />
             <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
         </>
     );

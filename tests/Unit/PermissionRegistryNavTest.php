@@ -12,24 +12,24 @@ class PermissionRegistryNavTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function navHrefs(string $teacherType): array
+    private function navHrefs(string $teacherType, ?string $activeRole = null): array
     {
         $user = User::factory()->create(['role' => 'teacher']);
         Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => $teacherType]);
 
-        return $this->hrefsFor($user);
+        return $this->hrefsFor($user, $activeRole);
     }
 
-    private function hrefsFor(User $user): array
+    private function hrefsFor(User $user, ?string $activeRole = null): array
     {
-        return collect(PermissionRegistry::getNavFor($user))
+        return collect(PermissionRegistry::getNavFor($user, $activeRole))
             ->flatMap(fn ($section) => collect($section['items'])->pluck('href'))
             ->all();
     }
 
     public function test_wali_teacher_nav_includes_homeroom_but_not_duty(): void
     {
-        $hrefs = $this->navHrefs('wali');
+        $hrefs = $this->navHrefs('homeroom');
 
         $this->assertContains('/teacher/homeroom', $hrefs);
         $this->assertNotContains('/teacher/duty', $hrefs);
@@ -37,18 +37,21 @@ class PermissionRegistryNavTest extends TestCase
 
     public function test_piket_teacher_nav_includes_duty_but_not_homeroom(): void
     {
-        $hrefs = $this->navHrefs('piket');
+        $hrefs = $this->navHrefs('duty');
 
         $this->assertContains('/teacher/duty', $hrefs);
         $this->assertNotContains('/teacher/homeroom', $hrefs);
     }
 
-    public function test_both_teacher_nav_includes_duty_and_homeroom(): void
+    public function test_both_teacher_nav_filters_by_active_role(): void
     {
-        $hrefs = $this->navHrefs('both');
+        $dutyHrefs = $this->navHrefs('both', 'duty');
+        $this->assertContains('/teacher/duty', $dutyHrefs);
+        $this->assertNotContains('/teacher/homeroom', $dutyHrefs);
 
-        $this->assertContains('/teacher/duty', $hrefs);
-        $this->assertContains('/teacher/homeroom', $hrefs);
+        $homeroomHrefs = $this->navHrefs('both', 'homeroom');
+        $this->assertContains('/teacher/homeroom', $homeroomHrefs);
+        $this->assertNotContains('/teacher/duty', $homeroomHrefs);
     }
 
     public function test_admin_nav_matches_figma_sidebar(): void
@@ -83,7 +86,7 @@ class PermissionRegistryNavTest extends TestCase
             '/export',
             '/leave-requests',
             '/reports?tab=daily',
-        ], $this->navHrefs('piket'));
+        ], $this->navHrefs('duty'));
     }
 
     public function test_wali_teacher_nav_uses_reports_instead_of_global_export(): void
@@ -92,7 +95,7 @@ class PermissionRegistryNavTest extends TestCase
             '/teacher/homeroom',
             '/leave-requests/verification',
             '/reports',
-        ], $this->navHrefs('wali'));
+        ], $this->navHrefs('homeroom'));
     }
 
     public function test_guardian_nav_matches_figma_sidebar(): void

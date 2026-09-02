@@ -12,9 +12,12 @@ export default function Toggle({
     size = "md",
     disabled,
     className = "",
+    defaultChecked,
     ...props
 }: ToggleProps) {
     const isSm = size === "sm";
+    const isControlled = checked !== undefined;
+    const isChecked = isControlled ? !!checked : !!defaultChecked;
 
     return (
         <label
@@ -24,8 +27,7 @@ export default function Toggle({
         >
             <input
                 type="checkbox"
-                checked={checked}
-                onChange={onChange}
+                {...(isControlled ? { checked, onChange: onChange ?? (() => {}) } : { defaultChecked, onChange })}
                 disabled={disabled}
                 className="sr-only peer"
                 {...props}
@@ -34,7 +36,7 @@ export default function Toggle({
                 className={`relative inline-flex items-center shrink-0 rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
                     isSm ? "w-9 h-5 p-0.5" : "w-11 h-6 p-0.5"
                 } ${
-                    checked
+                    isChecked
                         ? "bg-emerald-500"
                         : "bg-gray-300 dark:bg-gray-600"
                 }`}
@@ -43,7 +45,7 @@ export default function Toggle({
                     className={`inline-block rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
                         isSm ? "w-4 h-4" : "w-5 h-5"
                     } ${
-                        checked
+                        isChecked
                             ? isSm ? "translate-x-4" : "translate-x-5"
                             : "translate-x-0"
                     }`}

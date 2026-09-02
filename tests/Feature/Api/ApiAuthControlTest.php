@@ -130,7 +130,7 @@ class ApiAuthControlTest extends TestCase
     public function test_teacher_can_view_attendances(): void
     {
         $user = $this->createUser('teacher');
-        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'duty']);
 
         $this->actingAs($user)
             ->getJson('/api/v1/attendances')
@@ -158,7 +158,7 @@ class ApiAuthControlTest extends TestCase
     public function test_teacher_can_verify_leave_request(): void
     {
         $user = $this->createUser('teacher');
-        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        \App\Models\Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
         $leave = $this->createLeaveRequest();
 
         $this->actingAs($user)

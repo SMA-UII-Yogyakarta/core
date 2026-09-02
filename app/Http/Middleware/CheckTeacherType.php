@@ -29,8 +29,8 @@ class CheckTeacherType
         }
 
         $allowed = match ($type) {
-            'piket' => $teacher->isGuruPiket(),
-            'wali' => $teacher->isWaliKelas(),
+            'duty' => $teacher->isDuty(),
+            'homeroom' => $teacher->isHomeroom(),
             default => false,
         };
 

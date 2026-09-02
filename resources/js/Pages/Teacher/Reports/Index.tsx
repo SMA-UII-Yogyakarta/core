@@ -3,7 +3,7 @@ import { useState } from "react";
 import AppShell from "@/Layouts/AppShell";
 import TabSwitcher from "@/Components/common/TabSwitcher";
 import DatePicker from "@/Components/common/DatePicker";
-import BottomSheet from "@/Components/common/BottomSheet";
+import Drawer from "@/Components/common/Drawer";
 import DailyTable from "./DailyTable";
 import MonthlyTable from "./MonthlyTable";
 import SemesterTable from "./SemesterTable";
@@ -140,29 +140,41 @@ export default function HomeroomReportIndex({
         );
     }
 
+    const exportHeaderAction = (
+        <button
+            type="button"
+            onClick={() => setExportSheetOpen(true)}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-90 transition-all cursor-pointer sm:hidden"
+            title={t("reports.export")}
+            aria-label={t("reports.export")}
+        >
+            <i className="fas fa-download text-[14px]" />
+        </button>
+    );
+
     return (
-            <AppShell title={t("reports.title")}>
-                <div className="space-y-3 lg:space-y-6">
-                    {/* Page Header */}
-                    <div>
-                        <div className="hidden lg:block">
-                            <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                                {t("reports.headerTitle", { class: kelas.name })}
-                            </h1>
-                            <p className="text-[13px] text-text-muted font-inter mt-1">
-                                {t("reports.subtitle", { class: kelas.name })}
-                            </p>
-                        </div>
-                    <h1 className="lg:hidden text-[22px] font-bold text-text-primary font-inter">
+        <AppShell title={t("reports.title")} headerActions={exportHeaderAction} showSearch={false}>
+            <div className="space-y-3 lg:space-y-6">
+                {/* Page Header */}
+                <div>
+                    <div className="hidden sm:block">
+                        <h1 className="text-[22px] font-bold text-text-primary font-inter">
+                            {t("reports.headerTitle", { class: kelas.name })}
+                        </h1>
+                        <p className="text-[13px] text-text-muted font-inter mt-1">
+                            {t("reports.subtitle", { class: kelas.name })}
+                        </p>
+                    </div>
+                    <h1 className="sm:hidden text-[20px] font-bold text-text-primary font-inter">
                         {kelas.name}
                     </h1>
                 </div>
 
-                {/* Desktop Tab + Filters + Export */}
-                <div className="hidden lg:block sticky top-0 z-20 pt-1 bg-background border-b border-border">
-                    <div className="flex items-center justify-between flex-wrap gap-4 px-4">
+                {/* Tablet & Desktop Tab + Filters + Corner Export Buttons */}
+                <div className="hidden sm:block sticky top-0 z-20 pt-1 bg-background border-b border-border">
+                    <div className="flex items-center justify-between flex-wrap gap-4 px-2 lg:px-4 pb-2">
                         <TabSwitcher tabs={TABS} activeKey={tab} onChange={handleTabChange} />
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             {tab === "daily" && (
                                 <DatePicker value={selectedDate} onChange={(val) => handleDateChange(val)} />
                             )}
@@ -179,118 +191,131 @@ export default function HomeroomReportIndex({
                             {tab === "semester" && (
                                 <>
                                     <select value={selectedSemester} onChange={(e) => handleSemesterChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                        <option value="1">{t("reports.odd")} {selectedYear}/{selectedYear + 1}</option>
-                                        <option value="2">{t("reports.even")} {selectedYear - 1}/{selectedYear}</option>
+                                        <option value="1">{t("reports.odd")} (Jul-Des)</option>
+                                        <option value="2">{t("reports.even")} (Jan-Jun)</option>
                                     </select>
-                                    <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-24">
-                                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
+                                    <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-32">
+                                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>TA {y}/{y + 1}</option>))}
                                     </select>
                                 </>
                             )}
-                            {tab === "daily" && (
-                                <>
-                                    <button type="button" onClick={handleExportPdf} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors">
-                                        <FiFileText className="text-[12px]" /> PDF
-                                    </button>
-                                    <button type="button" onClick={handleExportExcel} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors">
-                                        <FiGrid className="text-[12px]" /> Excel
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
 
-                {/* Mobile Tabs + Filter + Export */}
-                <div className="lg:hidden sticky top-0 z-20 bg-background">
-                    <TabSwitcher tabs={TABS} activeKey={tab} onChange={handleTabChange} />
-                    <div className="bg-surface border border-border rounded-xl px-2 py-2 mt-1 mb-2">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                {tab === "daily" && (<DatePicker value={selectedDate} onChange={(val) => handleDateChange(val)} />)}
-                                {tab === "monthly" && (
-                                    <div className="flex gap-2">
-                                        <select value={selectedMonth} onChange={(e) => handleMonthChange(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                            {MONTH_NAMES.map((name, i) => (<option key={i + 1} value={i + 1}>{name}</option>))}
-                                        </select>
-                                        <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-20">
-                                            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
-                                        </select>
-                                    </div>
-                                )}
-                                {tab === "semester" && (
-                                    <div className="flex gap-2">
-                                        <select value={selectedSemester} onChange={(e) => handleSemesterChange(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
-                                            <option value="1">{t("reports.odd")} {selectedYear}/{selectedYear + 1}</option>
-                                            <option value="2">{t("reports.even")} {selectedYear - 1}/{selectedYear}</option>
-                                        </select>
-                                        <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-20">
-                                            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
-                                        </select>
-                                    </div>
-                                )}
+                            {/* Corner Export Actions (Visible on Tablet & Desktop across all tabs) */}
+                            <div className="flex items-center gap-2 pl-2 border-l border-border/80">
+                                <button
+                                    type="button"
+                                    onClick={handleExportPdf}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 active:scale-95 transition-all shadow-xs cursor-pointer"
+                                    title="Export PDF"
+                                >
+                                    <FiFileText className="text-[12px]" /> PDF
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleExportExcel}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 active:scale-95 transition-all shadow-xs cursor-pointer"
+                                    title="Export Excel"
+                                >
+                                    <FiGrid className="text-[12px]" /> Excel
+                                </button>
                             </div>
-                            <button type="button" onClick={() => setExportSheetOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-primary border border-primary hover:bg-primary/5 transition-colors shrink-0">
-                                <FiDownload className="text-[12px]" /> {t("reports.export")}
-                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Export BottomSheet */}
-                <BottomSheet
+                {/* Mobile Tabs + Filter (Full Width, with Export Icon in Mobile Header) */}
+                <div className="sm:hidden sticky top-0 z-20 bg-background space-y-2">
+                    <TabSwitcher tabs={TABS} activeKey={tab} onChange={handleTabChange} />
+                    <div className="bg-surface border border-border rounded-xl p-2.5 shadow-xs">
+                        {tab === "daily" && (
+                            <div className="w-full">
+                                <DatePicker value={selectedDate} onChange={(val) => handleDateChange(val)} className="w-full" />
+                            </div>
+                        )}
+                        {tab === "monthly" && (
+                            <div className="flex gap-2 w-full">
+                                <select value={selectedMonth} onChange={(e) => handleMonthChange(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium">
+                                    {MONTH_NAMES.map((name, i) => (<option key={i + 1} value={i + 1}>{name}</option>))}
+                                </select>
+                                <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-24 font-medium">
+                                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>{y}</option>))}
+                                </select>
+                            </div>
+                        )}
+                        {tab === "semester" && (
+                            <div className="flex gap-2 w-full">
+                                <select value={selectedSemester} onChange={(e) => handleSemesterChange(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium">
+                                    <option value="1">{t("reports.odd")} (Jul-Des)</option>
+                                    <option value="2">{t("reports.even")} (Jan-Jun)</option>
+                                </select>
+                                <select value={selectedYear} onChange={(e) => handleYearChange(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 w-28 font-medium">
+                                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (<option key={y} value={y}>TA {y}/{y + 1}</option>))}
+                                </select>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Export Responsive Drawer (Bottom Sheet on Mobile, Slide Drawer on Tablet/Desktop) */}
+                <Drawer
                     open={exportSheetOpen}
                     onClose={() => setExportSheetOpen(false)}
                     title={t("reports.exportOptions")}
-                    subtitle={
+                    description={
                         tab === "daily"
                             ? `${t("reports.rekapDaily")} • ${formatSubtitleDate(selectedDate)}`
                             : tab === "monthly"
                             ? `${t("reports.rekapMonthly")} • ${formatSubtitleMonth(selectedMonth, selectedYear)}`
                             : `${t("reports.rekapSemester")} • ${selectedSemester === "1" ? t("reports.odd") : t("reports.even")} ${selectedYear}/${selectedYear + 1}`
                     }
+                    showFooter={false}
+                    width="sm"
                 >
                     <div className="space-y-3">
                         <button
                             type="button"
                             onClick={() => { handleExportPdf(); setExportSheetOpen(false); }}
                             disabled={!!exportingType}
-                            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-background transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-border bg-surface hover:border-danger/40 hover:bg-danger/5 active:scale-[0.98] transition-all text-left group cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {exportingType === "pdf" ? (
-                                <FiLoader className="w-5 h-5 text-danger animate-spin shrink-0" />
-                            ) : (
-                                <FiFileText className="w-5 h-5 text-danger shrink-0" />
-                            )}
-                            <div className="flex-1 text-left">
-                                <span className="text-[14px] font-semibold text-text-primary block">PDF</span>
-                                <span className="text-[11px] text-text-muted">
+                            <div className="w-11 h-11 rounded-xl bg-danger/10 text-danger flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                                {exportingType === "pdf" ? (
+                                    <FiLoader className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <FiFileText className="w-5 h-5" />
+                                )}
+                            </div>
+                            <div className="flex-1 text-left min-w-0">
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">PDF</span>
+                                <span className="text-[12px] text-text-muted mt-0.5 block leading-normal">
                                     {exportingType === "pdf" ? t("reports.preparing") : t("reports.exportPdfDesc")}
                                 </span>
                             </div>
-                            {exportingType !== "pdf" && <FiChevronRight className="w-4 h-4 text-text-muted shrink-0" />}
+                            {exportingType !== "pdf" && <FiChevronRight className="w-4 h-4 text-text-muted group-hover:text-danger group-hover:translate-x-0.5 transition-all shrink-0" />}
                         </button>
                         <button
                             type="button"
                             onClick={() => { handleExportExcel(); setExportSheetOpen(false); }}
                             disabled={!!exportingType}
-                            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-background transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full flex items-center gap-3.5 p-4 rounded-2xl border border-border bg-surface hover:border-success/40 hover:bg-success/5 active:scale-[0.98] transition-all text-left group cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {exportingType === "excel" ? (
-                                <FiLoader className="w-5 h-5 text-success animate-spin shrink-0" />
-                            ) : (
-                                <FiGrid className="w-5 h-5 text-success shrink-0" />
-                            )}
-                            <div className="flex-1 text-left">
-                                <span className="text-[14px] font-semibold text-text-primary block">Excel</span>
-                                <span className="text-[11px] text-text-muted">
+                            <div className="w-11 h-11 rounded-xl bg-success/10 text-success flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
+                                {exportingType === "excel" ? (
+                                    <FiLoader className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <FiGrid className="w-5 h-5" />
+                                )}
+                            </div>
+                            <div className="flex-1 text-left min-w-0">
+                                <span className="text-[14px] font-bold text-text-primary block leading-tight">Excel</span>
+                                <span className="text-[12px] text-text-muted mt-0.5 block leading-normal">
                                     {exportingType === "excel" ? t("reports.preparing") : t("reports.exportExcelDesc")}
                                 </span>
                             </div>
-                            {exportingType !== "excel" && <FiChevronRight className="w-4 h-4 text-text-muted shrink-0" />}
+                            {exportingType !== "excel" && <FiChevronRight className="w-4 h-4 text-text-muted group-hover:text-success group-hover:translate-x-0.5 transition-all shrink-0" />}
                         </button>
                     </div>
-                </BottomSheet>
+                </Drawer>
 
                 {/* Tab Content */}
                 {tab === "daily" && (

@@ -11,9 +11,10 @@ import {
     FiClock,
     FiUsers,
     FiFileText,
-    FiCalendar,
     FiFilter,
     FiCheckCircle,
+    FiPieChart,
+    FiAlertCircle,
 } from "react-icons/fi";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import type { StatusVariant } from "@/types/component";
@@ -152,6 +153,7 @@ export default function Dashboard({
     monthlyTrend,
     weeklyTrend,
 }: DashboardProps) {
+    const [activeTab, setActiveTab] = useState<"overview" | "attention">(() => (selectedClassId ? "attention" : "overview"));
     const [period, setPeriod] = useState<Period>("Bulanan");
 
     // ── Live Polling for Admin Stats (30s) ──────────────────────────────────
@@ -293,228 +295,251 @@ export default function Dashboard({
             {/* Page Header */}
             <PageHeader
                 title="Statistik Kehadiran Sekolah"
-                description="Ringkasan kehadiran institusi berdasarkan periode yang dipilih."
-            >
+                description={
+                    activeTab === "overview"
+                        ? "Ringkasan kehadiran institusi berdasarkan periode yang dipilih."
+                        : "Daftar siswa yang memerlukan tindak lanjut kehadiran hari ini."
+                }
+                className="shrink-0 mb-4"
+            />
+
+            {/* Dashboard Unified Toolbar: Tabs (Kiri) + Filter / Controls (Kanan) */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0">
+                {/* Sisi Kiri: TabSwitcher Utama */}
                 <TabSwitcher
-                    tabs={PERIODS.map(p => ({ key: p, label: p }))}
-                    activeKey={period}
-                    onChange={(k) => setPeriod(k as Period)}
-                    className="self-start sm:self-auto"
+                    tabs={[
+                        {
+                            key: "overview",
+                            label: "Overview",
+                            icon: <FiPieChart className="w-3.5 h-3.5" />,
+                        },
+                        {
+                            key: "attention",
+                            label: "Perhatian Khusus Hari Ini",
+                            icon: <FiAlertCircle className="w-3.5 h-3.5" />,
+                            badge: pendingLeaveCount > 0 ? (
+                                <span className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger border border-danger/20">
+                                    {pendingLeaveCount} Izin Menunggu
+                                </span>
+                            ) : undefined,
+                        },
+                    ]}
+                    activeKey={activeTab}
+                    onChange={(k) => setActiveTab(k as "overview" | "attention")}
+                    variant="segmented"
+                    className="shrink-0"
                 />
-            </PageHeader>
 
-            {/* ── Mobile & Tablet Layout (lg:hidden) ── */}
-            <div className="lg:hidden flex flex-col gap-4 font-inter mb-6">
-                {/* 1. KPI Cards (Mobile: 2x2 || Tablet: 4x1) */}
-                <section className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
-                        <p className="text-[11px] text-text-muted font-inter">Hadir</p>
-                        <p className="text-[18px] sm:text-[20px] font-bold text-primary font-inter mt-1">
-                            {stats.verified_present}
-                            <span className="text-text-inactive font-normal mx-1">||</span>
-                            <span className="text-primary">{presentPct}%</span>
-                        </p>
-                    </article>
-                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
-                        <p className="text-[11px] text-text-muted font-inter">Alpa</p>
-                        <p className="text-[18px] sm:text-[20px] font-bold text-danger font-inter mt-1">{sakitAlpaSplit}</p>
-                    </article>
-                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
-                        <p className="text-[11px] text-text-muted font-inter">Ijin</p>
-                        <p className="text-[18px] sm:text-[20px] font-bold text-success font-inter mt-1">
-                            {stats.sick_permit}
-                            <span className="text-text-inactive font-normal mx-1">||</span>
-                            <span>{stats.total_students > 0 ? Math.round((stats.sick_permit / stats.total_students) * 100) : 0}%</span>
-                        </p>
-                    </article>
-                    <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
-                        <p className="text-[11px] text-text-muted font-inter">Sakit / Telat</p>
-                        <p className="text-[18px] sm:text-[20px] font-bold text-warning font-inter mt-1">
-                            {stats.late}
-                            <span className="text-text-inactive font-normal mx-1">||</span>
-                            <span>{stats.total_students > 0 ? Math.round((stats.late / stats.total_students) * 100) : 0}%</span>
-                        </p>
-                    </article>
-                </section>
+                {/* Sisi Kanan: Kontrol Sesuai Tab Aktif */}
+                {activeTab === "overview" && (
+                    <TabSwitcher
+                        tabs={PERIODS.map((p) => ({ key: p, label: p }))}
+                        activeKey={period}
+                        onChange={(k) => setPeriod(k as Period)}
+                        variant="segmented"
+                        className="self-start lg:self-auto shrink-0"
+                    />
+                )}
 
-                {/* 2. Menu Utama Grid (Mobile: 2x2 || Tablet: 4x1) */}
-                <div>
-                    <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-2.5">Menu Utama</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                        <Link
-                            href="/master-data"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                {activeTab === "attention" && (
+                    <div className="flex items-center gap-2.5 shrink-0 font-inter self-start lg:self-auto">
+                        <NativeSelect
+                            value={selectedClassId ?? ""}
+                            onChange={handleClassFilter}
+                            className="min-w-[160px] sm:min-w-[190px]"
+                            aria-label="Pilih Kelas"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
-                                <FiDatabase />
-                            </div>
-                            <div>
-                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Data Master
-                                </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Siswa, guru, kelas
-                                </span>
-                            </div>
-                        </Link>
+                            <option value="">Semua Kelas / Rombel</option>
+                            {classes.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {c.name}
+                                </option>
+                            ))}
+                        </NativeSelect>
 
-                        <Link
-                            href="/operational-settings"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
-                        >
-                            <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
-                                <FiClock />
-                            </div>
-                            <div>
-                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Atur Waktu
-                                </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Jam masuk & libur
-                                </span>
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/class-enrolment"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
-                        >
-                            <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
-                                <FiUsers />
-                            </div>
-                            <div>
-                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Enrolment
-                                </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Penempatan kelas
-                                </span>
-                            </div>
-                        </Link>
-
-                        <Link
-                            href="/export"
-                            className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
-                        >
-                            <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
-                                <FiFileText />
-                            </div>
-                            <div>
-                                <span className="text-[14px] font-bold text-text-primary block leading-tight">
-                                    Ekspor Rekap
-                                </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Unduh Excel & PDF
-                                </span>
-                            </div>
-                        </Link>
+                        <Input
+                            type="date"
+                            value={selectedDate}
+                            onChange={handleDateFilter}
+                            inputClassName="h-10 text-[13px]"
+                            aria-label="Pilih Tanggal"
+                        />
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* ── Desktop Stat Cards (Figma 4 cards) ── */}
-            <section className="hidden lg:grid grid-cols-4 gap-6 mb-6">
-                <StatCard label="Rata-rata Kehadiran" value={avgAttendanceFixed} color="grey" />
-                <StatCard label="Siswa Terlambat" value={stats.late} color="grey" />
-                <StatCard label="Pengajuan Izin" value={stats.sick_permit} color="grey" />
-                <StatCard label="Absensi Tanpa Ket." value={stats.absent} color="red" />
-            </section>
+            {/* ── Tab Content 1: Overview ── */}
+            {activeTab === "overview" && (
+                <div className="flex flex-col gap-4 sm:gap-6 pb-8">
+                    {/* Mobile & Tablet Layout (lg:hidden) */}
+                    <div className="lg:hidden flex flex-col gap-4 font-inter">
+                        {/* 1. KPI Cards (Mobile: 2x2 || Tablet: 4x1) */}
+                        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                            <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                                <p className="text-[11px] text-text-muted font-inter">Hadir</p>
+                                <p className="text-[18px] sm:text-[20px] font-bold text-primary font-inter mt-1">
+                                    {stats.verified_present}
+                                    <span className="text-text-inactive font-normal mx-1">||</span>
+                                    <span className="text-primary">{presentPct}%</span>
+                                </p>
+                            </article>
+                            <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                                <p className="text-[11px] text-text-muted font-inter">Alpa</p>
+                                <p className="text-[18px] sm:text-[20px] font-bold text-danger font-inter mt-1">{sakitAlpaSplit}</p>
+                            </article>
+                            <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                                <p className="text-[11px] text-text-muted font-inter">Ijin</p>
+                                <p className="text-[18px] sm:text-[20px] font-bold text-success font-inter mt-1">
+                                    {stats.sick_permit}
+                                    <span className="text-text-inactive font-normal mx-1">||</span>
+                                    <span>{stats.total_students > 0 ? Math.round((stats.sick_permit / stats.total_students) * 100) : 0}%</span>
+                                </p>
+                            </article>
+                            <article className="bg-surface border border-border rounded-xl p-3.5 shadow-sm">
+                                <p className="text-[11px] text-text-muted font-inter">Sakit / Telat</p>
+                                <p className="text-[18px] sm:text-[20px] font-bold text-warning font-inter mt-1">
+                                    {stats.late}
+                                    <span className="text-text-inactive font-normal mx-1">||</span>
+                                    <span>{stats.total_students > 0 ? Math.round((stats.late / stats.total_students) * 100) : 0}%</span>
+                                </p>
+                            </article>
+                        </section>
 
-            {/* ── Chart ── */}
-            <Card className="mb-6">
-                <Card.Body className="p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
-                        <h2 className="text-[15px] font-bold text-text-primary font-inter">
-                            {chartTitle(period, selectedDate)}
-                        </h2>
-                        <span className="text-[12px] text-text-muted font-medium font-inter">
-                            {chartRangeLabel(period, year, selectedDate)}
-                        </span>
-                    </div>
-                    <div className="h-[200px] sm:h-[220px]">
-                        {chartData.length === 0 ? (
-                            <div className="h-full flex items-center justify-center text-text-inactive text-[13px] font-inter">
-                                Belum ada data tren untuk periode ini.
+                        {/* 2. Menu Utama Grid (Mobile: 2x2 || Tablet: 4x1) */}
+                        <div>
+                            <h3 className="text-[13px] font-bold text-text-primary uppercase tracking-wider mb-2.5">Menu Utama</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                                <Link
+                                    href="/master-data"
+                                    className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
+                                        <FiDatabase />
+                                    </div>
+                                    <div>
+                                        <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                            Data Master
+                                        </span>
+                                        <span className="text-[11px] text-text-muted mt-0.5 block">
+                                            Siswa, guru, kelas
+                                        </span>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    href="/operational-settings"
+                                    className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-warning-bg text-warning flex items-center justify-center text-[18px] mb-3">
+                                        <FiClock />
+                                    </div>
+                                    <div>
+                                        <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                            Atur Waktu
+                                        </span>
+                                        <span className="text-[11px] text-text-muted mt-0.5 block">
+                                            Jam masuk & libur
+                                        </span>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    href="/class-enrolment"
+                                    className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center text-[18px] mb-3">
+                                        <FiUsers />
+                                    </div>
+                                    <div>
+                                        <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                            Enrolment
+                                        </span>
+                                        <span className="text-[11px] text-text-muted mt-0.5 block">
+                                            Penempatan kelas
+                                        </span>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    href="/export"
+                                    className="bg-surface border border-border rounded-2xl p-4 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex flex-col justify-between"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center text-[18px] mb-3">
+                                        <FiFileText />
+                                    </div>
+                                    <div>
+                                        <span className="text-[14px] font-bold text-text-primary block leading-tight">
+                                            Ekspor Rekap
+                                        </span>
+                                        <span className="text-[11px] text-text-muted mt-0.5 block">
+                                            Unduh Excel & PDF
+                                        </span>
+                                    </div>
+                                </Link>
                             </div>
-                        ) : (
-                            <AttendanceChart data={chartData} type="rate" height={220} />
-                        )}
-                    </div>
-                </Card.Body>
-            </Card>
-
-            {/* ── Perhatian Khusus Hari Ini (ops layer beyond pure Figma) ── */}
-            <Card className="mb-6">
-                <Card.Body className="px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-[15px] font-bold text-text-primary font-inter">
-                            Perhatian Khusus Hari Ini
-                        </h2>
-                        {pendingLeaveCount > 0 && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger-bg text-danger text-[12px] font-semibold font-inter">
-                                <span className="w-1.5 h-1.5 rounded-full bg-danger" />
-                                {pendingLeaveCount} izin menunggu
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[13px] text-text-muted font-inter whitespace-nowrap">
-                                Filter Kelas:
-                            </span>
-                            <NativeSelect
-                                value={selectedClassId ?? ""}
-                                onChange={handleClassFilter}
-                                className="min-w-[140px]"
-                            >
-                                <option value="">Semua Kelas</option>
-                                {classes.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </NativeSelect>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-[13px] text-text-muted font-inter whitespace-nowrap">
-                                <FiCalendar className="mr-1 text-text-inactive inline" />
-                                Tanggal:
-                            </span>
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={handleDateFilter}
-                                inputClassName="h-10"
+                    {/* Desktop Stat Cards (4 cards) */}
+                    <section className="hidden lg:grid grid-cols-4 gap-6">
+                        <StatCard label="Rata-rata Kehadiran" value={avgAttendanceFixed} color="grey" />
+                        <StatCard label="Siswa Terlambat" value={stats.late} color="grey" />
+                        <StatCard label="Pengajuan Izin" value={stats.sick_permit} color="grey" />
+                        <StatCard label="Absensi Tanpa Ket." value={stats.absent} color="red" />
+                    </section>
+
+                    {/* Chart Card */}
+                    <Card>
+                        <Card.Body className="p-4 sm:p-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+                                <h2 className="text-[15px] font-bold text-text-primary font-inter">
+                                    {chartTitle(period, selectedDate)}
+                                </h2>
+                                <span className="text-[12px] text-text-muted font-medium font-inter">
+                                    {chartRangeLabel(period, year, selectedDate)}
+                                </span>
+                            </div>
+                            <div className="h-[200px] sm:h-[220px]">
+                                {chartData.length === 0 ? (
+                                    <div className="h-full flex items-center justify-center text-text-inactive text-[13px] font-inter">
+                                        Belum ada data tren untuk periode ini.
+                                    </div>
+                                ) : (
+                                    <AttendanceChart data={chartData} type="rate" height={220} />
+                                )}
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </div>
+            )}
+
+            {/* ── Tab Content 2: Perhatian Khusus Hari Ini ── */}
+            {activeTab === "attention" && (
+                <div className="flex flex-col gap-4 pb-8">
+                    {!selectedClassId ? (
+                        <Card className="p-8">
+                            <EmptyState
+                                variant="no-data"
+                                icon={<FiFilter className="text-4xl text-text-inactive" />}
+                                title="Pilih Kelas"
+                                description="Pilih kelas di filter atas untuk menampilkan data siswa yang memerlukan perhatian khusus."
+                                className="py-4"
                             />
-                        </div>
-                    </div>
-                </Card.Body>
-            </Card>
-
-            {!selectedClassId ? (
-                <Card className="p-8">
-                    <EmptyState
-                        variant="no-data"
-                        icon={<FiFilter className="text-4xl text-text-inactive" />}
-                        title="Pilih Kelas"
-                        description="Pilih kelas di filter atas untuk menampilkan data siswa."
-                        className="py-4"
-                    />
-                </Card>
-            ) : students.length === 0 ? (
-                <Card className="p-8">
-                    <EmptyState
-                        variant="no-data"
-                        icon={<FiCheckCircle className="text-4xl text-success" />}
-                        title="Semua Hadir"
-                        description="Semua siswa sudah hadir tepat waktu hari ini."
-                        className="py-4"
-                    />
-                </Card>
-            ) : (
-                <Table columns={attentionColumns} data={students} keyExtractor={(s) => s.id} />
+                        </Card>
+                    ) : students.length === 0 ? (
+                        <Card className="p-8">
+                            <EmptyState
+                                variant="no-data"
+                                icon={<FiCheckCircle className="text-4xl text-success" />}
+                                title="Semua Hadir"
+                                description="Semua siswa di kelas ini sudah hadir tepat waktu hari ini."
+                                className="py-4"
+                            />
+                        </Card>
+                    ) : (
+                        <Table columns={attentionColumns} data={students} keyExtractor={(s) => s.id} />
+                    )}
+                </div>
             )}
         </AppShell>
     );

@@ -43,7 +43,7 @@ export default function Welcome() {
                       : userRole === "guardian"
                         ? "/guardian"
                         : userRole === "teacher"
-                          ? auth.user.teacher?.teacher_type === "wali"
+                          ? auth.user.teacher?.teacher_type === "homeroom"
                               ? "/teacher/homeroom"
                               : "/teacher/duty"
                           : "/overview";

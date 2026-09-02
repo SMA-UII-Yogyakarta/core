@@ -102,14 +102,14 @@ class RolePageAccessTest extends TestCase
     public function test_piket_teacher_can_access_all_piket_pages(): void
     {
         foreach (self::piketAllowedPages() as $uri) {
-            $this->actingAs($this->teacher('piket'))->get($uri)->assertOk();
+            $this->actingAs($this->teacher('duty'))->get($uri)->assertOk();
         }
     }
 
     public function test_wali_teacher_can_access_all_wali_pages(): void
     {
         foreach (self::waliAllowedPages() as $uri) {
-            $this->actingAs($this->teacher('wali'))->get($uri)->assertOk();
+            $this->actingAs($this->teacher('homeroom'))->get($uri)->assertOk();
         }
     }
 
@@ -147,8 +147,8 @@ class RolePageAccessTest extends TestCase
 
     public function test_roles_cannot_access_each_others_dashboards(): void
     {
-        $this->actingAs($this->teacher('piket'))->get('/teacher/homeroom')->assertForbidden();
-        $this->actingAs($this->teacher('wali'))->get('/teacher/duty')->assertForbidden();
+        $this->actingAs($this->teacher('duty'))->get('/teacher/homeroom')->assertForbidden();
+        $this->actingAs($this->teacher('homeroom'))->get('/teacher/duty')->assertForbidden();
         $this->actingAs($this->guardianWithStudents())->get('/student/attendance')->assertForbidden();
         $this->actingAs($this->student())->get('/guardian')->assertForbidden();
         $this->actingAs($this->student())->get('/teacher/duty')->assertForbidden();
@@ -174,15 +174,15 @@ class RolePageAccessTest extends TestCase
 
     public function test_wali_teacher_cannot_access_monitoring(): void
     {
-        $this->actingAs($this->teacher('wali'))->get('/monitoring')->assertForbidden();
+        $this->actingAs($this->teacher('homeroom'))->get('/monitoring')->assertForbidden();
     }
 
     public function test_piket_teacher_cannot_verify_leave_requests(): void
     {
-        $this->actingAs($this->teacher('piket'))->get('/leave-requests/verification')->assertForbidden();
-        $this->actingAs($this->teacher('piket'))->get('/leave-requests')->assertOk();
-        $this->actingAs($this->teacher('piket'))->patch('/leave-requests/1/approve')->assertForbidden();
-        $this->actingAs($this->teacher('piket'))->patch('/leave-requests/1/reject')->assertForbidden();
+        $this->actingAs($this->teacher('duty'))->get('/leave-requests/verification')->assertForbidden();
+        $this->actingAs($this->teacher('duty'))->get('/leave-requests')->assertOk();
+        $this->actingAs($this->teacher('duty'))->patch('/leave-requests/1/approve')->assertForbidden();
+        $this->actingAs($this->teacher('duty'))->patch('/leave-requests/1/reject')->assertForbidden();
     }
 
     public function test_admin_cannot_access_guardian_or_student_pages(): void

@@ -102,14 +102,24 @@ class LeaveRequestController extends Controller
         }
 
         $filters = $request->only(['status', 'category']);
+        $requestedClassId = $request->input('class_id');
+        $allowedClassIds = $this->homeroomScope->classIds($user);
+
+        if ($requestedClassId) {
+            if ($allowedClassIds === null || in_array((int)$requestedClassId, $allowedClassIds, true)) {
+                $allowedClassIds = [(int)$requestedClassId];
+            }
+        }
 
         return Inertia::render('Admin/LeaveVerification', [
             'leaveRequests' => $this->leaveRequestService->paginate(
                 $filters,
                 20,
-                $this->homeroomScope->classIds($user),
+                $allowedClassIds,
             ),
             'filters' => $filters,
+            'classes' => $this->homeroomScope->classesFor($user),
+            'selectedClassId' => $requestedClassId ? (int)$requestedClassId : null,
         ]);
     }
 

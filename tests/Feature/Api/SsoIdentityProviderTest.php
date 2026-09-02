@@ -71,7 +71,7 @@ class SsoIdentityProviderTest extends TestCase
         $teacher = Teacher::factory()->create([
             'user_id' => $user->id,
             'teacher_code' => 'TCH-99',
-            'teacher_type' => 'piket',
+            'teacher_type' => 'duty',
         ]);
 
         $schoolClass->update(['teacher_id' => $teacher->id]);

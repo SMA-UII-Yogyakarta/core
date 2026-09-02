@@ -17,6 +17,7 @@ class TeacherFactory extends Factory
         return [
             'name' => fake()->name(),
             'teacher_code' => fake()->unique()->numerify('TCH-####'),
+            'teacher_type' => ['duty'],
         ];
     }
 }

@@ -85,7 +85,9 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
     // Guardian Assignment (Hubungkan Wali Murid dengan Murid)
     Route::get('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'index'])->name('guardian-assignment');
+    Route::post('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent']);
     Route::post('/guardian-assignment/assign', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent'])->name('guardian-assignment.assign');
+    Route::delete('/guardian-assignment/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent']);
     Route::delete('/guardian-assignment/remove/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent'])->name('guardian-assignment.remove');
 
     // Operational Settings (Atur Waktu, Lokasi & Libur)
@@ -137,12 +139,12 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     Route::delete('/attendance-correction/{id}', [AttendanceOverrideController::class, 'destroy'])->name('attendance-correction.destroy');
 
     // Homeroom Teacher Reports (tabbed: daily, monthly, semester)
-    Route::get('/reports', HomeroomReportController::class)->name('reports')->middleware('teacher.type:wali');
+    Route::get('/reports', HomeroomReportController::class)->name('reports')->middleware('teacher.type:homeroom');
 
     // Teacher Dashboards
     Route::prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/duty', [TeacherPortalController::class, 'dutyDashboard'])->name('duty')->middleware('teacher.type:piket');
-        Route::get('/homeroom', [TeacherPortalController::class, 'homeroomDashboard'])->name('homeroom')->middleware('teacher.type:wali');
+        Route::get('/duty', [TeacherPortalController::class, 'dutyDashboard'])->name('duty')->middleware('teacher.type:duty');
+        Route::get('/homeroom', [TeacherPortalController::class, 'homeroomDashboard'])->name('homeroom')->middleware('teacher.type:homeroom');
     });
 
     // Guardian
@@ -172,6 +174,9 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::match(['put', 'patch', 'post'], '/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
+    Route::post('/profile/switch-role', [ProfileController::class, 'switchRole'])->name('profile.switch-role');
     Route::delete('/profile/sessions/{id}', [ProfileController::class, 'revokeSession'])->name('profile.sessions.revoke');
 });

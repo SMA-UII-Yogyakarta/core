@@ -45,8 +45,9 @@ class ExportService
             $start = Carbon::create($year, $month, 1)->startOfDay();
             $end = $start->copy()->endOfMonth()->startOfDay();
         } elseif ($period === 'semester') {
-            $start = Carbon::create($year, $semester === 1 ? 1 : 7, 1)->startOfDay();
-            $end = Carbon::create($year, $semester === 1 ? 6 : 12, $semester === 1 ? 30 : 31)->startOfDay();
+            $resolved = \App\Services\SemesterHelper::resolveDates($year, $semester);
+            $start = $resolved['start'];
+            $end = $resolved['end'];
         }
 
         $students = Student::with('class')
@@ -119,43 +120,25 @@ class ExportService
                     if ($att->status === 'Present') {
                         $statusLabel = 'HADIR';
                         $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
-                        $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
-                        $photoType = 'selfie';
+                        $photoUrl = $att->photo_url;
+                        $photoType = $photoUrl ? 'selfie' : null;
                     } elseif ($att->status === 'Late') {
                         $statusLabel = 'TERLAMBAT';
                         $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
-                        $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
-                        $photoType = 'selfie';
+                        $photoUrl = $att->photo_url;
+                        $photoType = $photoUrl ? 'selfie' : null;
                     }
                 } elseif ($leave) {
                     if ($leave->approval_status === 'Approved') {
                         $statusLabel = $leave->category === 'Sick' ? 'SAKIT' : 'IZIN';
-                        $waktuKet = $leave->reason ?? ($leave->category === 'Sick' ? 'Surat Dokter' : 'Izin Keluarga');
-                        $photoUrl = $leave->attachment_path ?? 'demo/bukti.jpg';
-                        $photoType = 'bukti';
+                        $waktuKet = $leave->description ?? ($leave->category === 'Sick' ? 'Surat Dokter' : 'Izin Keluarga');
+                        $photoUrl = $leave->document_url;
+                        $photoType = $photoUrl ? 'bukti' : null;
                     } elseif ($leave->approval_status === 'Pending') {
                         $statusLabel = 'BELUM VERIFIKASI';
                         $waktuKet = 'Menunggu validasi Wali Kelas';
-                        $photoUrl = $leave->attachment_path ?? 'demo/bukti.jpg';
-                        $photoType = 'bukti';
-                    }
-                } else {
-                    // Demo preview fallback for rich visualization matching mockup
-                    if ($idx === 0) {
-                        $statusLabel = 'HADIR';
-                        $waktuKet = '06:45 WIB';
-                        $photoUrl = 'demo/selfie_ahmad.jpg';
-                        $photoType = 'selfie';
-                    } elseif ($idx === 1) {
-                        $statusLabel = 'TERLAMBAT';
-                        $waktuKet = '07:12 WIB';
-                        $photoUrl = 'demo/selfie_clarissa.jpg';
-                        $photoType = 'selfie';
-                    } elseif ($idx === 2) {
-                        $statusLabel = 'BELUM VERIFIKASI';
-                        $waktuKet = 'Menunggu validasi Wali Kelas';
-                        $photoUrl = 'demo/bukti_farhan.jpg';
-                        $photoType = 'bukti';
+                        $photoUrl = $leave->document_url;
+                        $photoType = $photoUrl ? 'bukti' : null;
                     }
                 }
                 $idx++;
@@ -212,9 +195,9 @@ class ExportService
 
     public function semesterRecapPdf(int $semester, int $year, ?int $classId = null): string
     {
-        $semMonths = $semester === 1 ? range(1, 6) : range(7, 12);
-        $start = Carbon::create($year, $semMonths[0], 1);
-        $end = Carbon::create($year, $semMonths[5], Carbon::create($year, $semMonths[5], 1)->daysInMonth);
+        $resolved = \App\Services\SemesterHelper::resolveDates($year, $semester);
+        $start = $resolved['start'];
+        $end = $resolved['end'];
 
         $students = Student::with('class')
             ->where('status', 'Active')

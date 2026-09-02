@@ -434,7 +434,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
                     {/* Geofence status on mobile */}
                     {gpsStatus === "locked" && !todayAttendance && (
-                        <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 z-10">
+                        <div className="absolute bottom-[calc(6.25rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-10 sm:bottom-3.5">
                             <LiveBadge
                                 label={
                                     isInsideRadius

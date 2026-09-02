@@ -1,0 +1,23 @@
+# Development overlay — Otomatis dimuat secara native oleh Docker Compose tanpa flag -f.
+# Cukup jalankan: `docker compose up -d`
+
+services:
+  app:
+    ports:
+      - "127.0.0.1:${APP_PORT:-8800}:8000"
+
+  bun:
+    build:
+      context: .
+      dockerfile: docker/bun/Dockerfile
+    command: bun run dev
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "127.0.0.1:5173:5173"
+      - "127.0.0.1:6006:6006"
+    restart: unless-stopped
+    ulimits:
+      core: 0
+    networks:
+      - smauii

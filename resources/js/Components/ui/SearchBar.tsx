@@ -64,7 +64,7 @@ export default function SearchBar({
                     value={localValue}
                     onChange={handleChange}
                     placeholder={placeholder}
-                    className="h-10 pl-10 pr-4 w-full border border-border rounded-lg text-[14px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-text-inactive transition-all"
+                    className="h-10 pl-10 pr-4 w-full border border-border rounded-xl text-[13px] font-medium font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 placeholder:text-text-inactive transition-all duration-150"
                 />
             </div>
             {!autoSearch && (

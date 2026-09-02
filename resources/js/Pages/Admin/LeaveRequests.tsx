@@ -139,7 +139,7 @@ export default function LeaveRequestsIndex({
 
                 {/* Symmetrical Footer & Pagination */}
                 {leaveRequests.last_page > 1 && (
-                    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
+                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
                         <Pagination
                             currentPage={leaveRequests.current_page}
                             totalPages={leaveRequests.last_page}
@@ -258,8 +258,8 @@ export default function LeaveRequestsIndex({
                                     Berkas Pendukung
                                 </h3>
                                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
-                                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[200px]">
-                                        Dokumen Lampiran Izin
+                                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[200px]" title={selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}>
+                                        {selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}
                                     </span>
                                     <a
                                         href={selectedRequest.document_url}

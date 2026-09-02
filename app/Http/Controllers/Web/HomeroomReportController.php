@@ -81,24 +81,21 @@ class HomeroomReportController extends Controller
     private function loadSemester(ReportRequest $request, $schoolClass, array &$props): void
     {
         $semester = $request->input('semester', '1');
-        $year = (int) $request->input('year', now()->year);
+        $academicYear = (int) $request->input('year', now()->year);
 
-        $monthStart = $semester === '1' ? 7 : 1;
-        $monthEnd = $semester === '1' ? 12 : 6;
-        $yearStart = $semester === '1' ? $year - 1 : $year;
+        $resolved = \App\Services\SemesterHelper::resolveDates($academicYear, $semester);
 
         $allStudentsRecap = collect();
         $monthlyBreakdown = [];
 
         $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-        for ($m = $monthStart; $m <= $monthEnd; $m++) {
-            $y = $m >= 7 ? $yearStart + 1 : $yearStart;
-            $report = $this->analyticsService->classMonthlyReport($schoolClass->id, $m, $y);
+        foreach ($resolved['months'] as $m) {
+            $report = $this->analyticsService->classMonthlyReport($schoolClass->id, $m['month'], $m['year']);
             $allStudentsRecap = $allStudentsRecap->merge($report['recap']);
 
             $monthlyBreakdown[] = [
-                'month_label' => $monthNames[$m - 1] . ' ' . $y,
+                'month_label' => $monthNames[$m['month'] - 1] . ' ' . $m['year'],
                 'on_time' => $report['summary']['on_time'],
                 'late' => $report['summary']['late'],
                 'permission' => $report['summary']['permission'],
@@ -168,6 +165,6 @@ class HomeroomReportController extends Controller
             'total_students' => $totalStudentCount,
         ];
         $props['selectedSemester'] = $semester;
-        $props['selectedYear'] = $year;
+        $props['selectedYear'] = $academicYear;
     }
 }

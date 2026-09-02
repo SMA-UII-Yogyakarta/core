@@ -39,7 +39,7 @@ class HomeroomScopeTest extends TestCase
 
     private function otherClass(string $name = 'Z-OTHER'): SchoolClass
     {
-        [$otherUser, $otherTeacher] = $this->makeTeacher('wali');
+        [$otherUser, $otherTeacher] = $this->makeTeacher('homeroom');
 
         return SchoolClass::factory()->create([
             'name' => $name,
@@ -80,7 +80,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_cannot_view_other_class_monthly_report(): void
     {
-        [$user] = $this->makeTeacher('wali');
+        [$user] = $this->makeTeacher('homeroom');
         $other = $this->otherClass();
 
         $this->actingAs($user)
@@ -90,7 +90,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_can_view_own_class_monthly_report(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
 
         $this->actingAs($this->teacherUser($teacher))
@@ -102,7 +102,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_cannot_view_other_class_daily_report(): void
     {
-        [$user] = $this->makeTeacher('wali');
+        [$user] = $this->makeTeacher('homeroom');
         $other = $this->otherClass();
 
         $this->actingAs($user)
@@ -112,7 +112,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_cannot_view_other_class_semester_report(): void
     {
-        [$user] = $this->makeTeacher('wali');
+        [$user] = $this->makeTeacher('homeroom');
         $other = $this->otherClass();
 
         $this->actingAs($user)
@@ -122,7 +122,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_export_preview_rejects_other_class(): void
     {
-        [$user] = $this->makeTeacher('wali');
+        [$user] = $this->makeTeacher('homeroom');
         $other = $this->otherClass();
 
         $this->actingAs($user)
@@ -132,7 +132,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_students_export_is_scoped_to_homeroom_for_wali(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
         $other = $this->otherClass();
         $ownStudent = $this->activeStudent($own, '10001');
@@ -156,7 +156,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_piket_cannot_download_teachers_export(): void
     {
-        [$user] = $this->makeTeacher('piket');
+        [$user] = $this->makeTeacher('duty');
 
         $this->actingAs($user)
             ->get('/export/teachers')
@@ -174,7 +174,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_leave_index_hides_other_class_leaves(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
         $other = $this->otherClass();
         $ownLeave = $this->leave($this->activeStudent($own, '30001'));
@@ -190,7 +190,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_piket_leave_index_sees_school_wide(): void
     {
-        [$user] = $this->makeTeacher('piket');
+        [$user] = $this->makeTeacher('duty');
         $first = $this->leave($this->activeStudent($this->otherClass('O-1'), '50001'));
         $second = $this->leave($this->activeStudent($this->otherClass('O-2'), '60002'));
 
@@ -203,7 +203,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_cannot_approve_other_class_leave(): void
     {
-        [$user] = $this->makeTeacher('wali');
+        [$user] = $this->makeTeacher('homeroom');
         $foreignLeave = $this->leave($this->activeStudent($this->otherClass(), '70001'));
 
         $this->actingAs($user)
@@ -215,7 +215,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_wali_can_approve_own_class_leave(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
         $ownLeave = $this->leave($this->activeStudent($own, '80001'));
 
@@ -228,7 +228,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_bulk_verify_rejects_ids_outside_scope(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
         $ownLeave = $this->leave($this->activeStudent($own, '90001'));
         $foreignLeave = $this->leave($this->activeStudent($this->otherClass(), '95002'));
@@ -246,7 +246,7 @@ class HomeroomScopeTest extends TestCase
 
     public function test_show_redirects_to_index_after_scope_check(): void
     {
-        [, $teacher] = $this->makeTeacher('wali');
+        [, $teacher] = $this->makeTeacher('homeroom');
         $own = $this->homeroomClass($teacher, 'X-A');
         $ownLeave = $this->leave($this->activeStudent($own, '97001'));
 

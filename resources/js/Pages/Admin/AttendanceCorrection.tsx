@@ -290,7 +290,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                         emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
                     />
                     {filteredStudents.length > pageSize && (
-                        <div className="p-4 border-t border-border bg-surface">
+                        <div className="p-4 bg-surface">
                             <Pagination
                                 currentPage={safePage}
                                 totalPages={totalPages}

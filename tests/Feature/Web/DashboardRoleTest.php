@@ -28,7 +28,7 @@ class DashboardRoleTest extends TestCase
     public function test_teacher_dashboard_redirects_to_homeroom(): void
     {
         $user = User::factory()->create(['role' => 'teacher']);
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
 
         $this->actingAs($user)->get('/dashboard')
             ->assertRedirect(route('teacher.homeroom'));
@@ -41,7 +41,7 @@ class DashboardRoleTest extends TestCase
     public function test_piket_teacher_dashboard_redirects_to_duty(): void
     {
         $user = User::factory()->create(['role' => 'teacher']);
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'duty']);
 
         $this->actingAs($user)->get('/dashboard')
             ->assertRedirect(route('teacher.duty'));
@@ -98,12 +98,12 @@ class DashboardRoleTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $waliUser = User::factory()->create(['role' => 'teacher']);
-        Teacher::factory()->create(['user_id' => $waliUser->id, 'teacher_type' => 'wali']);
+        Teacher::factory()->create(['user_id' => $waliUser->id, 'teacher_type' => 'homeroom']);
         $this->actingAs($waliUser)->get('/overview')
             ->assertRedirect(route('teacher.homeroom'));
 
         $piketUser = User::factory()->create(['role' => 'teacher']);
-        Teacher::factory()->create(['user_id' => $piketUser->id, 'teacher_type' => 'piket']);
+        Teacher::factory()->create(['user_id' => $piketUser->id, 'teacher_type' => 'duty']);
         $this->actingAs($piketUser)->get('/overview')
             ->assertRedirect(route('teacher.duty'));
 
@@ -117,5 +117,35 @@ class DashboardRoleTest extends TestCase
         Student::factory()->create(['user_id' => $studentUser->id, 'class_id' => $schoolClass->id]);
         $this->actingAs($studentUser)->get('/overview')
             ->assertRedirect(route('student.dashboard'));
+    }
+
+    public function test_dual_role_teacher_switches_role_and_redirects_appropriately(): void
+    {
+        $teacherUser = User::factory()->create(['role' => 'teacher']);
+        Teacher::factory()->create(['user_id' => $teacherUser->id, 'teacher_type' => ['homeroom', 'duty']]);
+
+        // Default redirects to homeroom
+        $this->actingAs($teacherUser)->get('/dashboard')
+            ->assertRedirect(route('teacher.homeroom'));
+
+        // Switch to duty
+        $this->actingAs($teacherUser)->post('/profile/switch-role', ['role' => 'duty'])
+            ->assertSessionHas('active_teacher_role', 'duty');
+
+        // Now dashboard redirects to duty
+        $this->actingAs($teacherUser)->get('/dashboard')
+            ->assertRedirect(route('teacher.duty'));
+
+        // Switch to homeroom from duty dashboard redirects to homeroom dashboard
+        $this->actingAs($teacherUser)
+            ->from('/teacher/duty')
+            ->post('/profile/switch-role', ['role' => 'homeroom'])
+            ->assertRedirect(route('teacher.homeroom'))
+            ->assertSessionHas('active_teacher_role', 'homeroom');
+
+        // Unauthorized switch attempt fails
+        $this->actingAs($teacherUser)
+            ->post('/profile/switch-role', ['role' => 'invalid_role'])
+            ->assertSessionHasErrors(['role']);
     }
 }

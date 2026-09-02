@@ -1,7 +1,6 @@
 name: core-prod
 
 # Production overlay — di belakang nginx-proxy via network nginx-net (external).
-# Aset JS di-build di host dulu (bun run build), public/hot dihapus.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 services:
   app:
@@ -9,7 +8,7 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: https://preview.smauiiyk.sch.id
-      LOG_LEVEL: warning
+      LOG_LEVEL: debug
       MAIL_MAILER: log
     volumes:
       - .:/var/www/html
