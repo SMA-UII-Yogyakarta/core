@@ -15,6 +15,11 @@ class TeachersImport
 
     private array $success = [];
 
+    public function __construct(
+        protected ?string $defaultPassword = null,
+    ) {
+    }
+
     public function import(string $filePath): array
     {
         $reader = ReaderFactory::createFromFile($filePath);
@@ -82,14 +87,28 @@ class TeachersImport
             $code = trim($data['teacher_code'] ?? $data['Kode'] ?? $data['kode'] ?? $data['nip'] ?? $data['NIP'] ?? '');
             $name = trim($data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? $data['EMAIL'] ?? '');
-            $typeRaw = strtolower(trim($data['type'] ?? $data['Type'] ?? $data['Tipe'] ?? $data['tipe'] ?? 'piket'));
+            $password = trim($data['password'] ?? $data['Password'] ?? $data['Kata Sandi'] ?? $data['kata_sandi'] ?? '');
+
+            $typeRaw = strtolower(trim($data['teacher_type'] ?? $data['type'] ?? $data['Type'] ?? $data['Tipe'] ?? $data['tipe'] ?? $data['tipe_guru'] ?? $data['Tipe Guru'] ?? 'piket'));
             $typeMap = [
-                'wali' => 'homeroom', 'homeroom' => 'homeroom',
-                'piket' => 'duty', 'duty' => 'duty',
-                'both' => 'both',
+                'wali' => ['homeroom'],
+                'wali kelas' => ['homeroom'],
+                'homeroom' => ['homeroom'],
+                'piket' => ['duty'],
+                'guru piket' => ['duty'],
+                'duty' => ['duty'],
+                'both' => ['duty', 'homeroom'],
+                'keduanya' => ['duty', 'homeroom'],
+                'wali,piket' => ['duty', 'homeroom'],
+                'piket,wali' => ['duty', 'homeroom'],
+                'wali kelas,guru piket' => ['duty', 'homeroom'],
+                'guru piket,wali kelas' => ['duty', 'homeroom'],
             ];
-            $typeStr = $typeMap[$typeRaw] ?? 'duty';
-            $type = $typeStr === 'both' ? ['duty', 'homeroom'] : [$typeStr];
+            $type = $typeMap[$typeRaw] ?? (
+                (str_contains($typeRaw, 'wali') && str_contains($typeRaw, 'piket')) || (str_contains($typeRaw, 'duty') && str_contains($typeRaw, 'homeroom'))
+                    ? ['duty', 'homeroom']
+                    : (str_contains($typeRaw, 'wali') || str_contains($typeRaw, 'homeroom') ? ['homeroom'] : ['duty'])
+            );
 
             if (empty($name)) {
                 throw new \RuntimeException('Nama guru wajib diisi.');
@@ -123,10 +142,15 @@ class TeachersImport
             if ($existingTeacher) {
                 // Update existing teacher & user (Upsert)
                 $user = $existingTeacher->user;
-                $user->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $user->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $user->update($userUpdateData);
+
                 $existingTeacher->update([
                     'name' => $name,
                     'teacher_type' => $type,
@@ -138,10 +162,15 @@ class TeachersImport
 
             if ($existingUser) {
                 // User exists without teacher record
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 Teacher::create([
                     'user_id' => $existingUser->id,
                     'teacher_code' => $code,
@@ -153,12 +182,16 @@ class TeachersImport
                 return;
             }
 
+            $initialPassword = ! empty($password)
+                ? $password
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : 'SmaUii@' . date('Y'));
+
             // Create new User and Teacher
             $user = User::create([
                 'username' => $code,
                 'name' => $name,
                 'email' => ! empty($email) ? $email : null,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($initialPassword),
                 'role' => 'teacher',
             ]);
             $user->assignRole('teacher');

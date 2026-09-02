@@ -17,6 +17,7 @@ class StoreTeacherRequest extends FormRequest
             'teacher_code' => 'required|string|max:20|unique:teachers,teacher_code',
             'name' => 'required|string|max:100',
             'email' => 'nullable|email|max:100|unique:users,email',
+            'teacher_type' => 'nullable',
             'password' => 'nullable|string|min:6',
         ];
     }

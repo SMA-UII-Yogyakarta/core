@@ -69,8 +69,10 @@ export default function ClassesTab({
                     <div className="font-semibold text-text-primary text-[14px] hover:text-primary transition-colors">
                         {c.name}
                     </div>
-                    <div className="text-[12px] text-text-muted mt-0.5">
-                        Tingkat: {c.level || "—"}
+                    <div className="text-[12px] text-text-muted mt-0.5 flex items-center gap-1.5">
+                        <span>Tingkat: {c.level || "—"}</span>
+                        <span>•</span>
+                        <span className="font-medium text-text-secondary">TA {c.academic_year || "2024/2025"}</span>
                     </div>
                 </div>
             ),
@@ -195,6 +197,7 @@ export default function ClassesTab({
                 mode={createOpen ? "create" : drawerMode}
                 schoolClass={createOpen ? null : selectedClass}
                 allTeachers={allTeachers}
+                existingClasses={isClientMode ? allClasses : (schoolClasses?.data || [])}
                 onClose={() => {
                     setDrawerMode(null);
                     onCloseCreate?.();

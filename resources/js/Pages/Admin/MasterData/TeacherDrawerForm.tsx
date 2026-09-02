@@ -1,8 +1,9 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Drawer, DrawerHeaderActions, Input, SelectInput, Button } from "@/Components";
+import { Drawer, DrawerHeaderActions, Input, Button } from "@/Components";
 import { teacherSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import { FiCheck, FiUserCheck, FiShield } from "react-icons/fi";
 import type { Teacher } from "./types";
 
 interface TeacherDrawerFormProps {
@@ -24,8 +25,13 @@ export default function TeacherDrawerForm({
     const [unlockedByUser, setUnlockedByUser] = useState(false);
     const isUnlocked = isCreate || mode === "edit" || unlockedByUser;
 
+    const [isHomeroom, setIsHomeroom] = useState(false);
+    const [isDuty, setIsDuty] = useState(true);
+    const [roleError, setRoleError] = useState<string | null>(null);
+
     const handleClose = () => {
         setUnlockedByUser(false);
+        setRoleError(null);
         onClose();
     };
 
@@ -51,11 +57,14 @@ export default function TeacherDrawerForm({
         if (!open) {
             reset();
             clearErrors();
+            setRoleError(null);
             return;
         }
 
         if (isCreate) {
             reset();
+            setIsHomeroom(false);
+            setIsDuty(true);
             setData({
                 teacher_code: "",
                 name: "",
@@ -65,15 +74,26 @@ export default function TeacherDrawerForm({
             });
         } else if (teacher) {
             let roleStr = "duty";
+            let hasDuty = false;
+            let hasHome = false;
+
             if (Array.isArray(teacher.teacher_type)) {
-                const hasDuty = teacher.teacher_type.includes("duty") || teacher.teacher_type.includes("piket");
-                const hasHome = teacher.teacher_type.includes("homeroom") || teacher.teacher_type.includes("wali");
-                if (hasDuty && hasHome) roleStr = "both";
-                else if (hasHome) roleStr = "homeroom";
-                else roleStr = "duty";
+                hasDuty = teacher.teacher_type.some((t) => String(t).includes("duty") || String(t).includes("piket"));
+                hasHome = teacher.teacher_type.some((t) => String(t).includes("homeroom") || String(t).includes("wali"));
             } else if (teacher.teacher_type) {
-                roleStr = String(teacher.teacher_type);
+                const str = String(teacher.teacher_type).toLowerCase();
+                hasDuty = str.includes("duty") || str.includes("piket") || str === "both";
+                hasHome = str.includes("homeroom") || str.includes("wali") || str === "both";
             }
+
+            if (!hasDuty && !hasHome) hasDuty = true;
+
+            setIsDuty(hasDuty);
+            setIsHomeroom(hasHome);
+
+            if (hasDuty && hasHome) roleStr = "both";
+            else if (hasHome) roleStr = "homeroom";
+            else roleStr = "duty";
 
             setData({
                 teacher_code: teacher.teacher_code,
@@ -84,11 +104,40 @@ export default function TeacherDrawerForm({
             });
         }
         clearErrors();
+        setRoleError(null);
     }, [open, mode, teacher, isCreate, setData, clearErrors, reset]);
+
+    const handleToggleDuty = () => {
+        if (!isUnlocked) return;
+        const next = !isDuty;
+        setIsDuty(next);
+        setRoleError(null);
+        syncTeacherType(next, isHomeroom);
+    };
+
+    const handleToggleHomeroom = () => {
+        if (!isUnlocked) return;
+        const next = !isHomeroom;
+        setIsHomeroom(next);
+        setRoleError(null);
+        syncTeacherType(isDuty, next);
+    };
+
+    const syncTeacherType = (duty: boolean, homeroom: boolean) => {
+        if (duty && homeroom) setData("teacher_type", "both");
+        else if (homeroom) setData("teacher_type", "homeroom");
+        else if (duty) setData("teacher_type", "duty");
+        else setData("teacher_type", "");
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!isUnlocked) return;
+
+        if (!isDuty && !isHomeroom) {
+            setRoleError("Pilih minimal satu penugasan guru (Guru Piket atau Wali Kelas).");
+            return;
+        }
 
         const result = validateForm(teacherSchema, data);
         if (!result.success) {
@@ -122,7 +171,15 @@ export default function TeacherDrawerForm({
         ? [
               { label: "Kode Guru / NIP", value: teacher.teacher_code },
               { label: "Nama Lengkap", value: teacher.name },
-              { label: "Tipe Penugasan", value: String(teacher.teacher_type || "duty") },
+              {
+                  label: "Tipe Penugasan",
+                  value:
+                      isDuty && isHomeroom
+                          ? "Guru Piket & Wali Kelas"
+                          : isHomeroom
+                          ? "Wali Kelas"
+                          : "Guru Piket",
+              },
               { label: "Email", value: teacher.user?.email || "-" },
               {
                   label: "Kelas Binaan",
@@ -170,7 +227,7 @@ export default function TeacherDrawerForm({
             width="md"
             showFooter={isUnlocked}
         >
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 font-inter">
                 <div>
                     <label className="block text-[13px] font-medium text-text-primary mb-1">
                         Kode Guru / NIP <span className="text-danger">*</span>
@@ -204,19 +261,75 @@ export default function TeacherDrawerForm({
                 </div>
 
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
+                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
                         Tipe Penugasan Guru <span className="text-danger">*</span>
                     </label>
-                    <SelectInput
-                        value={data.teacher_type}
-                        onChange={(val) => setData("teacher_type", val ? String(val) : "duty")}
-                        options={[
-                            { value: "duty", label: "Guru Piket" },
-                            { value: "homeroom", label: "Wali Kelas" },
-                            { value: "both", label: "Guru Piket & Wali Kelas (Multi-Peran)" },
-                        ]}
-                        disabled={isReadOnly}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {/* Option 1: Wali Kelas */}
+                        <div
+                            onClick={handleToggleHomeroom}
+                            className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
+                                isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
+                            } ${
+                                isHomeroom
+                                    ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
+                                    : "bg-surface border-border hover:bg-muted/40"
+                            }`}
+                        >
+                            <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                    isHomeroom
+                                        ? "bg-primary border-primary text-white"
+                                        : "border-border bg-surface text-transparent"
+                                }`}
+                            >
+                                <FiCheck size={13} className="stroke-[3]" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                    <FiUserCheck className={`text-[13px] ${isHomeroom ? "text-primary" : "text-text-muted"}`} />
+                                    <span className="text-[13px] font-bold text-text-primary">Wali Kelas</span>
+                                </div>
+                                <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                                    Mendampingi kelas binaan & rekap siswa
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Option 2: Guru Piket */}
+                        <div
+                            onClick={handleToggleDuty}
+                            className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${
+                                isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
+                            } ${
+                                isDuty
+                                    ? "bg-primary/5 border-primary ring-1 ring-primary/20 shadow-xs"
+                                    : "bg-surface border-border hover:bg-muted/40"
+                            }`}
+                        >
+                            <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                    isDuty
+                                        ? "bg-primary border-primary text-white"
+                                        : "border-border bg-surface text-transparent"
+                                }`}
+                            >
+                                <FiCheck size={13} className="stroke-[3]" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                    <FiShield className={`text-[13px] ${isDuty ? "text-primary" : "text-text-muted"}`} />
+                                    <span className="text-[13px] font-bold text-text-primary">Guru Piket</span>
+                                </div>
+                                <p className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                                    Kelola presensi harian & verifikasi izin
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {roleError && (
+                        <p className="text-[12px] text-danger mt-1.5 font-medium">{roleError}</p>
+                    )}
                 </div>
 
                 <div>

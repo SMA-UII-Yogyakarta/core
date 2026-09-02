@@ -15,6 +15,11 @@ class GuardiansImport
 
     private array $success = [];
 
+    public function __construct(
+        protected ?string $defaultPassword = null,
+    ) {
+    }
+
     public function import(string $filePath): array
     {
         $reader = ReaderFactory::createFromFile($filePath);
@@ -82,6 +87,7 @@ class GuardiansImport
             $address = trim($data['address'] ?? $data['Alamat'] ?? $data['alamat'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? '');
             $username = trim($data['username'] ?? $data['Username'] ?? '');
+            $password = trim($data['password'] ?? $data['Password'] ?? $data['Kata Sandi'] ?? $data['kata_sandi'] ?? '');
 
             if (empty($name)) {
                 throw new \RuntimeException('Nama wali murid wajib diisi.');
@@ -102,10 +108,15 @@ class GuardiansImport
             }
 
             if ($existingUser && $existingUser->guardian) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 $existingUser->guardian->update([
                     'name' => $name,
                     'phone' => ! empty($phone) ? $phone : $existingUser->guardian->phone,
@@ -117,10 +128,15 @@ class GuardiansImport
             }
 
             if ($existingUser) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 Guardian::create([
                     'user_id' => $existingUser->id,
                     'name' => $name,
@@ -132,11 +148,15 @@ class GuardiansImport
                 return;
             }
 
+            $initialPassword = ! empty($password)
+                ? $password
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : 'SmaUii@' . date('Y'));
+
             $user = User::create([
                 'username' => $username,
                 'name' => $name,
                 'email' => ! empty($email) ? $email : null,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($initialPassword),
                 'role' => 'guardian',
             ]);
             $user->assignRole('guardian');

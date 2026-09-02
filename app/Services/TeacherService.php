@@ -46,6 +46,7 @@ class TeacherService
                 'user_id' => $user->id,
                 'name' => $data['name'],
                 'teacher_code' => $data['teacher_code'],
+                'teacher_type' => $data['teacher_type'] ?? ['duty'],
             ]);
 
             return $teacher->load(['user', 'schoolClasses']);
@@ -54,14 +55,27 @@ class TeacherService
 
     public function update(int $id, array $data): Teacher
     {
-        $teacher = Teacher::findOrFail($id);
-        $teacher->update($data);
+        return DB::transaction(function () use ($id, $data) {
+            $teacher = Teacher::findOrFail($id);
+            $teacher->update($data);
 
-        if (isset($data['name'])) {
-            $teacher->user->update(['name' => $data['name']]);
-        }
+            $userUpdates = [];
+            if (isset($data['name'])) {
+                $userUpdates['name'] = $data['name'];
+            }
+            if (array_key_exists('email', $data)) {
+                $userUpdates['email'] = $data['email'];
+            }
+            if (! empty($data['password'])) {
+                $userUpdates['password'] = Hash::make($data['password']);
+            }
 
-        return $teacher->fresh(['user', 'schoolClasses']);
+            if (! empty($userUpdates)) {
+                $teacher->user->update($userUpdates);
+            }
+
+            return $teacher->fresh(['user', 'schoolClasses']);
+        });
     }
 
     public function delete(int $id): void

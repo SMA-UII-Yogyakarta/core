@@ -7,6 +7,7 @@ use App\Models\SchoolClass;
 use App\Models\Teacher;
 use App\Services\SchoolClassService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class SchoolClassController extends Controller
@@ -48,14 +49,23 @@ class SchoolClassController extends Controller
     {
         $this->authorize('create', SchoolClass::class);
 
+        $academicYear = $request->input('academic_year', '2024/2025') ?: '2024/2025';
+
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:school_classes,name',
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('school_classes')->where(fn ($q) => $q->where('academic_year', $academicYear)),
+            ],
             'level' => 'nullable|string|in:X,XI,XII',
+            'academic_year' => 'nullable|string|max:20',
             'teacher_id' => 'nullable|exists:teachers,id',
             'capacity' => 'nullable|integer|min:1',
         ]);
 
         $validated['level'] = $validated['level'] ?? 'X';
+        $validated['academic_year'] = $academicYear;
         $this->schoolClassService->create($validated);
 
         if ($request->wantsJson()) {
@@ -73,13 +83,22 @@ class SchoolClassController extends Controller
     {
         $this->authorize('update', SchoolClass::class);
 
+        $academicYear = $request->input('academic_year', '2024/2025') ?: '2024/2025';
+
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:school_classes,name,' . $id,
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('school_classes')->ignore($id)->where(fn ($q) => $q->where('academic_year', $academicYear)),
+            ],
             'level' => 'nullable|string|in:X,XI,XII',
+            'academic_year' => 'nullable|string|max:20',
             'teacher_id' => 'nullable|exists:teachers,id',
             'capacity' => 'nullable|integer|min:1',
         ]);
 
+        $validated['academic_year'] = $academicYear;
         $this->schoolClassService->update($id, $validated);
 
         if ($request->wantsJson()) {

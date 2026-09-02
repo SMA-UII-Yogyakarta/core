@@ -21,6 +21,7 @@ class ImportWebController extends Controller
 
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
+            'default_password' => 'nullable|string|min:6|max:100',
         ]);
 
         $file = $request->file('file');
@@ -33,11 +34,13 @@ class ImportWebController extends Controller
             ], 400);
         }
 
+        $defaultPassword = $request->input('default_password');
+
         $result = match ($entity) {
-            'students' => $this->importService->importStudents($file),
-            'teachers' => $this->importService->importTeachers($file),
+            'students' => $this->importService->importStudents($file, $defaultPassword),
+            'teachers' => $this->importService->importTeachers($file, $defaultPassword),
             'classes' => $this->importService->importClasses($file),
-            'guardians' => $this->importService->importGuardians($file),
+            'guardians' => $this->importService->importGuardians($file, $defaultPassword),
             default => [
                 'success_count' => 0,
                 'error_count' => 1,

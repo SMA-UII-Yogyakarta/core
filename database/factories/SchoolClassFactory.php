@@ -22,6 +22,9 @@ class SchoolClassFactory extends Factory
                 'XI-B (Reguler)',
                 'XII-A (Reguler)',
             ]),
+            'level' => 'X',
+            'academic_year' => '2024/2025',
+            'capacity' => 36,
         ];
     }
 }
