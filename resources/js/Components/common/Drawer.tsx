@@ -7,6 +7,7 @@ import Tooltip from "@/Components/ui/Tooltip";
 import TruncatedText from "@/Components/ui/TruncatedText";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import type { ButtonVariant } from "@/types/component";
 
 export interface DrawerProps {
     open: boolean;
@@ -18,6 +19,8 @@ export interface DrawerProps {
     onCancel?: () => void;
     submitLabel?: string;
     cancelLabel?: string;
+    submitVariant?: ButtonVariant;
+    cancelVariant?: ButtonVariant;
     loading?: boolean;
     disabled?: boolean;
     width?: "sm" | "md" | "lg" | "xl";
@@ -43,6 +46,8 @@ export default function Drawer({
     onCancel,
     submitLabel = "Simpan",
     cancelLabel = "Batal",
+    submitVariant = "primary",
+    cancelVariant = "ghost",
     loading = false,
     disabled = false,
     width = "md",
@@ -101,8 +106,9 @@ export default function Drawer({
             <>
                 <Button
                     type="button"
-                    variant="secondary"
+                    variant={cancelVariant}
                     onClick={handleCancelClick}
+                    className="h-9 px-3.5 text-[12.5px]"
                     dusk="drawer-cancel-btn"
                     data-testid="drawer-cancel-btn"
                 >
@@ -110,9 +116,10 @@ export default function Drawer({
                 </Button>
                 <Button
                     type="submit"
-                    variant="primary"
+                    variant={submitVariant}
                     loading={loading}
                     disabled={disabled}
+                    className="h-9 px-4 text-[12.5px]"
                     dusk="drawer-submit-btn"
                     data-testid="drawer-submit-btn"
                 >

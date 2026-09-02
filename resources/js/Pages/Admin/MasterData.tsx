@@ -8,9 +8,18 @@ import {
     SearchBar,
     NativeSelect,
     TabSwitcher,
+    Drawer,
+    SelectInput,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
-import { FiAlertCircle, FiUpload, FiPlus, FiTrash2 } from "react-icons/fi";
+import {
+    FiAlertCircle,
+    FiUpload,
+    FiPlus,
+    FiTrash2,
+    FiFilter,
+    FiRotateCcw,
+} from "react-icons/fi";
 import type { MasterDataProps } from "./MasterData/types";
 import StudentsTab from "./MasterData/StudentsTab";
 import TeachersTab from "./MasterData/TeachersTab";
@@ -60,13 +69,17 @@ export default function MasterData({
     }
 
     // Modal & Drawer Trigger States
-    const [createTab, setCreateTab] = useState<"students" | "teachers" | "class" | "guardians" | null>(null);
+    const [createTab, setCreateTab] = useState<
+        "students" | "teachers" | "class" | "guardians" | null
+    >(null);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
 
     const [importModalOpen, setImportModalOpen] = useState(false);
     const [importEntity, setImportEntity] = useState<
         "students" | "teachers" | "classes" | "guardians"
     >("students");
+
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
     const [deleteConfirm, setDeleteConfirm] = useState<{
         open: boolean;
@@ -120,6 +133,14 @@ export default function MasterData({
         );
     };
 
+    const handleResetFilters = () => {
+        setSearch("");
+        setSelectedClassId("");
+        setSelectedStatus("");
+        setFilterDrawerOpen(false);
+        router.get(`/master-data?tab=${currentTab}`, {}, { preserveState: true });
+    };
+
     const requestDelete = (
         entity: string,
         ids: number | number[],
@@ -157,13 +178,75 @@ export default function MasterData({
         }
     };
 
+    const hasActiveFilters = Boolean(selectedClassId || selectedStatus || search);
+    const currentImportEntity =
+        currentTab === "class"
+            ? "classes"
+            : (currentTab as "students" | "teachers" | "guardians");
+
+    const getAddLabel = () => {
+        switch (currentTab) {
+            case "students":
+                return "Tambah Siswa";
+            case "teachers":
+                return "Tambah Guru";
+            case "class":
+                return "Tambah Kelas";
+            case "guardians":
+                return "Tambah Wali";
+            default:
+                return "Tambah Data";
+        }
+    };
+
+    // Mobile Header Actions: [ Filter ] and [ Import ] directly to the left of the Profile button
+    const mobileHeaderActions = (
+        <div className="flex sm:hidden items-center gap-1.5 select-none font-inter">
+            {/* Filter Bottom Drawer Trigger Button */}
+            <button
+                type="button"
+                onClick={() => setFilterDrawerOpen(true)}
+                className={`h-8 px-2.5 rounded-xl border text-[11.5px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer relative ${
+                    hasActiveFilters
+                        ? "bg-white text-primary border-white shadow-xs"
+                        : "bg-white/15 border-white/20 text-white hover:bg-white/25"
+                }`}
+                aria-label="Filter Data"
+            >
+                <FiFilter className="text-[12px]" />
+                <span>Filter</span>
+                {hasActiveFilters && (
+                    <span className="w-2 h-2 rounded-full bg-accent border border-primary absolute -top-0.5 -right-0.5" />
+                )}
+            </button>
+
+            {/* Import CSV Button */}
+            <button
+                type="button"
+                onClick={() => {
+                    setImportEntity(currentImportEntity);
+                    setImportModalOpen(true);
+                }}
+                className="h-8 px-2.5 rounded-xl bg-white/15 border border-white/20 text-white hover:bg-white/25 text-[11.5px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                aria-label="Import CSV"
+            >
+                <FiUpload className="text-[12px]" />
+                <span>Import</span>
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Master Data Sekolah">
-            {/* Header with Consistent Top-Right Actions */}
+        <AppShell
+            title="Master Data Sekolah"
+            headerActions={mobileHeaderActions}
+            showNotificationBell={false}
+        >
+            {/* Desktop Page Header */}
             <PageHeader
                 title="Master Data Sekolah"
                 description="Kelola direktori siswa, tenaga pendidik, rombongan belajar, dan data orang tua/wali murid SMA UII Yogyakarta."
-                className="shrink-0 mb-4"
+                className="hidden sm:flex shrink-0 mb-4"
             >
                 <div className="flex items-center gap-2">
                     {currentTab === "students" && (
@@ -178,8 +261,8 @@ export default function MasterData({
                                             `${selectedStudentIds.length} Siswa Terpilih`
                                         )
                                     }
-                                    className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                    icon={<FiTrash2 size={15} />}
+                                    className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                    icon={<FiTrash2 size={14} />}
                                 >
                                     Hapus ({selectedStudentIds.length})
                                 </Button>
@@ -190,16 +273,16 @@ export default function MasterData({
                                     setImportEntity("students");
                                     setImportModalOpen(true);
                                 }}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiUpload size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiUpload size={14} />}
                             >
                                 Import CSV
                             </Button>
                             <Button
                                 variant="primary"
                                 onClick={() => setCreateTab("students")}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiPlus size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiPlus size={14} />}
                             >
                                 Tambah Siswa
                             </Button>
@@ -214,16 +297,16 @@ export default function MasterData({
                                     setImportEntity("teachers");
                                     setImportModalOpen(true);
                                 }}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiUpload size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiUpload size={14} />}
                             >
                                 Import CSV
                             </Button>
                             <Button
                                 variant="primary"
                                 onClick={() => setCreateTab("teachers")}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiPlus size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiPlus size={14} />}
                             >
                                 Tambah Guru
                             </Button>
@@ -234,8 +317,8 @@ export default function MasterData({
                         <Button
                             variant="primary"
                             onClick={() => setCreateTab("class")}
-                            className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                            icon={<FiPlus size={15} />}
+                            className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                            icon={<FiPlus size={14} />}
                         >
                             Tambah Kelas
                         </Button>
@@ -249,16 +332,16 @@ export default function MasterData({
                                     setImportEntity("guardians");
                                     setImportModalOpen(true);
                                 }}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiUpload size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiUpload size={14} />}
                             >
                                 Import CSV
                             </Button>
                             <Button
                                 variant="primary"
                                 onClick={() => setCreateTab("guardians")}
-                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
-                                icon={<FiPlus size={15} />}
+                                className="h-9 px-3.5 font-bold text-[12.5px] shadow-xs rounded-xl"
+                                icon={<FiPlus size={14} />}
                             >
                                 Tambah Wali
                             </Button>
@@ -282,9 +365,9 @@ export default function MasterData({
                 </div>
             )}
 
-            {/* Toolbar Row: Left = Pill Tabs, Right = Search & Filters */}
+            {/* Toolbar Row: Left = Segmented Tabs, Right = Search & Filters */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
-                {/* Left: Pill Segmented Tabs */}
+                {/* Segmented Tabs */}
                 <TabSwitcher
                     tabs={tabs}
                     activeKey={currentTab}
@@ -292,8 +375,8 @@ export default function MasterData({
                     variant="segmented"
                 />
 
-                {/* Right: Dynamic Filter Controls for Current Tab */}
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 self-start lg:self-auto">
+                {/* Search & Desktop Filter Dropdowns */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 self-stretch lg:self-auto">
                     {currentTab === "students" && (
                         <>
                             <div className="w-full sm:w-48 xl:w-56">
@@ -304,7 +387,7 @@ export default function MasterData({
                                     placeholder="Cari NIS, nama..."
                                 />
                             </div>
-                            <div className="w-32 xl:w-36">
+                            <div className="hidden sm:block w-32 xl:w-36">
                                 <NativeSelect
                                     value={selectedClassId}
                                     onChange={(e) => handleFilterChange("class_id", e.target.value)}
@@ -318,7 +401,7 @@ export default function MasterData({
                                     ))}
                                 </NativeSelect>
                             </div>
-                            <div className="w-28 xl:w-32">
+                            <div className="hidden sm:block w-28 xl:w-32">
                                 <NativeSelect
                                     value={selectedStatus}
                                     onChange={(e) => handleFilterChange("status", e.target.value)}
@@ -366,6 +449,35 @@ export default function MasterData({
                     )}
                 </div>
             </div>
+
+            {/* Active Filter Chips Banner on Mobile if filter active */}
+            {hasActiveFilters && (
+                <div className="sm:hidden flex items-center justify-between p-2.5 mb-3 bg-primary/10 border border-primary/20 rounded-xl text-[12px] font-inter">
+                    <div className="flex items-center gap-1.5 truncate">
+                        <FiFilter className="text-primary shrink-0" />
+                        <span className="text-text-primary font-medium truncate">
+                            Filter aktif:{" "}
+                            <strong>
+                                {[
+                                    selectedClassId &&
+                                        classOptions.find((c) => String(c.id) === String(selectedClassId))?.name,
+                                    selectedStatus && (selectedStatus === "Active" ? "Aktif" : "Non-Aktif"),
+                                    search && `"${search}"`,
+                                ]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                            </strong>
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="text-danger font-bold text-[11px] shrink-0 hover:underline cursor-pointer ml-2"
+                    >
+                        Reset
+                    </button>
+                </div>
+            )}
 
             {/* Tab Content Full Height Viewport */}
             <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -428,6 +540,76 @@ export default function MasterData({
                     />
                 )}
             </div>
+
+            {/* MOBILE FLOATING ACTION BALLOON (FAB) FOR ADD MASTER DATA */}
+            <div className="sm:hidden fixed bottom-20 right-4 z-40">
+                <button
+                    type="button"
+                    onClick={() => setCreateTab(currentTab as "students" | "teachers" | "class" | "guardians")}
+                    className="flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-full shadow-2xl hover:bg-primary-hover active:scale-95 transition-all font-inter font-bold text-[13px] cursor-pointer border border-white/20"
+                    aria-label={getAddLabel()}
+                >
+                    <FiPlus className="text-[16px] stroke-[2.5]" />
+                    <span>{getAddLabel()}</span>
+                </button>
+            </div>
+
+            {/* MOBILE FILTER BOTTOM DRAWER */}
+            <Drawer
+                open={filterDrawerOpen}
+                onClose={() => setFilterDrawerOpen(false)}
+                title="Filter Data Master"
+                description="Sesuaikan parameter filter data sekolah."
+                width="sm"
+                onSubmit={() => setFilterDrawerOpen(false)}
+                submitLabel="Terapkan Filter"
+                cancelLabel="Reset Filter"
+                onCancel={handleResetFilters}
+            >
+                <div className="space-y-4 font-inter">
+                    {currentTab === "students" && (
+                        <>
+                            <div>
+                                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                                    Kelas / Rombongan Belajar
+                                </label>
+                                <SelectInput
+                                    value={selectedClassId}
+                                    onChange={(val) => setSelectedClassId(String(val))}
+                                    options={[
+                                        { value: "", label: "Semua Kelas" },
+                                        ...classOptions.map((c) => ({
+                                            value: String(c.id),
+                                            label: c.name,
+                                        })),
+                                    ]}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[13px] font-medium text-text-primary mb-1">
+                                    Status Kesiswaan
+                                </label>
+                                <SelectInput
+                                    value={selectedStatus}
+                                    onChange={(val) => setSelectedStatus(String(val))}
+                                    options={[
+                                        { value: "", label: "Semua Status" },
+                                        { value: "Active", label: "Aktif" },
+                                        { value: "Inactive", label: "Non-Aktif" },
+                                    ]}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {currentTab !== "students" && (
+                        <div className="py-6 text-center text-text-muted text-[13px]">
+                            Semua parameter filter untuk tab ini telah terpasang otomatis.
+                        </div>
+                    )}
+                </div>
+            </Drawer>
 
             {/* Confirm Delete Dialog */}
             <ConfirmDialog
