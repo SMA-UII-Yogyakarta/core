@@ -63,13 +63,13 @@ export default function Avatar({
 
     return (
         <div
-            className={`relative inline-flex shrink-0 select-none ${className}`}
+            className={`relative inline-flex shrink-0 select-none rounded-full ${container} ${className}`}
             dusk={dusk}
             data-testid={dusk}
             {...props}
         >
             <div
-                className={`${container} rounded-full flex items-center justify-center overflow-hidden font-inter ${variantMap[variant]} shadow-sm`}
+                className={`w-full h-full rounded-full flex items-center justify-center overflow-hidden font-inter ${variantMap[variant]} shadow-sm`}
                 aria-label={ariaLabel}
                 role="img"
             >

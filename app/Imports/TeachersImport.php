@@ -82,8 +82,14 @@ class TeachersImport
             $code = trim($data['teacher_code'] ?? $data['Kode'] ?? $data['kode'] ?? $data['nip'] ?? $data['NIP'] ?? '');
             $name = trim($data['name'] ?? $data['Nama'] ?? $data['NAMA'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? $data['EMAIL'] ?? '');
-            $type = trim($data['type'] ?? $data['Type'] ?? $data['Tipe'] ?? $data['tipe'] ?? 'piket');
-            $type = in_array(strtolower($type), ['wali', 'piket', 'both']) ? strtolower($type) : 'piket';
+            $typeRaw = strtolower(trim($data['type'] ?? $data['Type'] ?? $data['Tipe'] ?? $data['tipe'] ?? 'piket'));
+            $typeMap = [
+                'wali' => 'homeroom', 'homeroom' => 'homeroom',
+                'piket' => 'duty', 'duty' => 'duty',
+                'both' => 'both'
+            ];
+            $typeStr = $typeMap[$typeRaw] ?? 'duty';
+            $type = $typeStr === 'both' ? ['duty', 'homeroom'] : [$typeStr];
 
             if (empty($name)) {
                 throw new \RuntimeException('Nama guru wajib diisi.');

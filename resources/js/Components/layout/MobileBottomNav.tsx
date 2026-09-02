@@ -40,30 +40,12 @@ export default function MobileBottomNav({ items, currentUrl }: MobileBottomNavPr
     return (
         <nav className="mobile-nav sm:hidden" role="navigation" aria-label="Navigasi utama">
             <div className="mobile-nav-inner">
-                {items.map((item, index) => {
+                {items.map((item) => {
                     const baseUrl = currentUrl.split("?")[0];
                     const itemBaseUrl = item.href.split("?")[0];
                     const isActive =
                         baseUrl === itemBaseUrl ||
                         (itemBaseUrl !== "/" && baseUrl.startsWith(itemBaseUrl + "/"));
-
-                    const isCenter = items.length === 3 && index === 1;
-
-                    if (isCenter) {
-                        return (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                className={`mobile-nav-item mobile-nav-item--primary ${isActive ? "is-active" : ""}`}
-                                aria-current={isActive ? "page" : undefined}
-                            >
-                                <span className="mobile-nav-fab" aria-hidden="true">
-                                    {renderSvgIcon(item.icon, true)}
-                                </span>
-                                <span className="mobile-nav-label">{item.label}</span>
-                            </Link>
-                        );
-                    }
 
                     return (
                         <Link

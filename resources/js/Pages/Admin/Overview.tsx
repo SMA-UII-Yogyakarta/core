@@ -38,8 +38,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
     const isStudent = user?.role === "student";
 
     const teacherType = user?.teacher?.teacher_type;
-    const isPiket = teacherType === "piket" || teacherType === "both";
-    const isWali = teacherType === "wali" || teacherType === "both";
+    const isPiket = teacherType === "duty" || teacherType === "both";
+    const isWali = teacherType === "homeroom" || teacherType === "both";
 
     type ClassItem = OverviewProps["overview"]["classes"][number];
 

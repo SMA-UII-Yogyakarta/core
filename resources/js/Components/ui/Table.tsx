@@ -14,6 +14,9 @@ export interface TableProps<T> {
     emptyMessage?: string;
     loading?: boolean;
     bare?: boolean;
+    stickyHeader?: boolean;
+    containerClassName?: string;
+    dense?: boolean;
 }
 
 const getJustifyClass = (className?: string) => {
@@ -30,20 +33,27 @@ export default function Table<T>({
     emptyMessage = "Tidak ada data.",
     loading = false,
     bare = false,
+    stickyHeader = true,
+    containerClassName = "",
+    dense = false,
 }: TableProps<T>) {
     return (
-        <div className={`w-full overflow-x-auto ${bare ? "" : "border border-border rounded-lg shadow-sm"}`}>
+        <div
+            className={`w-full overflow-auto table-scroll-container ${bare ? "" : "border border-border rounded-xl shadow-xs"} ${containerClassName}`}
+        >
             <table className="w-full border-collapse font-inter min-w-[600px] md:min-w-0">
-                <thead>
+                <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted" : ""}>
                     <tr className="bg-muted border-b border-border">
                         {columns.map((col) => {
                             const justify = getJustifyClass(col.className);
                             return (
                                 <th
                                     key={col.key}
-                                    className={`px-4 py-3 text-[13px] font-semibold text-text-muted uppercase tracking-wide whitespace-nowrap align-middle ${col.className ?? ""}`}
+                                    className={`${dense ? "px-3.5 py-2.5" : "px-4 py-2.5"} text-[12px] font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap align-middle bg-muted ${
+                                        stickyHeader ? "sticky top-0 z-10 border-b border-border" : ""
+                                    } ${col.className ?? ""}`}
                                 >
-                                    <div className={`flex items-center w-full min-h-[24px] gap-2 ${justify}`}>
+                                    <div className={`flex items-center w-full min-h-[22px] gap-2 ${justify}`}>
                                         {col.header}
                                     </div>
                                 </th>
@@ -81,9 +91,9 @@ export default function Table<T>({
                                     return (
                                         <td
                                             key={col.key}
-                                            className={`px-4 py-3 text-[14px] text-text-primary align-middle whitespace-nowrap ${col.className ?? ""}`}
+                                            className={`${dense ? "px-3.5 py-2" : "px-4 py-2.5"} text-[13px] text-text-primary align-middle whitespace-nowrap ${col.className ?? ""}`}
                                         >
-                                            <div className={`flex items-center w-full min-h-[24px] ${justify}`}>
+                                            <div className={`flex items-center w-full min-h-[22px] ${justify}`}>
                                                 {col.render
                                                     ? col.render(item)
                                                     : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}

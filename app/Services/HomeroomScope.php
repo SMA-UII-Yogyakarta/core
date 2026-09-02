@@ -34,7 +34,7 @@ class HomeroomScope
             return [];
         }
 
-        if (! $teacher->isWaliKelas()) {
+        if (! $teacher->isHomeroom()) {
             return null;
         }
 

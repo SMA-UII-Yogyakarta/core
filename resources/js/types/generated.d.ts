@@ -109,6 +109,6 @@ declare namespace App {
         };
     }
     namespace Enums {
-        export type TeacherType = "piket" | "wali" | "both";
+        export type TeacherType = "duty" | "homeroom" | "both";
     }
 }

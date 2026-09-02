@@ -304,7 +304,7 @@ export default function HomeroomDashboard({
                     />
 
                     {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
+                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
                         <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
                             <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
                             <span>Menampilkan daftar siswa kelas {shortClassName} yang memerlukan perhatian khusus.</span>

@@ -17,20 +17,20 @@ export type ButtonProps<E extends ElementType = "button"> = {
 >;
 
 const variantStyles: Record<ButtonVariant | "success", string> = {
-    primary: "bg-primary text-white hover:bg-primary/90",
-    secondary: "bg-accent text-primary hover:bg-accent/90 font-bold",
+    primary: "bg-primary text-white hover:bg-primary/90 shadow-xs",
+    secondary: "bg-accent text-primary hover:bg-accent/90 font-bold border border-border/50",
     outline: "border border-primary text-primary hover:bg-primary hover:text-white",
-    danger: "bg-danger text-white hover:bg-danger/90",
+    danger: "bg-danger text-white hover:bg-danger/90 shadow-xs",
     "danger-outline":
         "border border-danger text-danger hover:bg-danger hover:text-white",
-    success: "bg-success text-white hover:bg-success/90",
-    ghost: "text-text-muted hover:bg-background",
+    success: "bg-success text-white hover:bg-success/90 shadow-xs",
+    ghost: "text-text-muted hover:text-text-primary hover:bg-muted/40",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-    sm: "h-8 px-3 text-[12px]",
-    md: "h-10 px-4 text-[13px] sm:text-[14px]",
-    lg: "h-12 px-6 text-[15px] sm:text-[16px]",
+    sm: "h-8 px-3 text-[12px] rounded-lg font-semibold",
+    md: "h-10 px-4 text-[13px] rounded-xl font-bold",
+    lg: "h-12 px-6 text-[14px] sm:text-[15px] rounded-xl font-bold",
 };
 
 export function Button<E extends ElementType = "button">({
@@ -49,7 +49,7 @@ export function Button<E extends ElementType = "button">({
 
     return (
         <Component
-            className={`inline-flex items-center justify-center gap-2 font-inter font-semibold rounded-lg transition-colors duration-150 text-center
+            className={`inline-flex items-center justify-center gap-2 font-inter transition-all duration-150 text-center select-none active:scale-[0.98]
                 ${variantStyles[variant]}
                 ${sizeStyles[size]}
                 ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}

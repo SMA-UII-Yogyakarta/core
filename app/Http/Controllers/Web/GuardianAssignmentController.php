@@ -24,21 +24,15 @@ class GuardianAssignmentController extends Controller
         $this->authorize('viewAny', Guardian::class);
 
         $guardianId = $request->query('guardian_id');
-        $guardians = Guardian::with('user')->orderBy('name')->get();
+        $guardians = Guardian::with(['user', 'students.class'])->orderBy('name')->get();
 
         $selectedGuardian = null;
         $linkedStudents = [];
 
         if ($guardianId) {
-            $selectedGuardian = Guardian::with(['user', 'students.class'])->find($guardianId);
+            $selectedGuardian = $guardians->firstWhere('id', (int) $guardianId);
             if ($selectedGuardian) {
                 $linkedStudents = $selectedGuardian->students;
-            }
-        } elseif ($guardians->isNotEmpty()) {
-            $selectedGuardian = Guardian::with(['user', 'students.class'])->find($guardians->first()->id);
-            if ($selectedGuardian) {
-                $linkedStudents = $selectedGuardian->students;
-                $guardianId = (string) $selectedGuardian->id;
             }
         }
 

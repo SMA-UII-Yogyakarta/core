@@ -31,7 +31,7 @@ class LeaveVerificationAccessTest extends TestCase
     public function test_wali_kelas_can_access_leave_requests(): void
     {
         $user = $this->createUser('teacher');
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
 
         $this->actingAs($user)
             ->get('/leave-requests')
@@ -42,7 +42,7 @@ class LeaveVerificationAccessTest extends TestCase
     {
         // Pantauan Izin: teacher:piket may view /leave-requests (PermissionRegistry).
         $user = $this->createUser('teacher');
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'duty']);
 
         $this->actingAs($user)
             ->get('/leave-requests')
@@ -53,7 +53,7 @@ class LeaveVerificationAccessTest extends TestCase
     {
         // Verifikasi Izin remains wali-only (+ admin).
         $user = $this->createUser('teacher');
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'piket']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'duty']);
 
         $this->actingAs($user)
             ->get('/leave-requests/verification')
@@ -88,7 +88,7 @@ class LeaveVerificationAccessTest extends TestCase
     public function test_wali_verification_renders_teacher_page(): void
     {
         $user = $this->createUser('teacher');
-        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
         $schoolClass = SchoolClass::factory()->create(['teacher_id' => $teacher->id]);
 
         $this->actingAs($user)
@@ -104,10 +104,10 @@ class LeaveVerificationAccessTest extends TestCase
     public function test_wali_verification_scoped_to_own_class(): void
     {
         $user = $this->createUser('teacher');
-        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
         $ownClass = SchoolClass::factory()->create(['teacher_id' => $teacher->id]);
         $otherUser = $this->createUser('teacher');
-        $otherTeacher = Teacher::factory()->create(['user_id' => $otherUser->id, 'teacher_type' => 'wali']);
+        $otherTeacher = Teacher::factory()->create(['user_id' => $otherUser->id, 'teacher_type' => 'homeroom']);
         $otherClass = SchoolClass::factory()->create(['teacher_id' => $otherTeacher->id]);
 
         $ownStudent = Student::create([
@@ -166,7 +166,7 @@ class LeaveVerificationAccessTest extends TestCase
     public function test_wali_verification_empty_when_no_class(): void
     {
         $user = $this->createUser('teacher');
-        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
 
         $this->actingAs($user)
             ->get('/leave-requests/verification')

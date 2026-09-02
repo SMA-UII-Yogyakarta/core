@@ -1,7 +1,7 @@
-name: core
+name: core-dev
 
-# Base stack — dipakai oleh dev maupun production via override file:
-#   Development : docker compose -f docker-compose.yml -f docker-compose.dev.yml  up -d
+# Base stack — Default development berjalan langsung via:
+#   Development : docker compose up -d (otomatis memuat docker-compose.override.yml)
 #   Production  : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 services:
   app:

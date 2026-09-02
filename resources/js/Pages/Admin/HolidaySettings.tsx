@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { Pagination, Table, PageHeader, NativeSelect, Toggle, Input, ConfirmDialog, EmptyState, Card, Button } from "@/Components";
+import { Pagination, Table, PageHeader, NativeSelect, Toggle, Input, ConfirmDialog, EmptyState, Card, Button, TabSwitcher } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
@@ -319,191 +319,149 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
 
     return (
         <AppShell title="Atur Waktu & Libur - SMA UII Yogyakarta">
-            {/* Page Header */}
             <PageHeader
                 title="Atur Jam Operasional & Libur Akademik"
                 description="Kelola jadwal jam presensi harian siswa dan daftar kalender libur sekolah SMA UII Yogyakarta."
-            />
-
-            {/* Tab Selector */}
-            <div className="mb-6">
-                <div className="flex border border-border bg-surface rounded-xl p-1 shadow-xs max-w-md">
-                    <button
-                        type="button"
-                        onClick={() => setActiveSettingTab("time")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                            activeSettingTab === "time"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
+                className="shrink-0 mb-4"
+            >
+                {activeSettingTab === "time" ? (
+                    <Button
+                        onClick={handleSaveTimeSettings}
+                        loading={saving}
+                        variant="success"
+                        className="shrink-0 font-bold h-10 shadow-xs"
                     >
-                        <FiClock className="text-[14px]" />
-                        <span>Jam Operasional</span>
-                    </button>
-                    <button
-                        type="button"
-onClick={() => setActiveSettingTab("holiday")}
-                        className={`flex-1 py-2.5 px-4 text-[13px] font-bold rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                            activeSettingTab === "holiday"
-                                ? "bg-primary text-white shadow-sm font-bold"
-                                : "text-text-muted hover:text-text-primary hover:bg-muted/60"
-                        }`}
+                        <FiCheck className="mr-1.5" />
+                        Simpan Aturan Waktu
+                    </Button>
+                ) : (
+                    <Button
+                        onClick={() => setShowAddForm((prev) => !prev)}
+                        variant="primary"
+                        className="shrink-0 font-bold h-10 shadow-xs"
                     >
-                        <FiCalendar className="text-[14px]" />
-                        <span>Libur Akademik</span>
-                    </button>
-                </div>
-            </div>
+                        <FiPlus className="mr-1.5" />
+                        Tambah Libur
+                    </Button>
+                )}
+            </PageHeader>
 
-            {/* Section 1: Jam Operasional Harian (Full Width) */}
-            <div className={`w-full flex flex-col gap-4 ${activeSettingTab === "time" ? "block" : "hidden"}`}>
-                <Card className="p-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-<FiClock className="text-primary text-[16px]" />
-                                Jam Operasional Presensi Harian
-                            </h2>
-                            <p className="text-[12px] text-text-muted mt-0.5 font-inter">
-                                Atur jam buka pintu presensi, ambang batas waktu keterlambatan, dan jam tutup akses presensi per hari.
-                            </p>
-                        </div>
-                        <Button
-                            onClick={handleSaveTimeSettings}
-                            loading={saving}
-                            variant="success"
-                            className="shrink-0"
-                        >
-                            <FiCheck className="mr-1.5" />
-                            Simpan Aturan Waktu
-                        </Button>
-                    </div>
-                </Card>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+                <TabSwitcher
+                    tabs={[
+                        { key: "time", label: "Jam Operasional", icon: <FiClock className="text-[14px]" /> },
+                        { key: "holiday", label: "Libur Akademik", icon: <FiCalendar className="text-[14px]" /> },
+                    ]}
+                    activeKey={activeSettingTab}
+                    onChange={(key) => setActiveSettingTab(key as "time" | "holiday")}
+                    variant="segmented"
+                />
 
-                {/* Standalone Table without Card Wrapping */}
-                <Table columns={timeColumns} data={daysOfWeek} keyExtractor={(day) => day} />
-            </div>
-
-            {/* Section 2: Libur Akademik (Full Width) */}
-            <div className={`w-full flex flex-col gap-4 ${activeSettingTab === "holiday" ? "block" : "hidden"}`}>
-                <Card className="p-5">
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-[16px] font-bold text-primary font-inter flex items-center gap-2">
-<FiCalendar className="text-primary text-[16px]" />
-                                    Daftar Kalender Libur Akademik
-                                </h2>
-                                <p className="text-[12px] text-text-muted mt-0.5 font-inter">
-                                    Hari libur sekolah aktif tidak akan menghitung keterlambatan atau ketidakhadiran siswa.
-                                </p>
-                            </div>
-<div className="flex flex-wrap items-center gap-3 shrink-0">
-                                <div className="w-36">
-                                    <NativeSelect
-                                        value={filters.month ?? ""}
-                                        onChange={(e) =>
-                                            router.get(
-                                                "/operational-settings",
-                                                { year: filters.year, month: e.target.value },
-                                                { preserveState: true },
-                                            )
-                                        }
-                                    >
-                                        <option value="">Semua Bulan</option>
-                                        {months.map((m) => (
-                                            <option key={m.value} value={m.value}>
-                                                {m.label}
-                                            </option>
-                                        ))}
-                                    </NativeSelect>
-                                </div>
-                                <div className="w-28">
-                                    <NativeSelect
-                                        value={filters.year ?? String(currentYear)}
-                                        onChange={(e) =>
-                                            router.get(
-                                                "/operational-settings",
-                                                { year: e.target.value, month: filters.month },
-                                                { preserveState: true },
-                                            )
-                                        }
-                                    >
-                                        <option value={String(currentYear - 1)}>{currentYear - 1}</option>
-                                        <option value={String(currentYear)}>{currentYear}</option>
-                                        <option value={String(currentYear + 1)}>{currentYear + 1}</option>
-                                    </NativeSelect>
-                                </div>
-                                <Button
-                                    onClick={() => setShowAddForm((prev) => !prev)}
-                                    variant="primary"
-                                    className="shrink-0"
-                                >
-                                    <FiPlus className="mr-1.5" />
-                                    Tambah Libur
-                                </Button>
-                            </div>
-</div>
-
-                        {/* Inline Form Add Holiday */}
-                        {showAddForm && (
-                            <form
-                                onSubmit={handleAddHoliday}
-                                className="border border-border rounded-xl p-4 bg-muted/30 flex flex-col gap-4 mt-2 font-inter"
+                {activeSettingTab === "holiday" && (
+                    <div className="flex items-center gap-2.5 shrink-0">
+                        <div className="w-36">
+                            <NativeSelect
+                                value={filters.month ?? ""}
+                                onChange={(e) =>
+                                    router.get(
+                                        "/operational-settings",
+                                        { year: filters.year, month: e.target.value },
+                                        { preserveState: true },
+                                    )
+                                }
                             >
-                                <div className="flex items-center justify-between gap-4 pb-3 border-b border-border">
-                                    <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
-                                        <FiPlus className="text-primary text-[14px]" />
-                                        Form Tambah Hari Libur Sekolah
-                                    </h3>
-                                    <div className="flex gap-2 items-center">
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => {
-                                                resetHoliday();
-                                                setShowAddForm(false);
-                                            }}
-                                        >
-                                            Batal
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            loading={holidayProcessing}
-                                            variant="primary"
-                                            size="sm"
-                                        >
-                                            Simpan Libur
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        label="Tanggal Hari Libur"
-                                        type="date"
-                                        value={holidayForm.holiday_date}
-                                        onChange={(e) => setHolidayForm("holiday_date", e.target.value)}
-                                        error={holidayErrors.holiday_date}
-                                    />
-                                    <Input
-                                        label="Keterangan Hari Libur"
-                                        type="text"
-                                        value={holidayForm.description}
-                                        onChange={(e) => setHolidayForm("description", e.target.value)}
-                                        placeholder="Contoh: Libur Nasional / Cuti Bersama"
-                                        error={holidayErrors.description}
-                                    />
-                                </div>
-                            </form>
-                        )}
-</div>
-                </Card>
+                                <option value="">Semua Bulan</option>
+                                {months.map((m) => (
+                                    <option key={m.value} value={m.value}>
+                                        {m.label}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+                        <div className="w-28">
+                            <NativeSelect
+                                value={filters.year ?? String(currentYear)}
+                                onChange={(e) =>
+                                    router.get(
+                                        "/operational-settings",
+                                        { year: e.target.value, month: filters.month },
+                                        { preserveState: true },
+                                    )
+                                }
+                            >
+                                <option value={String(currentYear - 1)}>{currentYear - 1}</option>
+                                <option value={String(currentYear)}>{currentYear}</option>
+                                <option value={String(currentYear + 1)}>{currentYear + 1}</option>
+                            </NativeSelect>
+                        </div>
+                    </div>
+                )}
+            </div>
 
-                {/* Standalone Table without Double Card Wrapping */}
-                <div className="flex flex-col gap-3">
+            <div className={`w-full flex-1 min-h-0 flex flex-col ${activeSettingTab === "time" ? "flex" : "hidden"}`}>
+                <Table
+                    columns={timeColumns}
+                    data={daysOfWeek}
+                    keyExtractor={(day) => day}
+                    containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                />
+            </div>
+
+            <div className={`w-full flex-1 min-h-0 flex flex-col gap-3 ${activeSettingTab === "holiday" ? "flex" : "hidden"}`}>
+                {showAddForm && (
+                    <Card className="p-4 sm:p-5 shrink-0 border-border shadow-card">
+                        <form onSubmit={handleAddHoliday} className="flex flex-col gap-4 font-inter">
+                            <div className="flex items-center justify-between gap-4 pb-3 border-b border-border">
+                                <h3 className="text-[14px] font-bold text-text-primary flex items-center gap-2">
+                                    <FiPlus className="text-primary text-[14px]" />
+                                    Form Tambah Hari Libur Sekolah
+                                </h3>
+                                <div className="flex gap-2 items-center">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => {
+                                            resetHoliday();
+                                            setShowAddForm(false);
+                                        }}
+                                    >
+                                        Batal
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        loading={holidayProcessing}
+                                        variant="primary"
+                                        size="sm"
+                                    >
+                                        Simpan Libur
+                                    </Button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Input
+                                    label="Tanggal Hari Libur"
+                                    type="date"
+                                    value={holidayForm.holiday_date}
+                                    onChange={(e) => setHolidayForm("holiday_date", e.target.value)}
+                                    error={holidayErrors.holiday_date}
+                                />
+                                <Input
+                                    label="Keterangan Hari Libur"
+                                    type="text"
+                                    value={holidayForm.description}
+                                    onChange={(e) => setHolidayForm("description", e.target.value)}
+                                    placeholder="Contoh: Libur Nasional / Cuti Bersama"
+                                    error={holidayErrors.description}
+                                />
+                            </div>
+                        </form>
+                    </Card>
+                )}
+
+                <div className="flex-1 min-h-0 flex flex-col justify-between gap-3">
                     {holidays.data.length === 0 ? (
-                        <Card className="p-8 text-center">
+                        <Card className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 text-center bg-surface border border-border shadow-card">
                             <EmptyState variant="no-data" description="Belum ada hari libur yang ditambahkan pada periode ini." />
                         </Card>
                     ) : (
@@ -545,12 +503,12 @@ onClick={() => setActiveSettingTab("holiday")}
                             ]}
                             data={holidays.data}
                             keyExtractor={(h) => h.id}
+                            containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
                         />
                     )}
 
-                    {/* Pagination */}
                     {holidays.total > holidays.per_page && (
-                        <div className="pt-2 border-t border-border">
+                        <div className="pt-2 shrink-0 mt-auto font-inter">
                             <Pagination
                                 currentPage={holidays.current_page}
                                 totalPages={holidays.last_page}

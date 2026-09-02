@@ -29,24 +29,38 @@ class StorageProxyController extends Controller
         $this->authorizePath($request->user(), $path);
 
         $diskName = (string) config('filesystems.default', 'local');
-        $disk = Storage::disk($diskName);
+        $foundDisk = null;
 
-        // Fallback disk checks for S3 / RustFS / local / public compatibility
-        if (! $disk->exists($path)) {
-            if ($diskName !== 's3' && Storage::disk('s3')->exists($path)) {
-                $disk = Storage::disk('s3');
-            } elseif ($diskName !== 'public' && Storage::disk('public')->exists($path)) {
-                $disk = Storage::disk('public');
-            } elseif ($diskName !== 'local' && Storage::disk('local')->exists($path)) {
-                $disk = Storage::disk('local');
-            } else {
-                abort(404, 'File not found');
+        // Auto-ensure bucket if using s3
+        if ($diskName === 's3' || config('filesystems.disks.s3.bucket')) {
+            app(\App\Services\StorageService::class)->ensureBucketExists();
+        }
+
+        // Try candidate disks in order, safely catching flysystem exceptions
+        $candidateDisks = array_unique([$diskName, 's3', 'public', 'local']);
+        foreach ($candidateDisks as $name) {
+            try {
+                $candidate = Storage::disk($name);
+                if ($candidate->exists($path)) {
+                    $foundDisk = $candidate;
+                    break;
+                }
+            } catch (\Throwable $e) {
+                continue;
             }
         }
 
-        $mimeType = $disk->mimeType($path) ?: 'image/jpeg';
-        $size = $disk->size($path);
-        $stream = $disk->readStream($path);
+        if (! $foundDisk) {
+            abort(404, 'File not found');
+        }
+
+        try {
+            $mimeType = $foundDisk->mimeType($path) ?: 'image/jpeg';
+            $size = $foundDisk->size($path);
+            $stream = $foundDisk->readStream($path);
+        } catch (\Throwable $e) {
+            abort(404, 'File could not be read');
+        }
 
         return response()->stream(function () use ($stream) {
             if (is_resource($stream)) {

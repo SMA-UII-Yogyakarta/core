@@ -89,9 +89,27 @@ class StorageService
         }
     }
 
+    public function ensureBucketExists(): void
+    {
+        if ($this->disk === 's3') {
+            try {
+                /** @var \Aws\S3\S3Client $client */
+                $client = Storage::disk('s3')->getClient();
+                $bucket = (string) config('filesystems.disks.s3.bucket');
+                if (! empty($bucket) && ! $client->doesBucketExist($bucket)) {
+                    $client->createBucket(['Bucket' => $bucket]);
+                    \Illuminate\Support\Facades\Log::info("Created S3 bucket: {$bucket}");
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('S3 bucket existence check/creation warning: ' . $e->getMessage());
+            }
+        }
+    }
+
     public function uploadAvatar(UploadedFile $file, int $userId): string
     {
         try {
+            $this->ensureBucketExists();
             $image = $this->compress($file);
 
             $filename = sprintf(
@@ -103,13 +121,19 @@ class StorageService
 
             Storage::disk($this->disk)->put($filename, $image, 'public');
 
+            if ($this->disk !== 'public') {
+                try {
+                    Storage::disk('public')->put($filename, $image);
+                } catch (\Throwable) {}
+            }
+
             \Illuminate\Support\Facades\Log::info('Avatar uploaded successfully', [
                 'disk' => $this->disk,
                 'user_id' => $userId,
                 'filename' => $filename,
             ]);
 
-            return Storage::disk($this->disk)->url($filename);
+            return $filename;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Failed to upload avatar', [
                 'disk' => $this->disk,

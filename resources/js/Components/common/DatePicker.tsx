@@ -265,8 +265,8 @@ export default function DatePicker({
                     placeholder={placeholder}
                     disabled={disabled}
                     maxLength={10}
-                    className={`w-[160px] border rounded-lg px-3 py-1.5 pr-16 text-[13px] text-text-primary bg-surface font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-                        isInvalid ? "border-danger" : "border-border"
+                    className={`w-[160px] h-10 border rounded-xl px-3.5 pr-16 text-[13px] font-medium text-text-primary bg-surface font-inter focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150 ${
+                        isInvalid ? "border-danger ring-1 ring-danger/40" : "border-border"
                     } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 />
 

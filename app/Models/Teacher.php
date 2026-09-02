@@ -41,6 +41,45 @@ class Teacher extends Model
 
     protected $fillable = ['user_id', 'name', 'teacher_code', 'teacher_type'];
 
+    protected $casts = [
+        'teacher_type' => \Illuminate\Database\Eloquent\Casts\AsEnumCollection::class . ':' . \App\Enums\TeacherType::class,
+    ];
+
+    public function setTeacherTypeAttribute($value): void
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                $value = $decoded;
+            } elseif ($value === 'both') {
+                $value = ['duty', 'homeroom'];
+            } elseif ($value === 'piket' || $value === 'duty') {
+                $value = ['duty'];
+            } elseif ($value === 'wali' || $value === 'homeroom') {
+                $value = ['homeroom'];
+            } else {
+                $value = [$value];
+            }
+        } elseif ($value instanceof \Illuminate\Support\Collection) {
+            $value = $value->toArray();
+        }
+
+        if (is_array($value)) {
+            $normalized = array_map(function ($item) {
+                if ($item instanceof \App\Enums\TeacherType) {
+                    return $item->value;
+                }
+                if ($item === 'wali') return 'homeroom';
+                if ($item === 'piket') return 'duty';
+                return (string) $item;
+            }, $value);
+            $this->attributes['teacher_type'] = json_encode(array_values(array_unique($normalized)));
+            return;
+        }
+
+        $this->attributes['teacher_type'] = json_encode($value);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -57,13 +96,13 @@ class Teacher extends Model
         return $this->hasMany(DutySchedule::class);
     }
 
-    public function isWaliKelas(): bool
+    public function isHomeroom(): bool
     {
-        return in_array($this->teacher_type, ['wali', 'both']);
+        return $this->teacher_type && $this->teacher_type->contains(\App\Enums\TeacherType::HOMEROOM);
     }
 
-    public function isGuruPiket(): bool
+    public function isDuty(): bool
     {
-        return in_array($this->teacher_type, ['piket', 'both']);
+        return $this->teacher_type && $this->teacher_type->contains(\App\Enums\TeacherType::DUTY);
     }
 }

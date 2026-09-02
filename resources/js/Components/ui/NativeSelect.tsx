@@ -16,7 +16,7 @@ export default function NativeSelect({ className = "", children, style = {}, ...
     return (
         <select
             style={customArrowStyle}
-            className={`h-10 w-full max-w-full truncate appearance-none border border-border rounded-lg pl-3.5 pr-8 text-[13px] sm:text-[14px] font-medium font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150 cursor-pointer ${className}`}
+            className={`h-10 w-full max-w-full truncate appearance-none border border-border rounded-xl pl-3.5 pr-8 text-[13px] font-medium font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150 cursor-pointer ${className}`}
             {...props}
         >
             {children}

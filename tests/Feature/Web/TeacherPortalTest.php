@@ -26,7 +26,7 @@ class TeacherPortalTest extends TestCase
         $user = User::factory()->create(['role' => 'teacher']);
         $teacher = Teacher::factory()->create([
             'user_id' => $user->id,
-            'teacher_type' => 'piket',
+            'teacher_type' => 'duty',
         ]);
 
         return [$user, $teacher];
@@ -37,7 +37,7 @@ class TeacherPortalTest extends TestCase
         $user = User::factory()->create(['role' => 'teacher']);
         $teacher = Teacher::factory()->create([
             'user_id' => $user->id,
-            'teacher_type' => 'wali',
+            'teacher_type' => 'homeroom',
         ]);
         $schoolClass = SchoolClass::factory()->create([
             'name' => 'X-A',
@@ -263,7 +263,7 @@ class TeacherPortalTest extends TestCase
         $user = User::factory()->create(['role' => 'teacher']);
         Teacher::factory()->create([
             'user_id' => $user->id,
-            'teacher_type' => 'wali',
+            'teacher_type' => 'homeroom',
         ]);
 
         $this->actingAs($user)->get('/teacher/homeroom')

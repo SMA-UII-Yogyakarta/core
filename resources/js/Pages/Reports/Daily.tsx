@@ -236,10 +236,9 @@ export default function DailyReport({
                             keyExtractor={(c) => c.id}
                             emptyMessage="Tidak ada data kelas."
                         />
-                        
-<div className="px-4 sm:px-6 py-4 mt-2 sm:mt-4 -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 border-t border-border bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-2 text-text-muted text-[12px]">
-                            <FiInfo className="hidden sm:block" />
-                            Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.
+                        <div className="pt-2 flex items-center gap-2 text-text-muted text-[12px] font-inter">
+                            <FiInfo className="hidden sm:block text-primary text-[14px] shrink-0" />
+                            <span>Tampilan kolom menyesuaikan secara otomatis berdasarkan data yang ditampilkan.</span>
                         </div>
                     </div>
                 )}

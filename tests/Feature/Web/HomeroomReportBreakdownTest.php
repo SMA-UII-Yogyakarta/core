@@ -269,7 +269,7 @@ class HomeroomReportBreakdownTest extends TestCase
     private function makeWali(): array
     {
         $user = User::factory()->create(['role' => 'teacher']);
-        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'wali']);
+        $teacher = Teacher::factory()->create(['user_id' => $user->id, 'teacher_type' => 'homeroom']);
 
         return [$user, $teacher];
     }

@@ -120,43 +120,25 @@ class ExportService
                     if ($att->status === 'Present') {
                         $statusLabel = 'HADIR';
                         $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
-                        $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
-                        $photoType = 'selfie';
+                        $photoUrl = $att->photo_url;
+                        $photoType = $photoUrl ? 'selfie' : null;
                     } elseif ($att->status === 'Late') {
                         $statusLabel = 'TERLAMBAT';
                         $waktuKet = Carbon::parse($att->check_in_time)->format('H:i') . ' WIB';
-                        $photoUrl = $att->photo_path ?? 'demo/selfie.jpg';
-                        $photoType = 'selfie';
+                        $photoUrl = $att->photo_url;
+                        $photoType = $photoUrl ? 'selfie' : null;
                     }
                 } elseif ($leave) {
                     if ($leave->approval_status === 'Approved') {
                         $statusLabel = $leave->category === 'Sick' ? 'SAKIT' : 'IZIN';
-                        $waktuKet = $leave->reason ?? ($leave->category === 'Sick' ? 'Surat Dokter' : 'Izin Keluarga');
-                        $photoUrl = $leave->attachment_path ?? 'demo/bukti.jpg';
-                        $photoType = 'bukti';
+                        $waktuKet = $leave->description ?? ($leave->category === 'Sick' ? 'Surat Dokter' : 'Izin Keluarga');
+                        $photoUrl = $leave->document_url;
+                        $photoType = $photoUrl ? 'bukti' : null;
                     } elseif ($leave->approval_status === 'Pending') {
                         $statusLabel = 'BELUM VERIFIKASI';
                         $waktuKet = 'Menunggu validasi Wali Kelas';
-                        $photoUrl = $leave->attachment_path ?? 'demo/bukti.jpg';
-                        $photoType = 'bukti';
-                    }
-                } else {
-                    // Demo preview fallback for rich visualization matching mockup
-                    if ($idx === 0) {
-                        $statusLabel = 'HADIR';
-                        $waktuKet = '06:45 WIB';
-                        $photoUrl = 'demo/selfie_ahmad.jpg';
-                        $photoType = 'selfie';
-                    } elseif ($idx === 1) {
-                        $statusLabel = 'TERLAMBAT';
-                        $waktuKet = '07:12 WIB';
-                        $photoUrl = 'demo/selfie_clarissa.jpg';
-                        $photoType = 'selfie';
-                    } elseif ($idx === 2) {
-                        $statusLabel = 'BELUM VERIFIKASI';
-                        $waktuKet = 'Menunggu validasi Wali Kelas';
-                        $photoUrl = 'demo/bukti_farhan.jpg';
-                        $photoType = 'bukti';
+                        $photoUrl = $leave->document_url;
+                        $photoType = $photoUrl ? 'bukti' : null;
                     }
                 }
                 $idx++;

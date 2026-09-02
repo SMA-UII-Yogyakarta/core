@@ -165,6 +165,6 @@ class HomeroomReportController extends Controller
             'total_students' => $totalStudentCount,
         ];
         $props['selectedSemester'] = $semester;
-        $props['selectedYear'] = $year;
+        $props['selectedYear'] = $academicYear;
     }
 }

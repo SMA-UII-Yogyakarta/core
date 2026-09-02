@@ -121,7 +121,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // ── Admin + Guru Piket ──
-        Route::middleware(['role:admin,teacher', 'teacher.type:piket'])->group(function () {
+        Route::middleware(['role:admin,teacher', 'teacher.type:duty'])->group(function () {
             Route::get('/attendances', [AttendanceApiController::class, 'index'])->name(
                 'api.attendances.index',
             );
@@ -138,7 +138,7 @@ Route::prefix('v1')->group(function () {
         });
 
         // ── Admin + Wali Kelas ──
-        Route::middleware(['role:admin,teacher', 'teacher.type:wali'])->group(function () {
+        Route::middleware(['role:admin,teacher', 'teacher.type:homeroom'])->group(function () {
             // ── Leave Request API (verify) ──
             Route::patch('/leave-requests/{id}/verify', [
                 LeaveRequestApiController::class,

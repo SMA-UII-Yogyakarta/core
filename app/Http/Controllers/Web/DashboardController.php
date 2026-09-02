@@ -28,9 +28,13 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         return match ($user->role) {
-            'teacher' => $user->teacher?->isWaliKelas()
-                ? redirect()->route('teacher.homeroom')
-                : redirect()->route('teacher.duty'),
+            'teacher' => match (session('active_teacher_role')) {
+                'duty' => redirect()->route('teacher.duty'),
+                'homeroom' => redirect()->route('teacher.homeroom'),
+                default => $user->teacher?->isHomeroom()
+                    ? redirect()->route('teacher.homeroom')
+                    : redirect()->route('teacher.duty'),
+            },
             'guardian' => redirect()->route('guardian.dashboard', $request->query()),
             'student' => redirect()->route('student.dashboard'),
             default => $this->adminDashboard($request),

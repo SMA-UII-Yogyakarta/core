@@ -38,8 +38,10 @@ class UserIdpResource extends JsonResource
                 'teacher_id' => $teacher->id,
                 'code' => $teacher->teacher_code,
                 'teacher_type' => $teacherType,
-                'is_piket' => in_array($teacherType, ['piket', 'both']),
-                'is_wali' => in_array($teacherType, ['wali', 'both']),
+                'is_duty' => $teacher->isDuty(),
+                'is_homeroom' => $teacher->isHomeroom(),
+                'is_piket' => $teacher->isDuty(),
+                'is_wali' => $teacher->isHomeroom(),
                 'class_id' => $schoolClass?->id,
                 'class_name' => $schoolClass?->name,
             ];

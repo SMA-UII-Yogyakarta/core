@@ -59,10 +59,10 @@ export default function Input({
                 )}
                 <input
                     id={id}
-                    className={`w-full h-10 px-3.5 border border-border rounded-lg
-                        text-[14px] text-text-primary font-inter bg-surface
+                    className={`w-full h-10 px-3.5 border border-border rounded-xl
+                        text-[13px] font-medium text-text-primary font-inter bg-surface
                         placeholder:text-text-inactive
-                        focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-transparent
+                        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150
                         ${icon ? "pl-10" : ""}
                         ${rightIcon ? "pr-10" : ""}
                         ${error ? "border-danger ring-1 ring-danger/40" : ""}

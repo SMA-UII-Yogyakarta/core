@@ -1,6 +1,6 @@
 import { router, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { PageHeader, Card, Button, Modal, NativeSelect, StickyContainer, Pagination, Input, Table, ConfirmDialog } from "@/Components";
+import { PageHeader, Card, Button, Modal, NativeSelect, Pagination, Input, Table, ConfirmDialog, TabSwitcher } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import { FiBell, FiTrash2, FiSend, FiCheckSquare } from "react-icons/fi";
 import { notificationSchema } from "@/schemas";
@@ -129,207 +129,194 @@ export default function Notifications({ notifications, sentNotifications, unread
 
     return (
         <AppShell title="Notifikasi Pengguna">
-            <div className="space-y-6">
-                <PageHeader
-                    title="Bilah Notifikasi"
-                    description="Pantau pengumuman sekolah serta pemberitahuan sistem absensi."
-                >
-                    {activeTab === "inbox" && unreadCount > 0 && (
-                        <Button
-                            variant="primary"
-                            onClick={handleMarkAllAsRead}
-                            icon={<FiCheckSquare className="text-[14px]" />}
-                        >
-                            Tandai Semua Dibaca
-                        </Button>
-                    )}
-                    {isAdmin && activeTab === "sent" && (
-                        <Button
-                            variant="primary"
-                            onClick={() => setIsCreateOpen(true)}
-                            icon={<FiSend className="text-[14px]" />}
-                        >
-                            Kirim Notifikasi
-                        </Button>
-                    )}
-                </PageHeader>
-
-                {isAdmin && (
-                    <StickyContainer>
-                        <div className="flex gap-8 border-b border-border select-none">
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab("inbox")}
-                                className={`pb-2 text-[14px] font-semibold transition-colors border-b-2 -mb-px inline-flex items-center gap-2 cursor-pointer ${
-                                    activeTab === "inbox"
-                                        ? "text-primary border-primary font-bold"
-                                        : "text-text-inactive border-transparent hover:text-text-primary"
-                                }`}
-                            >
-                                <FiBell className="text-[15px]" />
-                                <span>Notifikasi Masuk ({unreadCount})</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab("sent")}
-                                className={`pb-2 text-[14px] font-semibold transition-colors border-b-2 -mb-px inline-flex items-center gap-2 cursor-pointer ${
-                                    activeTab === "sent"
-                                        ? "text-primary border-primary font-bold"
-                                        : "text-text-inactive border-transparent hover:text-text-primary"
-                                }`}
-                            >
-                                <FiSend className="text-[15px]" />
-                                <span>Kelola Pengiriman</span>
-                            </button>
-                        </div>
-                    </StickyContainer>
+            <PageHeader
+                title="Bilah Notifikasi"
+                description="Pantau pengumuman sekolah serta pemberitahuan sistem absensi."
+                className="shrink-0 mb-4"
+            >
+                {activeTab === "inbox" && unreadCount > 0 && (
+                    <Button
+                        variant="primary"
+                        onClick={handleMarkAllAsRead}
+                        className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl shrink-0"
+                        icon={<FiCheckSquare className="text-[14px]" />}
+                    >
+                        Tandai Semua Dibaca
+                    </Button>
                 )}
+                {isAdmin && activeTab === "sent" && (
+                    <Button
+                        variant="primary"
+                        onClick={() => setIsCreateOpen(true)}
+                        className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl shrink-0"
+                        icon={<FiSend className="text-[14px]" />}
+                    >
+                        Kirim Notifikasi
+                    </Button>
+                )}
+            </PageHeader>
 
-                {activeTab === "inbox" ? (
-                    <div className="max-w-4xl space-y-4">
+            {isAdmin && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+                    <TabSwitcher
+                        tabs={[
+                            { key: "inbox", label: "Notifikasi Masuk", icon: <FiBell className="text-[14px]" />, count: unreadCount },
+                            { key: "sent", label: "Kelola Pengiriman", icon: <FiSend className="text-[14px]" /> },
+                        ]}
+                        activeKey={activeTab}
+                        onChange={(key) => setActiveTab(key as "inbox" | "sent")}
+                        variant="segmented"
+                    />
+                </div>
+            )}
 
-                        {notifications.data.length === 0 ? (
-                            <Card className="p-8 text-center text-text-inactive font-inter">
-                                <FiBell className="w-12 h-12 mx-auto mb-3 text-text-inactive/40" />
-                                <p className="text-[14px] font-medium">Kotak masuk notifikasi Anda kosong.</p>
-                            </Card>
-                        ) : (
-                            <div className="space-y-3">
-                                {notifications.data.map((n) => (
+            {activeTab === "inbox" ? (
+                <div className="w-full flex-1 min-h-0 flex flex-col justify-between gap-4">
+                    {notifications.data.length === 0 ? (
+                        <Card className="p-8 text-center text-text-inactive font-inter flex-1 min-h-0 flex flex-col items-center justify-center">
+                            <FiBell className="w-12 h-12 mx-auto mb-3 text-text-inactive/40" />
+                            <p className="text-[14px] font-medium">Kotak masuk notifikasi Anda kosong.</p>
+                        </Card>
+                    ) : (
+                        <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-3">
+                            {notifications.data.map((n) => (
+                                <div
+                                    key={n.id}
+                                    onClick={() => !n.is_read && handleMarkAsRead(n.id)}
+                                    className={`p-4 border rounded-xl shadow-xs transition-all duration-150 flex items-start gap-4 select-none ${
+                                        n.is_read
+                                            ? "bg-surface border-border opacity-85"
+                                            : "bg-primary/5 border-primary/20 ring-1 ring-primary/10 cursor-pointer hover:bg-primary/10"
+                                    }`}
+                                >
                                     <div
-                                        key={n.id}
-                                        onClick={() => !n.is_read && handleMarkAsRead(n.id)}
-                                        className={`p-4 border rounded-xl shadow-xs transition-all duration-150 flex items-start gap-4 select-none ${
-                                            n.is_read
-                                                ? "bg-surface border-border opacity-85"
-                                                : "bg-primary/5 border-primary/20 ring-1 ring-primary/10 cursor-pointer hover:bg-primary/10"
+                                        className={`p-2.5 rounded-lg shrink-0 ${
+                                            n.is_read ? "bg-muted text-text-inactive" : "bg-primary text-white"
                                         }`}
                                     >
-                                        <div
-                                            className={`p-2.5 rounded-lg shrink-0 ${
-                                                n.is_read ? "bg-muted text-text-inactive" : "bg-primary text-white"
-                                            }`}
-                                        >
-                                            <FiBell className="w-4 h-4" />
+                                        <FiBell className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <h3
+                                                className={`text-[14px] font-inter truncate ${
+                                                    n.is_read
+                                                        ? "text-text-primary font-medium"
+                                                        : "text-text-primary font-bold"
+                                                }`}
+                                            >
+                                                {n.title}
+                                            </h3>
+                                            <span className="text-[11px] text-text-inactive shrink-0 whitespace-nowrap">
+                                                {formatDate(n.created_at)}
+                                            </span>
                                         </div>
-                                        <div className="flex-1 min-w-0 space-y-1">
-                                            <div className="flex items-center justify-between gap-4">
-                                                <h3
-                                                    className={`text-[14px] font-inter truncate ${
-                                                        n.is_read
-                                                            ? "text-text-primary font-medium"
-                                                            : "text-text-primary font-bold"
-                                                    }`}
-                                                >
-                                                    {n.title}
-                                                </h3>
-                                                <span className="text-[11px] text-text-inactive shrink-0 whitespace-nowrap">
-                                                    {formatDate(n.created_at)}
-                                                </span>
-                                            </div>
-                                            <p className="text-[13px] text-text-secondary font-inter leading-relaxed whitespace-pre-line break-words">
-                                                {n.content}
-                                            </p>
-                                            <div className="flex items-center gap-2 pt-1">
-                                                <span className="text-[10px] bg-muted px-2 py-0.5 rounded-md text-text-inactive font-semibold font-inter">
-                                                    Pengirim: {n.sender?.name ?? "Sistem"}
-                                                </span>
-                                                {!n.is_read && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                                )}
-                                            </div>
+                                        <p className="text-[13px] text-text-secondary font-inter leading-relaxed whitespace-pre-line break-words">
+                                            {n.content}
+                                        </p>
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <span className="text-[10px] bg-muted px-2 py-0.5 rounded-md text-text-inactive font-semibold font-inter">
+                                                Pengirim: {n.sender?.name ?? "Sistem"}
+                                            </span>
+                                            {!n.is_read && (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                            )}
                                         </div>
                                     </div>
-                                ))}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
-                                {notifications.last_page > 1 && (
-                                    <div className="pt-4">
-                                        <Pagination
-                                            currentPage={notifications.current_page}
-                                            totalPages={notifications.last_page}
-                                            totalItems={notifications.total}
-                                            perPage={notifications.per_page}
-                                            onPageChange={(page) =>
-                                                router.get("/notifications", { page }, { preserveState: true })
-                                            }
-                                        />
-                                    </div>
-                                )}
+                    {notifications.last_page > 1 && (
+                        <div className="pt-2 shrink-0 mt-auto font-inter">
+                            <Pagination
+                                currentPage={notifications.current_page}
+                                totalPages={notifications.last_page}
+                                totalItems={notifications.total}
+                                perPage={notifications.per_page}
+                                onPageChange={(page) =>
+                                    router.get("/notifications", { page }, { preserveState: true })
+                                }
+                            />
+                        </div>
+                    )}
+                </div>
+            ) : (
+                isAdmin &&
+                sentNotifications && (
+                    <div className="w-full flex-1 min-h-0 flex flex-col justify-between gap-3">
+                        <Table
+                            columns={[
+                                {
+                                    key: "title",
+                                    header: "Judul",
+                                    render: (n) => <span className="font-bold text-text-primary truncate max-w-[180px] block">{n.title}</span>,
+                                },
+                                {
+                                    key: "target_group",
+                                    header: "Penerima",
+                                    render: (n) => (
+                                        <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+                                            {getGroupLabel(n.target_group)}
+                                        </span>
+                                    ),
+                                },
+                                {
+                                    key: "content",
+                                    header: "Isi Pengumuman",
+                                    render: (n) => <span className="text-text-secondary truncate max-w-[280px] block">{n.content}</span>,
+                                },
+                                {
+                                    key: "created_at",
+                                    header: "Waktu Kirim",
+                                    render: (n) => <span className="text-text-inactive">{formatDate(n.created_at)}</span>,
+                                },
+                                {
+                                    key: "actions",
+                                    header: <div className="text-right w-full">Aksi</div>,
+                                    render: (n) => (
+                                        <div className="flex justify-end">
+                                            <button
+                                                onClick={() => handleDeleteNotification(n.id)}
+                                                className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
+                                                type="button"
+                                                title="Hapus Notifikasi"
+                                            >
+                                                <FiTrash2 className="text-[14px]" />
+                                            </button>
+                                        </div>
+                                    ),
+                                    className: "text-right",
+                                },
+                            ]}
+                            data={sentNotifications.data}
+                            keyExtractor={(n) => n.id}
+                            emptyMessage="Anda belum pernah mengirim notifikasi."
+                            containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                            dense
+                        />
+
+                        {sentNotifications.last_page > 1 && (
+                            <div className="pt-2 shrink-0 mt-auto font-inter">
+                                <Pagination
+                                    currentPage={sentNotifications.current_page}
+                                    totalPages={sentNotifications.last_page}
+                                    totalItems={sentNotifications.total}
+                                    perPage={sentNotifications.per_page}
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/notifications",
+                                            { sent_page: page },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                />
                             </div>
                         )}
                     </div>
-                ) : (
-                    isAdmin &&
-                    sentNotifications && (
-                        <div className="max-w-5xl space-y-4">
-                            <Table
-                                columns={[
-                                    {
-                                        key: "title",
-                                        header: "Judul",
-                                        render: (n) => <span className="font-bold text-text-primary truncate max-w-[180px] block">{n.title}</span>,
-                                    },
-                                    {
-                                        key: "target_group",
-                                        header: "Penerima",
-                                        render: (n) => (
-                                            <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-[11px] font-bold">
-                                                {getGroupLabel(n.target_group)}
-                                            </span>
-                                        ),
-                                    },
-                                    {
-                                        key: "content",
-                                        header: "Isi Pengumuman",
-                                        render: (n) => <span className="text-text-secondary truncate max-w-[280px] block">{n.content}</span>,
-                                    },
-                                    {
-                                        key: "created_at",
-                                        header: "Waktu Kirim",
-                                        render: (n) => <span className="text-text-inactive">{formatDate(n.created_at)}</span>,
-                                    },
-                                    {
-                                        key: "actions",
-                                        header: <div className="text-right w-full">Aksi</div>,
-                                        render: (n) => (
-                                            <div className="flex justify-end">
-                                                <button
-                                                    onClick={() => handleDeleteNotification(n.id)}
-                                                    className="text-danger hover:text-danger/80 p-1.5 cursor-pointer transition-transform hover:scale-110"
-                                                    type="button"
-                                                >
-                                                    <FiTrash2 className="text-[14px]" />
-                                                </button>
-                                            </div>
-                                        ),
-                                        className: "text-right",
-                                    },
-                                ]}
-                                data={sentNotifications.data}
-                                keyExtractor={(n) => n.id}
-                                emptyMessage="Anda belum pernah mengirim notifikasi."
-                            />
-
-                            {sentNotifications.last_page > 1 && (
-                                <div className="pt-2">
-                                    <Pagination
-                                        currentPage={sentNotifications.current_page}
-                                        totalPages={sentNotifications.last_page}
-                                        totalItems={sentNotifications.total}
-                                        perPage={sentNotifications.per_page}
-                                        onPageChange={(page) =>
-                                            router.get(
-                                                "/notifications",
-                                                { sent_page: page },
-                                                { preserveState: true },
-                                            )
-                                        }
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )
-                )}
+                )
+            )}
 
                 {/* Send Notification Modal */}
                 {isCreateOpen && (
@@ -386,7 +373,6 @@ export default function Notifications({ notifications, sentNotifications, unread
                         </form>
                     </Modal>
                 )}
-            </div>
 
             <ConfirmDialog
                 open={deleteConfirm.open}

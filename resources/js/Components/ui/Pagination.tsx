@@ -12,15 +12,15 @@ export interface PaginationProps {
 type PaginationItem = number | "...";
 
 function getPaginationRange(currentPage: number, totalPages: number, compact: boolean): PaginationItem[] {
-    if (compact) {
-        if (totalPages <= 5) {
+    if (compact || totalPages <= 5) {
+        if (totalPages <= 4) {
             return Array.from({ length: totalPages }, (_, i) => i + 1);
         }
         if (currentPage <= 2) {
-            return [1, 2, 3, "...", totalPages];
+            return [1, 2, "...", totalPages];
         }
         if (currentPage >= totalPages - 1) {
-            return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+            return [1, "...", totalPages - 1, totalPages];
         }
         return [1, "...", currentPage, "...", totalPages];
     }
@@ -70,31 +70,37 @@ export default function Pagination({
 }: PaginationProps) {
     if (totalPages <= 0) return null;
 
-    const isCentered = align === "center" || compact;
+    const isCentered = align === "center";
     const paginationRange = getPaginationRange(currentPage, totalPages, compact);
     const startItem = totalItems > 0 ? (currentPage - 1) * perPage + 1 : 0;
     const endItem = Math.min(currentPage * perPage, totalItems);
 
     return (
         <div
-            className={`flex ${
-                isCentered
-                    ? "flex-col items-center justify-center text-center"
-                    : "flex-col sm:flex-row sm:items-center justify-between text-center sm:text-left"
-            } mt-3 gap-2.5 text-[13px] text-text-muted font-inter select-none max-w-full ${className}`}
+            className={`flex items-center ${
+                isCentered ? "justify-center" : "justify-between"
+            } gap-2 text-[13px] text-text-muted font-inter select-none w-full max-w-full ${className}`}
         >
-            {/* Info Text */}
-            <span className="text-[12px] sm:text-[13px] whitespace-nowrap text-text-secondary">
-                Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
-                <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
-                <strong className="text-text-primary font-bold">{totalItems}</strong> data
+            {/* Info Text — Tepi Kiri */}
+            <span className="text-[12px] whitespace-nowrap text-text-secondary text-left">
+                {compact ? (
+                    <>
+                        <strong className="text-text-primary font-bold">{startItem}</strong>–
+                        <strong className="text-text-primary font-bold">{endItem}</strong> dari{" "}
+                        <strong className="text-text-primary font-bold">{totalItems}</strong>
+                    </>
+                ) : (
+                    <>
+                        Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
+                        <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
+                        <strong className="text-text-primary font-bold">{totalItems}</strong> data
+                    </>
+                )}
             </span>
 
-            {/* Navigation Controls */}
+            {/* Navigation Controls — Tepi Kanan */}
             <nav
-                className={`flex flex-wrap items-center gap-1 sm:gap-1.5 max-w-full ${
-                    isCentered ? "justify-center" : "justify-center sm:justify-end"
-                }`}
+                className="flex items-center justify-end gap-1 shrink-0"
                 aria-label="Pagination"
             >
                 {/* Previous Button */}
@@ -102,12 +108,11 @@ export default function Pagination({
                     type="button"
                     disabled={currentPage <= 1}
                     onClick={() => onPageChange(currentPage - 1)}
-                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-border text-[11px] sm:text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
                     aria-label="Halaman sebelumnya"
                     title="Halaman sebelumnya"
                 >
-                    <i className="fas fa-chevron-left text-[10px]" />
-                    {!compact && <span className="hidden sm:inline">Sebelumnya</span>}
+                    <i className="fas fa-chevron-left text-[9px] sm:text-[10px]" />
                 </button>
 
                 {/* Page Number Buttons */}
@@ -117,7 +122,7 @@ export default function Pagination({
                             return (
                                 <span
                                     key={`ellipsis-${idx}`}
-                                    className="w-7 h-8 sm:w-8 sm:h-8 flex items-center justify-center text-text-inactive font-bold text-[12px] sm:text-[13px] select-none shrink-0"
+                                    className="w-5 h-7 sm:w-6 sm:h-8 flex items-center justify-center text-text-inactive font-bold text-[11px] sm:text-[12px] select-none shrink-0"
                                 >
                                     …
                                 </span>
@@ -132,9 +137,9 @@ export default function Pagination({
                                 key={pageNum}
                                 type="button"
                                 onClick={() => onPageChange(pageNum)}
-                                className={`w-7 h-8 sm:w-8 sm:h-8 rounded-lg text-[12px] sm:text-[13px] font-bold font-inter transition-all flex items-center justify-center cursor-pointer shrink-0 ${
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-[11px] sm:text-[12px] font-bold font-inter transition-all flex items-center justify-center cursor-pointer shrink-0 ${
                                     isActive
-                                        ? "bg-primary text-white shadow-sm"
+                                        ? "bg-primary text-white shadow-xs"
                                         : "bg-surface border border-border text-text-primary hover:bg-muted hover:border-border/80"
                                 }`}
                                 aria-current={isActive ? "page" : undefined}
@@ -150,12 +155,11 @@ export default function Pagination({
                     type="button"
                     disabled={currentPage >= totalPages}
                     onClick={() => onPageChange(currentPage + 1)}
-                    className="h-8 px-2.5 rounded-lg border border-border text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border border-border text-[11px] sm:text-[12px] font-semibold text-text-primary bg-surface disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted active:scale-95 transition-all flex items-center justify-center cursor-pointer shrink-0"
                     aria-label="Halaman selanjutnya"
                     title="Halaman selanjutnya"
                 >
-                    {!compact && <span className="hidden sm:inline">Selanjutnya</span>}
-                    <i className="fas fa-chevron-right text-[10px]" />
+                    <i className="fas fa-chevron-right text-[9px] sm:text-[10px]" />
                 </button>
             </nav>
         </div>

@@ -139,7 +139,7 @@ export default function LeaveRequestsIndex({
 
                 {/* Symmetrical Footer & Pagination */}
                 {leaveRequests.last_page > 1 && (
-                    <div className="mt-4 pt-3 border-t border-border flex flex-col gap-3 font-inter">
+                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
                         <Pagination
                             currentPage={leaveRequests.current_page}
                             totalPages={leaveRequests.last_page}
