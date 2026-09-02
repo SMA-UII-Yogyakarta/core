@@ -169,9 +169,7 @@ export default function StudentDrawerForm({
 
     const description = isCreate
         ? "Lengkapi data siswa untuk membuat akun dan data baru."
-        : isUnlocked
-        ? "Formulir terbuka. Perbarui data siswa dan simpan perubahan."
-        : "Mode lihat. Klik tombol 'Edit' di kanan atas untuk mengubah data.";
+        : undefined;
 
     const headerActions = !isCreate && student ? (
         <DrawerHeaderActions

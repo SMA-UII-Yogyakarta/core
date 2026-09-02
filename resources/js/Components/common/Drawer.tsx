@@ -3,6 +3,8 @@ import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import Button from "@/Components/ui/Button";
+import Tooltip from "@/Components/ui/Tooltip";
+import TruncatedText from "@/Components/ui/TruncatedText";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -107,34 +109,42 @@ export default function Drawer({
                             focus:outline-none`}
                     >
                         {/* Mobile Drag Handle Pill */}
-                        <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none">
-                            <div className="w-12 h-1.5 rounded-full bg-border" />
+                        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none">
+                            <div className="w-10 h-1 rounded-full bg-border" />
                         </div>
 
                         {/* Drawer Header */}
-                        <div className="flex items-center justify-between px-5 py-4 sm:p-5 border-b border-border select-none shrink-0 bg-surface gap-3">
+                        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-b border-border select-none shrink-0 bg-surface gap-2.5">
                             <div className="min-w-0 flex-1">
-                                <h2 className="text-[16px] font-bold text-text-primary font-inter truncate">
-                                    {title}
-                                </h2>
+                                <TruncatedText
+                                    as="h2"
+                                    text={title}
+                                    className="text-[15px] font-bold text-text-primary font-inter leading-tight"
+                                    tooltipPosition="bottom"
+                                />
                                 {description && (
-                                    <p className="text-[12px] text-text-muted mt-0.5 truncate">
-                                        {description}
-                                    </p>
+                                    <TruncatedText
+                                        as="p"
+                                        text={description}
+                                        className="text-[11px] text-text-muted mt-0.5 leading-tight block"
+                                        tooltipPosition="bottom"
+                                    />
                                 )}
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                                 {headerActions}
-                                <button
-                                    onClick={onClose}
-                                    className="text-text-muted hover:text-text-primary p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
-                                    type="button"
-                                    aria-label={t("common.close") || "Tutup"}
-                                    dusk="drawer-close-btn"
-                                    data-testid="drawer-close-btn"
-                                >
-                                    <FiX className="w-5 h-5 sm:w-4 sm:h-4" />
-                                </button>
+                                <Tooltip content={t("common.close") || "Tutup"} position="bottom">
+                                    <button
+                                        onClick={onClose}
+                                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-text-muted hover:text-text-primary rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                                        type="button"
+                                        aria-label={t("common.close") || "Tutup"}
+                                        dusk="drawer-close-btn"
+                                        data-testid="drawer-close-btn"
+                                    >
+                                        <FiX className="w-4 h-4" />
+                                    </button>
+                                </Tooltip>
                             </div>
                         </div>
 

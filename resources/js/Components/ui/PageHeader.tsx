@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import TruncatedText from "./TruncatedText";
 
 interface PageHeaderProps {
     title?: string;
@@ -12,14 +13,20 @@ export default function PageHeader({ title, description, children, className = "
         <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0 ${className}`}>
             <div className="min-w-0 flex-1">
                 {title && (
-                    <h1 className="text-[20px] sm:text-[24px] font-bold text-text-primary font-inter leading-tight truncate">
-                        {title}
-                    </h1>
+                    <TruncatedText
+                        as="h1"
+                        text={title}
+                        className="text-[20px] sm:text-[24px] font-bold text-text-primary font-inter leading-tight block"
+                        tooltipPosition="bottom"
+                    />
                 )}
                 {description && (
-                    <p className="text-[13px] sm:text-[14px] text-text-secondary font-inter mt-0.5 truncate" title={description}>
-                        {description}
-                    </p>
+                    <TruncatedText
+                        as="p"
+                        text={description}
+                        className="text-[13px] sm:text-[14px] text-text-secondary font-inter mt-0.5 block"
+                        tooltipPosition="bottom"
+                    />
                 )}
             </div>
             {children && (

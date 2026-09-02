@@ -196,9 +196,7 @@ export default function TeacherDrawerForm({
 
     const description = isCreate
         ? "Lengkapi data guru untuk membuat akun dan penugasan baru."
-        : isUnlocked
-        ? "Formulir terbuka. Perbarui data guru dan simpan perubahan."
-        : "Mode lihat. Klik tombol 'Edit' di kanan atas untuk mengubah data.";
+        : undefined;
 
     const headerActions = !isCreate && teacher ? (
         <DrawerHeaderActions

@@ -128,9 +128,7 @@ export default function GuardianDrawerForm({
 
     const description = isCreate
         ? "Buat akun wali murid baru untuk pemantauan presensi."
-        : isUnlocked
-        ? "Formulir terbuka. Perbarui data wali murid dan simpan perubahan."
-        : "Mode lihat. Klik tombol 'Edit' di kanan atas untuk mengubah data.";
+        : undefined;
 
     const headerActions = !isCreate && guardian ? (
         <DrawerHeaderActions

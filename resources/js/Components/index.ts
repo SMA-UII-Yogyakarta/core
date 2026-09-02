@@ -19,6 +19,8 @@ export { default as Avatar } from "@/Components/ui/Avatar";
 export { default as LiveBadge } from "@/Components/ui/LiveBadge";
 export { default as FAB } from "@/Components/ui/FAB";
 export { default as MetricPill } from "@/Components/ui/MetricPill";
+export { default as Tooltip } from "@/Components/ui/Tooltip";
+export { default as TruncatedText } from "@/Components/ui/TruncatedText";
 
 // ─── Layout ───
 export { default as Navbar } from "@/Components/layout/Navbar";

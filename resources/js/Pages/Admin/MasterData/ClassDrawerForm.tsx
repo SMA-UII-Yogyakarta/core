@@ -149,10 +149,8 @@ export default function ClassDrawerForm({
         : "Detail Rombongan Belajar";
 
     const description = isCreate
-        ? "Buat rombongan belajar baru atau gunakan tag nama kelas yang sudah ada untuk angkatan baru."
-        : isUnlocked
-        ? "Formulir terbuka. Perbarui data rombel dan simpan perubahan."
-        : "Mode lihat. Klik tombol 'Edit' di kanan atas untuk mengubah data.";
+        ? "Buat rombongan belajar baru atau gunakan tag nama kelas."
+        : undefined;
 
     const headerActions = !isCreate && schoolClass ? (
         <DrawerHeaderActions
