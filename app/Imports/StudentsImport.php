@@ -16,6 +16,11 @@ class StudentsImport
 
     private array $success = [];
 
+    public function __construct(
+        protected ?string $defaultPassword = null,
+    ) {
+    }
+
     public function import(string $filePath): array
     {
         $reader = ReaderFactory::createFromFile($filePath);
@@ -89,6 +94,7 @@ class StudentsImport
             $birthDate = trim($data['birth_date'] ?? $data['Tanggal Lahir'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? '');
             $enrollmentYear = trim($data['enrollment_year'] ?? $data['Tahun Masuk'] ?? '');
+            $password = trim($data['password'] ?? $data['Password'] ?? $data['Kata Sandi'] ?? $data['kata_sandi'] ?? '');
 
             if (empty($nis) || empty($name)) {
                 throw new \RuntimeException('NIS dan nama siswa wajib diisi.');
@@ -106,7 +112,9 @@ class StudentsImport
 
             $classId = null;
             if (! empty($className)) {
-                $class = SchoolClass::where('name', $className)->first();
+                $class = SchoolClass::where('name', $className)
+                    ->when($enrollmentYear, fn ($q) => $q->orderByRaw('academic_year LIKE ? DESC', ["%{$enrollmentYear}%"]))
+                    ->first();
                 if ($class) {
                     $classId = $class->id;
                 }
@@ -130,10 +138,15 @@ class StudentsImport
 
             if ($existingStudent) {
                 $user = $existingStudent->user;
-                $user->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $user->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $user->update($userUpdateData);
+
                 $existingStudent->update([
                     'name' => $name,
                     'nisn' => ! empty($nisn) ? $nisn : $existingStudent->nisn,
@@ -149,10 +162,15 @@ class StudentsImport
             }
 
             if ($existingUser) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 Student::create([
                     'user_id' => $existingUser->id,
                     'class_id' => $classId,
@@ -170,11 +188,15 @@ class StudentsImport
                 return;
             }
 
+            $initialPassword = ! empty($password)
+                ? $password
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : 'SmaUii@' . $enrollmentYear);
+
             $user = User::create([
                 'username' => $nis,
                 'name' => $name,
                 'email' => ! empty($email) ? $email : null,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($initialPassword),
                 'role' => 'student',
             ]);
             $user->assignRole('student');

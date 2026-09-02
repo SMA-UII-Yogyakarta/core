@@ -24,11 +24,14 @@ if [ "$SKIP_HOOKS" = "1" ] || [ "$SKIP_COMMIT_HOOKS" = "1" ]; then
     exit 0
 fi
 
+BUN_CONTAINER=$(docker ps --format "{{.Names}}" 2>/dev/null | grep -E 'core-(dev-)?bun-1' | head -n 1)
+APP_CONTAINER=$(docker ps --format "{{.Names}}" 2>/dev/null | grep -E 'core-(dev-)?app-1' | head -n 1)
+
 # Run fast checks
 echo "🔍 1/3 Checking TypeScript types..."
-if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-bun-1; then
-    docker exec core-bun-1 bun run typecheck
-else
+if [ -n "$BUN_CONTAINER" ]; then
+    docker exec "$BUN_CONTAINER" bun run typecheck
+elif command -v bun >/dev/null 2>&1; then
     bun run typecheck
 fi
 
@@ -38,9 +41,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🎨 2/3 Checking Frontend ESLint..."
-if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-bun-1; then
-    docker exec core-bun-1 bun run lint
-else
+if [ -n "$BUN_CONTAINER" ]; then
+    docker exec "$BUN_CONTAINER" bun run lint
+elif command -v bun >/dev/null 2>&1; then
     bun run lint
 fi
 
@@ -50,8 +53,8 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "🐘 3/3 Checking & Auto-Formatting PHP Code Style (Laravel Pint)..."
-if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-app-1; then
-    docker exec core-app-1 ./vendor/bin/pint --test
+if [ -n "$APP_CONTAINER" ]; then
+    docker exec "$APP_CONTAINER" ./vendor/bin/pint --test
     PINT_STATUS=$?
 else
     php ./vendor/bin/pint --test
@@ -60,8 +63,8 @@ fi
 
 if [ $PINT_STATUS -ne 0 ]; then
     echo "⚠️  PHP Pint code style issues detected! Running auto-formatter..."
-    if command -v docker >/dev/null 2>&1 && docker ps | grep -q core-app-1; then
-        docker exec core-app-1 ./vendor/bin/pint
+    if [ -n "$APP_CONTAINER" ]; then
+        docker exec "$APP_CONTAINER" ./vendor/bin/pint
     else
         php ./vendor/bin/pint
     fi

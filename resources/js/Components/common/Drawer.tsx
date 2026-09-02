@@ -3,8 +3,11 @@ import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import Button from "@/Components/ui/Button";
+import Tooltip from "@/Components/ui/Tooltip";
+import TruncatedText from "@/Components/ui/TruncatedText";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import type { ButtonVariant } from "@/types/component";
 
 export interface DrawerProps {
     open: boolean;
@@ -13,11 +16,17 @@ export interface DrawerProps {
     description?: string;
     children: ReactNode;
     onSubmit?: (e?: React.FormEvent) => void;
+    onCancel?: () => void;
     submitLabel?: string;
+    cancelLabel?: string;
+    submitVariant?: ButtonVariant;
+    cancelVariant?: ButtonVariant;
     loading?: boolean;
+    disabled?: boolean;
     width?: "sm" | "md" | "lg" | "xl";
     headerActions?: ReactNode;
     showFooter?: boolean;
+    footer?: ReactNode;
 }
 
 const widthClasses = {
@@ -34,11 +43,17 @@ export default function Drawer({
     description,
     children,
     onSubmit,
+    onCancel,
     submitLabel = "Simpan",
+    cancelLabel = "Batal",
+    submitVariant = "primary",
+    cancelVariant = "ghost",
     loading = false,
+    disabled = false,
     width = "md",
     headerActions,
     showFooter = true,
+    footer,
 }: DrawerProps) {
     const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
@@ -76,6 +91,44 @@ export default function Drawer({
         }
     };
 
+    const handleCancelClick = () => {
+        if (onCancel) {
+            onCancel();
+        } else {
+            onClose();
+        }
+    };
+
+    const renderFooterContent = () => {
+        if (footer) return footer;
+
+        return (
+            <>
+                <Button
+                    type="button"
+                    variant={cancelVariant}
+                    onClick={handleCancelClick}
+                    className="h-9 px-3.5 text-[12.5px]"
+                    dusk="drawer-cancel-btn"
+                    data-testid="drawer-cancel-btn"
+                >
+                    {cancelLabel}
+                </Button>
+                <Button
+                    type="submit"
+                    variant={submitVariant}
+                    loading={loading}
+                    disabled={disabled}
+                    className="h-9 px-4 text-[12.5px]"
+                    dusk="drawer-submit-btn"
+                    data-testid="drawer-submit-btn"
+                >
+                    {submitLabel}
+                </Button>
+            </>
+        );
+    };
+
     return (
         <AnimatePresence>
             {open && (
@@ -107,34 +160,42 @@ export default function Drawer({
                             focus:outline-none`}
                     >
                         {/* Mobile Drag Handle Pill */}
-                        <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none">
-                            <div className="w-12 h-1.5 rounded-full bg-border" />
+                        <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0 cursor-grab active:cursor-grabbing select-none">
+                            <div className="w-10 h-1 rounded-full bg-border" />
                         </div>
 
                         {/* Drawer Header */}
-                        <div className="flex items-center justify-between px-5 py-4 sm:p-5 border-b border-border select-none shrink-0 bg-surface gap-3">
+                        <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-b border-border select-none shrink-0 bg-surface gap-2.5 min-h-[52px]">
                             <div className="min-w-0 flex-1">
-                                <h2 className="text-[16px] font-bold text-text-primary font-inter truncate">
-                                    {title}
-                                </h2>
+                                <TruncatedText
+                                    as="h2"
+                                    text={title}
+                                    className="text-[15px] font-bold text-text-primary font-inter leading-tight"
+                                    tooltipPosition="bottom"
+                                />
                                 {description && (
-                                    <p className="text-[12px] text-text-muted mt-0.5 truncate">
-                                        {description}
-                                    </p>
+                                    <TruncatedText
+                                        as="p"
+                                        text={description}
+                                        className="text-[11px] text-text-muted mt-0.5 leading-tight block"
+                                        tooltipPosition="bottom"
+                                    />
                                 )}
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                                 {headerActions}
-                                <button
-                                    onClick={onClose}
-                                    className="text-text-muted hover:text-text-primary p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer"
-                                    type="button"
-                                    aria-label={t("common.close") || "Tutup"}
-                                    dusk="drawer-close-btn"
-                                    data-testid="drawer-close-btn"
-                                >
-                                    <FiX className="w-5 h-5 sm:w-4 sm:h-4" />
-                                </button>
+                                <Tooltip content={t("common.close") || "Tutup"} position="bottom">
+                                    <button
+                                        onClick={onClose}
+                                        className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-text-muted hover:text-text-primary rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                                        type="button"
+                                        aria-label={t("common.close") || "Tutup"}
+                                        dusk="drawer-close-btn"
+                                        data-testid="drawer-close-btn"
+                                    >
+                                        <FiX className="w-4 h-4" />
+                                    </button>
+                                </Tooltip>
                             </div>
                         </div>
 
@@ -142,39 +203,31 @@ export default function Drawer({
                         {onSubmit ? (
                             <form
                                 onSubmit={handleSubmitClick}
-                                className="flex-1 flex flex-col min-h-0 overflow-hidden"
+                                className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter"
                             >
-                                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4 overscroll-contain">
+                                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain">
                                     {children}
                                 </div>
 
                                 {/* Sticky Footer (Only shown when showFooter is true) */}
                                 {showFooter && (
-                                    <div className="flex items-center justify-end gap-3 p-4 sm:p-5 border-t border-border select-none shrink-0 bg-surface pb-safe">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            onClick={onClose}
-                                            dusk="drawer-cancel-btn"
-                                            data-testid="drawer-cancel-btn"
-                                        >
-                                            Batal
-                                        </Button>
-                                        <Button
-                                            type="submit"
-                                            variant="primary"
-                                            loading={loading}
-                                            dusk="drawer-submit-btn"
-                                            data-testid="drawer-submit-btn"
-                                        >
-                                            {submitLabel}
-                                        </Button>
+                                    <div className="flex items-center justify-end gap-2.5 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe">
+                                        {renderFooterContent()}
                                     </div>
                                 )}
                             </form>
                         ) : (
-                            <div className="flex-1 overflow-y-auto p-5 sm:p-6 pb-safe overscroll-contain">
-                                {children}
+                            <div className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter">
+                                <div className={`flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 overscroll-contain ${!showFooter ? "pb-safe" : ""}`}>
+                                    {children}
+                                </div>
+
+                                {/* Custom Sticky Footer without onSubmit */}
+                                {showFooter && footer && (
+                                    <div className="flex items-center justify-end gap-2.5 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe">
+                                        {footer}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </motion.div>

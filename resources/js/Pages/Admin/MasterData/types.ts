@@ -2,6 +2,7 @@ export interface SchoolClass {
     id: number;
     name: string;
     level: string;
+    academic_year?: string;
     capacity: number;
     teacher: { id: number; name: string } | null;
     students_count: number;

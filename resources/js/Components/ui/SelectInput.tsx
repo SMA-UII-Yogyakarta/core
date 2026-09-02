@@ -127,14 +127,16 @@ export default function SelectInput({
         <div className={`w-full ${className}`} ref={containerRef}>
             {label && <Label>{label}</Label>}
             <div className="relative">
-                <button
-                    type="button"
-                    disabled={disabled}
+                <div
+                    role="combobox"
+                    aria-expanded={isOpen}
+                    aria-haspopup="listbox"
+                    tabIndex={disabled ? -1 : 0}
                     onClick={() => !disabled && (isOpen ? close() : openDropdown())}
                     onKeyDown={handleKeyDown}
-                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-xl text-[13px] font-medium font-inter text-left bg-surface
+                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-xl text-[13px] font-medium font-inter text-left bg-surface cursor-pointer select-none
                         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150
-                        disabled:opacity-50 disabled:cursor-not-allowed
+                        ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
                         ${error ? "border-danger ring-1 ring-danger/40" : "border-border"}
                         ${isOpen ? "ring-2 ring-primary/20 border-primary/40" : ""}`}
                 >
@@ -163,7 +165,7 @@ export default function SelectInput({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
-                </button>
+                </div>
 
                 {isOpen && (
                     <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">

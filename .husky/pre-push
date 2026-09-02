@@ -24,38 +24,61 @@ if [ "$SKIP_PUSH_TESTS" = "1" ] || [ "$SKIP_HOOKS" = "1" ]; then
     exit 0
 fi
 
+BUN_CONTAINER=$(docker ps --format "{{.Names}}" 2>/dev/null | grep -E 'core-(dev-)?bun-1' | head -n 1)
+APP_CONTAINER=$(docker ps --format "{{.Names}}" 2>/dev/null | grep -E 'core-(dev-)?app-1' | head -n 1)
+
 echo "🧪 1/5 Running Frontend Vitest Suite..."
-docker exec core-bun-1 bun run test
+if [ -n "$BUN_CONTAINER" ]; then
+    docker exec "$BUN_CONTAINER" bun run test
+elif command -v bun >/dev/null 2>&1; then
+    bun run test
+fi
 if [ $? -ne 0 ]; then
     echo "❌ Vitest unit tests failed! Fix tests before pushing to remote."
     exit 1
 fi
 
 echo "🏗️ 2/5 Testing Vite Bundle Build..."
-docker exec core-bun-1 bun run build
+if [ -n "$BUN_CONTAINER" ]; then
+    docker exec "$BUN_CONTAINER" bun run build
+elif command -v bun >/dev/null 2>&1; then
+    bun run build
+fi
 if [ $? -ne 0 ]; then
     echo "❌ Vite build failed! Fix compilation errors before pushing."
     exit 1
 fi
 
 echo "🐘 3/5 Running PHPStan Static Analysis..."
-docker exec core-app-1 ./vendor/bin/phpstan analyse --memory-limit=1G
+if [ -n "$APP_CONTAINER" ]; then
+    docker exec "$APP_CONTAINER" ./vendor/bin/phpstan analyse --memory-limit=1G
+elif command -v php >/dev/null 2>&1; then
+    php ./vendor/bin/phpstan analyse --memory-limit=1G
+fi
 if [ $? -ne 0 ]; then
     echo "❌ PHPStan static analysis failed! Fix static types before pushing."
     exit 1
 fi
 
 echo "⚡ 4/5 Running PHPUnit Test Suite..."
-docker exec core-app-1 php artisan test
+if [ -n "$APP_CONTAINER" ]; then
+    docker exec "$APP_CONTAINER" php artisan test
+elif command -v php >/dev/null 2>&1; then
+    php artisan test
+fi
 if [ $? -ne 0 ]; then
     echo "❌ PHPUnit feature tests failed! Fix failing PHP tests before pushing."
     exit 1
 fi
 
 echo "🎨 5/5 Validating PHP Code Style..."
-docker exec core-app-1 ./vendor/bin/pint --test
+if [ -n "$APP_CONTAINER" ]; then
+    docker exec "$APP_CONTAINER" ./vendor/bin/pint --test
+elif command -v php >/dev/null 2>&1; then
+    php ./vendor/bin/pint --test
+fi
 if [ $? -ne 0 ]; then
-    echo "❌ PHP Pint style check failed! Run 'docker exec core-app-1 ./vendor/bin/pint' to auto-fix."
+    echo "❌ PHP Pint style check failed! Run 'docker exec core-dev-app-1 ./vendor/bin/pint' to auto-fix."
     exit 1
 fi
 

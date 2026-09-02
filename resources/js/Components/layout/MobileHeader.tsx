@@ -29,7 +29,7 @@ export default function MobileHeader({
     onOpenSidebar,
 }: MobileHeaderProps) {
     return (
-        <header className="lg:hidden flex items-center justify-between h-[52px] px-3.5 sm:px-6 bg-primary text-white shrink-0 shadow-md transition-all duration-200">
+        <header className="lg:hidden flex items-center justify-between h-13 px-3.5 bg-primary text-white shrink-0 shadow-md transition-all duration-200">
             <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
                 {onBack ? (
                     <button

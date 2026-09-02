@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo "📝 [DX Safety Guard] Validating Commit Message (Commitlint)..."
+
+BUN_CONTAINER=$(docker ps --format "{{.Names}}" 2>/dev/null | grep -E 'core-(dev-)?bun-1' | head -n 1)
+
+if [ -n "$BUN_CONTAINER" ]; then
+    docker exec -i "$BUN_CONTAINER" bunx --yes @commitlint/cli --config commitlint.config.mjs < "$1"
+elif command -v bun >/dev/null 2>&1; then
+    bunx --yes @commitlint/cli --config commitlint.config.mjs --edit "$1"
+elif command -v npx >/dev/null 2>&1; then
+    npx --yes @commitlint/cli --config commitlint.config.mjs --edit "$1"
+fi
+
+if [ $? -ne 0 ]; then
+    echo "❌ Commitlint failed! Please follow Conventional Commits format (max 100 chars header)."
+    echo "   Example: feat(module): short description under 100 chars"
+    exit 1
+fi

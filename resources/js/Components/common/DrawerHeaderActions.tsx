@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FiCopy, FiTrash2, FiEdit3, FiLock, FiCheck, FiChevronDown } from "react-icons/fi";
 import { toast } from "sonner";
+import Tooltip from "@/Components/ui/Tooltip";
 
 export interface CopyField {
     label: string;
@@ -8,6 +9,8 @@ export interface CopyField {
 }
 
 interface DrawerHeaderActionsProps {
+    mode?: "create" | "edit" | "detail" | null;
+    isCreate?: boolean;
     isUnlocked?: boolean;
     onToggleUnlock?: () => void;
     onDelete?: () => void;
@@ -19,6 +22,8 @@ interface DrawerHeaderActionsProps {
 }
 
 export default function DrawerHeaderActions({
+    mode,
+    isCreate = false,
     isUnlocked = false,
     onToggleUnlock,
     onDelete,
@@ -31,6 +36,8 @@ export default function DrawerHeaderActions({
     const [menuOpen, setMenuOpen] = useState(false);
     const [copiedType, setCopiedType] = useState<"csv" | "md" | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    const isInCreateMode = isCreate || mode === "create";
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -82,20 +89,29 @@ export default function DrawerHeaderActions({
         });
     };
 
+    if (isInCreateMode) {
+        return (
+            <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
+                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                    Tambah Baru
+                </span>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex items-center gap-1.5 font-inter">
+        <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
             {/* Copy Dropdown */}
             {!hideCopy && copyFields.length > 0 && (
                 <div className="relative" ref={menuRef}>
                     <button
                         type="button"
                         onClick={() => setMenuOpen((prev) => !prev)}
-                        className={`h-8 px-2 rounded-lg border text-[12px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                        className={`h-7 sm:h-7.5 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                             menuOpen
                                 ? "bg-muted border-primary text-primary"
                                 : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
                         }`}
-                        title="Salin semua data (CSV / Markdown)"
                         aria-label="Salin data"
                     >
                         {copiedType ? (
@@ -103,40 +119,40 @@ export default function DrawerHeaderActions({
                         ) : (
                             <FiCopy className="w-3.5 h-3.5" />
                         )}
-                        <span className="hidden sm:inline">Salin</span>
+                        <span>Salin</span>
                         <FiChevronDown className="w-3 h-3 text-text-muted" />
                     </button>
 
                     {menuOpen && (
-                        <div className="absolute right-0 top-full mt-1.5 w-52 bg-surface rounded-xl shadow-xl border border-border py-1.5 z-50 text-[13px] animate-in fade-in slide-in-from-top-1">
-                            <div className="px-3 py-1 text-[11px] font-semibold text-text-muted uppercase tracking-wider border-b border-border/50 mb-1">
+                        <div className="absolute right-0 top-full mt-1.5 w-52 bg-surface rounded-xl shadow-xl border border-border py-1.5 z-50 text-[12px] animate-in fade-in slide-in-from-top-1">
+                            <div className="px-3 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider border-b border-border/50 mb-1">
                                 Opsi Format Salin
                             </div>
                             <button
                                 type="button"
                                 onClick={handleCopyCsv}
-                                className="w-full text-left px-3 py-2 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
                             >
                                 <span className="flex items-center gap-2">
-                                    <span className="font-semibold text-xs px-1.5 py-0.5 rounded bg-muted border border-border">
+                                    <span className="font-semibold text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border">
                                         CSV
                                     </span>
                                     Format Spreadsheet
                                 </span>
-                                {copiedType === "csv" && <FiCheck className="w-4 h-4 text-success" />}
+                                {copiedType === "csv" && <FiCheck className="w-3.5 h-3.5 text-success" />}
                             </button>
                             <button
                                 type="button"
                                 onClick={handleCopyMarkdown}
-                                className="w-full text-left px-3 py-2 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
                             >
                                 <span className="flex items-center gap-2">
-                                    <span className="font-semibold text-xs px-1.5 py-0.5 rounded bg-muted border border-border">
+                                    <span className="font-semibold text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border">
                                         MD
                                     </span>
                                     Tabel Markdown
                                 </span>
-                                {copiedType === "md" && <FiCheck className="w-4 h-4 text-success" />}
+                                {copiedType === "md" && <FiCheck className="w-3.5 h-3.5 text-success" />}
                             </button>
                         </div>
                     )}
@@ -145,42 +161,47 @@ export default function DrawerHeaderActions({
 
             {/* Unlock / Edit Mode Toggle Button */}
             {!hideUnlock && onToggleUnlock && (
-                <button
-                    type="button"
-                    onClick={onToggleUnlock}
-                    className={`h-8 px-2.5 rounded-lg border text-[12px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        isUnlocked
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
-                            : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
-                    }`}
-                    title={isUnlocked ? "Kunci Kembali Form (Batal Edit)" : "Buka Kunci untuk Edit Data"}
-                    aria-label={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                <Tooltip
+                    content={isUnlocked ? "Kunci Form (Batal Edit)" : "Buka Kunci untuk Mengubah Data"}
+                    position="bottom"
                 >
-                    {isUnlocked ? (
-                        <>
-                            <FiLock className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Kunci</span>
-                        </>
-                    ) : (
-                        <>
-                            <FiEdit3 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Edit</span>
-                        </>
-                    )}
-                </button>
+                    <button
+                        type="button"
+                        onClick={onToggleUnlock}
+                        className={`h-7 sm:h-7.5 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                            isUnlocked
+                                ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
+                                : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
+                        }`}
+                        aria-label={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                    >
+                        {isUnlocked ? (
+                            <>
+                                <FiLock className="w-3.5 h-3.5" />
+                                <span>Kunci</span>
+                            </>
+                        ) : (
+                            <>
+                                <FiEdit3 className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                            </>
+                        )}
+                    </button>
+                </Tooltip>
             )}
 
             {/* Shortcut Delete Button */}
             {!hideDelete && onDelete && (
-                <button
-                    type="button"
-                    onClick={onDelete}
-                    className="h-8 w-8 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center justify-center cursor-pointer"
-                    title="Hapus Data Ini"
-                    aria-label="Hapus data"
-                >
-                    <FiTrash2 className="w-3.5 h-3.5" />
-                </button>
+                <Tooltip content="Hapus Data Ini" position="bottom">
+                    <button
+                        type="button"
+                        onClick={onDelete}
+                        className="h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                        aria-label="Hapus data"
+                    >
+                        <FiTrash2 className="w-3.5 h-3.5" />
+                    </button>
+                </Tooltip>
             )}
         </div>
     );

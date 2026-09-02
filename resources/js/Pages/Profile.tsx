@@ -796,32 +796,18 @@ export default function Profile({ user, sessions }: ProfileProps) {
                     description={t("profile.description")}
                     className="shrink-0 mb-4"
                 >
-                    <div className="flex items-center gap-2.5">
-                        {user.role === "admin" && (
-                            <Link href="/settings">
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    className="h-10 px-4 font-bold text-[13px] shadow-xs"
-                                    icon={<FiSliders className="text-[14px]" />}
-                                >
-                                    Pengaturan Sistem
-                                </Button>
-                            </Link>
-                        )}
-
-                        {isDualRoleTeacher && (
+                    {user.role === "admin" && (
+                        <Link href="/settings">
                             <Button
-                                variant="secondary"
+                                variant="primary"
                                 size="sm"
-                                onClick={() => window.dispatchEvent(new CustomEvent("open-role-switcher"))}
-                                className="h-10 px-4 font-bold text-[13px] border-border"
-                                icon={<FiRefreshCw className="text-[14px]" />}
+                                className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl"
+                                icon={<FiSliders className="text-[14px]" />}
                             >
-                                Ganti Peran Guru
+                                Pengaturan Sistem
                             </Button>
-                        )}
-                    </div>
+                        </Link>
+                    )}
                 </PageHeader>
 
                 {/* 2. Desktop Tab Switcher */}
@@ -843,7 +829,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 3. Desktop Tab 1: Profil */}
                 <div className={`w-full ${desktopTab === "profile" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card">
+                    <Card className="p-6 font-inter shadow-card rounded-2xl">
                         <form onSubmit={handleProfileSubmit} className="flex flex-col gap-6">
                             <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-border">
                                 <div>
@@ -852,33 +838,40 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         Informasi Data Akun Pengguna
                                     </h2>
                                     <p className="text-[12px] text-text-muted mt-0.5">
-                                        Kelola nama lengkap, email resmi, dan informasi peranan akun Anda di SMA UII Yogyakarta.
+                                        Kelola nama lengkap, email resmi, dan foto profil akun Anda di SMA UII Yogyakarta.
                                     </p>
                                 </div>
                                 <Button
                                     type="submit"
                                     loading={processing}
                                     variant="primary"
-                                    className="shrink-0 h-10 font-bold px-4"
+                                    className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
                                     icon={<FiSave className="text-[14px]" />}
                                 >
                                     {t("profile.saveChanges")}
                                 </Button>
                             </div>
 
-                            {/* Contextual Role Strip */}
-                            <div className="flex flex-row items-center justify-between gap-4 p-4 rounded-xl border border-border bg-muted/20">
+                            {/* Unified Account Identity & Avatar Card */}
+                            <div className="p-5 rounded-2xl border border-border bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4 min-w-0">
-                                    <div className="relative group shrink-0">
+                                    <div
+                                        className="relative group shrink-0 cursor-pointer"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        title="Klik untuk mengganti foto profil"
+                                    >
                                         <Avatar
                                             name={user.name}
                                             src={avatarPreview}
                                             size="xl"
-                                            className="shadow-sm ring-2 ring-surface"
+                                            className="shadow-sm ring-2 ring-surface group-hover:ring-primary/40 transition-all"
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => fileInputRef.current?.click()}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                fileInputRef.current?.click();
+                                            }}
                                             disabled={uploadingAvatar}
                                             className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-90 transition-all border-2 border-surface cursor-pointer"
                                             title="Ganti Foto Profil"
@@ -891,100 +884,72 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                             )}
                                         </button>
                                     </div>
-                                    <div className="min-w-0 flex-1">
+
+                                    <div className="min-w-0 flex-1 space-y-1.5">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <h3 className="text-[15px] font-bold text-text-primary truncate">{user.name}</h3>
+                                            <h3 className="text-[16px] font-bold text-text-primary truncate">{user.name}</h3>
                                             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
                                                 {getRoleLabel(user.role)}
                                             </span>
-                                            {avatarPreview && (
+                                            {user.teacher && (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
+                                                    Kode Guru: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
+                                                </span>
+                                            )}
+                                            {isDualRoleTeacher && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => setShowDeleteAvatarModal(true)}
-                                                    className="text-[11px] text-danger hover:underline font-medium ml-1 cursor-pointer inline-flex items-center gap-1"
+                                                    onClick={() => window.dispatchEvent(new CustomEvent("open-role-switcher"))}
+                                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                                                    title="Ganti Peran Aktif Guru"
                                                 >
-                                                    <FiTrash2 className="text-[10px]" />
-                                                    <span>Hapus Foto</span>
+                                                    <FiRefreshCw className="text-[11px]" />
+                                                    <span>Ganti Peran</span>
                                                 </button>
                                             )}
+                                            {user.student && (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
+                                                    Kelas: {user.student.class?.name ?? "Tanpa Kelas"} • NIS: {user.student.nis}
+                                                </span>
+                                            )}
+                                            {user.guardian && (
+                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
+                                                    WhatsApp: {user.guardian.phone || "—"}
+                                                </span>
+                                            )}
                                         </div>
-                                        <p className="text-[12px] text-text-muted flex items-center gap-1.5 mt-0.5 truncate">
-                                            <FiMail className="text-text-inactive shrink-0" />
-                                            <span className="truncate">{user.email || "Email belum didaftarkan"}</span>
+                                        <p className="text-[12px] text-text-muted">
+                                            Format foto profil: JPG, PNG, atau WebP (maksimal 2MB).
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 flex-wrap justify-end text-[12px]">
-                                    {user.student && (
-                                        <span className="px-3 py-1.5 rounded-lg bg-surface border border-border font-bold text-text-primary">
-                                            Kelas: {user.student.class?.name ?? "Belum Masuk"} • NIS: {user.student.nis}
-                                        </span>
-                                    )}
-                                    {user.teacher && (
-                                        <span className="px-3 py-1.5 rounded-lg bg-surface border border-border font-bold text-text-primary">
-                                            Kode Guru: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
-                                        </span>
-                                    )}
-                                    {user.guardian && (
-                                        <span className="px-3 py-1.5 rounded-lg bg-surface border border-border font-bold text-text-primary">
-                                            WhatsApp: {user.guardian.phone || "—"}
-                                        </span>
-                                    )}
-                                    {user.role === "admin" && (
-                                        <span className="px-3 py-1.5 rounded-lg bg-surface border border-border font-bold text-emerald-600">
-                                            Hak Akses Administrator
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Photo Upload Box */}
-                            <div className="p-4 rounded-xl border border-border bg-muted/10 flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <Avatar name={user.name} src={avatarPreview} size="lg" className="shadow-xs ring-2 ring-surface" />
-                                    <div>
-                                        <h4 className="text-[14px] font-bold text-text-primary">Foto Profil Akun</h4>
-                                        <p className="text-[12px] text-text-muted mt-0.5">
-                                            Unggah foto profil resmi Anda. Format yang didukung: JPG, PNG, atau WebP (maksimal 2MB).
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="sm"
-                                        loading={uploadingAvatar}
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="h-9 px-4 font-bold text-[12px]"
-                                        icon={<FiCamera className="text-[13px]" />}
-                                    >
-                                        Pilih Foto Baru
-                                    </Button>
-                                    {avatarPreview && (
+                                {avatarPreview && (
+                                    <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
                                         <Button
                                             type="button"
                                             variant="danger"
                                             size="sm"
                                             disabled={uploadingAvatar}
                                             onClick={() => setShowDeleteAvatarModal(true)}
-                                            className="h-9 px-3 text-[12px]"
-                                            title="Hapus Foto"
+                                            className="h-9 px-3 text-[12px] rounded-xl"
+                                            title="Hapus Foto Profil"
                                             icon={<FiTrash2 className="text-[13px]" />}
                                         >
                                             Hapus Foto
                                         </Button>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
+
                             {avatarError && (
-                                <div className="px-4 py-2 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[12px] font-medium">
-                                    {avatarError}
+                                <div className="px-4 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[12px] font-medium flex items-center gap-2">
+                                    <FiAlertCircle className="text-[14px] shrink-0" />
+                                    <span>{avatarError}</span>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
                                 <div>
                                     <label className="block text-[13px] font-bold text-text-primary mb-1.5">
                                         {t("profile.name")} <span className="text-danger">*</span>
@@ -993,7 +958,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         value={data.name}
                                         onChange={(e) => setData("name", e.target.value)}
                                         error={errors.name}
-                                        inputClassName="h-10 bg-surface border-border font-medium text-[13px]"
+                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
                                         placeholder="Masukkan nama lengkap..."
                                     />
                                 </div>
@@ -1006,7 +971,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         value={data.email}
                                         onChange={(e) => setData("email", e.target.value)}
                                         error={errors.email}
-                                        inputClassName="h-10 bg-surface border-border font-medium text-[13px]"
+                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
                                         placeholder="nama@smauii.sch.id"
                                     />
                                 </div>
@@ -1017,7 +982,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 4. Desktop Tab 2: Keamanan */}
                 <div className={`w-full ${desktopTab === "security" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card">
+                    <Card className="p-6 font-inter shadow-card rounded-2xl">
                         <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-6">
                             <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-border">
                                 <div>
@@ -1033,7 +998,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                     type="submit"
                                     loading={processing}
                                     variant="primary"
-                                    className="shrink-0 h-10 font-bold px-4"
+                                    className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
                                     icon={<FiLock className="text-[14px]" />}
                                 >
                                     {t("profile.updatePassword")}
@@ -1051,11 +1016,11 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         onChange={(e) => setData("current_password", e.target.value)}
                                         error={errors.current_password}
                                         placeholder="••••••••"
-                                        inputClassName="h-10 bg-surface border-border text-[13px]"
+                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                         <label className="block text-[13px] font-bold text-text-primary mb-1.5">
                                             {t("profile.newPassword")} <span className="text-danger">*</span>
@@ -1066,7 +1031,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                             onChange={(e) => setData("password", e.target.value)}
                                             error={errors.password}
                                             placeholder="••••••••"
-                                            inputClassName="h-10 bg-surface border-border text-[13px]"
+                                            inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
                                         />
                                     </div>
                                     <div>
@@ -1079,7 +1044,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                             onChange={(e) => setData("password_confirmation", e.target.value)}
                                             error={errors.password_confirmation}
                                             placeholder="••••••••"
-                                            inputClassName="h-10 bg-surface border-border text-[13px]"
+                                            inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
                                         />
                                     </div>
                                 </div>
@@ -1097,7 +1062,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 5. Desktop Tab 3: Notifikasi */}
                 <div className={`w-full ${desktopTab === "notifications" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card">
+                    <Card className="p-6 font-inter shadow-card rounded-2xl">
                         <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
                             <div>
                                 <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
@@ -1110,7 +1075,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
                                 <div className="pr-3">
                                     <p className="font-bold text-[14px] text-text-primary">{t("profile.emailNotifications")}</p>
@@ -1168,8 +1133,8 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 6. Desktop Tab 4: Sesi Aktif */}
                 <div className={`w-full ${desktopTab === "sessions" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card mb-4">
-                        <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                    <Card className="p-6 font-inter shadow-card rounded-2xl flex flex-col gap-5">
+                        <div className="flex items-center justify-between pb-4 border-b border-border">
                             <div>
                                 <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
                                     <FiSmartphone className="text-primary text-[16px]" />
@@ -1180,56 +1145,57 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                 </p>
                             </div>
                         </div>
-                    </Card>
 
-                    <Table
-                        columns={[
-                            {
-                                key: "name",
-                                header: t("profile.device"),
-                                render: (s) => (
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                            {s.name.toLowerCase().includes("mobile") || s.name.toLowerCase().includes("android") || s.name.toLowerCase().includes("iphone") ? (
-                                                <FiSmartphone size={15} />
-                                            ) : (
-                                                <FiMonitor size={15} />
-                                            )}
+                        <Table
+                            columns={[
+                                {
+                                    key: "name",
+                                    header: t("profile.device"),
+                                    render: (s) => (
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                                {s.name.toLowerCase().includes("mobile") || s.name.toLowerCase().includes("android") || s.name.toLowerCase().includes("iphone") ? (
+                                                    <FiSmartphone size={15} />
+                                                ) : (
+                                                    <FiMonitor size={15} />
+                                                )}
+                                            </div>
+                                            <span className="font-bold text-text-primary font-inter text-[13px]">{s.name}</span>
                                         </div>
-                                        <span className="font-bold text-text-primary font-inter text-[13px]">{s.name}</span>
-                                    </div>
-                                ),
-                            },
-                            {
-                                key: "last_used_at",
-                                header: t("profile.lastActive"),
-                                render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.last_used_at ?? t("profile.never")}</span>,
-                            },
-                            {
-                                key: "created_at",
-                                header: t("profile.created"),
-                                render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.created_at}</span>,
-                            },
-                            {
-                                key: "actions",
-                                header: <div className="text-center w-full">{t("profile.actions")}</div>,
-                                className: "w-28 text-center",
-                                render: (s) => (
-                                    <Button
-                                        variant="danger"
-                                        size="sm"
-                                        onClick={() => handleRevoke(s.id)}
-                                        disabled={revoking}
-                                    >
-                                        {t("profile.revoke")}
-                                    </Button>
-                                ),
-                            },
-                        ]}
-                        data={sessions}
-                        keyExtractor={(s) => s.id}
-                        dense
-                    />
+                                    ),
+                                },
+                                {
+                                    key: "last_used_at",
+                                    header: t("profile.lastActive"),
+                                    render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.last_used_at ?? t("profile.never")}</span>,
+                                },
+                                {
+                                    key: "created_at",
+                                    header: t("profile.created"),
+                                    render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.created_at}</span>,
+                                },
+                                {
+                                    key: "actions",
+                                    header: <div className="text-center w-full">{t("profile.actions")}</div>,
+                                    className: "w-28 text-center",
+                                    render: (s) => (
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            className="rounded-lg text-[12px] px-3 h-8"
+                                            onClick={() => handleRevoke(s.id)}
+                                            disabled={revoking}
+                                        >
+                                            {t("profile.revoke")}
+                                        </Button>
+                                    ),
+                                },
+                            ]}
+                            data={sessions}
+                            keyExtractor={(s) => s.id}
+                            dense
+                        />
+                    </Card>
                 </div>
             </div>
 
