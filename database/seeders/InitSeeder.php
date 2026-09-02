@@ -53,7 +53,7 @@ class InitSeeder extends Seeder
         foreach ($admins as $adm) {
             $user = User::updateOrCreate(
                 ['username' => $adm['username']],
-                $adm
+                $adm,
             );
             $user->syncRoles(['admin']);
         }
@@ -83,7 +83,7 @@ class InitSeeder extends Seeder
                 'longitude' => 110.375944,
                 'radius_meters' => 100,
                 'is_active' => true,
-            ]
+            ],
         );
 
         // 5. Baseline Academic Calendar Events
