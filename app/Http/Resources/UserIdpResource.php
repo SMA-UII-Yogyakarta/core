@@ -31,7 +31,9 @@ class UserIdpResource extends JsonResource
             ];
         } elseif ($role === 'teacher' && $this->relationLoaded('teacher') && $this->teacher) {
             $teacher = $this->teacher;
-            $teacherType = (string) ($teacher->teacher_type ?? 'guru');
+            $teacherType = $teacher->teacher_type
+                ? $teacher->teacher_type->map(fn ($t) => $t->value)->implode(',')
+                : 'duty';
             $schoolClass = $teacher->relationLoaded('schoolClasses') ? $teacher->schoolClasses->first() : null;
 
             $persona = [

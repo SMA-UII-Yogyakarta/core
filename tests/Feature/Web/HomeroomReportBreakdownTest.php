@@ -266,6 +266,39 @@ class HomeroomReportBreakdownTest extends TestCase
         $this->assertEquals($expectedMacro, $summary['discipline_rate']);
     }
 
+    public function test_reports_page_shares_pending_leave_count_scoped_to_own_class(): void
+    {
+        $this->seedActiveWeekdays();
+
+        [$user, $teacher] = $this->makeWali();
+        $class = SchoolClass::factory()->create(['name' => 'X-A', 'teacher_id' => $teacher->id]);
+        $student = $this->activeStudent($class, '10001');
+        $this->leave($student, 'Event', 'Pending', '2026-08-28');
+
+        // Leave belonging to another wali's class must not be counted.
+        [$otherUser, $otherTeacher] = $this->makeWali();
+        $otherClass = SchoolClass::factory()->create(['name' => 'X-B', 'teacher_id' => $otherTeacher->id]);
+        $otherStudent = $this->activeStudent($otherClass, '20002');
+        $this->leave($otherStudent, 'Event', 'Pending', '2026-08-28');
+
+        $this->actingAs($user)
+            ->get('/reports?tab=monthly&month=8&year=2026')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('pendingLeaveCount', 1));
+    }
+
+    public function test_reports_page_pending_leave_count_zero_without_class(): void
+    {
+        $this->seedActiveWeekdays();
+
+        [$user, $teacher] = $this->makeWali();
+
+        $this->actingAs($user)
+            ->get('/reports?tab=monthly&month=8&year=2026')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('pendingLeaveCount', 0));
+    }
+
     private function makeWali(): array
     {
         $user = User::factory()->create(['role' => 'teacher']);

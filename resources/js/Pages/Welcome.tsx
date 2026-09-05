@@ -24,7 +24,7 @@ export default function Welcome() {
                 id?: number;
                 name?: string;
                 role?: string;
-                teacher?: { teacher_type?: string } | null;
+                teacher?: { teacher_type?: string[] } | null;
             } | null;
         };
     };
@@ -43,7 +43,7 @@ export default function Welcome() {
                       : userRole === "guardian"
                         ? "/guardian"
                         : userRole === "teacher"
-                          ? auth.user.teacher?.teacher_type === "homeroom"
+                          ? auth.user.teacher?.teacher_type?.includes("homeroom")
                               ? "/teacher/homeroom"
                               : "/teacher/duty"
                           : "/overview";

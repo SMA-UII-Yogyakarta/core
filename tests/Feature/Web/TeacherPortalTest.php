@@ -3,6 +3,7 @@
 namespace Tests\Feature\Web;
 
 use App\Models\Attendance;
+use App\Models\AttendanceTimeSetting;
 use App\Models\DutySchedule;
 use App\Models\Guardian;
 use App\Models\LeaveRequest;
@@ -54,6 +55,18 @@ class TeacherPortalTest extends TestCase
             'class_id' => $classId,
             'name' => $name,
             'status' => 'Active',
+        ]);
+    }
+
+    private function makeSchoolDay(int $carbonDay = 0): void
+    {
+        $day = $carbonDay === 0 ? now()->format('l') : Carbon::parse("2026-08-18 +$carbonDay day")->format('l');
+        AttendanceTimeSetting::create([
+            'day' => $day,
+            'is_active' => true,
+            'check_in_open' => '06:00:00',
+            'late_threshold' => '07:00:00',
+            'check_in_close' => '08:00:00',
         ]);
     }
 
@@ -232,6 +245,7 @@ class TeacherPortalTest extends TestCase
     {
         Carbon::setTestNow('2026-08-18 08:00:00');
         [$user, $teacher, $schoolClass] = $this->createWaliTeacher();
+        $this->makeSchoolDay();
 
         $student = $this->createActiveStudent($schoolClass->id, 'Fajar Mulia');
 
@@ -278,6 +292,7 @@ class TeacherPortalTest extends TestCase
     {
         Carbon::setTestNow('2026-08-18 08:00:00');
         [$user, , $schoolClass] = $this->createWaliTeacher();
+        $this->makeSchoolDay();
 
         $s1 = $this->createActiveStudent($schoolClass->id, 'Siswa Hadir');
         $s2 = $this->createActiveStudent($schoolClass->id, 'Siswa Telat');
@@ -314,6 +329,7 @@ class TeacherPortalTest extends TestCase
     {
         Carbon::setTestNow('2026-08-18 08:00:00');
         [$user, , $schoolClass] = $this->createWaliTeacher();
+        $this->makeSchoolDay();
 
         $this->createActiveStudent($schoolClass->id, 'Aktif');
         Student::factory()->create([

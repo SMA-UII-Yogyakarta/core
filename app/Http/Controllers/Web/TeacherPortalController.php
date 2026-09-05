@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicCalendar;
 use App\Models\Attendance;
+use App\Models\AttendanceTimeSetting;
 use App\Models\DutySchedule;
 use App\Models\LeaveRequest;
 use App\Models\SchoolClass;
@@ -135,7 +137,28 @@ class TeacherPortalController extends Controller
             ]);
         }
 
-        $students = Student::with(['user', 'attendances' => function ($q) {
+        $isSchoolDay = AttendanceTimeSetting::where('day', now()->format('l'))
+            ->where('is_active', true)
+            ->exists()
+            && ! AcademicCalendar::whereDate('holiday_date', now()->toDateString())
+                ->where('is_holiday', true)
+                ->exists();
+
+        if (! $isSchoolDay) {
+            return Inertia::render('Teacher/HomeroomDashboard', [
+                'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
+                'class' => ['id' => $schoolClass->id, 'name' => $schoolClass->name],
+                'students' => [],
+                'stats' => null,
+                'isSchoolDay' => false,
+                'pendingLeaveCount' => 0,
+                'expiredPendingCount' => 0,
+                'approvedLeaves' => [],
+                'lateThreshold' => null,
+            ]);
+        }
+
+        $students = Student::with(['user', 'guardian', 'attendances' => function ($q) {
             $q->whereDate('attendance_date', now()->toDateString());
         }])->where('class_id', $schoolClass->id)
             ->where('status', 'Active')
@@ -143,19 +166,47 @@ class TeacherPortalController extends Controller
 
         $studentIds = $students->pluck('id')->all();
 
+        $today = now()->toDateString();
+
         $pendingLeaves = LeaveRequest::where('approval_status', 'Pending')
             ->whereIn('student_id', $studentIds)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->orderBy('created_at', 'desc')
             ->get()
             ->keyBy('student_id');
 
+        $approvedLeaves = LeaveRequest::where('approval_status', 'Approved')
+            ->whereIn('student_id', $studentIds)
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->with('guardian')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->keyBy('student_id');
+
+        $expiredPendingCount = LeaveRequest::where('approval_status', 'Pending')
+            ->whereIn('student_id', $studentIds)
+            ->whereDate('end_date', '<', $today)
+            ->count();
+
+        $consecutiveAlpaStreaks = $this->attendanceService->getConsecutiveAlpaStreaks($studentIds);
+
         $studentsData = [];
+        $lateThreshold = AttendanceTimeSetting::where('day', now()->format('l'))->first()?->late_threshold;
+
         foreach ($students as $s) {
             $attendancesData = [];
             foreach ($s->attendances as $a) {
+                $lateMinutes = null;
+                if ($a->check_in_time && strcasecmp($a->status, 'Late') === 0 && $lateThreshold) {
+                    $lateMinutes = (int) ceil(($a->check_in_time->timestamp - $lateThreshold->timestamp) / 60);
+                }
                 $attendancesData[] = [
                     'id' => $a->id,
                     'status' => $a->status,
-                    'check_in_time' => $a->check_in_time,
+                    'check_in_time' => $a->check_in_time?->format('H:i:s'),
+                    'late_minutes' => $lateMinutes,
                 ];
             }
             $pendingLeave = $pendingLeaves->get($s->id);
@@ -164,6 +215,8 @@ class TeacherPortalController extends Controller
                 'nis' => $s->nis,
                 'nisn' => $s->nisn,
                 'name' => $s->name,
+                'guardian_name' => $s->guardian?->name,
+                'guardian_phone' => $s->guardian?->phone,
                 'attendances' => $attendancesData,
                 'pendingLeave' => $pendingLeave ? [
                     'id' => $pendingLeave->id,
@@ -172,19 +225,36 @@ class TeacherPortalController extends Controller
                     'description' => $pendingLeave->description,
                     'document_url' => $pendingLeave->document_url,
                     'start_date' => $pendingLeave->start_date->format('Y-m-d'),
+                    'end_date' => $pendingLeave->end_date->format('Y-m-d'),
                     'created_at' => $pendingLeave->created_at->toIso8601String(),
                 ] : null,
+                'consecutiveAbsences' => $consecutiveAlpaStreaks[$s->id] ?? 0,
             ];
         }
 
         $stats = $this->attendanceService->stats($schoolClass->id);
+
+        $approvedLeavesMap = $approvedLeaves->map(fn ($l) => [
+            'category' => $l->category,
+            'start_date' => $l->start_date->format('Y-m-d'),
+            'end_date' => $l->end_date->format('Y-m-d'),
+            'description' => $l->description,
+            'document_url' => $l->document_url,
+            'guardian_name' => $l->guardian->name,
+            'created_at' => $l->created_at->toIso8601String(),
+            'updated_at' => $l->updated_at->toIso8601String(),
+        ])->all();
 
         return Inertia::render('Teacher/HomeroomDashboard', [
             'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
             'class' => ['id' => $schoolClass->id, 'name' => $schoolClass->name],
             'students' => $studentsData,
             'stats' => $stats,
-            'pendingLeaveCount' => $pendingLeaves->count(),
+            'pendingLeaveCount' => $stats['pending_leave'],
+            'expiredPendingCount' => $expiredPendingCount,
+            'approvedLeaves' => $approvedLeavesMap,
+            'lateThreshold' => $lateThreshold ? $lateThreshold->format('H:i') : null,
+            'isSchoolDay' => true,
         ]);
     }
 

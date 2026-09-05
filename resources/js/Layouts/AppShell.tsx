@@ -70,6 +70,7 @@ export default function AppShell({
             }[];
         };
         navSections?: NavSection[];
+        pendingLeaveCount?: number;
     }>();
 
     const isNotificationPage = url.split("?")[0] === "/notifications";
@@ -82,11 +83,11 @@ export default function AppShell({
                 setCommandPaletteOpen((open) => !open);
             }
         };
-        
+
         const openRoleSwitcher = () => setRoleSwitcherOpen(true);
         window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("open-role-switcher", openRoleSwitcher);
-        
+
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("open-role-switcher", openRoleSwitcher);
@@ -126,6 +127,7 @@ export default function AppShell({
         role: userRole,
         teacherType,
         navSections,
+        pendingLeaveCount: pageProps.pendingLeaveCount ?? 0,
     });
 
     const activeItem = useMemo<NavItem | null>(() => {
@@ -200,8 +202,8 @@ export default function AppShell({
                         />
 
                         {/* Main Content Card Container */}
-                        <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
-                            <main className={`flex-1 min-h-0 overflow-y-auto flex flex-col p-4 ${showBottomNav ? "pb-24" : ""}`}>
+<div className="flex-1 flex flex-col min-w-0 bg-muted rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
+                            <main className={`flex-1 min-h-0 overflow-y-auto flex flex-col p-4 ${showBottomNav ? "pb-24" : "pb-6"}`}>
                                 <ErrorBoundary>{children}</ErrorBoundary>
                             </main>
                         </div>

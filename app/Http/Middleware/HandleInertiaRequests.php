@@ -107,13 +107,46 @@ class HandleInertiaRequests extends Middleware
                     })
                     : [],
             ],
-            'navSections' => $user ? PermissionRegistry::getNavFor($user, $activeRole) : [],
+'navSections' => $user ? PermissionRegistry::getNavFor($user, $activeRole) : [],
+            'navBadges' => $this->getNavBadges($user),
             // Flash Messages untuk Toast component
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 'warning' => fn () => $request->session()->get('warning'),
             ],
+        ];
+    }
+
+    private function getNavBadges($user): array
+    {
+        if (! $user || $user->role !== 'teacher') {
+            return [];
+        }
+
+        $teacher = $user->teacher;
+        if (! $teacher || ! $teacher->isHomeroom()) {
+            return [];
+        }
+
+        $schoolClass = $teacher->schoolClasses()->first();
+        if (! $schoolClass) {
+            return [];
+        }
+
+        $studentIds = \App\Models\Student::where('class_id', $schoolClass->id)
+            ->where('status', 'Active')
+            ->pluck('id')
+            ->all();
+
+        $pendingCount = \App\Models\LeaveRequest::where('approval_status', 'Pending')
+            ->whereIn('student_id', $studentIds)
+            ->where('start_date', '<=', now()->toDateString())
+            ->where('end_date', '>=', now()->toDateString())
+            ->count();
+
+        return [
+            'pendingLeaveCount' => $pendingCount,
         ];
     }
 }

@@ -367,20 +367,173 @@ class AttendanceService
         $late = (int) ($attStats->late ?? 0);
         $totalRecorded = (int) ($attStats->total_recorded ?? 0);
 
-        $sickCount = LeaveRequest::where('approval_status', 'Approved')
+        $approvedPermissionCount = LeaveRequest::where('approval_status', 'Approved')
+            ->whereIn('category', ['Sick', 'Event', 'Competition', 'Other'])
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
+            ->distinct()
+            ->count('student_id');
+
+        $sickPermissionCount = LeaveRequest::where('approval_status', 'Approved')
             ->where('category', 'Sick')
             ->where('start_date', '<=', $date)
             ->where('end_date', '>=', $date)
             ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
             ->count();
 
+        $pendingLeaveCount = LeaveRequest::where('approval_status', 'Pending')
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
+            ->count();
+
+        $studentIdsWithLeave = LeaveRequest::whereIn('approval_status', ['Pending', 'Approved'])
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
+            ->pluck('student_id')
+            ->toArray();
+
+        $studentIdsTrulyAbsent = array_diff(
+            Student::where('class_id', $classId)->where('status', 'Active')->pluck('id')->toArray(),
+            Attendance::whereDate('attendance_date', $date)
+                ->whereHas('student', fn ($q) => $q->where('class_id', $classId))
+                ->pluck('student_id')
+                ->toArray(),
+            $studentIdsWithLeave,
+        );
+
         return [
             'total' => $students,
             'present' => $present,
             'late' => $late,
             'absent' => max(0, $students - $totalRecorded),
-            'sick_permission' => $sickCount,
+            'approved_permission' => $approvedPermissionCount,
+            'sick_permission' => $sickPermissionCount,
+            'pending_leave' => $pendingLeaveCount,
+            'truly_absent' => count($studentIdsTrulyAbsent),
         ];
+    }
+
+    public function getConsecutiveAlpaStreak(int $studentId): int
+    {
+        $streak = 0;
+
+        $holidayDates = AcademicCalendar::where('is_holiday', true)
+            ->where('holiday_date', '>=', now()->subDays(30)->toDateString())
+            ->where('holiday_date', '<=', now()->toDateString())
+            ->pluck('holiday_date')
+            ->map(fn ($d) => $d->toDateString())
+            ->toArray();
+
+        for ($i = 0; $i < 30; $i++) {
+            $checkDate = now()->subDays($i)->toDateString();
+            $dayOfWeek = \Carbon\Carbon::parse($checkDate)->dayOfWeek;
+
+            if (in_array($dayOfWeek, [0, 6])) {
+                continue;
+            }
+            if (in_array($checkDate, $holidayDates)) {
+                continue;
+            }
+
+            $hasApprovedLeave = LeaveRequest::where('student_id', $studentId)
+                ->where('approval_status', 'Approved')
+                ->where('start_date', '<=', $checkDate)
+                ->where('end_date', '>=', $checkDate)
+                ->exists();
+
+            if ($hasApprovedLeave) {
+                break;
+            }
+
+            $attendance = Attendance::where('student_id', $studentId)
+                ->whereDate('attendance_date', $checkDate)
+                ->first();
+
+            if (! $attendance) {
+                $streak++;
+                continue;
+            }
+
+            if (in_array($attendance->status, ['Present', 'Late'])) {
+                break;
+            }
+        }
+
+        return $streak;
+    }
+
+    public function getConsecutiveAlpaStreaks(array $studentIds): array
+    {
+        $today = now()->toDateString();
+        $thirtyDaysAgo = now()->subDays(30)->toDateString();
+
+        $holidayDates = AcademicCalendar::where('is_holiday', true)
+            ->where('holiday_date', '>=', $thirtyDaysAgo)
+            ->where('holiday_date', '<=', $today)
+            ->pluck('holiday_date')
+            ->map(fn ($d) => $d->toDateString())
+            ->toArray();
+
+        $attendances = Attendance::where('attendance_date', '>=', $thirtyDaysAgo)
+            ->whereIn('student_id', $studentIds)
+            ->orderBy('student_id')
+            ->orderBy('attendance_date', 'desc')
+            ->get()
+            ->groupBy('student_id');
+
+        $approvedLeaves = LeaveRequest::where('approval_status', 'Approved')
+            ->whereIn('student_id', $studentIds)
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $thirtyDaysAgo)
+            ->get()
+            ->groupBy('student_id');
+
+        $results = [];
+        foreach ($studentIds as $studentId) {
+            $streak = 0;
+            $studentAttendances = $attendances->get($studentId, collect())
+                ->keyBy(fn ($a) => $a->attendance_date->toDateString());
+            $studentLeaves = $approvedLeaves->get($studentId, collect());
+
+            for ($i = 0; $i < 30; $i++) {
+                $checkDate = now()->subDays($i)->toDateString();
+                $dayOfWeek = \Carbon\Carbon::parse($checkDate)->dayOfWeek;
+
+                if (in_array($dayOfWeek, [0, 6])) {
+                    continue;
+                }
+                if (in_array($checkDate, $holidayDates)) {
+                    continue;
+                }
+
+                $hasApprovedLeave = $studentLeaves->contains(function ($leave) use ($checkDate) {
+                    return $leave->start_date->toDateString() <= $checkDate
+                        && $leave->end_date->toDateString() >= $checkDate;
+                });
+
+                if ($hasApprovedLeave) {
+                    break;
+                }
+
+                $attendance = $studentAttendances->get($checkDate);
+
+                if (! $attendance) {
+                    $streak++;
+                    continue;
+                }
+
+                if (in_array($attendance->status, ['Present', 'Late'])) {
+                    break;
+                }
+            }
+
+            $results[$studentId] = $streak;
+        }
+
+        return $results;
     }
 
     public function getMonthlyDaily(int $classId, int $month, int $year): array
