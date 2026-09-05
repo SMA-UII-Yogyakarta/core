@@ -29,7 +29,7 @@ interface OverviewProps {
 
 export default function Overview({ overview, monthlyTrend, weeklyTrend, selectedDate }: OverviewProps) {
     const { t } = useLanguage();
-    const page = usePage<{ auth: { user: { role: string; teacher?: { teacher_type?: string } | null } } }>();
+    const page = usePage<{ auth: { user: { role: string; teacher?: { teacher_type?: string[] } | null } } }>();
     const user = page.props.auth?.user;
 
     const isAdmin = user?.role === "admin";
@@ -37,9 +37,9 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
     const isGuardian = user?.role === "guardian";
     const isStudent = user?.role === "student";
 
-    const teacherType = user?.teacher?.teacher_type;
-    const isPiket = teacherType === "duty" || teacherType === "both";
-    const isWali = teacherType === "homeroom" || teacherType === "both";
+    const teacherTypes = user?.teacher?.teacher_type ?? [];
+    const isPiket = teacherTypes.includes("duty");
+    const isWali = teacherTypes.includes("homeroom");
 
     type ClassItem = OverviewProps["overview"]["classes"][number];
 

@@ -8,7 +8,7 @@ import DailyTable from "./DailyTable";
 import MonthlyTable from "./MonthlyTable";
 import SemesterTable from "./SemesterTable";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { FiAlertCircle, FiFileText, FiGrid, FiDownload, FiCalendar, FiUsers, FiChevronRight, FiLoader } from "react-icons/fi";
+import { FiAlertCircle, FiFileText, FiGrid, FiCalendar, FiUsers, FiChevronRight, FiLoader } from "react-icons/fi";
 import type { DailyStudent, RecapStudent, Summary, DailyBreakdown, MonthlyBreakdown } from "@/types/Report";
 
 interface PageProps {
