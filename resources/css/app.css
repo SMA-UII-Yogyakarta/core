@@ -47,6 +47,11 @@
     --color-text-info: #0369A1;
     --color-info-dark: #0C4A6E;
 
+    /* Badge text colors */
+    --color-text-danger-badge: #B91C1C;
+    --color-text-warning-badge: #B45309;
+    --color-text-success-badge: #047857;
+
     /* Permit (blue) - Izin Acara */
     --color-permit: #3B82F6;
     --color-permit-light: #DBEAFE;
@@ -256,6 +261,17 @@ body,
     animation: highlight-pulse 1s ease-in-out 5;
 }
 
+/* Radar pulse animation for notification badges */
+@keyframes radar-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.animate-radar {
+    animation: radar-pulse 2s ease-out infinite;
+}
+
 /* ── Mobile Native Stack Navigation Transitions ───────────────────────────── */
 @keyframes mobile-slide-push {
     0% {
@@ -304,5 +320,3 @@ body,
     animation: mobile-header-fade 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     will-change: transform, opacity;
 }
-
-

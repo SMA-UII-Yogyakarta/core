@@ -5,15 +5,18 @@ export interface BottomNavItem {
     label: string;
     icon: string;
     href: string;
+    badge?: number;
+    labelKey?: string;
 }
 
 interface UseBottomNavItemsParams {
     role?: string;
     teacherType?: string;
     navSections?: NavSection[];
+    pendingLeaveCount?: number;
 }
 
-export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBottomNavItemsParams): BottomNavItem[] {
+export function useBottomNavItems({ role, teacherType, navSections = [], pendingLeaveCount = 0 }: UseBottomNavItemsParams): BottomNavItem[] {
     return useMemo(() => {
         if (role === "student") {
             return [
@@ -36,13 +39,13 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
                 return [
                     { label: "Home", icon: "fa-home", href: "/teacher/duty" },
                     { label: "Pantauan", icon: "fa-clipboard-list", href: "/leave-requests" },
-                { label: "Rekap", icon: "fa-chart-bar", href: "/reports?tab=daily" },
+                    { label: "Rekap", icon: "fa-chart-bar", href: "/reports" },
                 ];
             }
             return [
-                { label: "Home", icon: "fa-home", href: "/teacher/homeroom" },
-                { label: "Verifikasi", icon: "fa-check-circle", href: "/leave-requests/verification" },
-                { label: "Rekap", icon: "fa-chart-bar", href: "/reports" },
+                { label: "Dasbor", labelKey: "nav.dasbor", icon: "fa-home", href: "/teacher/homeroom" },
+                { label: "Verifikasi Izin", labelKey: "nav.verifikasiIzin", icon: "fa-check-circle", href: "/leave-requests/verification", badge: pendingLeaveCount },
+                { label: "Rekap", labelKey: "nav.rekap", icon: "fa-chart-bar", href: "/reports" },
             ];
         }
 
@@ -50,7 +53,7 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
             return [
                 { label: "Home", icon: "fa-home", href: "/dashboard" },
                 { label: "Data Master", icon: "fa-database", href: "/master-data" },
-                { label: "Atur Waktu", icon: "fa-clock", href: "/operational-settings" },
+                { label: "Atur Waktu", icon: "fa-clock", href: "/settings" },
             ];
         }
 
@@ -72,5 +75,5 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
         }
 
         return items;
-    }, [role, teacherType, navSections]);
+    }, [role, teacherType, navSections, pendingLeaveCount]);
 }

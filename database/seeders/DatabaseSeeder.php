@@ -597,17 +597,32 @@ class DatabaseSeeder extends Seeder
         // ─────────────────────────────────────────────────────────────
         // 10. Leave Requests (Pengajuan Izin & Sakit Realistis)
         // ─────────────────────────────────────────────────────────────
+        // Kelas X-A = student_idx 0–22. Kelompok A aktif HARI INI sehingga
+        // tampil di tabel "Perhatian Khusus Hari Ini" (3 TERTUNDA, 4 DIIZINKAN).
+        // Kelompok B bersifat historis (tanggal lewat) untuk statistik realistis.
         $leaveSamples = [
-            ['student_idx' => 0, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Sakit demam dan batuk pilek, istirahat dokter di RS UII Pandanaran.'],
-            ['student_idx' => 2, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 3, 'duration' => 3, 'desc' => 'Demam Berdarah (DBD), dirawat di RS PKU Muhammadiyah Kotagede.'],
-            ['student_idx' => 4, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 5, 'duration' => 1, 'desc' => 'Menghadiri pernikahan kakak kandung di Solo.'],
-            ['student_idx' => 6, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 7, 'duration' => 3, 'desc' => 'Mewakili SMA UII dalam Olimpiade Sains Nasional (OSN) Tingkat DIY.'],
-            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 10, 'duration' => 1, 'desc' => 'Izin tidak masuk tanpa surat dokter yang jelas.', 'reject_reason' => 'Izin tidak disertai surat keterangan dokter yang sah.'],
+            // A. Izin AKTIF hari ini (Kelas X-A → tabel "Perhatian Khusus Hari Ini")
+            ['student_idx' => 11, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Sakit demam dan batuk pilek, istirahat di rumah.'],
+            ['student_idx' => 12, 'category' => 'Event', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Acara keluarga silaturahmi ke luar kota.'],
+            ['student_idx' => 13, 'category' => 'Competition', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Mengikuti seleksi OSN tingkat kota.'],
+            ['student_idx' => 14, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 1, 'duration' => 2, 'desc' => 'Demam Berdarah (DBD), dirawat di RS PKU Muhammadiyah Kotagede.'],
+            ['student_idx' => 15, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 1, 'duration' => 2, 'desc' => 'Menghadiri pernikahan kakak kandung di Solo.'],
+            ['student_idx' => 16, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 1, 'duration' => 2, 'desc' => 'Mewakili SMA UII dalam Olimpiade Sains Nasional (OSN) Tingkat DIY.'],
+            ['student_idx' => 17, 'category' => 'Other', 'status' => 'Approved', 'days_ago' => 1, 'duration' => 2, 'desc' => 'Mengurus administrasi paspor untuk pertukaran pelajar.'],
+
+            // B. Izin HISTORIS (kadaluarsa, untuk statistik & rekap realistis)
+            ['student_idx' => 2, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 3, 'duration' => 3, 'desc' => 'Sakit migrain dan pusing berat.'],
+            ['student_idx' => 4, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 8, 'duration' => 2, 'desc' => 'Mengikuti Kejuaraan Futsal Pelajar Tingkat Kabupaten Bantul.'],
+            ['student_idx' => 6, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 12, 'duration' => 2, 'desc' => 'Acara keluarga silaturahmi ke Jawa Timur.'],
+            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 15, 'duration' => 1, 'desc' => 'Izin tidak masuk tanpa surat dokter yang jelas.', 'reject_reason' => 'Izin tidak disertai surat keterangan dokter yang sah.'],
+            ['student_idx' => 18, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 22, 'duration' => 2, 'desc' => 'Sakit flu dan radang tenggorokan.'],
+            ['student_idx' => 20, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 30, 'duration' => 2, 'desc' => 'Mengikuti Kejuaraan OSN Tingkat Provinsi.'],
+
+            // C. Izin tambahan untuk variasi rekap wali kelas (historis)
+            ['student_idx' => 0, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 2, 'duration' => 2, 'desc' => 'Sakit demam dan batuk pilek, istirahat di rumah.'],
             ['student_idx' => 10, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 12, 'duration' => 2, 'desc' => 'Acara keluarga silaturahmi ke Jawa Timur.'],
-            ['student_idx' => 12, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 15, 'duration' => 2, 'desc' => 'Mengikuti Kejuaraan Futsal Pelajar Tingkat Kabupaten Bantul.'],
+            ['student_idx' => 16, 'category' => 'Other', 'status' => 'Pending', 'days_ago' => 4, 'duration' => 1, 'desc' => 'Mengurus administrasi paspor untuk pertukaran pelajar.'],
             ['student_idx' => 14, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 18, 'duration' => 1, 'desc' => 'Sakit flu dan radang tenggorokan.'],
-            ['student_idx' => 16, 'category' => 'Other', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 1, 'desc' => 'Mengurus administrasi paspor untuk pertukaran pelajar.'],
-            ['student_idx' => 18, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 22, 'duration' => 2, 'desc' => 'Sakit migrain dan pusing berat.'],
         ];
 
         foreach ($leaveSamples as $ls) {
@@ -632,6 +647,16 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        $pendingDemoLeave = LeaveRequest::where('student_id', $students[13]->id)
+            ->where('approval_status', 'Pending')
+            ->latest('start_date')
+            ->first();
+
+        if ($pendingDemoLeave) {
+            $pendingDemoLeave->created_at = now()->subDays(3);
+            $pendingDemoLeave->save();
+        }
+
         // ─────────────────────────────────────────────────────────────
         // 10.5 Extra Leave Requests Khusus Kelas X-A (untuk demo rekap Wali Kelas Budi Hartono)
         // ─────────────────────────────────────────────────────────────
@@ -644,9 +669,13 @@ class DatabaseSeeder extends Seeder
         $schoolLng = 110.375944;
         $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
 
-        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI INI (agar rekap harian wali kelas langsung terisi)
+        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga hari ini.
+        // Default (SEED_TODAY_ATTENDANCE=false) hanya sampai HARI KEMARIN agar
+        // siswa bisa uji coba kamera & live presensi. Saat flag true, hari ini
+        // ikut di-seed sehingga tabel perhatian menampilkan data realistis.
         $startDate = Carbon::create(now()->year, 1, 5);
-        $endDate = now();
+        $todayIncluded = config('app.seed_today_attendance');
+        $endDate = $todayIncluded ? now() : now()->subDay();
         $assignedStudents = $students->filter(fn ($s) => $s->class_id !== null)->values();
 
         $attendanceBatch = [];
@@ -725,6 +754,106 @@ class DatabaseSeeder extends Seeder
 
         if (! empty($attendanceBatch)) {
             Attendance::insert($attendanceBatch);
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 11.5 Kurasi Penuh Presensi "HARI INI" Kelas X-A (SEED_TODAY_ATTENDANCE=true)
+        // ─────────────────────────────────────────────────────────────
+        // Kontrol penuh 23 siswa X-A (idx 0-22) sehingga komposisi tabel
+        // "Perhatian Khusus" deterministik:
+        //   P1 (alpa streak 3): 05, 19  | TERTUNDA: 11, 12, 13
+        //   P3 (alpa streak 1): 09      | DIIZINKAN: 14-17
+        //   TERLAMBAT: 03, 22           | HADIR: sisanya (11 siswa)
+        if ($todayIncluded && isset($students->get(0)->id)) {
+            $holidayDates = AcademicCalendar::where('is_holiday', true)
+                ->where('holiday_date', '>=', now()->subDays(30)->toDateString())
+                ->pluck('holiday_date')
+                ->map(fn ($d) => $d->toDateString())
+                ->toArray();
+
+            $recentSchoolDays = [];
+            for ($i = 0; count($recentSchoolDays) < 4; $i++) {
+                $date = now()->subDays($i);
+                if ($date->isWeekend()) {
+                    continue;
+                }
+                if (in_array($date->format('Y-m-d'), $holidayDates)) {
+                    continue;
+                }
+                $recentSchoolDays[] = $date->format('Y-m-d');
+            }
+
+            $today = $recentSchoolDays[0];
+
+            $schoolLat = -7.814257;
+            $schoolLng = 110.375944;
+            $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
+
+            $insertToday = function (Student $student, string $time, string $status) use ($today, $schoolLat, $schoolLng, $photoUrl) {
+                Attendance::create([
+                    'student_id' => $student->id,
+                    'attendance_date' => $today,
+                    'check_in_time' => $time,
+                    'latitude' => (string) $schoolLat,
+                    'longitude' => (string) $schoolLng,
+                    'photo_url' => $photoUrl,
+                    'status' => $status,
+                    'created_at' => "{$today} {$time}",
+                    'updated_at' => "{$today} {$time}",
+                ]);
+            };
+
+            // 1. Bersihkan semua today-row X-A yang dibuat loop probabilistik.
+            foreach (range(0, 22) as $xIdx) {
+                Attendance::where('student_id', $students[$xIdx]->id)->where('attendance_date', $today)->delete();
+            }
+
+            // 2. Rekayasa streak: alpa3 (05, 19) tanpa row 3 hari sekolah
+            //    terakhir + Present di hari ke-4; alpa1 (09) hanya tanpa row hari ini.
+            $ensurePresentOn = function (Student $student, string $date) use ($schoolLat, $schoolLng, $photoUrl) {
+                $existing = Attendance::where('student_id', $student->id)->where('attendance_date', $date)->first();
+                if ($existing) {
+                    return;
+                }
+                Attendance::create([
+                    'student_id' => $student->id,
+                    'attendance_date' => $date,
+                    'check_in_time' => '06:40:00',
+                    'latitude' => (string) $schoolLat,
+                    'longitude' => (string) $schoolLng,
+                    'photo_url' => $photoUrl,
+                    'status' => 'Present',
+                    'created_at' => "{$date} 06:40:00",
+                    'updated_at' => "{$date} 06:40:00",
+                ]);
+            };
+
+            foreach ([5, 19] as $idxAlpa3) {
+                $student = $students[$idxAlpa3];
+                Attendance::where('student_id', $student->id)
+                    ->whereIn('attendance_date', array_slice($recentSchoolDays, 0, 3))
+                    ->delete();
+                $ensurePresentOn($student, $recentSchoolDays[3]);
+            }
+
+            $alpa1Student = $students[9];
+            Attendance::where('student_id', $alpa1Student->id)->where('attendance_date', $today)->delete();
+            $ensurePresentOn($alpa1Student, $recentSchoolDays[1]);
+
+            // 3. Status eksplisit untuk sisanya (tidak ada row = izin/alpa).
+            $lateMap = [3 => '07:15:30', 22 => '07:21:40'];
+            $presentMap = [
+                0 => '06:42:00', 1 => '06:35:12', 2 => '06:47:30', 4 => '06:38:45',
+                6 => '06:44:10', 7 => '06:40:20', 8 => '06:50:05', 10 => '06:53:40',
+                18 => '06:36:55', 20 => '06:48:15', 21 => '06:39:33',
+            ];
+
+            foreach ($lateMap as $xIdx => $time) {
+                $insertToday($students[$xIdx], $time, 'Late');
+            }
+            foreach ($presentMap as $xIdx => $time) {
+                $insertToday($students[$xIdx], $time, 'Present');
+            }
         }
 
         // ─────────────────────────────────────────────────────────────

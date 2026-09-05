@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 interface PageHeaderProps {
-    title?: string;
+    title?: string | ReactNode;
     description?: string;
     children?: ReactNode;
     className?: string;
@@ -9,7 +9,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, children, className = "" }: PageHeaderProps) {
     return (
-        <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0 ${className}`}>
+<div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0 ${className}`}>
             <div className="min-w-0 flex-1">
                 {title && (
                     <h1 className="text-[20px] sm:text-[24px] font-bold text-text-primary font-inter leading-tight truncate">

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import type { BottomNavItem } from "@/hooks/useBottomNavItems";
 
 interface MobileBottomNavProps {
@@ -35,6 +36,7 @@ function renderSvgIcon(iconName: string, isFab: boolean) {
 }
 
 export default function MobileBottomNav({ items, currentUrl }: MobileBottomNavProps) {
+    const { t } = useLanguage();
     if (items.length === 0) return null;
 
     return (
@@ -56,8 +58,13 @@ export default function MobileBottomNav({ items, currentUrl }: MobileBottomNavPr
                         >
                             <span className="mobile-nav-icon" aria-hidden="true">
                                 {renderSvgIcon(item.icon, false)}
+                                {item.badge !== undefined && item.badge > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center animate-radar">
+                                            {item.badge}
+                                        </span>
+                                    )}
                             </span>
-                            <span className="mobile-nav-label">{item.label}</span>
+                            <span className="mobile-nav-label">{t(item.labelKey ?? item.label)}</span>
                         </Link>
                     );
                 })}

@@ -33,6 +33,13 @@ class HomeroomReportController extends Controller
             'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
             'class' => $schoolClass ? ['id' => $schoolClass->id, 'name' => $schoolClass->name] : null,
             'tab' => $tab,
+            'pendingLeaveCount' => $schoolClass
+                ? \App\Models\LeaveRequest::where('approval_status', 'Pending')
+                    ->whereIn('student_id', \App\Models\Student::where('class_id', $schoolClass->id)->where('status', 'Active')->pluck('id'))
+                    ->whereDate('start_date', '<=', now()->toDateString())
+                    ->whereDate('end_date', '>=', now()->toDateString())
+                    ->count()
+                : 0,
         ];
 
         if (! $schoolClass) {

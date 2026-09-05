@@ -4,6 +4,8 @@ export interface NavItem {
     icon: string;
     href: string;
     roles?: string[];
+    badge?: string;
+    labelKey?: string;
 }
 
 export interface NavSection {
