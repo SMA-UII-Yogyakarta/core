@@ -8,7 +8,7 @@ import DailyTable from "./DailyTable";
 import MonthlyTable from "./MonthlyTable";
 import SemesterTable from "./SemesterTable";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { FiAlertCircle, FiFileText, FiGrid, FiCalendar, FiUsers, FiChevronRight, FiLoader } from "react-icons/fi";
+import { FiAlertCircle, FiFileText, FiGrid, FiCalendar, FiUsers, FiChevronRight, FiLoader, FiDownload } from "react-icons/fi";
 import type { DailyStudent, RecapStudent, Summary, DailyBreakdown, MonthlyBreakdown } from "@/types/Report";
 
 interface PageProps {
@@ -34,7 +34,7 @@ const MONTH_KEYS = [
 
 export default function HomeroomReportIndex({
     teacher: _teacher,
-    class: kelas,
+    class: schoolClass,
     tab,
     students,
     summary,
@@ -113,7 +113,7 @@ export default function HomeroomReportIndex({
 
     const handleExportPdf = () => {
         setExportingType("pdf");
-        const classId = kelas?.id ?? "";
+        const classId = schoolClass?.id ?? "";
         if (tab === "daily") window.location.href = buildExportUrl("/export/daily-recap-pdf", { date: selectedDate, class_id: classId });
         else if (tab === "monthly") window.location.href = buildExportUrl("/export/monthly-recap-pdf", { month: selectedMonth, year: selectedYear, class_id: classId });
         else window.location.href = buildExportUrl("/export/semester-recap-pdf", { semester: selectedSemester, year: selectedYear, class_id: classId });
@@ -122,14 +122,14 @@ export default function HomeroomReportIndex({
 
     const handleExportExcel = () => {
         setExportingType("excel");
-        const classId = kelas?.id ?? "";
+        const classId = schoolClass?.id ?? "";
         if (tab === "daily") window.location.href = buildExportUrl("/export/daily-recap", { date: selectedDate, class_id: classId });
         else if (tab === "monthly") window.location.href = buildExportUrl("/export/monthly-recap", { month: selectedMonth, year: selectedYear, class_id: classId });
         else window.location.href = buildExportUrl("/export/semester-recap", { semester: selectedSemester, year: selectedYear, class_id: classId });
         setTimeout(() => setExportingType(null), 3000);
     };
 
-    if (!kelas) {
+    if (!schoolClass) {
         return (
             <AppShell title={t("reports.title")}>
                 <div className="bg-surface border border-border rounded-xl p-12 text-center">
@@ -148,7 +148,7 @@ export default function HomeroomReportIndex({
             title={t("reports.export")}
             aria-label={t("reports.export")}
         >
-            <i className="fas fa-download text-[14px]" />
+            <FiDownload className="text-[14px]" />
         </button>
     );
 
@@ -159,14 +159,14 @@ export default function HomeroomReportIndex({
                 <div>
                     <div className="hidden sm:block">
                         <h1 className="text-[22px] font-bold text-text-primary font-inter">
-                            {t("reports.headerTitle", { class: kelas.name })}
+                            {t("reports.headerTitle", { class: schoolClass.name })}
                         </h1>
                         <p className="text-[13px] text-text-muted font-inter mt-1">
-                            {t("reports.subtitle", { class: kelas.name })}
+                            {t("reports.subtitle", { class: schoolClass.name })}
                         </p>
                     </div>
                     <h1 className="sm:hidden text-[20px] font-bold text-text-primary font-inter">
-                        {kelas.name}
+                        {schoolClass.name}
                     </h1>
                 </div>
 

@@ -38,8 +38,8 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
     const isStudent = user?.role === "student";
 
     const teacherTypes = user?.teacher?.teacher_type ?? [];
-    const isPiket = teacherTypes.includes("duty");
-    const isWali = teacherTypes.includes("homeroom");
+    const isDuty = teacherTypes.includes("duty");
+    const isHomeroom = teacherTypes.includes("homeroom");
 
     type ClassItem = OverviewProps["overview"]["classes"][number];
 
@@ -176,7 +176,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                         <div className="p-6">
                             <h3 className="text-lg font-semibold text-text mb-4">{t("overview.quickActions")}</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                {(isAdmin || isPiket) && (
+                                {(isAdmin || isDuty) && (
                                     <>
                                         <a
                                             href="/monitoring"
@@ -195,7 +195,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                     </>
                                 )}
 
-                                {(isAdmin || isWali) && (
+                                {(isAdmin || isHomeroom) && (
                                     <a
                                         href="/leave-requests"
                                         className="flex items-center gap-3 p-4 bg-surface border border-border rounded-xl hover:bg-background transition-colors"
@@ -212,7 +212,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                     </a>
                                 )}
 
-                                {isTeacher && isPiket && (
+                                {isTeacher && isDuty && (
                                     <a
                                         href="/teacher/duty"
                                         className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors"
@@ -229,7 +229,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                                     </a>
                                 )}
 
-                                {isTeacher && isWali && (
+                                {isTeacher && isHomeroom && (
                                     <>
                                         <a
                                             href="/teacher/homeroom"
