@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { translations } from "../../utils/translations";
 import {
     formatRangeShort,
     formatRelativeDays,
@@ -10,8 +11,23 @@ import {
     waPhone,
     type ApprovedLeaveInfo,
     type Student,
+    type Translate,
 } from "../../utils/attentionRows";
 import { attentionPriority } from "../../utils/attentionPriority";
+
+function makeT(): Translate {
+    return (key, params) => {
+        let value = translations.id[key] ?? key;
+        if (params) {
+            for (const [k, v] of Object.entries(params)) {
+                value = value.replaceAll(`{${k}}`, String(v));
+            }
+        }
+        return value;
+    };
+}
+
+const t = makeT();
 
 function makeStudent(overrides: Partial<Student> = {}): Student {
     return {
@@ -42,12 +58,12 @@ function makeLeave(overrides: Partial<ApprovedLeaveInfo> = {}): ApprovedLeaveInf
 }
 
 describe("getRowStatus", () => {
-    it("resolves to diizinkan when an approved leave is active today", () => {
+    it("resolves to permitted when an approved leave is active today", () => {
         const s = makeStudent({ pendingLeave: null, consecutiveAbsences: 3 });
-        expect(getRowStatus(s, { 1: makeLeave() })).toBe("diizinkan");
+        expect(getRowStatus(s, { 1: makeLeave() })).toBe("permitted");
     });
 
-    it("resolves to pending before alpa streak", () => {
+    it("resolves to pending before absent streak", () => {
         const s = makeStudent({
             pendingLeave: { id: 1, category: "Sick", approval_status: "Pending", description: null, document_url: null, start_date: "2026-08-28", end_date: "2026-08-28", created_at: "2026-08-28T08:00:00.000Z" },
             consecutiveAbsences: 3,
@@ -55,28 +71,28 @@ describe("getRowStatus", () => {
         expect(getRowStatus(s, {})).toBe("pending");
     });
 
-    it("resolves to alpa when a streak exists or no attendance record", () => {
-        expect(getRowStatus(makeStudent({ consecutiveAbsences: 2 }), {})).toBe("alpa");
-        expect(getRowStatus(makeStudent(), {})).toBe("alpa");
+    it("resolves to absent when a streak exists or no attendance record", () => {
+        expect(getRowStatus(makeStudent({ consecutiveAbsences: 2 }), {})).toBe("absent");
+        expect(getRowStatus(makeStudent(), {})).toBe("absent");
     });
 
-    it("resolves to terlambat for a late attendance today", () => {
+    it("resolves to late for a late attendance today", () => {
         const s = makeStudent({ attendances: [{ id: 1, status: "Late", check_in_time: "07:15:30", late_minutes: 16 }] });
-        expect(getRowStatus(s, {})).toBe("terlambat");
+        expect(getRowStatus(s, {})).toBe("late");
     });
 
-    it("resolves to hadir for an on-time attendance today", () => {
+    it("resolves to present for an on-time attendance today", () => {
         const s = makeStudent({ attendances: [{ id: 1, status: "Present", check_in_time: "06:42:00", late_minutes: null }] });
-        expect(getRowStatus(s, {})).toBe("hadir");
+        expect(getRowStatus(s, {})).toBe("present");
     });
 });
 
 describe("rowNote", () => {
-    it("notes alpa streak variants", () => {
+    it("notes absent streak variants", () => {
         const approvedLeaves: Record<number, ApprovedLeaveInfo> = {};
-        expect(rowNote(makeStudent({ consecutiveAbsences: 3 }), approvedLeaves)).toBe("Sudah 3× berturut-turut");
-        expect(rowNote(makeStudent({ consecutiveAbsences: 2 }), approvedLeaves)).toBe("Sudah 2×");
-        expect(rowNote(makeStudent({ consecutiveAbsences: 1 }), approvedLeaves)).toBe("1× hari ini");
+        expect(rowNote(makeStudent({ consecutiveAbsences: 3 }), approvedLeaves, t)).toBe("Sudah 3× berturut-turut");
+        expect(rowNote(makeStudent({ consecutiveAbsences: 2 }), approvedLeaves, t)).toBe("Sudah 2×");
+        expect(rowNote(makeStudent({ consecutiveAbsences: 1 }), approvedLeaves, t)).toBe("1× hari ini");
     });
 
     it("notes pending leave with category, range and submitted age", () => {
@@ -85,33 +101,33 @@ describe("rowNote", () => {
         const s = makeStudent({
             pendingLeave: { id: 1, category: "Sick", approval_status: "Pending", description: null, document_url: null, start_date: "2026-08-28", end_date: "2026-08-30", created_at: createdAt },
         });
-        expect(rowNote(s, {})).toContain("Izin Sakit");
-        expect(rowNote(s, {})).toContain("28 Agu");
-        expect(rowNote(s, {})).toContain("kemarin");
+        expect(rowNote(s, {}, t)).toContain("Izin Sakit");
+        expect(rowNote(s, {}, t)).toContain("28 Agu");
+        expect(rowNote(s, {}, t)).toContain("kemarin");
     });
 
-    it("notes approved leave as received", () => {
+    it("notes approved leave as accepted", () => {
         const s = makeStudent({ consecutiveAbsences: 0 });
-        expect(rowNote(s, { 1: makeLeave({ category: "Event" }) })).toBe("Izin Acara Diterima · 28 Agu");
+        expect(rowNote(s, { 1: makeLeave({ category: "Event" }) }, t)).toBe("Izin Acara Diterima · 28 Agu");
     });
 
-    it("notes terlambat with minutes and seconds", () => {
+    it("notes late with minutes and seconds", () => {
         const s = makeStudent({ attendances: [{ id: 1, status: "Late", check_in_time: "07:15:30", late_minutes: 16 }] });
-        expect(rowNote(s, {})).toBe("Terlambat 16 mnt · 07:15:30 WIB");
+        expect(rowNote(s, {}, t)).toBe("Terlambat 16 mnt · 07:15:30 WIB");
     });
 
     it("falls back to plain time for on-time attendance", () => {
         const s = makeStudent({ attendances: [{ id: 1, status: "Present", check_in_time: "06:42:00", late_minutes: null }] });
-        expect(rowNote(s, {})).toBe("06:42 WIB");
+        expect(rowNote(s, {}, t)).toBe("06:42 WIB");
     });
 });
 
 describe("time formatting", () => {
     it("formats times with and without seconds", () => {
-        expect(formatTimeSeconds("07:15:30")).toBe("07:15:30 WIB");
-        expect(formatTimeSeconds("2026-08-28T07:15:30.000Z")).toBe("07:15:30 WIB");
-        expect(formatTime("2026-08-28T07:00:00.000Z")).toBe("07:00 WIB");
-        expect(formatTimeSeconds(null)).toBe("-");
+        expect(formatTimeSeconds("07:15:30", t)).toBe("07:15:30 WIB");
+        expect(formatTimeSeconds("2026-08-28T07:15:30.000Z", t)).toBe("07:15:30 WIB");
+        expect(formatTime("2026-08-28T07:00:00.000Z", t)).toBe("07:00 WIB");
+        expect(formatTimeSeconds(null, t)).toBe("-");
     });
 
     it("formats short ranges", () => {
@@ -123,10 +139,10 @@ describe("time formatting", () => {
     it("formats relative day labels", () => {
         const yesterday = new Date(Date.now() - 86400000).toISOString();
         const tenDaysAgo = new Date(Date.now() - 10 * 86400000).toISOString();
-        expect(formatRelativeDays(new Date().toISOString())).toBe("hari ini");
-        expect(formatRelativeDays(yesterday)).toBe("kemarin");
-        expect(formatRelativeDays(tenDaysAgo)).toBe("10 hari lalu");
-        expect(formatRelativeDays(undefined)).toBe("-");
+        expect(formatRelativeDays(new Date().toISOString(), t)).toBe("hari ini");
+        expect(formatRelativeDays(yesterday, t)).toBe("kemarin");
+        expect(formatRelativeDays(tenDaysAgo, t)).toBe("10 hari lalu");
+        expect(formatRelativeDays(undefined, t)).toBe("-");
     });
 });
 
@@ -159,21 +175,21 @@ describe("waPhone", () => {
     });
 });
 
-describe("alpa semantics", () => {
-    it("ranks alpa streak >= 3 with highest priority", () => {
-        expect(getRowStatus(makeStudent({ consecutiveAbsences: 3 }), {})).toBe("alpa");
-        expect(attentionPriority("alpa", 3)).toBe(1);
+describe("absent semantics", () => {
+    it("ranks absent streak >= 3 with highest priority", () => {
+        expect(getRowStatus(makeStudent({ consecutiveAbsences: 3 }), {})).toBe("absent");
+        expect(attentionPriority("absent", 3)).toBe(1);
     });
 
-    it("resolves a student with no attendance today to alpa", () => {
-        expect(getRowStatus(makeStudent(), {})).toBe("alpa");
+    it("resolves a student with no attendance today to absent", () => {
+        expect(getRowStatus(makeStudent(), {})).toBe("absent");
     });
 
-    it("gives approved leave precedence over an alpa streak", () => {
-        expect(getRowStatus(makeStudent({ consecutiveAbsences: 3 }), { 1: makeLeave() })).toBe("diizinkan");
+    it("gives approved leave precedence over an absent streak", () => {
+        expect(getRowStatus(makeStudent({ consecutiveAbsences: 3 }), { 1: makeLeave() })).toBe("permitted");
     });
 
-    it("gives pending leave precedence over an alpa streak", () => {
+    it("gives pending leave precedence over an absent streak", () => {
         const s = makeStudent({
             pendingLeave: { id: 1, category: "Sick", approval_status: "Pending", description: null, document_url: null, start_date: "2026-08-28", end_date: "2026-08-28", created_at: "2026-08-28T08:00:00.000Z" },
             consecutiveAbsences: 3,

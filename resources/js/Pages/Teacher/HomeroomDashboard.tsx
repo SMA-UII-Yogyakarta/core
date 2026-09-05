@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@inertiajs/react";
-import { FiUserX, FiLoader, FiFileText, FiImage } from "react-icons/fi";
+import { FiUserX, FiLoader, FiFileText, FiImage, FiX, FiInfo } from "react-icons/fi";
 import { FiMessageSquare, FiSearch, FiChevronRight } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import {
     Table,
@@ -24,6 +25,7 @@ import {
     sortAttention,
     type ApprovedLeaveInfo,
     type Student,
+    type Translate,
 } from "@/utils/attentionRows";
 import type { Column } from "@/Components/ui/Table";
 
@@ -60,39 +62,47 @@ interface PageProps {
     isSchoolDay: boolean;
 }
 
-const BADGE: Record<RowStatus, { label: string; classes: string }> = {
-    alpa: { label: "ALPA", classes: "bg-danger-light text-text-danger-badge" },
-    terlambat: { label: "TERLAMBAT", classes: "bg-warning-light text-text-warning-badge" },
-    pending: { label: "TERTUNDA", classes: "bg-primary-light text-primary" },
-    diizinkan: { label: "DIIZINKAN", classes: "bg-success-light text-text-success-badge" },
-    hadir: { label: "HADIR", classes: "bg-success-light text-text-success-badge" },
+const BADGE: Record<RowStatus, { labelKey: string; classes: string }> = {
+    absent: { labelKey: "homeroom.badgeAbsent", classes: "bg-danger-light text-text-danger-badge" },
+    late: { labelKey: "homeroom.badgeLate", classes: "bg-warning-light text-text-warning-badge" },
+    pending: { labelKey: "homeroom.badgePending", classes: "bg-primary-light text-primary" },
+    permitted: { labelKey: "homeroom.badgePermitted", classes: "bg-success-light text-text-success-badge" },
+    present: { labelKey: "homeroom.badgePresent", classes: "bg-success-light text-text-success-badge" },
 };
 
-function guardianMessage(s: Student, className: string): string {
+function guardianMessage(t: Translate, s: Student, className: string): string {
     const streakPart =
         s.consecutiveAbsences >= 2
-            ? `tercatat alpa ${s.consecutiveAbsences} hari berturut-turut`
-            : "tercatat alpa hari ini tanpa keterangan";
-    const name = s.guardian_name ?? "Wali Murid";
-    return `Selamat pagi Bapak/Ibu ${name}, saya wali kelas ${className} SMA UII Yogyakarta. Anak Bapak/Ibu, ${s.name} (NIS ${s.nis}), ${streakPart}. Mohon konfirmasi. Terima kasih.`;
+            ? t("homeroom.waAbsentStreak", { count: s.consecutiveAbsences })
+            : t("homeroom.waAbsentToday");
+    const name = s.guardian_name ?? t("homeroom.waGuardianFallback");
+    return t("homeroom.waMessage", {
+        guardian: name,
+        className,
+        student: s.name,
+        nis: s.nis,
+        absence: streakPart,
+    });
 }
 
 function ContactGuardianButton({ student, className }: { student: Student; className: string }) {
+    const { t } = useLanguage();
     const phone = waPhone(student.guardian_phone);
-    const href = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(guardianMessage(student, className))}` : null;
 
-    if (!href) {
+    if (!phone) {
         return (
             <button
                 type="button"
                 disabled
-                title="Nomor wali murid belum tersedia"
+                title={t("homeroom.waNoPhoneTitle")}
                 className="w-full inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-[12px] font-bold text-text-muted bg-muted border border-border cursor-not-allowed transition-all"
             >
-                Kontak Kosong
+                {t("homeroom.noContact")}
             </button>
         );
     }
+
+    const href = `https://wa.me/${phone}?text=${encodeURIComponent(guardianMessage(t, student, className))}`;
 
     return (
         <a
@@ -102,7 +112,7 @@ function ContactGuardianButton({ student, className }: { student: Student; class
             className="w-full inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-[12px] font-bold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light/30 transition-all active:scale-[0.98]"
         >
             <FiMessageSquare className="shrink-0 text-[14px]" />
-            <span>Hubungi Wali Murid</span>
+            <span>{t("homeroom.contactGuardian")}</span>
         </a>
     );
 }
@@ -112,6 +122,7 @@ function isImageUrl(url: string): boolean {
 }
 
 function BacklogBanner({ count }: { count: number }) {
+    const { t } = useLanguage();
     if (count <= 0) return null;
     return (
         <Link
@@ -119,7 +130,7 @@ function BacklogBanner({ count }: { count: number }) {
             className="flex items-center gap-2.5 bg-warning-bg border border-warning/40 rounded-xl px-3.5 py-3 text-[13px] text-text-warning-badge cursor-pointer active:scale-[0.98] transition-transform"
         >
             <span className="flex-1">
-                <strong>{count}</strong> pengajuan izin siswa belum diverifikasi (tanggal telah lewat)
+                <strong>{count}</strong> {t("homeroom.backlogBanner")}
             </span>
             <FiChevronRight className="text-[11px] shrink-0" />
         </Link>
@@ -135,6 +146,7 @@ export default function HomeroomDashboard({
     lateThreshold,
     isSchoolDay,
 }: PageProps) {
+    const { t } = useLanguage();
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -185,12 +197,12 @@ export default function HomeroomDashboard({
 
     if (!schoolClass) {
         return (
-            <AppShell title="Dasbor Wali Kelas">
+            <AppShell title={t("homeroom.title")}>
                 <EmptyState
                     variant="no-data"
                     icon={<FiUserX className="text-4xl" />}
-                    title="Belum Ditugaskan"
-                    description="Anda belum ditugaskan sebagai wali kelas."
+                    title={t("homeroom.notAssignedTitle")}
+                    description={t("homeroom.notAssignedDesc")}
                 />
             </AppShell>
         );
@@ -198,12 +210,12 @@ export default function HomeroomDashboard({
 
     if (!isSchoolDay) {
         return (
-            <AppShell title="Dasbor Wali Kelas">
+            <AppShell title={t("homeroom.title")}>
                 <EmptyState
                     variant="no-data"
                     icon={<FiUserX className="text-4xl" />}
-                    title="Hari ini bukan hari sekolah"
-                    description="Dashboard wali kelas aktif pada hari kerja — libur atau akhir pekan tidak ada presensi."
+                    title={t("homeroom.notSchoolDayTitle")}
+                    description={t("homeroom.notSchoolDayDesc")}
                 />
             </AppShell>
         );
@@ -216,13 +228,13 @@ export default function HomeroomDashboard({
     const columns: Column<Student>[] = [
         {
             key: "nis",
-            header: "NIS",
+            header: t("homeroom.nis"),
             className: "w-32",
             render: (s: Student) => <span className="font-bold text-text-primary text-[13px]">{s.nis}</span>,
         },
         {
             key: "name",
-            header: "Nama Siswa",
+            header: t("homeroom.thName"),
             className: "min-w-[180px]",
             render: (s: Student) => (
                 <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
@@ -232,27 +244,27 @@ export default function HomeroomDashboard({
         },
         {
             key: "status",
-            header: "Status Hari Ini",
+            header: t("homeroom.thStatus"),
             className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s, approvedLeaves);
                 const badge = BADGE[st];
                 return (
                     <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${badge.classes}`}>
-                        {badge.label}
+                        {t(badge.labelKey)}
                     </span>
                 );
             },
         },
         {
             key: "note",
-            header: "Waktu / Keterangan",
+            header: t("homeroom.thTime"),
             className: "text-[13px]",
             render: (s: Student) => {
                 const st = getRowStatus(s, approvedLeaves);
-                const note = rowNote(s, approvedLeaves);
+                const note = rowNote(s, approvedLeaves, t);
                 return (
-                    <span className={`font-medium text-[13px] ${st === "terlambat" ? "text-warning font-bold" : "text-text-secondary"}`}>
+                    <span className={`font-medium text-[13px] ${st === "late" ? "text-warning font-bold" : "text-text-secondary"}`}>
                         {note}
                     </span>
                 );
@@ -260,7 +272,7 @@ export default function HomeroomDashboard({
         },
         {
             key: "actions",
-            header: "Tindakan",
+            header: t("homeroom.thAction"),
             className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s, approvedLeaves);
@@ -271,11 +283,11 @@ export default function HomeroomDashboard({
                             onClick={(e) => e.stopPropagation()}
                             className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-all mx-auto cursor-pointer"
                         >
-                            Verifikasi Izin
+                            {t("homeroom.btnVerify")}
                         </Link>
                     );
                 }
-                if (st === "alpa") {
+                if (st === "absent") {
                     return (
                         <div onClick={(e) => e.stopPropagation()}>
                                                     <ContactGuardianButton student={s} className={schoolClass.name} />
@@ -288,16 +300,16 @@ export default function HomeroomDashboard({
     ];
 
     return (
-        <AppShell title="Dasbor Wali Kelas">
+        <AppShell title={t("homeroom.title")}>
             {/* Custom header — title + date */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 md:mb-6">
                 <div>
                     <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">
-                        <span className="hidden md:inline">Dasbor Wali Kelas — </span>
+                        <span className="hidden md:inline">{t("homeroom.title")} — </span>
                         {classroomName}
                     </h1>
                     <p className="text-[14px] text-text-secondary font-inter mt-1 hidden md:block">
-                        Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda.
+                        {t("homeroom.headerSubtitle")}
                     </p>
                 </div>
                 <span className="hidden lg:inline self-start px-3 py-1.5 bg-muted border border-border rounded-lg text-[13px] font-medium text-text-secondary whitespace-nowrap">
@@ -320,10 +332,10 @@ export default function HomeroomDashboard({
                     </div>
                     <div className="grid grid-cols-4 gap-2 text-center px-3">
                         {[
-                            { value: statsData.present, label: "TEPAT", numClass: "text-success" },
-                            { value: statsData.late, label: "TERLAMBAT", numClass: "text-warning" },
-                            { value: statsData.approved_permission ?? 0, label: "IZIN", numClass: "text-primary" },
-                            { value: statsData.truly_absent ?? 0, label: "ALPA", numClass: "text-danger" },
+                            { value: statsData.present, label: t("homeroom.statOnTime"), numClass: "text-success" },
+                            { value: statsData.late, label: t("homeroom.statLate"), numClass: "text-warning" },
+                            { value: statsData.approved_permission ?? 0, label: t("homeroom.statPermit"), numClass: "text-primary" },
+                            { value: statsData.truly_absent ?? 0, label: t("homeroom.statAbsent"), numClass: "text-danger" },
                         ].map((item) => (
                             <div key={item.label} className="rounded-xl py-3">
                                 <span className={`text-[20px] font-extrabold leading-none ${item.value === 0 ? "text-text-muted" : item.numClass}`}>
@@ -340,10 +352,10 @@ export default function HomeroomDashboard({
                 {/* ─── Desktop Stat Cards ─── */}
                 <div className="hidden lg:grid grid-cols-4 gap-4">
                     {[
-                        { value: statsData.present, label: "TEPAT WAKTU", numClass: "text-success", bgClass: "bg-success-light" },
-                        { value: statsData.late, label: "TERLAMBAT", numClass: "text-warning", bgClass: "bg-warning-light" },
-                        { value: statsData.approved_permission ?? 0, label: "IZIN DISETUJUI", numClass: "text-primary", bgClass: "bg-primary-light" },
-                        { value: statsData.truly_absent ?? 0, label: "ALPA", numClass: "text-danger", bgClass: "bg-danger-light" },
+                        { value: statsData.present, label: t("homeroom.statOnTimeFull"), numClass: "text-success", bgClass: "bg-success-light" },
+                        { value: statsData.late, label: t("homeroom.statLate"), numClass: "text-warning", bgClass: "bg-warning-light" },
+                        { value: statsData.approved_permission ?? 0, label: t("homeroom.statPermitFull"), numClass: "text-primary", bgClass: "bg-primary-light" },
+                        { value: statsData.truly_absent ?? 0, label: t("homeroom.statAbsent"), numClass: "text-danger", bgClass: "bg-danger-light" },
                     ].map((item) => (
                         <div key={item.label} className={`rounded-xl p-4 flex flex-col justify-between ${item.value === 0 ? "bg-surface" : item.bgClass}`}>
                             <span className={`text-[28px] font-extrabold leading-none ${item.value === 0 ? "text-text-muted" : item.numClass}`}>
@@ -365,12 +377,12 @@ export default function HomeroomDashboard({
                     <div className="lg:hidden">
                         {!isSearchOpen && !search ? (
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[16px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h3>
+                                <h3 className="text-[16px] font-bold text-text-primary font-inter">{t("homeroom.attentionTitle")}</h3>
                                 <button
                                     type="button"
                                     onClick={() => setIsSearchOpen(true)}
                                     className="p-2 -mr-2 pr-2 text-text-muted hover:text-primary transition-colors"
-                                    aria-label="Buka pencarian"
+                                    aria-label={t("homeroom.openSearch")}
                                 >
                                     <FiSearch className="text-[16px]" />
                                 </button>
@@ -389,7 +401,7 @@ export default function HomeroomDashboard({
                                         onBlur={() => {
                                             if (!search) setIsSearchOpen(false);
                                         }}
-                                        placeholder="Cari nama atau NIS..."
+                                        placeholder={t("homeroom.searchPlaceholder")}
                                         autoFocus
                                         className="h-10 pl-10 pr-10 w-full border border-border rounded-lg text-[14px] font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-text-inactive transition-all"
                                     />
@@ -402,8 +414,9 @@ export default function HomeroomDashboard({
                                                 setIsSearchOpen(false);
                                             }}
                                             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-inactive hover:text-text-primary text-[14px] font-bold"
+                                            aria-label={t("homeroom.openSearch")}
                                         >
-                                            ✕
+                                            <FiX className="text-[16px]" />
                                         </button>
                                     )}
                                 </div>
@@ -413,7 +426,7 @@ export default function HomeroomDashboard({
 
                     {/* ─── Desktop search ─── */}
                     <div className="hidden lg:flex items-center justify-between gap-4">
-                        <h3 className="text-[16px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h3>
+                        <h3 className="text-[16px] font-bold text-text-primary font-inter">{t("homeroom.attentionTitle")}</h3>
                         <div className="w-72">
                             <SearchBar
                                 value={search}
@@ -422,7 +435,7 @@ export default function HomeroomDashboard({
                                     setCurrentPage(1);
                                 }}
                                 onSearch={() => setCurrentPage(1)}
-                                placeholder="Cari nama atau NIS..."
+                                placeholder={t("homeroom.searchPlaceholder")}
                             />
                         </div>
                     </div>
@@ -432,18 +445,18 @@ export default function HomeroomDashboard({
                         <div className="flex-1 space-y-3">
                             {attentionStudents.length === 0 ? (
                                 <div className="text-center py-8 text-[13px] text-text-muted">
-                                    Semua siswa di kelas ini hadir tepat waktu hari ini.
+                                    {t("homeroom.allPresent")}
                                 </div>
                             ) : (
                                 attentionStudents.slice(0, displayedCount).map((s) => {
                                     const st = getRowStatus(s, approvedLeaves);
                                     const badge = BADGE[st];
                                     const borderColors = {
-                                        alpa: "border-danger",
-                                        terlambat: "border-warning",
+                                        absent: "border-danger",
+                                        late: "border-warning",
                                         pending: "border-primary",
-                                        diizinkan: "border-success",
-                                        hadir: "border-success",
+                                        permitted: "border-success",
+                                        present: "border-success",
                                     };
                                     const isClickable = st !== "pending";
                                     return (
@@ -456,7 +469,7 @@ export default function HomeroomDashboard({
                                                 <h4 className="min-w-0 flex-1 text-[15px] font-bold text-text-primary truncate">{s.name}</h4>
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${badge.classes}`}>
-                                                        {badge.label}
+                                                        {t(badge.labelKey)}
                                                     </span>
                                                     {isClickable && (
                                                         <FiChevronRight className="text-[11px] text-text-muted" />
@@ -464,9 +477,9 @@ export default function HomeroomDashboard({
                                                 </div>
                                             </div>
                                             <div className="bg-background rounded-lg px-2.5 py-1.5">
-                                                <p className="text-[12px] text-text-muted">{rowNote(s, approvedLeaves)}</p>
+                                                <p className="text-[12px] text-text-muted">{rowNote(s, approvedLeaves, t)}</p>
                                             </div>
-                                            {st === "alpa" && (
+                                            {st === "absent" && (
                                                 <div onClick={(e) => e.stopPropagation()}>
                             <ContactGuardianButton student={s} className={schoolClass.name} />
                                                 </div>
@@ -477,7 +490,7 @@ export default function HomeroomDashboard({
                                                     onClick={(e) => e.stopPropagation()}
                                                     className="relative block w-full text-center px-4 py-2 bg-primary text-white rounded-lg text-[13px] font-bold"
                                                 >
-                                                    Verifikasi Izin
+                                                    {t("homeroom.btnVerify")}
                                                     <FiChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-white/70" />
                                                 </Link>
                                             )}
@@ -493,15 +506,15 @@ export default function HomeroomDashboard({
                                 {loadingMore ? (
                                     <p className="text-[13px] text-text-muted">
                                         <FiLoader className="inline animate-spin mr-2" />
-                                        Memuat data...
+                                        {t("homeroom.loadingMore")}
                                     </p>
                                 ) : displayedCount < attentionStudents.length ? (
                                     <p className="text-[13px] text-text-muted">
-                                        Menampilkan {displayedCount} dari {attentionStudents.length} data
+                                        {t("homeroom.showingOf", { displayed: displayedCount, total: attentionStudents.length })}
                                     </p>
                                 ) : (
                                     <p className="text-[13px] text-text-muted">
-                                        Semua siswa sudah ditampilkan ({attentionStudents.length})
+                                        {t("homeroom.allShown", { count: attentionStudents.length })}
                                     </p>
                                 )}
                             </div>
@@ -509,8 +522,8 @@ export default function HomeroomDashboard({
 
                         <div className="pt-3 border-t border-border">
                             <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                                <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                                <span>Menampilkan daftar siswa kelas {classroomName} yang memerlukan perhatian khusus.</span>
+                                <FiInfo className="text-primary text-[14px] shrink-0" />
+                                <span>{t("homeroom.footerNote", { className: classroomName })}</span>
                             </div>
                         </div>
                     </div>
@@ -525,15 +538,15 @@ export default function HomeroomDashboard({
                                 const st = getRowStatus(s, approvedLeaves);
                                 if (st !== "pending") setSelectedStudent(s);
                             }}
-                            emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
+                            emptyMessage={t("homeroom.allPresent")}
                         />
                     </div>
 
                     {/* Desktop footer (outside mobile flex container) */}
                     <div className="hidden lg:flex pt-2 flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
                         <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                            <span>Menampilkan daftar siswa kelas {classroomName} yang memerlukan perhatian khusus.</span>
+                            <FiInfo className="text-primary text-[14px] shrink-0" />
+                            <span>{t("homeroom.footerNote", { className: classroomName })}</span>
                         </div>
                         {attentionStudents.length > pageSize && (
                             <Pagination
@@ -552,7 +565,7 @@ export default function HomeroomDashboard({
             <Drawer
                 open={selectedStudent !== null}
                 onClose={() => setSelectedStudent(null)}
-                title="Detail Status Kehadiran Siswa"
+                title={t("homeroom.drawerTitle")}
                 width="md"
             >
                 {selectedStudent && (
@@ -560,65 +573,65 @@ export default function HomeroomDashboard({
                         <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
                             <div>
                                 <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block">
-                                    Status Hari Ini
+                                    {t("homeroom.thStatus")}
                                 </span>
                                 <span className="font-bold text-[15px]">
-                                    {BADGE[getRowStatus(selectedStudent, approvedLeaves)].label}
+                                    {t(BADGE[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
                                 </span>
                             </div>
                             <span
                                 className={`text-[11px] font-bold px-3 py-1 rounded-full ${BADGE[getRowStatus(selectedStudent, approvedLeaves)].classes}`}
                             >
-                                {BADGE[getRowStatus(selectedStudent, approvedLeaves)].label}
+                                {t(BADGE[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
                             </span>
                         </div>
 
                         <div className="border border-border/80 rounded-xl p-4 space-y-2">
-                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">Informasi Siswa</h3>
+                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">{t("homeroom.studentInfo")}</h3>
                             <div className="grid grid-cols-2 gap-3 text-[13px]">
                                 <div>
-                                    <span className="text-text-muted block text-[11px]">Nama Lengkap</span>
+                                    <span className="text-text-muted block text-[11px]">{t("homeroom.fullName")}</span>
                                     <span className="font-semibold">{selectedStudent.name}</span>
                                 </div>
                                 <div>
-                                    <span className="text-text-muted block text-[11px]">NIS</span>
+                                    <span className="text-text-muted block text-[11px]">{t("homeroom.nis")}</span>
                                     <span className="font-semibold">{selectedStudent.nis}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="border border-border/80 rounded-xl p-4 space-y-2">
-                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">Keterangan</h3>
+                            <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">{t("homeroom.detailDescription")}</h3>
                             <p className="text-[13px] text-text-secondary">
-                                {rowNote(selectedStudent, approvedLeaves)}
+                                {rowNote(selectedStudent, approvedLeaves, t)}
                             </p>
                         </div>
 
-                        {getRowStatus(selectedStudent, approvedLeaves) === "terlambat" &&
+                        {getRowStatus(selectedStudent, approvedLeaves) === "late" &&
                             (() => {
                                 const att = selectedStudent.attendances[0];
                                 return (
                                     <div className="border border-border/80 rounded-xl p-4 space-y-3">
                                         <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
-                                            Detail Kehadiran
+                                            {t("homeroom.detailTitle")}
                                         </h3>
                                         <div className="space-y-2.5 text-[13px]">
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Waktu Check-in</span>
+                                                <span className="text-text-muted">{t("homeroom.checkInTime")}</span>
                                                 <span className="font-semibold text-right">
-                                                    {formatTimeSeconds(att?.check_in_time)}
+                                                    {formatTimeSeconds(att?.check_in_time, t)}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Durasi Terlambat</span>
+                                                <span className="text-text-muted">{t("homeroom.lateDuration")}</span>
                                                 <span className="font-semibold text-right">
-                                                    {att?.late_minutes != null ? `${att.late_minutes} mnt` : "-"}
+                                                    {att?.late_minutes != null ? t("homeroom.lateMinutes", { minutes: att.late_minutes }) : "-"}
                                                 </span>
                                             </div>
                                             {lateThreshold && (
                                                 <div className="flex justify-between gap-3">
-                                                    <span className="text-text-muted">Batas Telat</span>
-                                                    <span className="font-semibold text-right">{formatTime(lateThreshold)}</span>
+                                                    <span className="text-text-muted">{t("homeroom.lateThreshold")}</span>
+                                                    <span className="font-semibold text-right">{formatTime(lateThreshold, t)}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -626,7 +639,7 @@ export default function HomeroomDashboard({
                                 );
                             })()}
 
-                        {getRowStatus(selectedStudent, approvedLeaves) === "diizinkan" &&
+                        {getRowStatus(selectedStudent, approvedLeaves) === "permitted" &&
                             (() => {
                                 const leave = approvedLeaves[selectedStudent.id];
                                 if (!leave) return null;
@@ -637,22 +650,22 @@ export default function HomeroomDashboard({
                                 return (
                                     <div className="border border-border/80 rounded-xl p-4 space-y-3">
                                         <h3 className="font-bold text-primary text-[13px] uppercase tracking-wide">
-                                            Detail Pengajuan Izin
+                                            {t("homeroom.leaveDetailTitle")}
                                         </h3>
                                         <div className="space-y-2.5 text-[13px]">
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Kategori</span>
+                                                <span className="text-text-muted">{t("homeroom.detailCategory")}</span>
                                                 <span className="font-semibold text-right">
-                                                    {translateCategory(leave.category)} Diterima
+                                                    {t("homeroom.permitAccepted", { category: translateCategory(leave.category, t) })}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Tanggal</span>
+                                                <span className="text-text-muted">{t("homeroom.leaveDates")}</span>
                                                 <span className="font-semibold text-right">{dateRange}</span>
                                             </div>
                                             {leave.description && (
                                                 <div className="flex justify-between gap-3">
-                                                    <span className="text-text-muted">Deskripsi</span>
+                                                    <span className="text-text-muted">{t("homeroom.leaveDescription")}</span>
                                                     <span className="font-semibold text-right max-w-[60%]">
                                                         {leave.description}
                                                     </span>
@@ -660,7 +673,7 @@ export default function HomeroomDashboard({
                                             )}
                                             {leave.document_url && (
                                                 <div className="flex justify-between gap-3">
-                                                    <span className="text-text-muted">Dokumen</span>
+                                                    <span className="text-text-muted">{t("homeroom.leaveDocument")}</span>
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewUrl(leave.document_url)}
@@ -671,11 +684,11 @@ export default function HomeroomDashboard({
                                                         ) : (
                                                             <FiFileText className="text-[14px] shrink-0" />
                                                         )}
-                                                        Lihat Dokumen
+                                                        {t("homeroom.viewDocument")}
                                                         {isImageUrl(leave.document_url) && (
                                                             <img
                                                                 src={leave.document_url}
-                                                                alt="Dokumen"
+                                                                alt={t("homeroom.leaveDocument")}
                                                                 className="w-10 h-10 rounded-lg object-cover border border-border shrink-0"
                                                             />
                                                         )}
@@ -683,19 +696,19 @@ export default function HomeroomDashboard({
                                                 </div>
                                             )}
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Diajukan oleh</span>
+                                                <span className="text-text-muted">{t("homeroom.submittedBy")}</span>
                                                 <span className="font-semibold text-right">
                                                     {leave.guardian_name ?? "-"}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Diajukan pada</span>
+                                                <span className="text-text-muted">{t("homeroom.submittedOn")}</span>
                                                 <span className="font-semibold text-right">
                                                     {formatDateTime(leave.created_at)}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between gap-3">
-                                                <span className="text-text-muted">Diterima pada</span>
+                                                <span className="text-text-muted">{t("homeroom.acceptedOn")}</span>
                                                 <span className="font-semibold text-right">
                                                     {formatDateTime(leave.updated_at)}
                                                 </span>
@@ -705,18 +718,18 @@ export default function HomeroomDashboard({
                                 );
                             })()}
 
-                        {getRowStatus(selectedStudent, approvedLeaves) === "alpa" &&
+                        {getRowStatus(selectedStudent, approvedLeaves) === "absent" &&
                             (() => {
                                 const streak = selectedStudent.consecutiveAbsences;
                                 return (
                                     <div className="border border-danger-light rounded-xl p-4 space-y-3 bg-danger-bg">
                                         <h3 className="font-bold text-danger text-[13px] uppercase tracking-wide">
-                                            {streak >= 2 ? `Alpa ${streak}× Berturut-turut` : "Alpa Hari Ini"}
+                                            {streak >= 2 ? t("homeroom.absentTitleMulti", { count: streak }) : t("homeroom.absentTitleToday")}
                                         </h3>
                                         <p className="text-[13px] text-text-secondary">
                                             {streak >= 2
-                                                ? `Anak ini tercatat alpa ${streak} hari berturut-turut tanpa keterangan.`
-                                                : "Anak ini tercatat alpa hari ini tanpa keterangan. Hubungi wali murid untuk konfirmasi."}
+                                                ? t("homeroom.absentDescMulti", { count: streak })
+                                                : t("homeroom.absentDescToday")}
                                         </p>
                                         <ContactGuardianButton student={selectedStudent} className={schoolClass.name} />
                                     </div>

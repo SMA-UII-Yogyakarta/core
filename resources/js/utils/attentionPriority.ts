@@ -1,14 +1,14 @@
-export type RowStatus = "alpa" | "terlambat" | "pending" | "diizinkan" | "hadir";
+export type RowStatus = "absent" | "late" | "pending" | "permitted" | "present";
 
-const BASE_PRIORITY: Record<Exclude<RowStatus, "alpa">, number> = {
+const BASE_PRIORITY: Record<Exclude<RowStatus, "absent">, number> = {
     pending: 2,
-    diizinkan: 4,
-    terlambat: 5,
-    hadir: 6,
+    permitted: 4,
+    late: 5,
+    present: 6,
 };
 
 export function attentionPriority(status: RowStatus, consecutiveAbsences: number): number {
-    if (status === "alpa") {
+    if (status === "absent") {
         return consecutiveAbsences >= 3 ? 1 : 3;
     }
     return BASE_PRIORITY[status];

@@ -1,5 +1,7 @@
 import { attentionPriority, type RowStatus } from "@/utils/attentionPriority";
 
+export type Translate = (key: string, params?: Record<string, string | number>) => string;
+
 export interface StudentAttendance {
     id: number;
     status: string;
@@ -40,37 +42,39 @@ export interface ApprovedLeaveInfo {
     updated_at: string;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-    Sick: "Sakit",
-    Event: "Acara",
-    Competition: "Kompetisi",
-    Other: "Lainnya",
+const CATEGORY_KEYS: Record<string, string> = {
+    Sick: "homeroom.sick",
+    Event: "homeroom.event",
+    Competition: "homeroom.competition",
+    Other: "homeroom.other",
 };
 
-export function translateCategory(cat?: string): string {
-    return cat ? (CATEGORY_LABELS[cat] ?? cat) : "";
+export function translateCategory(cat: string | undefined, t: Translate): string {
+    if (!cat) return "";
+    const key = CATEGORY_KEYS[cat];
+    return key ? t(key) : cat;
 }
 
 export function getRowStatus(s: Student, approvedLeaves: Record<number, ApprovedLeaveInfo>): RowStatus {
-    if (approvedLeaves[s.id]) return "diizinkan";
+    if (approvedLeaves[s.id]) return "permitted";
     if (s.pendingLeave?.approval_status === "Pending") return "pending";
-    if (s.consecutiveAbsences > 0) return "alpa";
+    if (s.consecutiveAbsences > 0) return "absent";
     const att = s.attendances[0];
-    if (!att) return "alpa";
-    if (att.status.toLowerCase() === "late") return "terlambat";
-    return "hadir";
+    if (!att) return "absent";
+    if (att.status.toLowerCase() === "late") return "late";
+    return "present";
 }
 
-export function formatTime(val?: string | null): string {
+export function formatTime(val: string | null | undefined, t: Translate): string {
     if (!val) return "-";
     const time = val.includes("T") ? val.split("T")[1]?.slice(0, 5) : val.slice(0, 5);
-    return time ? `${time} WIB` : "-";
+    return time ? `${time} ${t("homeroom.timeWib")}` : "-";
 }
 
-export function formatTimeSeconds(val?: string | null): string {
+export function formatTimeSeconds(val: string | null | undefined, t: Translate): string {
     if (!val) return "-";
     const time = val.includes("T") ? val.split("T")[1]?.slice(0, 8) : val.slice(0, 8);
-    return time ? `${time} WIB` : "-";
+    return time ? `${time} ${t("homeroom.timeWib")}` : "-";
 }
 
 export function formatShortDate(val?: string): string {
@@ -102,7 +106,7 @@ export function formatRangeShort(start?: string, end?: string): string {
     return `${formatShortDate(start)} – ${formatShortDate(end)}`;
 }
 
-export function formatRelativeDays(val?: string): string {
+export function formatRelativeDays(val: string | undefined, t: Translate): string {
     if (!val) return "-";
     const dt = new Date(val);
     if (Number.isNaN(dt.getTime())) return formatShortDate(val);
@@ -111,31 +115,43 @@ export function formatRelativeDays(val?: string): string {
     const start = new Date(dt);
     start.setHours(0, 0, 0, 0);
     const diffDays = Math.round((startOfToday.getTime() - start.getTime()) / 86400000);
-    if (diffDays <= 0) return "hari ini";
-    if (diffDays === 1) return "kemarin";
-    return `${diffDays} hari lalu`;
+    if (diffDays <= 0) return t("homeroom.relativeToday");
+    if (diffDays === 1) return t("homeroom.relativeYesterday");
+    return t("homeroom.relativeDaysAgo", { count: diffDays });
 }
 
-export function rowNote(s: Student, approvedLeaves: Record<number, ApprovedLeaveInfo>): string {
+export function rowNote(s: Student, approvedLeaves: Record<number, ApprovedLeaveInfo>, t: Translate): string {
     const status = getRowStatus(s, approvedLeaves);
-    if (status === "alpa") {
-        if (s.consecutiveAbsences >= 3) return `Sudah ${s.consecutiveAbsences}× berturut-turut`;
-        if (s.consecutiveAbsences === 2) return "Sudah 2×";
-        return "1× hari ini";
+    if (status === "absent") {
+        if (s.consecutiveAbsences >= 3) {
+            return t("homeroom.noteAbsentStreak", { count: s.consecutiveAbsences });
+        }
+        if (s.consecutiveAbsences === 2) return t("homeroom.noteAbsentTwice");
+        return t("homeroom.noteAbsentOnce");
     }
     if (status === "pending") {
         const p = s.pendingLeave;
-        return `Izin ${translateCategory(p?.category)} · ${formatRangeShort(p?.start_date, p?.end_date)} · diajukan ${formatRelativeDays(p?.created_at)}`;
+        return t("homeroom.notePending", {
+            category: translateCategory(p?.category, t),
+            range: formatRangeShort(p?.start_date, p?.end_date),
+            submitted: formatRelativeDays(p?.created_at, t),
+        });
     }
-    if (status === "diizinkan") {
+    if (status === "permitted") {
         const l = approvedLeaves[s.id];
-        return `Izin ${translateCategory(l?.category)} Diterima${l ? ` · ${formatRangeShort(l.start_date, l.end_date)}` : ""}`;
+        return t("homeroom.notePermitted", {
+            category: translateCategory(l?.category, t),
+            range: l ? ` · ${formatRangeShort(l.start_date, l.end_date)}` : "",
+        });
     }
     const att = s.attendances[0];
-    if (status === "terlambat" && att?.late_minutes != null) {
-        return `Terlambat ${att.late_minutes} mnt · ${formatTimeSeconds(att.check_in_time)}`;
+    if (status === "late" && att?.late_minutes != null) {
+        return t("homeroom.noteLate", {
+            minutes: att.late_minutes,
+            time: formatTimeSeconds(att.check_in_time, t),
+        });
     }
-    return formatTime(att?.check_in_time);
+    return formatTime(att?.check_in_time, t);
 }
 
 export function waPhone(phone?: string | null): string | null {
@@ -149,14 +165,14 @@ export function waPhone(phone?: string | null): string | null {
 
 export function sortAttention(students: Student[], approvedLeaves: Record<number, ApprovedLeaveInfo>): Student[] {
     return students
-        .filter((s) => getRowStatus(s, approvedLeaves) !== "hadir")
+        .filter((s) => getRowStatus(s, approvedLeaves) !== "present")
         .sort((a, b) => {
             const sa = getRowStatus(a, approvedLeaves);
             const sb = getRowStatus(b, approvedLeaves);
             const pa = attentionPriority(sa, a.consecutiveAbsences);
             const pb = attentionPriority(sb, b.consecutiveAbsences);
             if (pa !== pb) return pa - pb;
-            if (sa === "alpa") {
+            if (sa === "absent") {
                 const d = b.consecutiveAbsences - a.consecutiveAbsences;
                 if (d !== 0) return d;
             }
