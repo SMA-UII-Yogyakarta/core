@@ -11,6 +11,7 @@ import {
     ConfirmDialog,
     TabSwitcher,
     Avatar,
+    MobileSectionHeader,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import {
@@ -543,14 +544,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         {mobileSubPage === "profile" && (
                             <div className="flex flex-col gap-4 pb-24">
                                 <form id="mobile-profile-data-form" onSubmit={handleProfileSubmit} className="flex flex-col gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                                            Informasi Data Akun
-                                        </span>
-                                        <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                                            Perbarui foto profil, nama lengkap, dan email resmi akun Anda.
-                                        </p>
-                                    </div>
+                                    <MobileSectionHeader
+                                        title="Informasi Data Akun"
+                                        description="Perbarui foto profil, nama lengkap, dan email resmi akun Anda."
+                                    />
 
                                     {/* Native Grouped Card */}
                                     <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-4">
@@ -637,14 +634,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         {mobileSubPage === "security" && (
                             <div className="flex flex-col gap-4 pb-24">
                                 <form id="mobile-profile-password-form" onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                                            Ganti Kata Sandi Akun
-                                        </span>
-                                        <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                                            Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan.
-                                        </p>
-                                    </div>
+                                    <MobileSectionHeader
+                                        title="Ganti Kata Sandi Akun"
+                                        description="Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan."
+                                    />
 
                                     {/* Native Grouped Card */}
                                     <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-3.5">
@@ -702,14 +695,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         {/* Sub-page 3: Preferensi Notifikasi */}
                         {mobileSubPage === "notifications" && (
                             <div className="flex flex-col gap-4 pb-8">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                                        Saluran Notifikasi System
-                                    </span>
-                                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                                        Atur jenis notifikasi yang ingin Anda terima di aplikasi.
-                                    </p>
-                                </div>
+                                <MobileSectionHeader
+                                    title="Saluran Notifikasi System"
+                                    description="Atur jenis notifikasi yang ingin Anda terima di aplikasi."
+                                />
 
                                 <div className="border border-border rounded-2xl divide-y divide-border bg-surface overflow-hidden shadow-card">
                                     <div className="flex items-center justify-between p-4">
@@ -762,14 +751,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         {/* Sub-page 4: Perangkat & Sesi Aktif */}
                         {mobileSubPage === "sessions" && (
                             <div className="flex flex-col gap-3 pb-8">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                                        Sesi & Perangkat Terhubung
-                                    </span>
-                                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                                        Daftar perangkat yang saat ini aktif terhubung ke akun Anda.
-                                    </p>
-                                </div>
+                                <MobileSectionHeader
+                                    title="Sesi & Perangkat Terhubung"
+                                    description="Daftar perangkat yang saat ini aktif terhubung ke akun Anda."
+                                />
 
                                 <div className="flex flex-col gap-2.5">
                                     {sessions.map((s, idx) => (

@@ -6,7 +6,6 @@ import {
     Button,
     Modal,
     NativeSelect,
-    Pagination,
     MobileNativePagination,
     Input,
     Table,
@@ -199,29 +198,15 @@ export default function Notifications({
             const params = paramName ? { [paramName]: page } : { page };
             router.get("/notifications", params, { preserveState: true });
         };
-        const showingFrom = (paginated.current_page - 1) * paginated.per_page + 1;
-        const showingTo = Math.min(paginated.current_page * paginated.per_page, paginated.total);
-
         return (
             <>
                 <div className="hidden sm:block">
                     <TableFooter
-                        info={
-                            <span>
-                                Menampilkan <strong className="text-text-primary">{showingFrom}–{showingTo}</strong> dari total <strong className="text-text-primary">{paginated.total}</strong> data.
-                            </span>
-                        }
-                        pagination={
-                            paginated.last_page > 1 ? (
-                                <Pagination
-                                    currentPage={paginated.current_page}
-                                    totalPages={paginated.last_page}
-                                    totalItems={paginated.total}
-                                    perPage={paginated.per_page}
-                                    onPageChange={onPageChange}
-                                />
-                            ) : undefined
-                        }
+                        currentPage={paginated.current_page}
+                        totalPages={paginated.last_page}
+                        totalItems={paginated.total}
+                        perPage={paginated.per_page}
+                        onPageChange={onPageChange}
                     />
                 </div>
                 <div className="sm:hidden w-full shrink-0">

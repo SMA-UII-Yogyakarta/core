@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import AppShell from "@/Layouts/AppShell";
 import {
     PageHeader,
-    Pagination,
     MobileNativePagination,
     NativeSelect,
     Table,
@@ -789,18 +788,11 @@ export default function ExportPage({
                 {/* Standardized Table Footer */}
                 <TableFooter
                     info={`Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih (Saat ini: ${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)}).`}
-                    pagination={
-                        preview.length > pageSize ? (
-                            <Pagination
-                                currentPage={safePage}
-                                totalPages={totalPages}
-                                totalItems={preview.length}
-                                perPage={pageSize}
-                                onPageChange={setCurrentPage}
-                                className="!w-auto !gap-3"
-                            />
-                        ) : undefined
-                    }
+                    currentPage={safePage}
+                    totalPages={totalPages}
+                    totalItems={preview.length}
+                    perPage={pageSize}
+                    onPageChange={setCurrentPage}
                 />
             </div>
 

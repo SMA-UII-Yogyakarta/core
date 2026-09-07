@@ -3,7 +3,7 @@ import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
     Button,
-    Pagination,
+    TableFooter,
     MobileNativePagination,
     Drawer,
     Checkbox,
@@ -15,7 +15,7 @@ import {
     PageHeader,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiCheck, FiX, FiCheckSquare, FiXCircle, FiInfo } from "react-icons/fi";
+import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -98,6 +98,14 @@ export default function VerifikasiIzin({
         router.get(
             "/leave-requests/verification",
             { status: s || undefined, category: c || undefined },
+            { preserveState: true },
+        );
+    };
+
+    const handlePageChange = (page: number) => {
+        router.get(
+            "/leave-requests/verification",
+            { page, status: statusFilter || undefined, category: categoryFilter || undefined, class_id: selectedClassId || undefined },
             { preserveState: true },
         );
     };
@@ -358,26 +366,15 @@ export default function VerifikasiIzin({
                 )}
 
                 {/* Desktop Symmetrical Footer Info & Table Pagination */}
-                <div className="hidden sm:flex pt-2 flex-row items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                    <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                        <FiInfo className="text-primary text-[14px] shrink-0" />
-                        <span>Menampilkan pengajuan izin siswa yang diverifikasi.</span>
-                    </div>
-                    {leaveRequests.last_page > 1 && (
-                        <Pagination
-                            currentPage={leaveRequests.current_page}
-                            totalPages={leaveRequests.last_page}
-                            totalItems={leaveRequests.total}
-                            perPage={leaveRequests.per_page}
-                            onPageChange={(page) =>
-                                router.get(
-                                    "/leave-requests/verification",
-                                    { page, status: statusFilter, category: categoryFilter, class_id: selectedClassId },
-                                    { preserveState: true },
-                                )
-                            }
-                        />
-                    )}
+                <div className="hidden sm:block pt-2 shrink-0 mt-auto">
+                    <TableFooter
+                        info="Menampilkan pengajuan izin siswa yang diverifikasi."
+                        currentPage={leaveRequests.current_page}
+                        totalPages={leaveRequests.last_page}
+                        totalItems={leaveRequests.total}
+                        perPage={leaveRequests.per_page}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
 
                 {/* Mobile Native App Pagination */}
@@ -388,13 +385,8 @@ export default function VerifikasiIzin({
                             totalPages={leaveRequests.last_page}
                             totalItems={leaveRequests.total}
                             perPage={leaveRequests.per_page}
-                            onPageChange={(page) =>
-                                router.get(
-                                    "/leave-requests/verification",
-                                    { page, status: statusFilter, category: categoryFilter, class_id: selectedClassId },
-                                    { preserveState: true },
-                                )
-                            }
+                            onPageChange={handlePageChange}
+                            itemLabel="pengajuan izin"
                         />
                     </div>
                 )}

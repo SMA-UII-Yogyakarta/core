@@ -3,10 +3,11 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 export interface PaginationProps {
     currentPage: number;
     totalPages: number;
-    totalItems: number;
+    totalItems?: number;
     perPage?: number;
     onPageChange: (page: number) => void;
     compact?: boolean;
+    showInfo?: boolean;
     align?: "auto" | "between" | "center" | "start" | "left";
     className?: string;
 }
@@ -63,10 +64,11 @@ function getPaginationRange(currentPage: number, totalPages: number, compact: bo
 export default function Pagination({
     currentPage,
     totalPages,
-    totalItems,
+    totalItems = 0,
     perPage = 10,
     onPageChange,
     compact = false,
+    showInfo = true,
     align = "auto",
     className = "",
 }: PaginationProps) {
@@ -85,21 +87,23 @@ export default function Pagination({
             } text-[13px] text-text-muted font-inter select-none w-full max-w-full ${className}`}
         >
             {/* Info Text — Tepi Kiri */}
-            <span className="text-[12px] whitespace-nowrap text-text-secondary text-left">
-                {compact ? (
-                    <>
-                        <strong className="text-text-primary font-bold">{startItem}</strong>–
-                        <strong className="text-text-primary font-bold">{endItem}</strong> dari{" "}
-                        <strong className="text-text-primary font-bold">{totalItems}</strong>
-                    </>
-                ) : (
-                    <>
-                        Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
-                        <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
-                        <strong className="text-text-primary font-bold">{totalItems}</strong> data
-                    </>
-                )}
-            </span>
+            {showInfo && (
+                <span className="text-[12px] whitespace-nowrap text-text-secondary text-left">
+                    {compact ? (
+                        <>
+                            <strong className="text-text-primary font-bold">{startItem}</strong>–
+                            <strong className="text-text-primary font-bold">{endItem}</strong> dari{" "}
+                            <strong className="text-text-primary font-bold">{totalItems}</strong>
+                        </>
+                    ) : (
+                        <>
+                            Menampilkan <strong className="text-text-primary font-bold">{startItem}</strong>–
+                            <strong className="text-text-primary font-bold">{endItem}</strong> dari total{" "}
+                            <strong className="text-text-primary font-bold">{totalItems}</strong> data
+                        </>
+                    )}
+                </span>
+            )}
 
             {/* Navigation Controls — Tepi Kanan */}
             <nav

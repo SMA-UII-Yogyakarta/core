@@ -3,7 +3,6 @@ import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
     TableFooter,
-    Pagination,
     MobileNativePagination,
     Drawer,
     EmptyState,
@@ -69,6 +68,10 @@ export default function LeaveRequestsIndex({
             },
             { preserveState: true },
         );
+    };
+
+    const handlePageChange = (page: number) => {
+        handleFilter({ page: String(page) });
     };
 
     const statusBadgeClass = (status: string) => {
@@ -146,33 +149,12 @@ export default function LeaveRequestsIndex({
                     <div className="pt-2 shrink-0 mt-auto font-inter min-h-[36px]">
                         <div className="hidden sm:block">
                             <TableFooter
-                                info={
-                                    <span>
-                                        Menampilkan <strong className="text-text-primary">{(leaveRequests.current_page - 1) * leaveRequests.per_page + 1}–{Math.min(leaveRequests.current_page * leaveRequests.per_page, leaveRequests.total)}</strong> dari total <strong className="text-text-primary">{leaveRequests.total}</strong> pengajuan izin.
-                                    </span>
-                                }
-                                pagination={
-                                    leaveRequests.last_page > 1 ? (
-                                        <Pagination
-                                            currentPage={leaveRequests.current_page}
-                                            totalPages={leaveRequests.last_page}
-                                            totalItems={leaveRequests.total}
-                                            perPage={leaveRequests.per_page}
-                                            onPageChange={(page) =>
-                                                router.get(
-                                                    "/leave-requests",
-                                                    {
-                                                        page,
-                                                        status: statusTab || undefined,
-                                                        category: categoryFilter || undefined,
-                                                        search: search || undefined,
-                                                    },
-                                                    { preserveState: true },
-                                                )
-                                            }
-                                        />
-                                    ) : undefined
-                                }
+                                currentPage={leaveRequests.current_page}
+                                totalPages={leaveRequests.last_page}
+                                totalItems={leaveRequests.total}
+                                perPage={leaveRequests.per_page}
+                                onPageChange={handlePageChange}
+                                itemLabel="pengajuan izin"
                             />
                         </div>
                         {leaveRequests.last_page > 1 && (
@@ -182,18 +164,8 @@ export default function LeaveRequestsIndex({
                                     totalPages={leaveRequests.last_page}
                                     totalItems={leaveRequests.total}
                                     perPage={leaveRequests.per_page}
-                                    onPageChange={(page) =>
-                                        router.get(
-                                            "/leave-requests",
-                                            {
-                                                page,
-                                                status: statusTab || undefined,
-                                                category: categoryFilter || undefined,
-                                                search: search || undefined,
-                                            },
-                                            { preserveState: true },
-                                        )
-                                    }
+                                    onPageChange={handlePageChange}
+                                    itemLabel="pengajuan izin"
                                 />
                             </div>
                         )}

@@ -33,3 +33,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
     return false;
 }
+
+export function getPaginationRange(page: number, perPage: number, total: number) {
+    const from = total > 0 ? (page - 1) * perPage + 1 : 0;
+    const to = Math.min(page * perPage, total);
+    return { from, to, total };
+}

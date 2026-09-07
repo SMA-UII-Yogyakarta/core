@@ -9,6 +9,7 @@ import Card from "@/Components/ui/Card";
 import NativeSelect from "@/Components/ui/NativeSelect";
 import Toggle from "@/Components/ui/Toggle";
 import TabSwitcher from "@/Components/common/TabSwitcher";
+import MobileSectionHeader from "@/Components/common/MobileSectionHeader";
 import { MapPreview } from "@/Components/common/MapPreview";
 import { validateForm } from "@/utils/zodHelper";
 import { locationSettingSchema } from "@/schemas/locationSetting.schema";
@@ -320,15 +321,10 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                     description="Informasi resmi SMA UII Yogyakarta yang digunakan pada kop laporan, sertifikat, dan metadata sistem."
                 />
 
-                {/* Mobile Section Header & Description */}
-                <div className="sm:hidden flex flex-col gap-1 mb-3.5">
-                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                        Profil & Identitas Resmi
-                    </span>
-                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                        Informasi resmi SMA UII Yogyakarta yang digunakan pada kop laporan, sertifikat, dan cetak dokumen.
-                    </p>
-                </div>
+                <MobileSectionHeader
+                    title="Profil & Identitas Resmi"
+                    description="Informasi resmi SMA UII Yogyakarta yang digunakan pada kop laporan, sertifikat, dan cetak dokumen."
+                />
 
                 <div className="bg-surface border border-border rounded-2xl p-4 sm:p-0 sm:border-0 sm:bg-transparent shadow-card sm:shadow-none flex flex-col gap-4 font-inter">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -441,15 +437,10 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                     description="Atur koordinat GPS pusat gedung sekolah dan batas jarak (radius) maksimal siswa melakukan presensi selfie."
                 />
 
-                {/* Mobile Section Header & Description */}
-                <div className="sm:hidden flex flex-col gap-1 mb-3.5">
-                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                        Titik Lokasi & Radius Geofence
-                    </span>
-                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                        Atur koordinat GPS pusat gedung sekolah dan radius maksimal siswa dapat melakukan presensi.
-                    </p>
-                </div>
+                <MobileSectionHeader
+                    title="Titik Lokasi & Radius Geofence"
+                    description="Atur koordinat GPS pusat gedung sekolah dan radius maksimal siswa dapat melakukan presensi."
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div className="lg:col-span-6 flex flex-col gap-4 bg-surface border border-border rounded-2xl p-4 sm:p-0 sm:border-0 sm:bg-transparent shadow-card sm:shadow-none">
@@ -555,15 +546,10 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                 description="Status kesehatan backend engine, penyimpanan cloud, dan gateway notifikasi."
             />
 
-            {/* Mobile Section Header & Description */}
-            <div className="sm:hidden flex flex-col gap-1 mb-3.5">
-                <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                    System Engine & Service Health
-                </span>
-                <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                    Status kesehatan backend engine, storage driver, dan gateway WhatsApp.
-                </p>
-            </div>
+            <MobileSectionHeader
+                title="System Engine & Service Health"
+                description="Status kesehatan backend engine, storage driver, dan gateway WhatsApp."
+            />
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                 {[
@@ -608,15 +594,10 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                     description="Pengaturan batas waktu sesi inaktif, tampilan limit data, dan mode pemeliharaan sistem."
                 />
 
-                {/* Mobile Section Header & Description */}
-                <div className="sm:hidden flex flex-col gap-1 mb-3.5">
-                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
-                        Preferensi Keamanan System
-                    </span>
-                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
-                        Pengaturan batas waktu sesi inaktif, limit data per halaman, dan mode pemeliharaan sistem.
-                    </p>
-                </div>
+                <MobileSectionHeader
+                    title="Preferensi Keamanan System"
+                    description="Pengaturan batas waktu sesi inaktif, limit data per halaman, dan mode pemeliharaan sistem."
+                />
 
                 <div className="bg-surface border border-border rounded-2xl p-4 sm:p-0 sm:border-0 sm:bg-transparent shadow-card sm:shadow-none flex flex-col gap-4 font-inter">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -35,6 +35,7 @@ export { default as ConfirmDialog } from "@/Components/common/ConfirmDialog";
 export { default as Drawer } from "@/Components/common/Drawer";
 export { default as DrawerHeaderActions } from "@/Components/common/DrawerHeaderActions";
 export { default as BottomSheet } from "@/Components/common/BottomSheet";
+export { default as MobileSectionHeader } from "@/Components/common/MobileSectionHeader";
 export { default as MobileSelectionBar } from "@/Components/common/MobileSelectionBar";
 export { default as MobileFilterSelectBar } from "@/Components/common/MobileFilterSelectBar";
 export { default as BrandLogo } from "@/Components/layout/BrandLogo";

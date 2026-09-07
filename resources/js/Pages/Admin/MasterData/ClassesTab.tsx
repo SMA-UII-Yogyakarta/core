@@ -3,7 +3,6 @@ import { useState, useMemo } from "react";
 import {
     Table,
     TableFooter,
-    Pagination,
     MobileNativePagination,
     Card,
     Button,
@@ -240,18 +239,11 @@ export default function ClassesTab({
                             </span>
                         ) : "Menampilkan rombongan belajar (rombel) SMA UII Yogyakarta."
                     }
-                    pagination={
-                        !isClientMode && schoolClasses && schoolClasses.total > 0 ? (
-                            <Pagination
-                                currentPage={schoolClasses.current_page}
-                                totalPages={schoolClasses.last_page}
-                                totalItems={schoolClasses.total}
-                                perPage={schoolClasses.per_page}
-                                onPageChange={handlePagination}
-                                className="!w-auto !gap-3"
-                            />
-                        ) : undefined
-                    }
+                    currentPage={!isClientMode ? schoolClasses?.current_page : undefined}
+                    totalPages={!isClientMode ? schoolClasses?.last_page : undefined}
+                    totalItems={schoolClasses?.total}
+                    perPage={schoolClasses?.per_page}
+                    onPageChange={handlePagination}
                 />
             </div>
 

@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
     Table,
     TableFooter,
-    Pagination,
     MobileNativePagination,
     Avatar,
     Card,
@@ -209,25 +208,13 @@ export default function GuardiansTab({
                 />
 
                 <TableFooter
-                    info={
-                        guardians && guardians.total > 0 ? (
-                            <span>
-                                Menampilkan <strong className="text-text-primary">{(guardians.current_page - 1) * guardians.per_page + 1}–{Math.min(guardians.current_page * guardians.per_page, guardians.total)}</strong> dari total <strong className="text-text-primary">{guardians.total}</strong> wali murid.
-                            </span>
-                        ) : "Menampilkan data wali murid terdaftar di SMA UII Yogyakarta."
-                    }
-                    pagination={
-                        guardians && guardians.total > 0 ? (
-                            <Pagination
-                                currentPage={guardians.current_page}
-                                totalPages={guardians.last_page}
-                                totalItems={guardians.total}
-                                perPage={guardians.per_page}
-                                onPageChange={handlePagination}
-                                className="!w-auto !gap-3"
-                            />
-                        ) : undefined
-                    }
+                    currentPage={guardians?.current_page}
+                    totalPages={guardians?.last_page}
+                    totalItems={guardians?.total}
+                    perPage={guardians?.per_page}
+                    onPageChange={handlePagination}
+                    itemLabel="wali murid"
+                    emptyInfo="Menampilkan data wali murid terdaftar di SMA UII Yogyakarta."
                 />
             </div>
 

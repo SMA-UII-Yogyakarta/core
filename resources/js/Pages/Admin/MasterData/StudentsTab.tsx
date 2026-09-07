@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
     Table,
     TableFooter,
-    Pagination,
     MobileNativePagination,
     Avatar,
     StatusBadge,
@@ -247,25 +246,13 @@ export default function StudentsTab({
                 />
 
                 <TableFooter
-                    info={
-                        students && students.total > 0 ? (
-                            <span>
-                                Menampilkan <strong className="text-text-primary">{(students.current_page - 1) * students.per_page + 1}–{Math.min(students.current_page * students.per_page, students.total)}</strong> dari total <strong className="text-text-primary">{students.total}</strong> siswa.
-                            </span>
-                        ) : "Menampilkan direktori data siswa SMA UII Yogyakarta."
-                    }
-                    pagination={
-                        students && students.total > 0 ? (
-                            <Pagination
-                                currentPage={students.current_page}
-                                totalPages={students.last_page}
-                                totalItems={students.total}
-                                perPage={students.per_page}
-                                onPageChange={handlePagination}
-                                className="!w-auto !gap-3"
-                            />
-                        ) : undefined
-                    }
+                    currentPage={students?.current_page}
+                    totalPages={students?.last_page}
+                    totalItems={students?.total}
+                    perPage={students?.per_page}
+                    onPageChange={handlePagination}
+                    itemLabel="siswa"
+                    emptyInfo="Menampilkan direktori data siswa SMA UII Yogyakarta."
                 />
             </div>
 
