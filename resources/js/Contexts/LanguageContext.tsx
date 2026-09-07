@@ -60,7 +60,22 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useLanguage = () => {
     const context = useContext(LanguageContext);
     if (!context) {
-        throw new Error("useLanguage must be used within a LanguageProvider");
+        // Fallback gracefully to default Indonesian locale when rendered outside LanguageProvider (e.g. tests/Storybook)
+        const t = (key: string, params?: Record<string, string | number>): string => {
+            const dict = translations.id;
+            let value = dict[key] || key;
+            if (params) {
+                Object.entries(params).forEach(([k, v]) => {
+                    value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+                });
+            }
+            return value;
+        };
+        return {
+            locale: "id" as Language,
+            setLanguage: () => {},
+            t,
+        };
     }
     return context;
 };
