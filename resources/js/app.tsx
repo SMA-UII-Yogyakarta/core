@@ -4,6 +4,7 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { LanguageProvider } from "@/Contexts/LanguageContext";
 import { ThemeProvider } from "@/Contexts/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import "./bootstrap";
 
 const appName = import.meta.env.VITE_APP_NAME || "SMAUII Core";
@@ -22,17 +23,19 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./Pages/${name}.tsx`, import.meta.glob("./Pages/**/*.tsx")),
     setup({ el, App, props }) {
         const rootElement = (
-            <QueryClientProvider client={queryClient}>
-                <ThemeProvider>
-                    <App {...props}>
-                        {({ Component, props, key }) => (
-                            <LanguageProvider>
-                                <Component {...props} key={key} />
-                            </LanguageProvider>
-                        )}
-                    </App>
-                </ThemeProvider>
-            </QueryClientProvider>
+            <ErrorBoundary isRoot={true} title="Sistem Utama SMA UII">
+                <QueryClientProvider client={queryClient}>
+                    <ThemeProvider>
+                        <App {...props}>
+                            {({ Component, props, key }) => (
+                                <LanguageProvider>
+                                    <Component {...props} key={key} />
+                                </LanguageProvider>
+                            )}
+                        </App>
+                    </ThemeProvider>
+                </QueryClientProvider>
+            </ErrorBoundary>
         );
 
         if (import.meta.env.DEV || !el.hasChildNodes()) {
