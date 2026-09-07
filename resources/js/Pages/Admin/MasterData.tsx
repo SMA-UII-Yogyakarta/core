@@ -559,7 +559,7 @@ export default function MasterData({
                         {/* Toolbar Row: Horizontal Tab Buttons on left, Yellow FilterPopover & Actions on right */}
                         <div className="flex items-center justify-between gap-2.5 sm:gap-3 mb-4 shrink-0 font-inter w-full min-w-0">
                             {/* Left (Tablet only sm & md): Horizontal Icon Rail matching vertical icon style */}
-                            <div className="hidden sm:flex lg:hidden items-center gap-1.5 bg-surface/95 backdrop-blur-md border border-border p-1 rounded-2xl shadow-xs shrink-0">
+                            <div className="hidden sm:flex lg:hidden items-center gap-1 bg-surface/95 backdrop-blur-md border border-border p-1 h-10 rounded-xl shadow-xs shrink-0">
                                 {tabIconButtons.map((card) => {
                                     const isActive = currentTab === card.key;
                                     const IconComponent = card.icon;
@@ -568,14 +568,14 @@ export default function MasterData({
                                             key={card.key}
                                             type="button"
                                             onClick={() => handleDesktopTabChange(card.key)}
-                                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
                                                 isActive
-                                                    ? "bg-primary text-white shadow-md border border-primary/30"
+                                                    ? "bg-primary text-white shadow-xs border border-primary/30"
                                                     : "text-text-secondary hover:bg-primary/10 hover:text-primary active:scale-95"
                                             }`}
                                             title={card.title}
                                         >
-                                            <IconComponent className="text-[18px]" />
+                                            <IconComponent className="text-[16px]" />
                                         </button>
                                     );
                                 })}
@@ -601,10 +601,10 @@ export default function MasterData({
                                     trigger={
                                         <Button
                                             variant="accent"
-                                            size="sm"
+                                            size="md"
                                             onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
                                             icon={<FiFilter className="text-[13px]" />}
-                                            className="h-10 px-4 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
+                                            className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
                                         >
                                             Filter{selectedClassId || selectedStatus || selectedTeacherType || selectedLevel || selectedHasStudent ? " (Aktif)" : ""}
                                         </Button>
@@ -797,7 +797,7 @@ export default function MasterData({
                                                 `${selectedIds.length} ${getEntityLabel()} Terpilih`
                                             )
                                         }
-                                        className="flex items-center gap-1.5 h-10 px-3 rounded-xl bg-danger text-white text-[12.5px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                                        className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-danger text-white text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap"
                                     >
                                         <FiTrash2 className="text-[14px]" />
                                         Hapus ({selectedIds.length})
@@ -807,7 +807,7 @@ export default function MasterData({
                                 {currentTab !== "class" && (
                                     <Button
                                         variant="secondary"
-                                        size="sm"
+                                        size="md"
                                         icon={<FiUpload className="text-[13px]" />}
                                         onClick={() => {
                                             if (typeof window !== "undefined" && window.innerWidth < 640) {
@@ -817,7 +817,7 @@ export default function MasterData({
                                                 setImportModalOpen(true);
                                             }
                                         }}
-                                        className="h-10 px-3 text-[12.5px] font-bold shadow-xs whitespace-nowrap"
+                                        className="h-10 px-3.5 text-[13px] font-bold rounded-xl shadow-xs whitespace-nowrap"
                                     >
                                         Import CSV
                                     </Button>
@@ -825,7 +825,7 @@ export default function MasterData({
 
                                 <Button
                                     variant="primary"
-                                    size="sm"
+                                    size="md"
                                     icon={<FiPlus className="text-[13px]" />}
                                     onClick={() => {
                                         if (!isDesktop) {
@@ -836,7 +836,7 @@ export default function MasterData({
                                             );
                                         }
                                     }}
-                                    className="h-10 px-3 text-[12.5px] font-bold shadow-xs whitespace-nowrap"
+                                    className="h-10 px-3.5 text-[13px] font-bold rounded-xl shadow-xs whitespace-nowrap"
                                 >
                                     {getAddLabel()}
                                 </Button>

@@ -694,10 +694,10 @@ export default function EnrolmentKelas({
                                         {selectedStudentIds.length > 0 && (
                                             <Button
                                                 variant="danger"
-                                                size="sm"
+                                                size="md"
                                                 onClick={handleBulkRemove}
-                                                icon={<FiUserMinus className="text-[12px]" />}
-                                                className="h-8 sm:h-9 px-2.5 sm:px-3 text-[11.5px] sm:text-[12.5px] rounded-xl shrink-0 font-bold whitespace-nowrap"
+                                                icon={<FiUserMinus className="text-[13px]" />}
+                                                className="h-10 px-3.5 text-[13px] rounded-xl shrink-0 font-bold whitespace-nowrap"
                                             >
                                                 Keluarkan ({selectedStudentIds.length})
                                             </Button>
@@ -710,10 +710,10 @@ export default function EnrolmentKelas({
                                             trigger={
                                                 <Button
                                                     variant="accent"
-                                                    size="sm"
+                                                    size="md"
                                                     onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
                                                     icon={<FiFilter className="text-[13px]" />}
-                                                    className="h-8 sm:h-9 px-3 text-[11.5px] sm:text-[12.5px] font-bold rounded-xl shrink-0 whitespace-nowrap"
+                                                    className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
                                                 >
                                                     Filter{hasActiveFilters ? " (Aktif)" : ""}
                                                 </Button>
@@ -770,11 +770,11 @@ export default function EnrolmentKelas({
 
                                         <Button
                                             variant="primary"
-                                            size="sm"
+                                            size="md"
                                             onClick={handleOpenAddStudent}
                                             disabled={unassignedStudents.length === 0}
-                                            icon={<FiUserPlus className="text-[12px]" />}
-                                            className="h-8 sm:h-9 px-3 sm:px-3.5 text-[11.5px] sm:text-[12.5px] font-bold rounded-xl shadow-xs shrink-0 whitespace-nowrap"
+                                            icon={<FiUserPlus className="text-[13px]" />}
+                                            className="h-10 px-3.5 text-[13px] font-bold rounded-xl shadow-xs shrink-0 whitespace-nowrap"
                                         >
                                             Tambah Siswa
                                         </Button>
@@ -784,14 +784,14 @@ export default function EnrolmentKelas({
                                 <button
                                     type="button"
                                     onClick={toggleCardExpanded}
-                                    className="w-8 h-8 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 active:scale-95 text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer shrink-0"
+                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border border-border bg-muted/30 hover:bg-muted/60 active:scale-95 text-text-muted hover:text-text-primary flex items-center justify-center transition-all cursor-pointer shrink-0"
                                     title={isCardExpanded ? "Minimize Card (Sembunyikan)" : "Maximize Card (Tampilkan)"}
                                     aria-label={isCardExpanded ? "Minimize panel kontrol" : "Maximize panel kontrol"}
                                 >
                                     {isCardExpanded ? (
-                                        <FiChevronUp className="text-[16px]" />
+                                        <FiChevronUp className="text-[15px] sm:text-[18px]" />
                                     ) : (
-                                        <FiChevronDown className="text-[16px]" />
+                                        <FiChevronDown className="text-[15px] sm:text-[18px]" />
                                     )}
                                 </button>
                             </div>
