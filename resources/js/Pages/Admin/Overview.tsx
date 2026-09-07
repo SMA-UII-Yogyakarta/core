@@ -1,9 +1,10 @@
-import { Head, usePage } from "@inertiajs/react";
+import { useState } from "react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, StatCard, AttendanceChart, Input, Table } from "@/Components";
+import { PageHeader, Card, StatCard, AttendanceChart, Input, Table, BottomSheet, Button } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
-import { FiVideo, FiCheckCircle, FiFile, FiClock, FiHome, FiList, FiBookOpen, FiSend, FiCamera } from "react-icons/fi";
+import { FiVideo, FiCheckCircle, FiFile, FiClock, FiHome, FiList, FiBookOpen, FiSend, FiCamera, FiCalendar } from "react-icons/fi";
 
 interface OverviewProps {
     overview: {
@@ -91,8 +92,28 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
         },
     ];
 
+    const [isMobileDateOpen, setIsMobileDateOpen] = useState(false);
+
+    const handleDateChange = (date: string) => {
+        router.get("/overview", { date }, { preserveState: true });
+    };
+
+    const mobileHeaderActions = (
+        <div className="flex sm:hidden items-center gap-1.5 font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileDateOpen(true)}
+                className="w-8 h-8 rounded-full bg-white/15 border border-white/20 text-white flex items-center justify-center cursor-pointer hover:bg-white/25 active:scale-95 transition-all shadow-xs"
+                title="Pilih Tanggal Overview"
+                aria-label="Pilih Tanggal Overview"
+            >
+                <FiCalendar className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Overview">
+        <AppShell title="Overview" hasTopCard={true} headerActions={mobileHeaderActions}>
             <Head>
                 <title>Overview - SMART Presensi</title>
             </Head>
@@ -108,7 +129,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                             type="date"
                             value={selectedDate}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                (window.location.href = `/overview?date=${e.target.value}`)
+                                handleDateChange(e.target.value)
                             }
                             inputClassName="h-10 text-[13px]"
                         />
@@ -421,6 +442,41 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                     )}
                 </div>
             </div>
+
+            {/* Mobile Date Picker Bottom Sheet */}
+            <BottomSheet
+                open={isMobileDateOpen}
+                onClose={() => setIsMobileDateOpen(false)}
+                title="Pilih Tanggal Overview"
+            >
+                <div className="p-4 space-y-4 font-inter">
+                    <div>
+                        <label className="block text-[12px] font-bold text-text-secondary mb-1.5">
+                            Tanggal
+                        </label>
+                        <Input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => {
+                                handleDateChange(e.target.value);
+                                setIsMobileDateOpen(false);
+                            }}
+                            inputClassName="h-11 rounded-xl text-[14px]"
+                        />
+                    </div>
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            const today = new Date().toISOString().split("T")[0];
+                            handleDateChange(today);
+                            setIsMobileDateOpen(false);
+                        }}
+                        className="w-full justify-center h-10 font-bold text-[13px] rounded-xl"
+                    >
+                        Hari Ini
+                    </Button>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }

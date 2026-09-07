@@ -14,6 +14,7 @@ import {
     TabSwitcher,
     BottomSheet,
     FilterPopover,
+    StatusBadge,
 } from "@/Components";
 import Drawer from "@/Components/common/Drawer";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -234,45 +235,12 @@ export default function ExportPage({
 
     const getStatusBadge = (status?: string) => {
         const st = status ?? "ALPHA";
-        if (st === "HADIR") {
-            return (
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    HADIR
-                </span>
-            );
-        }
-        if (st === "TERLAMBAT") {
-            return (
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200">
-                    TERLAMBAT
-                </span>
-            );
-        }
-        if (st === "BELUM VERIFIKASI") {
-            return (
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-muted text-text-muted border border-dashed border-border">
-                    BELUM VERIFIKASI
-                </span>
-            );
-        }
-        if (st === "SAKIT") {
-            return (
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
-                    SAKIT
-                </span>
-            );
-        }
-        if (st === "IZIN") {
-            return (
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 border border-purple-200">
-                    IZIN
-                </span>
-            );
-        }
+        const isUnverified = st.toUpperCase() === "BELUM VERIFIKASI";
         return (
-            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide bg-red-50 text-red-700 border border-red-200">
-                ALPHA
-            </span>
+            <StatusBadge
+                variant={st}
+                label={isUnverified ? "Belum Verifikasi" : undefined}
+            />
         );
     };
 

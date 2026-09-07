@@ -75,7 +75,7 @@ export function resolveStatusVariant(status: string): StatusVariant {
     if (s === "permission" || s === "izin" || s === "permit" || s === "leave") return "permission";
     if (s === "active" || s === "aktif") return "active";
     if (s === "inactive" || s === "non-aktif" || s === "nonaktif") return "inactive";
-    if (s === "pending" || s === "menunggu") return "pending";
+    if (s === "pending" || s === "menunggu" || s === "belum verifikasi" || s === "unverified") return "pending";
     if (s === "approved" || s === "disetujui") return "approved";
     if (s === "rejected" || s === "ditolak") return "rejected";
     return "pending";

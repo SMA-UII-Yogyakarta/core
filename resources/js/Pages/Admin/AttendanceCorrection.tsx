@@ -20,21 +20,20 @@ import {
 } from "@/Components";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import type { Column } from "@/Components/ui/Table";
-import type { StatusVariant } from "@/types/component";
 import { attendanceCorrectionSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import { FiFilter, FiEdit2, FiRotateCcw } from "react-icons/fi";
 
 interface Student {
     id: number;
-    nis: string;
     name: string;
+    nis: string;
     class: string;
+    check_in_time: string | null;
     original_status: string;
-    overridden_status: string | null;
     current_status: string;
     override_id: number | null;
-    check_in_time: string | null;
+    override_reason: string | null;
 }
 
 interface SchoolClass {
@@ -45,16 +44,11 @@ interface SchoolClass {
 interface Props {
     students: Student[];
     classes: SchoolClass[];
-    filters: { date: string; class_id: number | null };
+    filters: {
+        date: string;
+        class_id?: number;
+    };
 }
-
-const statusToVariant: Record<string, StatusVariant> = {
-    Present: "present",
-    Late: "late",
-    Absent: "absent",
-    Sick: "sick",
-    Permit: "permission",
-};
 
 const statusOptions = [
     { value: "Present", label: "Hadir (Present)" },
@@ -188,28 +182,22 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
         {
             key: "original_status",
             header: "Status Asli",
-            render: (s) => {
-                const variant = statusToVariant[s.original_status] ?? "absent";
-                return <StatusBadge variant={variant} />;
-            },
+            render: (s) => <StatusBadge variant={s.original_status} />,
             className: "text-center",
         },
         {
             key: "current_status",
             header: "Status Saat Ini",
-            render: (s) => {
-                const variant = statusToVariant[s.current_status] ?? "absent";
-                return (
-                    <div className="flex items-center gap-1.5 justify-center">
-                        <StatusBadge variant={variant} />
-                        {s.override_id && (
-                            <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
-                                Koreksi
-                            </span>
-                        )}
-                    </div>
-                );
-            },
+            render: (s) => (
+                <div className="flex items-center gap-1.5 justify-center">
+                    <StatusBadge variant={s.current_status} />
+                    {s.override_id && (
+                        <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                            Koreksi
+                        </span>
+                    )}
+                </div>
+            ),
             className: "text-center",
         },
         {
@@ -335,7 +323,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                         <p className="text-[11px] text-text-muted">NIS: {s.nis} • Kelas {s.class}</p>
                                     </div>
                                     <div className="shrink-0 flex items-center gap-1.5">
-                                        <StatusBadge variant={statusToVariant[s.current_status] ?? "absent"} />
+                                        <StatusBadge variant={s.current_status} />
                                         {s.override_id && (
                                             <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
                                                 Koreksi

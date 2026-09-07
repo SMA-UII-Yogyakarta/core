@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
+import { PageHeader, StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
 import { FiSearch, FiBarChart2, FiFilter } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
-import type { StatusVariant } from "@/types/component";
 
 // ─── Types ───
 
@@ -48,24 +47,6 @@ interface MonitoringProps {
     stats: Stats | null;
     students: AttendanceStudent[];
 }
-
-// ─── Helpers ───
-
-const statusToVariant: Record<string, StatusVariant> = {
-    Present: "present",
-    Late: "late",
-    Absent: "absent",
-    Sick: "sick",
-    Permission: "permission",
-};
-
-const statusLabels: Record<string, string> = {
-    Present: "Hadir",
-    Late: "Terlambat",
-    Absent: "Tidak Hadir",
-    Sick: "Sakit",
-    Permission: "Izin",
-};
 
 // ─── Page ───
 
@@ -152,11 +133,7 @@ export default function Monitoring({
         {
             key: "status",
             header: "Status",
-            render: (s) => {
-                const variant = statusToVariant[s.status] ?? "absent";
-                const label = statusLabels[s.status] ?? s.status;
-                return <StatusBadge variant={variant} label={label} />;
-            },
+            render: (s) => <StatusBadge variant={s.status} />,
         },
         {
             key: "time",
@@ -189,7 +166,12 @@ export default function Monitoring({
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AppShell title="Monitoring Presensi" headerActions={mobileHeaderActions}>
+        <AppShell title="Monitoring Presensi" hasTopCard={true} headerActions={mobileHeaderActions}>
+            <PageHeader
+                title="Monitoring Presensi Siswa"
+                description="Pantau log presensi real-time seluruh rombongan belajar institusi hari ini."
+                className="hidden lg:flex shrink-0 mb-4"
+            />
             {/* Filter Section (Desktop & Tablet) */}
             <Card className="mb-6 hidden sm:block">
                 <Card.Body className="p-4 lg:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
