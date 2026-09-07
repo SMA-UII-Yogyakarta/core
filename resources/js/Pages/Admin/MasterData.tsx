@@ -558,24 +558,31 @@ export default function MasterData({
                     <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
                         {/* Toolbar Row: Horizontal Tab Buttons on left, Yellow FilterPopover & Actions on right */}
                         <div className="flex items-center justify-between gap-2.5 sm:gap-3 mb-4 shrink-0 font-inter w-full min-w-0">
-                            {/* Left (Tablet only sm & md): Horizontal Icon Rail matching vertical icon style */}
-                            <div className="hidden sm:flex lg:hidden items-center gap-1 bg-surface/95 backdrop-blur-md border border-border p-1 h-10 rounded-xl shadow-xs shrink-0">
+                            {/* Left (Tablet only sm & md): Flush segmented icon-only page tabs without padding */}
+                            <div
+                                role="tablist"
+                                aria-orientation="horizontal"
+                                className="hidden sm:flex lg:hidden items-stretch h-10 border border-border rounded-xl bg-surface shadow-xs overflow-hidden divide-x divide-border shrink-0 font-inter select-none"
+                            >
                                 {tabIconButtons.map((card) => {
                                     const isActive = currentTab === card.key;
                                     const IconComponent = card.icon;
                                     return (
                                         <button
                                             key={card.key}
+                                            role="tab"
+                                            aria-selected={isActive}
                                             type="button"
                                             onClick={() => handleDesktopTabChange(card.key)}
-                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
+                                            className={`w-10 h-full flex items-center justify-center transition-colors duration-150 cursor-pointer outline-none focus:outline-none focus:ring-0 select-none ${
                                                 isActive
-                                                    ? "bg-primary text-white shadow-xs border border-primary/30"
-                                                    : "text-text-secondary hover:bg-primary/10 hover:text-primary active:scale-95"
+                                                    ? "bg-primary text-white font-bold"
+                                                    : "bg-surface text-text-secondary hover:text-text-primary hover:bg-muted/40 font-semibold"
                                             }`}
                                             title={card.title}
+                                            aria-label={card.title}
                                         >
-                                            <IconComponent className="text-[16px]" />
+                                            <IconComponent className="text-[17px] shrink-0" />
                                         </button>
                                     );
                                 })}
