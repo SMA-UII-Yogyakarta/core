@@ -149,7 +149,7 @@ export default function DailyReport({
     return (
         <AppShell title={t("reports.dailyTitle")} headerActions={mobileHeaderActions}>
             <Head title={t("reports.dailyTitle")} />
-            <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+            <div className="space-y-6 font-inter">
                 <PageHeader 
                     title={t("reports.dailyTitle")}
                     description="Rekapitulasi kehadiran siswa berdasarkan periode dan kategori kelas."
