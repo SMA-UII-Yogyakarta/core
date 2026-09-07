@@ -9,6 +9,7 @@ import MonthlyTable from "./MonthlyTable";
 import SemesterTable from "./SemesterTable";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { FiAlertCircle, FiFileText, FiGrid, FiDownload, FiCalendar, FiUsers, FiChevronRight, FiLoader } from "react-icons/fi";
+import { formatIndonesianDate } from "@/utils/helpers";
 import type { DailyStudent, RecapStudent, Summary, DailyBreakdown, MonthlyBreakdown } from "@/types/Report";
 
 interface PageProps {
@@ -60,13 +61,12 @@ export default function HomeroomReportIndex({
     const MONTH_NAMES = MONTH_KEYS.map((key) => t(key));
 
     const formatSubtitleDate = (dateStr: string) => {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+        return formatIndonesianDate(dateStr);
     };
 
     const formatSubtitleMonth = (month: number, year: number) => {
         const d = new Date(year, month - 1, 1);
-        return d.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+        return formatIndonesianDate(d, { month: "long", year: "numeric" });
     };
 
     const buildUrl = (newTab: string, params: Record<string, string | number | undefined | null> = {}) => {

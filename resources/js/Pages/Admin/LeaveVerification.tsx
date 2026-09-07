@@ -17,6 +17,7 @@ import {
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
 import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
 import type { LeaveRequest, PaginatedData } from "@/types";
+import { formatIndonesianDate } from "@/utils/helpers";
 
 interface Filters {
     status?: string;
@@ -44,22 +45,6 @@ const categoryFilters = [
     { key: "Competition", label: "Lomba" },
     { key: "Other", label: "Lainnya" },
 ];
-
-const formatDatePretty = (dateStr: string | null | undefined): string => {
-    if (!dateStr) return "-";
-    try {
-        const cleanStr = dateStr.split("T")[0];
-        const d = new Date(cleanStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        });
-    } catch {
-        return dateStr;
-    }
-};
 
 const formatCategoryPretty = (cat: string | null | undefined): string => {
     if (!cat) return "-";
@@ -429,8 +414,8 @@ export default function VerifikasiIzin({
                                 <span className="text-text-muted font-semibold">Tanggal:</span>
                                 <span className="font-bold text-text-primary">
                                     {selectedRequest.start_date === selectedRequest.end_date
-                                        ? formatDatePretty(selectedRequest.start_date)
-                                        : `${formatDatePretty(selectedRequest.start_date)} s/d ${formatDatePretty(selectedRequest.end_date)}`}
+                                        ? formatIndonesianDate(selectedRequest.start_date)
+                                        : `${formatIndonesianDate(selectedRequest.start_date)} s/d ${formatIndonesianDate(selectedRequest.end_date)}`}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">

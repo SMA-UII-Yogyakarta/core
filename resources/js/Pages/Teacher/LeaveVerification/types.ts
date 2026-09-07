@@ -1,3 +1,5 @@
+import { formatIndonesianDate } from "@/utils/helpers";
+
 export interface Student {
     id: number;
     name: string;
@@ -62,12 +64,7 @@ export const categoryConfig: Record<
 };
 
 export const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+    return formatIndonesianDate(dateStr);
 };
 
 export const formatRelativeTime = (dateStr: string): string => {

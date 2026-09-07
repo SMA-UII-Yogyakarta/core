@@ -23,10 +23,10 @@ import {
     TableFooter,
     EmptyState,
     FormError,
-    Pagination,
     MobileNativePagination,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
+import type { PaginatedData } from "@/types";
 import { leaveApplicationSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 
@@ -48,13 +48,7 @@ interface LeaveRequestRecord {
 interface PageProps {
     guardian: { id: number; name: string };
     students: Student[];
-    leaveRequests: {
-        data: LeaveRequestRecord[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        per_page?: number;
-    };
+    leaveRequests: PaginatedData<LeaveRequestRecord>;
 }
 
 const CATEGORY_OPTIONS = [
@@ -405,29 +399,17 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                     keyExtractor={(item: LeaveRequestRecord) => item.id}
                                 />
                                 <TableFooter
-                                    info={
-                                        leaveRequests.total > 0 ? (
-                                            <span>
-                                                Menampilkan <strong className="text-text-primary">{(leaveRequests.current_page - 1) * (leaveRequests.per_page ?? 10) + 1}–{Math.min(leaveRequests.current_page * (leaveRequests.per_page ?? 10), leaveRequests.total)}</strong> dari total <strong className="text-text-primary">{leaveRequests.total}</strong> pengajuan izin.
-                                            </span>
-                                        ) : undefined
-                                    }
-                                    pagination={
-                                        leaveRequests.last_page > 1 ? (
-                                            <Pagination
-                                                currentPage={leaveRequests.current_page}
-                                                totalPages={leaveRequests.last_page}
-                                                totalItems={leaveRequests.total}
-                                                perPage={leaveRequests.per_page ?? 10}
-                                                onPageChange={(page) =>
-                                                    router.get(
-                                                        "/guardian/leave-application",
-                                                        { page },
-                                                        { preserveState: true }
-                                                    )
-                                                }
-                                            />
-                                        ) : undefined
+                                    currentPage={leaveRequests.current_page}
+                                    totalPages={leaveRequests.last_page}
+                                    totalItems={leaveRequests.total}
+                                    perPage={leaveRequests.per_page ?? 10}
+                                    itemLabel="pengajuan izin"
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/guardian/leave-application",
+                                            { page },
+                                            { preserveState: true }
+                                        )
                                     }
                                 />
                             </div>
