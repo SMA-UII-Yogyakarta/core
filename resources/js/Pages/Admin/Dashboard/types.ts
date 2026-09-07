@@ -43,6 +43,7 @@ export const STATUS_CONFIG: Record<string, { variant: StatusVariant; label: stri
     Present: { variant: "present", label: "HADIR" },
     Late: { variant: "late", label: "TERLAMBAT", timeColor: "text-warning" },
     Absent: { variant: "absent", label: "ALPA" },
+    Sick: { variant: "sick", label: "SAKIT" },
+    Permission: { variant: "permission", label: "IZIN" },
     Pending: { variant: "pending", label: "PENDING IZIN" },
-    Permission: { variant: "approved", label: "DIIZINKAN" },
 };

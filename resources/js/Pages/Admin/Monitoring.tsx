@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { PageHeader, StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
@@ -60,6 +60,21 @@ export default function Monitoring({
     const [studentsState, setStudentsState] = useState(initialStudents);
     const [statsState, setStatsState] = useState(initialStats);
 
+    // Keep studentsState and statsState in sync when Inertia reloads props
+    useEffect(() => {
+        setStudentsState(initialStudents);
+    }, [initialStudents]);
+
+    useEffect(() => {
+        setStatsState(initialStats);
+    }, [initialStats]);
+
+    // Use a ref to always access latest studentsState in Echo callback without stale closure
+    const studentsRef = useRef(studentsState);
+    useEffect(() => {
+        studentsRef.current = studentsState;
+    }, [studentsState]);
+
     // Real-time monitoring with Laravel Echo
     useEffect(() => {
         if (typeof window !== "undefined" && window.Echo && classId) {
@@ -74,6 +89,10 @@ export default function Monitoring({
                     latitude: string;
                     longitude: string;
                 }) => {
+                    const currentStudents = studentsRef.current;
+                    const existingStudent = currentStudents.find((s) => s.student.id === data.student_id);
+                    const oldStatus = existingStudent?.status;
+
                     setStudentsState((prev) =>
                         prev.map((s) =>
                             s.student.id === data.student_id
@@ -92,20 +111,30 @@ export default function Monitoring({
                                 : s,
                         ),
                     );
+
                     setStatsState((prev) => {
                         if (!prev) return prev;
                         const counts = { ...prev };
-                        const oldStatus = studentsState.find((s) => s.student.id === data.student_id)?.status;
-                        if (oldStatus && counts[oldStatus as keyof Stats] > 0) {
-                            counts[oldStatus as keyof Stats]--;
+
+                        const normalizeStatusKey = (st: string): keyof Stats | null => {
+                            const lower = st.toLowerCase();
+                            if (lower === "permission" || lower === "sick") return "sick_permission";
+                            if (lower === "present" || lower === "late" || lower === "absent") return lower as keyof Stats;
+                            return null;
+                        };
+
+                        if (oldStatus) {
+                            const oldKey = normalizeStatusKey(oldStatus);
+                            if (oldKey && counts[oldKey] > 0) {
+                                counts[oldKey]--;
+                            }
                         }
-                        const newKey =
-                            data.status === "Permission"
-                                ? "sick_permission"
-                                : (data.status.toLowerCase() as keyof Stats);
-                        if (newKey in counts) {
+
+                        const newKey = normalizeStatusKey(data.status);
+                        if (newKey && typeof counts[newKey] === "number") {
                             counts[newKey]++;
                         }
+
                         return counts;
                     });
                 },
