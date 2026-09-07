@@ -13,6 +13,7 @@ import {
     FilterBar,
     StatCard,
     TabSwitcher,
+    StatusBadge,
 } from "@/Components";
 import {
     FiRefreshCw,
@@ -190,32 +191,13 @@ export default function DutyDashboard({
             header: "Status Hari Ini",
             className: "w-40 text-center",
             render: (s: AttentionStudent) => {
-                if (s.status === "alpa") {
-                    return (
-                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-danger-bg text-danger border border-danger-light">
-                            ALPA
-                        </span>
-                    );
-                }
-                if (s.status === "terlambat") {
-                    return (
-                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-warning-bg text-warning border border-warning-light">
-                            TERLAMBAT
-                        </span>
-                    );
-                }
-                if (s.status === "pending") {
-                    return (
-                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-primary/10 text-primary border border-primary-light">
-                            PENDING IZIN
-                        </span>
-                    );
-                }
-                return (
-                    <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-success-bg text-success border border-success-light">
-                        DIIZINKAN
-                    </span>
-                );
+                const label =
+                    s.status === "pending"
+                        ? "PENDING IZIN"
+                        : s.status === "diizinkan"
+                        ? "DIIZINKAN"
+                        : s.status.toUpperCase();
+                return <StatusBadge variant={s.status} label={label} />;
             },
         },
         {
@@ -547,15 +529,16 @@ export default function DutyDashboard({
                                 </div>
 
                                 <div className="shrink-0">
-                                    {s.status === "alpa" ? (
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger-bg text-danger border border-danger-light">ALPA</span>
-                                    ) : s.status === "terlambat" ? (
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-warning-bg text-warning border border-warning-light">TERLAMBAT</span>
-                                    ) : s.status === "pending" ? (
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary-light">PENDING</span>
-                                    ) : (
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success-bg text-success border border-success-light">DIIZINKAN</span>
-                                    )}
+                                    <StatusBadge
+                                        variant={s.status}
+                                        label={
+                                            s.status === "pending"
+                                                ? "PENDING"
+                                                : s.status === "diizinkan"
+                                                ? "DIIZINKAN"
+                                                : s.status.toUpperCase()
+                                        }
+                                    />
                                 </div>
                             </div>
                         ))
@@ -600,7 +583,16 @@ export default function DutyDashboard({
                         <div className="space-y-3">
                             <div className="flex justify-between items-center py-2 border-b border-border">
                                 <span className="text-[13px] text-text-muted">Status Kehadiran</span>
-                                <span className="font-bold text-[12px] uppercase text-primary">{selectedStudent.status}</span>
+                                <StatusBadge
+                                    variant={selectedStudent.status}
+                                    label={
+                                        selectedStudent.status === "pending"
+                                            ? "PENDING IZIN"
+                                            : selectedStudent.status === "diizinkan"
+                                            ? "DIIZINKAN"
+                                            : selectedStudent.status.toUpperCase()
+                                    }
+                                />
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-border">
                                 <span className="text-[13px] text-text-muted">Waktu / Keterangan</span>

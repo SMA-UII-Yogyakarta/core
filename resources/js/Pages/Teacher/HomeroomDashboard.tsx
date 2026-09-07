@@ -9,6 +9,7 @@ import {
     SearchBar,
     EmptyState,
     Button,
+    StatusBadge,
 } from "@/Components";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { FiUserX, FiInfo } from "react-icons/fi";
@@ -87,17 +88,6 @@ function rowNote(s: Student): string {
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
 
-const statusBadgeConfig: Record<RowStatus, { bg: string; text: string; border: string }> = {
-    alpa: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
-    absent: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
-    terlambat: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
-    late: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
-    pending: { bg: "bg-primary/10", text: "text-primary", border: "border-primary-light" },
-    diizinkan: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    approved_leave: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    hadir: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    present: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-};
 
 export default function HomeroomDashboard({
     teacher: _teacher,
@@ -162,12 +152,7 @@ export default function HomeroomDashboard({
             className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s);
-                const config = statusBadgeConfig[st];
-                return (
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${config.bg} ${config.text} ${config.border}`}>
-                        {st.toUpperCase()}
-                    </span>
-                );
+                return <StatusBadge variant={st} label={st.toUpperCase()} />;
             },
         },
         {
@@ -308,7 +293,6 @@ export default function HomeroomDashboard({
                         ) : (
                             paginatedAttention.map((s) => {
                                 const st = getRowStatus(s);
-                                const config = statusBadgeConfig[st];
                                 return (
                                     <div
                                         key={s.id}
@@ -319,9 +303,7 @@ export default function HomeroomDashboard({
                                                 <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
                                                 <p className="text-[11px] text-text-muted">NISN: {s.nis}</p>
                                             </div>
-                                            <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide shrink-0 ${config.bg} ${config.text} ${config.border}`}>
-                                                {st.toUpperCase()}
-                                            </span>
+                                            <StatusBadge variant={st} label={st.toUpperCase()} />
                                         </div>
                                         <div className="text-[12px] text-text-secondary pt-2 border-t border-border flex items-center justify-between">
                                             <span className="truncate">{rowNote(s)}</span>

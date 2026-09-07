@@ -72,11 +72,11 @@ export function resolveStatusVariant(status: string): StatusVariant {
     if (s === "late" || s === "terlambat") return "late";
     if (s === "absent" || s === "alpa" || s === "alpha" || s === "tidak hadir") return "absent";
     if (s === "sick" || s === "sakit") return "sick";
-    if (s === "permission" || s === "izin" || s === "permit" || s === "leave") return "permission";
+    if (s === "permission" || s === "izin" || s === "permit" || s === "leave" || s === "dispensasi") return "permission";
     if (s === "active" || s === "aktif") return "active";
     if (s === "inactive" || s === "non-aktif" || s === "nonaktif") return "inactive";
     if (s === "pending" || s === "menunggu" || s === "belum verifikasi" || s === "unverified") return "pending";
-    if (s === "approved" || s === "disetujui") return "approved";
+    if (s === "approved" || s === "disetujui" || s === "diizinkan" || s === "approved_leave") return "approved";
     if (s === "rejected" || s === "ditolak") return "rejected";
     return "pending";
 }

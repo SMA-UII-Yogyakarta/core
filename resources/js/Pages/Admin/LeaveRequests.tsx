@@ -10,6 +10,7 @@ import {
     TabSwitcher,
     StickyContainer,
     PageHeader,
+    StatusBadge,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
 import { FiExternalLink } from "react-icons/fi";
@@ -66,12 +67,6 @@ export default function LeaveRequestsIndex({
         handleFilter({ page: String(page) });
     };
 
-    const statusBadgeClass = (status: string) => {
-        if (status === "Pending") return "bg-warning-bg text-warning";
-        if (status === "Approved") return "bg-success-bg text-success";
-        if (status === "Rejected") return "bg-danger-bg text-danger";
-        return "bg-muted text-text-muted";
-    };
 
     return (
         <AppShell title="Pengajuan Izin" hasTopTabs={true}>
@@ -177,12 +172,10 @@ export default function LeaveRequestsIndex({
                         {/* Status Badge header */}
                         <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
                             <div>
-                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block">
+                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block mb-1">
                                     Status Pengajuan
                                 </span>
-                                <span className={`font-bold text-[15px] ${statusBadgeClass(selectedRequest.approval_status)}`}>
-                                    {selectedRequest.approval_status === "Pending" ? "MENUNGGU" : selectedRequest.approval_status === "Approved" ? "DISETUJUI" : "DITOLAK"}
-                                </span>
+                                <StatusBadge variant={selectedRequest.approval_status} />
                             </div>
                         </div>
 

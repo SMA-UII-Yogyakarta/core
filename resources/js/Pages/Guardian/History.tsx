@@ -151,16 +151,7 @@ export default function History({
         {
             key: "status",
             header: "Status Kehadiran",
-            render: (row: AttendanceRecord) => {
-                const statusLower = row.status?.toLowerCase() ?? "";
-                const variant =
-                    statusLower === "present"
-                        ? "present"
-                        : statusLower === "late"
-                        ? "late"
-                        : "absent";
-                return <StatusBadge variant={variant} />;
-            },
+            render: (row: AttendanceRecord) => <StatusBadge variant={row.status} />,
         },
     ];
 
@@ -188,16 +179,7 @@ export default function History({
         {
             key: "approval_status",
             header: "Status Persetujuan",
-            render: (row: LeaveRequest) => {
-                const s = row.approval_status?.toLowerCase() ?? "pending";
-                const variant =
-                    s === "approved"
-                        ? "approved"
-                        : s === "rejected"
-                        ? "rejected"
-                        : "pending";
-                return <StatusBadge variant={variant} />;
-            },
+            render: (row: LeaveRequest) => <StatusBadge variant={row.approval_status} />,
         },
     ];
 
@@ -383,26 +365,18 @@ export default function History({
                                 <>
                                     {/* Mobile Card Stack */}
                                     <div className="sm:hidden space-y-3">
-                                        {paginatedAttendances.map((item) => {
-                                            const statusLower = item.status?.toLowerCase() ?? "";
-                                            const variant =
-                                                statusLower === "present"
-                                                    ? "present"
-                                                    : statusLower === "late"
-                                                    ? "late"
-                                                    : "absent";
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
-                                                            <FiCalendar className="w-4 h-4 text-text-muted shrink-0" />
-                                                            <span>{item.attendance_date}</span>
-                                                        </div>
-                                                        <StatusBadge variant={variant} />
+                                        {paginatedAttendances.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
+                                                        <FiCalendar className="w-4 h-4 text-text-muted shrink-0" />
+                                                        <span>{item.attendance_date}</span>
                                                     </div>
+                                                    <StatusBadge variant={item.status} />
+                                                </div>
                                                     <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
                                                         <span>Jam Masuk</span>
                                                         <span className="font-mono font-medium text-text-primary">
@@ -410,8 +384,7 @@ export default function History({
                                                         </span>
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
+                                            ))}
 
                                         {attendances.length > attPageSize && (
                                             <div className="pt-2 font-inter">
@@ -466,26 +439,18 @@ export default function History({
                                 <>
                                     {/* Mobile Card Stack */}
                                     <div className="sm:hidden space-y-3">
-                                        {paginatedLeaves.map((item) => {
-                                            const s = item.approval_status?.toLowerCase() ?? "pending";
-                                            const variant =
-                                                s === "approved"
-                                                    ? "approved"
-                                                    : s === "rejected"
-                                                    ? "rejected"
-                                                    : "pending";
-                                            return (
-                                                <div
-                                                    key={item.id}
-                                                    className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
-                                                            <FiFileText className="w-4 h-4 text-primary shrink-0" />
-                                                            <span>{item.category}</span>
-                                                        </div>
-                                                        <StatusBadge variant={variant} />
+                                        {paginatedLeaves.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
+                                                        <FiFileText className="w-4 h-4 text-primary shrink-0" />
+                                                        <span>{item.category}</span>
                                                     </div>
+                                                    <StatusBadge variant={item.approval_status} />
+                                                </div>
                                                     <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
                                                         <span>Periode</span>
                                                         <span className="font-medium text-text-primary">
@@ -493,8 +458,7 @@ export default function History({
                                                         </span>
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
+                                            ))}
 
                                         {leaveRequests.length > leavePageSize && (
                                             <div className="pt-2 font-inter">

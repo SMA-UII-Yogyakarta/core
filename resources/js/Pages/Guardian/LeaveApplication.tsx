@@ -142,16 +142,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
         {
             key: "approval_status",
             header: "Status Persetujuan",
-            render: (row: LeaveRequestRecord) => {
-                const s = row.approval_status?.toLowerCase() ?? "pending";
-                const variant =
-                    s === "approved"
-                        ? "approved"
-                        : s === "rejected"
-                        ? "rejected"
-                        : "pending";
-                return <StatusBadge variant={variant} />;
-            },
+            render: (row: LeaveRequestRecord) => <StatusBadge variant={row.approval_status} />,
         },
     ];
 
@@ -339,13 +330,6 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                             <div className="sm:hidden space-y-3">
                                 {leaveRequests.data.map((item) => {
                                     const opt = CATEGORY_OPTIONS.find((c) => c.value === item.category);
-                                    const s = item.approval_status?.toLowerCase() ?? "pending";
-                                    const variant =
-                                        s === "approved"
-                                            ? "approved"
-                                            : s === "rejected"
-                                            ? "rejected"
-                                            : "pending";
                                     return (
                                         <div
                                             key={item.id}
@@ -360,7 +344,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                                         {opt?.label ?? item.category}
                                                     </p>
                                                 </div>
-                                                <StatusBadge variant={variant} />
+                                                <StatusBadge variant={item.approval_status} />
                                             </div>
                                             <div className="flex items-center justify-between text-[11px] text-text-muted pt-2 border-t border-border">
                                                 <span>Periode</span>
