@@ -4,47 +4,7 @@ import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid, FiInfo } from "react-
 import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 
-interface StudentRecap {
-    id: number;
-    name: string;
-    nis: string;
-    present: number;
-    permission: number;
-    sick: number;
-    pending: number;
-    absent: number;
-    on_time: number;
-    late: number;
-    discipline_rate: number;
-    attendance_rate: number;
-}
-
-interface Summary {
-    on_time: number;
-    late: number;
-    permission: number;
-    sick: number;
-    pending: number;
-    absent: number;
-    attendance_rate: number;
-    total_students?: number;
-    school_days?: number;
-    discipline_rate?: number;
-}
-
-interface DailyBreakdown {
-    date: string;
-    label: string;
-    on_time: number;
-    late: number;
-    permission: number;
-    sick: number;
-    pending: number;
-    absent: number;
-    is_non_school?: boolean;
-    is_past?: boolean;
-    note?: string;
-}
+import type { StudentRecap, Summary, DailyBreakdown } from "@/types/Report";
 
 interface MonthlyTableProps {
     students: StudentRecap[];
