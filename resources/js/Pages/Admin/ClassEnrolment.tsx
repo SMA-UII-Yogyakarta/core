@@ -466,7 +466,7 @@ export default function EnrolmentKelas({
         {
             key: "name",
             header: "Nama",
-            className: "min-w-0 max-w-[200px]",
+            className: "w-full min-w-0",
             render: (s) => (
                 <span className="text-[13px] font-medium text-text-primary truncate block" title={s.name}>
                     {s.name}
@@ -1037,14 +1037,38 @@ export default function EnrolmentKelas({
                         <Drawer
                             open={showAddDrawer}
                             onClose={handleCloseAddStudent}
-                            title={`Tambah Siswa ke Kelas ${selectedClass?.name ?? ""}`}
-                            description="Pilih siswa yang belum terdaftar di rombongan belajar mana pun untuk dimasukkan ke kelas ini."
-                            headerActions={
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
-                                    <FiUsers className="w-3.5 h-3.5" />
-                                    <span>{unassignedStudents.length} Belum Punya Kelas</span>
-                                </span>
+                            title={
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <h2 className="text-[15px] font-bold text-text-primary font-inter truncate">
+                                        Tambah Siswa
+                                    </h2>
+                                    {selectedClass && (
+                                        <span className="text-[13px] font-medium text-text-secondary hidden md:inline truncate">
+                                            · {selectedClass.name}
+                                        </span>
+                                    )}
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                        {unassignedStudents.length}
+                                    </span>
+                                </div>
                             }
+                            headerActions={
+                                unassignedStudents.length > 0 ? (
+                                    <div className="w-44 sm:w-56 md:w-64">
+                                        <SearchBar
+                                            value={modalSearch}
+                                            onChange={(val) => {
+                                                setModalSearch(val);
+                                                setModalCurrentPage(1);
+                                            }}
+                                            onSearch={() => setModalCurrentPage(1)}
+                                            placeholder="Cari NIS / Nama siswa..."
+                                            inputClassName="!h-8 text-[12px] !pl-8.5 rounded-xl"
+                                        />
+                                    </div>
+                                ) : undefined
+                            }
+                            bodyClassName="p-0 flex flex-col min-h-0 flex-1 overflow-hidden"
                             width="xl"
                             showFooter={true}
                             leftFooter={
@@ -1068,36 +1092,18 @@ export default function EnrolmentKelas({
                             asForm={false}
                             onCancel={handleCloseAddStudent}
                         >
-                            <div className="flex flex-col gap-4">
-                                {unassignedStudents.length > 0 && (
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex-1">
-                                            <SearchBar
-                                                value={modalSearch}
-                                                onChange={(val) => {
-                                                    setModalSearch(val);
-                                                    setModalCurrentPage(1);
-                                                }}
-                                                onSearch={() => setModalCurrentPage(1)}
-                                                placeholder="Cari NIS / Nama siswa..."
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="overflow-x-auto min-h-[320px]">
-                                    <Table
-                                        columns={modalColumns}
-                                        data={paginatedUnassigned}
-                                        keyExtractor={(s) => s.id}
-                                        emptyMessage={
-                                            modalSearch
-                                                ? "Tidak ada siswa yang cocok dengan pencarian."
-                                                : "Semua siswa telah terdaftar di kelas."
-                                        }
-                                    />
-                                </div>
-                            </div>
+                            <Table
+                                bare
+                                columns={modalColumns}
+                                data={paginatedUnassigned}
+                                keyExtractor={(s) => s.id}
+                                containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                                emptyMessage={
+                                    modalSearch
+                                        ? "Tidak ada siswa yang cocok dengan pencarian."
+                                        : "Semua siswa telah terdaftar di kelas."
+                                }
+                            />
                         </Drawer>
                     )}
                 </>
