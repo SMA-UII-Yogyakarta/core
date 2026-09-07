@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { FiX, FiCalendar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface DatePickerProps {
     value?: string;
@@ -12,10 +13,7 @@ interface DatePickerProps {
     max?: string;
 }
 
-const MONTH_NAMES = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 const DAY_LABELS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 

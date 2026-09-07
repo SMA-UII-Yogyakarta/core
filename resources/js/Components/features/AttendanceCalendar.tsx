@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 export interface AttendanceRecord {
     id?: number;
@@ -25,20 +26,7 @@ export interface AttendanceCalendarProps {
     dusk?: string;
 }
 
-const MONTH_NAMES = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 const DAY_LABELS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 

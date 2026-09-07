@@ -11,11 +11,12 @@ import {
     TableFooter,
     EmptyState,
     FilterBar,
-    Pagination,
     MobileNativePagination,
     BottomSheet,
     NativeSelect,
 } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import type { Column } from "@/Components/ui/Table";
 import { FiCamera, FiFilter } from "react-icons/fi";
 
@@ -41,20 +42,7 @@ interface PageProps {
     year: number;
 }
 
-const MONTH_NAMES = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 export default function AttendanceHistory({ student, attendances, month, year }: PageProps) {
     const [monthVal, setMonthVal] = useState(month.toString());
@@ -62,14 +50,14 @@ export default function AttendanceHistory({ student, attendances, month, year }:
     const [photoModal, setPhotoModal] = useState<{ url: string; date: string } | null>(null);
     const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-    const [attPage, setAttPage] = useState(1);
-    const attPageSize = 10;
-    const attTotalPages = Math.max(1, Math.ceil(attendances.length / attPageSize));
-    const attSafePage = Math.min(Math.max(1, attPage), attTotalPages);
-    const paginatedAttendances = useMemo(() => {
-        const start = (attSafePage - 1) * attPageSize;
-        return attendances.slice(start, start + attPageSize);
-    }, [attendances, attSafePage, attPageSize]);
+    const {
+        currentPage: attPage,
+        setCurrentPage: setAttPage,
+        totalPages: attTotalPages,
+        safePage: attSafePage,
+        paginatedData: paginatedAttendances,
+        pageSize: attPageSize,
+    } = useClientPagination(attendances, 1, 10);
 
     // Calculate monthly rate percentage
     const stats = useMemo(() => {
@@ -294,24 +282,12 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                             emptyMessage="Belum ada data kehadiran untuk periode bulan dan tahun ini."
                         />
                         <TableFooter
-                            info={
-                                attendances.length > 0 ? (
-                                    <span>
-                                        Menampilkan <strong className="text-text-primary">{(attSafePage - 1) * attPageSize + 1}–{Math.min(attSafePage * attPageSize, attendances.length)}</strong> dari total <strong className="text-text-primary">{attendances.length}</strong> hari terdata.
-                                    </span>
-                                ) : undefined
-                            }
-                            pagination={
-                                attendances.length > attPageSize ? (
-                                    <Pagination
-                                        currentPage={attSafePage}
-                                        totalPages={attTotalPages}
-                                        totalItems={attendances.length}
-                                        perPage={attPageSize}
-                                        onPageChange={setAttPage}
-                                    />
-                                ) : undefined
-                            }
+                            currentPage={attSafePage}
+                            totalPages={attTotalPages}
+                            totalItems={attendances.length}
+                            perPage={attPageSize}
+                            onPageChange={setAttPage}
+                            itemLabel="hari terdata"
                         />
                     </div>
                 </div>

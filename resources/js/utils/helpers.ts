@@ -39,3 +39,50 @@ export function getPaginationRange(page: number, perPage: number, total: number)
     const to = Math.min(page * perPage, total);
     return { from, to, total };
 }
+
+export const INDONESIAN_MONTHS = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+] as const;
+
+export function formatIndonesianDate(
+    dateInput: string | Date | null | undefined,
+    options?: Intl.DateTimeFormatOptions,
+): string {
+    if (!dateInput) return "-";
+    try {
+        let date: Date;
+        if (typeof dateInput === "string") {
+            const cleanStr = dateInput.split(" ")[0].split("T")[0];
+            date = new Date(cleanStr + "T00:00:00");
+            if (isNaN(date.getTime())) {
+                date = new Date(dateInput);
+            }
+        } else {
+            date = dateInput;
+        }
+        if (isNaN(date.getTime())) return String(dateInput);
+
+        return date.toLocaleDateString(
+            "id-ID",
+            options ?? {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            },
+        );
+    } catch {
+        return String(dateInput);
+    }
+}
+

@@ -19,11 +19,12 @@ import {
     Card,
     EmptyState,
     Avatar,
-    Pagination,
     MobileNativePagination,
     BottomSheet,
     NativeSelect,
 } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -75,20 +76,7 @@ interface PageProps {
     monthlyTrend: MonthlyTrend[] | null;
 }
 
-const MONTH_NAMES = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 export default function History({
     students,
@@ -104,23 +92,23 @@ export default function History({
     const [monthVal, setMonthVal] = useState(month.toString());
     const [yearVal, setYearVal] = useState(year.toString());
 
-    const [attPage, setAttPage] = useState(1);
-    const attPageSize = 10;
-    const attTotalPages = Math.max(1, Math.ceil(attendances.length / attPageSize));
-    const attSafePage = Math.min(Math.max(1, attPage), attTotalPages);
-    const paginatedAttendances = useMemo(() => {
-        const start = (attSafePage - 1) * attPageSize;
-        return attendances.slice(start, start + attPageSize);
-    }, [attendances, attSafePage, attPageSize]);
+    const {
+        currentPage: attPage,
+        setCurrentPage: setAttPage,
+        totalPages: attTotalPages,
+        safePage: attSafePage,
+        paginatedData: paginatedAttendances,
+        pageSize: attPageSize,
+    } = useClientPagination(attendances, 1, 10);
 
-    const [leavePage, setLeavePage] = useState(1);
-    const leavePageSize = 10;
-    const leaveTotalPages = Math.max(1, Math.ceil(leaveRequests.length / leavePageSize));
-    const leaveSafePage = Math.min(Math.max(1, leavePage), leaveTotalPages);
-    const paginatedLeaves = useMemo(() => {
-        const start = (leaveSafePage - 1) * leavePageSize;
-        return leaveRequests.slice(start, start + leavePageSize);
-    }, [leaveRequests, leaveSafePage, leavePageSize]);
+    const {
+        currentPage: leavePage,
+        setCurrentPage: setLeavePage,
+        totalPages: leaveTotalPages,
+        safePage: leaveSafePage,
+        paginatedData: paginatedLeaves,
+        pageSize: leavePageSize,
+    } = useClientPagination(leaveRequests, 1, 10);
 
     const handleSelectStudent = (id: number) => {
         router.get(
@@ -446,24 +434,12 @@ export default function History({
                                             keyExtractor={(item: AttendanceRecord) => item.id}
                                         />
                                         <TableFooter
-                                            info={
-                                                attendances.length > 0 ? (
-                                                    <span>
-                                                        Menampilkan <strong className="text-text-primary">{(attSafePage - 1) * attPageSize + 1}–{Math.min(attSafePage * attPageSize, attendances.length)}</strong> dari total <strong className="text-text-primary">{attendances.length}</strong> hari presensi.
-                                                    </span>
-                                                ) : undefined
-                                            }
-                                            pagination={
-                                                attendances.length > attPageSize ? (
-                                                    <Pagination
-                                                        currentPage={attSafePage}
-                                                        totalPages={attTotalPages}
-                                                        totalItems={attendances.length}
-                                                        perPage={attPageSize}
-                                                        onPageChange={setAttPage}
-                                                    />
-                                                ) : undefined
-                                            }
+                                            currentPage={attSafePage}
+                                            totalPages={attTotalPages}
+                                            totalItems={attendances.length}
+                                            perPage={attPageSize}
+                                            onPageChange={setAttPage}
+                                            itemLabel="hari presensi"
                                         />
                                     </div>
                                 </>
@@ -541,24 +517,12 @@ export default function History({
                                             keyExtractor={(item: LeaveRequest) => item.id}
                                         />
                                         <TableFooter
-                                            info={
-                                                leaveRequests.length > 0 ? (
-                                                    <span>
-                                                        Menampilkan <strong className="text-text-primary">{(leaveSafePage - 1) * leavePageSize + 1}–{Math.min(leaveSafePage * leavePageSize, leaveRequests.length)}</strong> dari total <strong className="text-text-primary">{leaveRequests.length}</strong> pengajuan.
-                                                    </span>
-                                                ) : undefined
-                                            }
-                                            pagination={
-                                                leaveRequests.length > leavePageSize ? (
-                                                    <Pagination
-                                                        currentPage={leaveSafePage}
-                                                        totalPages={leaveTotalPages}
-                                                        totalItems={leaveRequests.length}
-                                                        perPage={leavePageSize}
-                                                        onPageChange={setLeavePage}
-                                                    />
-                                                ) : undefined
-                                            }
+                                            currentPage={leaveSafePage}
+                                            totalPages={leaveTotalPages}
+                                            totalItems={leaveRequests.length}
+                                            perPage={leavePageSize}
+                                            onPageChange={setLeavePage}
+                                            itemLabel="pengajuan"
                                         />
                                     </div>
                                 </>
