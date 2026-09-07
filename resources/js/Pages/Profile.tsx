@@ -3,15 +3,9 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import {
     PageHeader,
-    Card,
     Button,
-    Input,
-    Toggle,
-    Table,
     ConfirmDialog,
     TabSwitcher,
-    Avatar,
-    MobileSectionHeader,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 import {
@@ -22,45 +16,27 @@ import {
     FiLock,
     FiSliders,
     FiSmartphone,
-    FiMonitor,
-    FiAlertCircle,
     FiRefreshCw,
-    FiMail,
     FiChevronRight,
     FiLogOut,
-    FiCamera,
-    FiTrash2,
 } from "react-icons/fi";
 import { profileInfoSchema, passwordSecuritySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import type {
+    ProfileUser,
+    ProfileSession,
+    ProfileSubPage,
+} from "./Profile/types";
+import ProfileHeroCard from "./Profile/components/ProfileHeroCard";
+import ProfileInfoSection from "./Profile/components/ProfileInfoSection";
+import SecuritySection from "./Profile/components/SecuritySection";
+import NotificationSection from "./Profile/components/NotificationSection";
+import SessionsSection from "./Profile/components/SessionsSection";
 
 interface ProfileProps {
-    user: {
-        id: number;
-        name: string;
-        email: string | null;
-        role: string;
-        avatar?: string | null;
-        avatar_url?: string | null;
-        teacher?: { id: number; name: string; teacher_code: string; teacher_type: string[] } | null;
-        student?: {
-            id: number;
-            nis: string;
-            nisn: string;
-            name: string;
-            class?: { id: number; name: string } | null;
-        } | null;
-        guardian?: { id: number; name: string; phone: string | null } | null;
-    };
-    sessions: Array<{
-        id: number;
-        name: string;
-        last_used_at: string | null;
-        created_at: string | null;
-    }>;
+    user: ProfileUser;
+    sessions: ProfileSession[];
 }
-
-type ProfileSubPage = "profile" | "security" | "notifications" | "sessions";
 
 const VALID_PROFILE_TABS: Record<string, ProfileSubPage> = {
     profile: "profile",
@@ -327,71 +303,15 @@ export default function Profile({ user, sessions }: ProfileProps) {
                 {mobileSubPage === null ? (
                     <div key="mobile-root" className="animate-mobile-pop flex flex-col gap-4">
                         {/* 1. Clean Profile Hero Card (Identity Only) */}
-                        <div className="bg-surface border border-border rounded-2xl p-5 shadow-card flex flex-col items-center text-center relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
-
-                            {/* Role Badge in Top-Right Corner */}
-                            <div className="absolute top-3.5 right-3.5 z-10">
-                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
-                                    {getRoleLabel(user.role)}
-                                </span>
-                            </div>
-
-                            <div className="relative mb-3 mt-1">
-                                <Avatar
-                                    name={user.name}
-                                    src={avatarPreview}
-                                    size="2xl"
-                                    className="ring-4 ring-surface shadow-md"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploadingAvatar}
-                                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-90 transition-all border-2 border-surface cursor-pointer"
-                                    title="Ganti Foto Profil"
-                                    aria-label="Ganti Foto Profil"
-                                >
-                                    {uploadingAvatar ? (
-                                        <FiRefreshCw className="animate-spin text-[12px]" />
-                                    ) : (
-                                        <FiCamera className="text-[13px]" />
-                                    )}
-                                </button>
-                            </div>
-
-                            <h2 className="text-[17px] font-bold text-text-primary leading-tight px-2">{user.name}</h2>
-                            <p className="text-[12px] text-text-muted mt-0.5 flex items-center gap-1.5 justify-center">
-                                <FiMail className="text-text-inactive shrink-0 text-[11px]" />
-                                <span className="truncate max-w-[240px]">{user.email || "Email belum didaftarkan"}</span>
-                            </p>
-
-                            {(user.student || user.teacher || user.guardian) && (
-                                <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
-                                    {user.student && (
-                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                            {user.student.class?.name ?? "Tanpa Kelas"} • NIS: {user.student.nis}
-                                        </span>
-                                    )}
-                                    {user.teacher && (
-                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                            Kode: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
-                                        </span>
-                                    )}
-                                    {user.guardian && (
-                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                            WA: {user.guardian.phone || "—"}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {avatarError && (
-                                <div className="mt-2.5 px-3 py-1.5 rounded-lg bg-danger/10 border border-danger/20 text-danger text-[11px] font-medium text-center">
-                                    {avatarError}
-                                </div>
-                            )}
-                        </div>
+                        <ProfileHeroCard
+                            user={user}
+                            avatarPreview={avatarPreview}
+                            uploadingAvatar={uploadingAvatar}
+                            avatarError={avatarError}
+                            isDualRoleTeacher={Boolean(isDualRoleTeacher)}
+                            getRoleLabel={getRoleLabel}
+                            onSelectPhoto={() => fileInputRef.current?.click()}
+                        />
 
                         {/* 2. Grouped Settings Stack Menu List (iOS / Android Native Style) */}
                         <div className="flex flex-col gap-2">
@@ -542,267 +462,53 @@ export default function Profile({ user, sessions }: ProfileProps) {
                     <div key={mobileSubPage} className="animate-mobile-push flex flex-col gap-4">
                         {/* Sub-page 1: Data Akun & Profil */}
                         {mobileSubPage === "profile" && (
-                            <div className="flex flex-col gap-4 pb-24">
-                                <form id="mobile-profile-data-form" onSubmit={handleProfileSubmit} className="flex flex-col gap-4">
-                                    <MobileSectionHeader
-                                        title="Informasi Data Akun"
-                                        description="Perbarui foto profil, nama lengkap, dan email resmi akun Anda."
-                                    />
-
-                                    {/* Native Grouped Card */}
-                                    <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-4">
-                                        {/* Photo Uploader Widget */}
-                                        <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between gap-3">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <Avatar
-                                                    name={user.name}
-                                                    src={avatarPreview}
-                                                    size="lg"
-                                                    className="shadow-xs ring-2 ring-surface shrink-0"
-                                                />
-                                                <div className="min-w-0">
-                                                    <div className="text-[13px] font-bold text-text-primary">Foto Profil</div>
-                                                    <div className="text-[11px] text-text-muted">JPG, PNG, WebP (maks. 2MB)</div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 shrink-0">
-                                                <Button
-                                                    type="button"
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    loading={uploadingAvatar}
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    className="h-8 text-[11px] px-3 rounded-lg font-bold"
-                                                    icon={<FiCamera className="text-[12px]" />}
-                                                >
-                                                    Pilih Foto
-                                                </Button>
-                                                {avatarPreview && (
-                                                    <Button
-                                                        type="button"
-                                                        variant="danger"
-                                                        size="sm"
-                                                        disabled={uploadingAvatar}
-                                                        onClick={() => setShowDeleteAvatarModal(true)}
-                                                        className="h-8 text-[11px] px-2 rounded-lg"
-                                                        title="Hapus Foto"
-                                                        icon={<FiTrash2 className="text-[12px]" />}
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                        {avatarError && (
-                                            <div className="px-3 py-1.5 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[11px] font-medium">
-                                                {avatarError}
-                                            </div>
-                                        )}
-
-                                        <div className="flex flex-col gap-3.5">
-                                            <div>
-                                                <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                    Nama Lengkap <span className="text-danger">*</span>
-                                                </label>
-                                                <Input
-                                                    value={data.name}
-                                                    onChange={(e) => setData("name", e.target.value)}
-                                                    error={errors.name}
-                                                    inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                                    placeholder="Masukkan nama lengkap..."
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                    Email Resmi <span className="text-danger">*</span>
-                                                </label>
-                                                <Input
-                                                    type="email"
-                                                    value={data.email}
-                                                    onChange={(e) => setData("email", e.target.value)}
-                                                    error={errors.email}
-                                                    inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                                    placeholder="nama@smauii.sch.id"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                            <ProfileInfoSection
+                                user={user}
+                                data={data}
+                                setData={(k, v) => setData(k, v)}
+                                errors={errors}
+                                processing={processing}
+                                avatarPreview={avatarPreview}
+                                uploadingAvatar={uploadingAvatar}
+                                avatarError={avatarError}
+                                isDualRoleTeacher={Boolean(isDualRoleTeacher)}
+                                getRoleLabel={getRoleLabel}
+                                onSelectPhoto={() => fileInputRef.current?.click()}
+                                onDeletePhoto={() => setShowDeleteAvatarModal(true)}
+                                onSubmit={handleProfileSubmit}
+                                isMobile
+                            />
                         )}
 
                         {/* Sub-page 2: Keamanan & Kata Sandi */}
                         {mobileSubPage === "security" && (
-                            <div className="flex flex-col gap-4 pb-24">
-                                <form id="mobile-profile-password-form" onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-                                    <MobileSectionHeader
-                                        title="Ganti Kata Sandi Akun"
-                                        description="Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan."
-                                    />
-
-                                    {/* Native Grouped Card */}
-                                    <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-3.5">
-                                        <div>
-                                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                Kata Sandi Saat Ini <span className="text-danger">*</span>
-                                            </label>
-                                            <Input
-                                                type="password"
-                                                value={data.current_password}
-                                                onChange={(e) => setData("current_password", e.target.value)}
-                                                error={errors.current_password}
-                                                placeholder="••••••••"
-                                                inputClassName="h-11 bg-surface border-border text-[13px] rounded-xl"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                Kata Sandi Baru <span className="text-danger">*</span>
-                                            </label>
-                                            <Input
-                                                type="password"
-                                                value={data.password}
-                                                onChange={(e) => setData("password", e.target.value)}
-                                                error={errors.password}
-                                                placeholder="••••••••"
-                                                inputClassName="h-11 bg-surface border-border text-[13px] rounded-xl"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                Konfirmasi Kata Sandi Baru <span className="text-danger">*</span>
-                                            </label>
-                                            <Input
-                                                type="password"
-                                                value={data.password_confirmation}
-                                                onChange={(e) => setData("password_confirmation", e.target.value)}
-                                                error={errors.password_confirmation}
-                                                placeholder="••••••••"
-                                                inputClassName="h-11 bg-surface border-border text-[13px] rounded-xl"
-                                            />
-                                        </div>
-
-                                        <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-2.5 text-[12px] text-text-secondary mt-1">
-                                            <FiAlertCircle className="text-primary text-[15px] shrink-0 mt-0.5" />
-                                            <span>Kata sandi minimal 8 karakter dengan kombinasi huruf, angka, dan simbol.</span>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                            <SecuritySection
+                                data={data}
+                                setData={(k, v) => setData(k, v)}
+                                errors={errors}
+                                processing={processing}
+                                onSubmit={handlePasswordSubmit}
+                                isMobile
+                            />
                         )}
 
                         {/* Sub-page 3: Preferensi Notifikasi */}
                         {mobileSubPage === "notifications" && (
-                            <div className="flex flex-col gap-4 pb-8">
-                                <MobileSectionHeader
-                                    title="Saluran Notifikasi System"
-                                    description="Atur jenis notifikasi yang ingin Anda terima di aplikasi."
-                                />
-
-                                <div className="border border-border rounded-2xl divide-y divide-border bg-surface overflow-hidden shadow-card">
-                                    <div className="flex items-center justify-between p-4">
-                                        <div>
-                                            <div className="font-bold text-[13.5px] text-text-primary">Email Notifikasi</div>
-                                            <div className="text-[11.5px] text-text-muted mt-0.5">Kirimkan salinan pesan ke email resmi</div>
-                                        </div>
-                                        <Toggle
-                                            checked={notifPrefs.email}
-                                            onChange={(e) => setNotifPrefs((prev) => ({ ...prev, email: e.target.checked }))}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4">
-                                        <div>
-                                            <div className="font-bold text-[13.5px] text-text-primary">Push Notifications</div>
-                                            <div className="text-[11.5px] text-text-muted mt-0.5">Pemberitahuan pop-up real-time di perangkat</div>
-                                        </div>
-                                        <Toggle
-                                            checked={notifPrefs.push}
-                                            onChange={(e) => setNotifPrefs((prev) => ({ ...prev, push: e.target.checked }))}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4">
-                                        <div>
-                                            <div className="font-bold text-[13.5px] text-text-primary">Notifikasi Pengajuan Izin</div>
-                                            <div className="text-[11.5px] text-text-muted mt-0.5">Status persetujuan izin & sakit</div>
-                                        </div>
-                                        <Toggle
-                                            checked={notifPrefs.leave}
-                                            onChange={(e) => setNotifPrefs((prev) => ({ ...prev, leave: e.target.checked }))}
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4">
-                                        <div>
-                                            <div className="font-bold text-[13.5px] text-text-primary">Notifikasi Rekap Presensi</div>
-                                            <div className="text-[11.5px] text-text-muted mt-0.5">Pengingat & rekap harian presensi</div>
-                                        </div>
-                                        <Toggle
-                                            checked={notifPrefs.attendance}
-                                            onChange={(e) => setNotifPrefs((prev) => ({ ...prev, attendance: e.target.checked }))}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                            <NotificationSection
+                                notifPrefs={notifPrefs}
+                                setNotifPrefs={setNotifPrefs}
+                                isMobile
+                            />
                         )}
 
                         {/* Sub-page 4: Perangkat & Sesi Aktif */}
                         {mobileSubPage === "sessions" && (
-                            <div className="flex flex-col gap-3 pb-8">
-                                <MobileSectionHeader
-                                    title="Sesi & Perangkat Terhubung"
-                                    description="Daftar perangkat yang saat ini aktif terhubung ke akun Anda."
-                                />
-
-                                <div className="flex flex-col gap-2.5">
-                                    {sessions.map((s, idx) => (
-                                        <div
-                                            key={s.id}
-                                            className="p-4 rounded-2xl border border-border bg-surface shadow-card flex flex-col gap-2.5"
-                                        >
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                                        {s.name.toLowerCase().includes("mobile") || s.name.toLowerCase().includes("android") || s.name.toLowerCase().includes("iphone") ? (
-                                                            <FiSmartphone size={16} />
-                                                        ) : (
-                                                            <FiMonitor size={16} />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-bold text-text-primary text-[13px]">{s.name}</h4>
-                                                        <p className="text-[11px] text-text-muted">
-                                                            {idx === 0 ? "Sesi Ini (Sedang Aktif)" : "Perangkat Tertaut"}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {idx === 0 ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                                                        Aktif
-                                                    </span>
-                                                ) : (
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleRevoke(s.id)}
-                                                        disabled={revoking}
-                                                        className="h-7 text-[11px] px-2.5 rounded-lg"
-                                                    >
-                                                        Cabut
-                                                    </Button>
-                                                )}
-                                            </div>
-
-                                            <div className="pt-2 border-t border-border/60 text-[11px] text-text-secondary flex items-center justify-between">
-                                                <span>Terakhir Aktif:</span>
-                                                <strong className="text-text-primary font-medium">{s.last_used_at ?? "Baru saja"}</strong>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                            <SessionsSection
+                                sessions={sessions}
+                                onRevoke={handleRevoke}
+                                revoking={revoking}
+                                isMobile
+                            />
                         )}
                     </div>
                 )}
@@ -890,373 +596,49 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 3. Desktop Tab 1: Profil */}
                 <div className={`w-full ${desktopTab === "profile" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card rounded-2xl">
-                        <form onSubmit={handleProfileSubmit} className="flex flex-col gap-6">
-                            <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-border">
-                                <div>
-                                    <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                        <FiUser className="text-primary text-[16px]" />
-                                        Informasi Data Akun Pengguna
-                                    </h2>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        Kelola nama lengkap, email resmi, dan foto profil akun Anda di SMA UII Yogyakarta.
-                                    </p>
-                                </div>
-                                <Button
-                                    type="submit"
-                                    loading={processing}
-                                    variant="primary"
-                                    className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
-                                    icon={<FiSave className="text-[14px]" />}
-                                >
-                                    {t("profile.saveChanges")}
-                                </Button>
-                            </div>
-
-                            {/* Unified Account Identity & Avatar Card */}
-                            <div className="p-5 rounded-2xl border border-border bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="flex items-center gap-4 min-w-0">
-                                    <div
-                                        className="relative group shrink-0 cursor-pointer"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        title="Klik untuk mengganti foto profil"
-                                    >
-                                        <Avatar
-                                            name={user.name}
-                                            src={avatarPreview}
-                                            size="xl"
-                                            className="shadow-sm ring-2 ring-surface group-hover:ring-primary/40 transition-all"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                fileInputRef.current?.click();
-                                            }}
-                                            disabled={uploadingAvatar}
-                                            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-90 transition-all border-2 border-surface cursor-pointer"
-                                            title="Ganti Foto Profil"
-                                            aria-label="Ganti Foto Profil"
-                                        >
-                                            {uploadingAvatar ? (
-                                                <FiRefreshCw className="animate-spin text-[10px]" />
-                                            ) : (
-                                                <FiCamera className="text-[11px]" />
-                                            )}
-                                        </button>
-                                    </div>
-
-                                    <div className="min-w-0 flex-1 space-y-1.5">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <h3 className="text-[16px] font-bold text-text-primary truncate">{user.name}</h3>
-                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
-                                                {getRoleLabel(user.role)}
-                                            </span>
-                                            {user.teacher && (
-                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
-                                                    Kode Guru: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
-                                                </span>
-                                            )}
-                                            {isDualRoleTeacher && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => window.dispatchEvent(new CustomEvent("open-role-switcher"))}
-                                                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
-                                                    title="Ganti Peran Aktif Guru"
-                                                >
-                                                    <FiRefreshCw className="text-[11px]" />
-                                                    <span>Ganti Peran</span>
-                                                </button>
-                                            )}
-                                            {user.student && (
-                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
-                                                    Kelas: {user.student.class?.name ?? "Tanpa Kelas"} • NIS: {user.student.nis}
-                                                </span>
-                                            )}
-                                            {user.guardian && (
-                                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface border border-border text-text-secondary">
-                                                    WhatsApp: {user.guardian.phone || "—"}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-[12px] text-text-muted">
-                                            Format foto profil: JPG, PNG, atau WebP (maksimal 2MB).
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {avatarPreview && (
-                                    <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
-                                        <Button
-                                            type="button"
-                                            variant="danger"
-                                            size="sm"
-                                            disabled={uploadingAvatar}
-                                            onClick={() => setShowDeleteAvatarModal(true)}
-                                            className="h-9 px-3 text-[12px] rounded-xl"
-                                            title="Hapus Foto Profil"
-                                            icon={<FiTrash2 className="text-[13px]" />}
-                                        >
-                                            Hapus Foto
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {avatarError && (
-                                <div className="px-4 py-2.5 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[12px] font-medium flex items-center gap-2">
-                                    <FiAlertCircle className="text-[14px] shrink-0" />
-                                    <span>{avatarError}</span>
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
-                                <div>
-                                    <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                                        {t("profile.name")} <span className="text-danger">*</span>
-                                    </label>
-                                    <Input
-                                        value={data.name}
-                                        onChange={(e) => setData("name", e.target.value)}
-                                        error={errors.name}
-                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                        placeholder="Masukkan nama lengkap..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                                        {t("profile.email")} <span className="text-danger">*</span>
-                                    </label>
-                                    <Input
-                                        type="email"
-                                        value={data.email}
-                                        onChange={(e) => setData("email", e.target.value)}
-                                        error={errors.email}
-                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                        placeholder="nama@smauii.sch.id"
-                                    />
-                                </div>
-                            </div>
-                        </form>
-                    </Card>
+                    <ProfileInfoSection
+                        user={user}
+                        data={data}
+                        setData={(k, v) => setData(k, v)}
+                        errors={errors}
+                        processing={processing}
+                        avatarPreview={avatarPreview}
+                        uploadingAvatar={uploadingAvatar}
+                        avatarError={avatarError}
+                        isDualRoleTeacher={Boolean(isDualRoleTeacher)}
+                        getRoleLabel={getRoleLabel}
+                        onSelectPhoto={() => fileInputRef.current?.click()}
+                        onDeletePhoto={() => setShowDeleteAvatarModal(true)}
+                        onSubmit={handleProfileSubmit}
+                    />
                 </div>
 
                 {/* 4. Desktop Tab 2: Keamanan */}
                 <div className={`w-full ${desktopTab === "security" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card rounded-2xl">
-                        <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-6">
-                            <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-border">
-                                <div>
-                                    <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                        <FiShield className="text-primary text-[16px]" />
-                                        Preferensi Keamanan & Kata Sandi
-                                    </h2>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan akses.
-                                    </p>
-                                </div>
-                                <Button
-                                    type="submit"
-                                    loading={processing}
-                                    variant="primary"
-                                    className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
-                                    icon={<FiLock className="text-[14px]" />}
-                                >
-                                    {t("profile.updatePassword")}
-                                </Button>
-                            </div>
-
-                            <div className="flex flex-col gap-5 max-w-2xl">
-                                <div>
-                                    <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                                        {t("profile.currentPassword")} <span className="text-danger">*</span>
-                                    </label>
-                                    <Input
-                                        type="password"
-                                        value={data.current_password}
-                                        onChange={(e) => setData("current_password", e.target.value)}
-                                        error={errors.current_password}
-                                        placeholder="••••••••"
-                                        inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div>
-                                        <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                                            {t("profile.newPassword")} <span className="text-danger">*</span>
-                                        </label>
-                                        <Input
-                                            type="password"
-                                            value={data.password}
-                                            onChange={(e) => setData("password", e.target.value)}
-                                            error={errors.password}
-                                            placeholder="••••••••"
-                                            inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                                            {t("profile.confirmPassword")} <span className="text-danger">*</span>
-                                        </label>
-                                        <Input
-                                            type="password"
-                                            value={data.password_confirmation}
-                                            onChange={(e) => setData("password_confirmation", e.target.value)}
-                                            error={errors.password_confirmation}
-                                            placeholder="••••••••"
-                                            inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-2.5 text-[12px] text-text-secondary">
-                                    <FiAlertCircle className="text-primary text-[15px] shrink-0 mt-0.5" />
-                                    <span>
-                                        Kata sandi minimal harus terdiri dari 8 karakter, mengombinasikan huruf besar, huruf kecil, angka, dan simbol unik.
-                                    </span>
-                                </div>
-                            </div>
-                        </form>
-                    </Card>
+                    <SecuritySection
+                        data={data}
+                        setData={(k, v) => setData(k, v)}
+                        errors={errors}
+                        processing={processing}
+                        onSubmit={handlePasswordSubmit}
+                    />
                 </div>
 
                 {/* 5. Desktop Tab 3: Notifikasi */}
                 <div className={`w-full ${desktopTab === "notifications" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card rounded-2xl">
-                        <div className="flex items-center justify-between pb-4 mb-5 border-b border-border">
-                            <div>
-                                <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                    <FiBell className="text-primary text-[16px]" />
-                                    Preferensi Notifikasi & Peringatan
-                                </h2>
-                                <p className="text-[12px] text-text-muted mt-0.5">
-                                    Atur jenis notifikasi email, saluran push notification, dan pengumuman sistem absensi.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
-                                <div className="pr-3">
-                                    <p className="font-bold text-[14px] text-text-primary">{t("profile.emailNotifications")}</p>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        {t("profile.emailNotificationsDesc")}
-                                    </p>
-                                </div>
-                                <Toggle
-                                    checked={notifPrefs.email}
-                                    onChange={(e) => setNotifPrefs((prev) => ({ ...prev, email: e.target.checked }))}
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
-                                <div className="pr-3">
-                                    <p className="font-bold text-[14px] text-text-primary">{t("profile.pushNotifications")}</p>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        {t("profile.pushNotificationsDesc")}
-                                    </p>
-                                </div>
-                                <Toggle
-                                    checked={notifPrefs.push}
-                                    onChange={(e) => setNotifPrefs((prev) => ({ ...prev, push: e.target.checked }))}
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
-                                <div className="pr-3">
-                                    <p className="font-bold text-[14px] text-text-primary">{t("profile.leaveNotifications")}</p>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        {t("profile.leaveNotificationsDesc")}
-                                    </p>
-                                </div>
-                                <Toggle
-                                    checked={notifPrefs.leave}
-                                    onChange={(e) => setNotifPrefs((prev) => ({ ...prev, leave: e.target.checked }))}
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-muted/20 hover:bg-muted/30 transition-colors">
-                                <div className="pr-3">
-                                    <p className="font-bold text-[14px] text-text-primary">{t("profile.attendanceNotifications")}</p>
-                                    <p className="text-[12px] text-text-muted mt-0.5">
-                                        {t("profile.attendanceNotificationsDesc")}
-                                    </p>
-                                </div>
-                                <Toggle
-                                    checked={notifPrefs.attendance}
-                                    onChange={(e) => setNotifPrefs((prev) => ({ ...prev, attendance: e.target.checked }))}
-                                />
-                            </div>
-                        </div>
-                    </Card>
+                    <NotificationSection
+                        notifPrefs={notifPrefs}
+                        setNotifPrefs={setNotifPrefs}
+                    />
                 </div>
 
                 {/* 6. Desktop Tab 4: Sesi Aktif */}
                 <div className={`w-full ${desktopTab === "sessions" ? "block" : "hidden"}`}>
-                    <Card className="p-6 font-inter shadow-card rounded-2xl flex flex-col gap-5">
-                        <div className="flex items-center justify-between pb-4 border-b border-border">
-                            <div>
-                                <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                    <FiSmartphone className="text-primary text-[16px]" />
-                                    Perangkat & Sesi Aktif Akun
-                                </h2>
-                                <p className="text-[12px] text-text-muted mt-0.5">
-                                    Daftar perangkat yang saat ini terhubung dan memiliki akses autentikasi aktif ke akun Anda.
-                                </p>
-                            </div>
-                        </div>
-
-                        <Table
-                            columns={[
-                                {
-                                    key: "name",
-                                    header: t("profile.device"),
-                                    render: (s) => (
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                                {s.name.toLowerCase().includes("mobile") || s.name.toLowerCase().includes("android") || s.name.toLowerCase().includes("iphone") ? (
-                                                    <FiSmartphone size={15} />
-                                                ) : (
-                                                    <FiMonitor size={15} />
-                                                )}
-                                            </div>
-                                            <span className="font-bold text-text-primary font-inter text-[13px]">{s.name}</span>
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    key: "last_used_at",
-                                    header: t("profile.lastActive"),
-                                    render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.last_used_at ?? t("profile.never")}</span>,
-                                },
-                                {
-                                    key: "created_at",
-                                    header: t("profile.created"),
-                                    render: (s) => <span className="text-text-secondary text-[13px] font-inter">{s.created_at}</span>,
-                                },
-                                {
-                                    key: "actions",
-                                    header: <div className="text-center w-full">{t("profile.actions")}</div>,
-                                    className: "w-28 text-center",
-                                    render: (s) => (
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            className="rounded-lg text-[12px] px-3 h-8"
-                                            onClick={() => handleRevoke(s.id)}
-                                            disabled={revoking}
-                                        >
-                                            {t("profile.revoke")}
-                                        </Button>
-                                    ),
-                                },
-                            ]}
-                            data={sessions}
-                            keyExtractor={(s) => s.id}
-                            dense
-                        />
-                    </Card>
+                    <SessionsSection
+                        sessions={sessions}
+                        onRevoke={handleRevoke}
+                        revoking={revoking}
+                    />
                 </div>
             </div>
 
