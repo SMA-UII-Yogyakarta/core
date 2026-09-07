@@ -25,6 +25,8 @@ export interface AppShellProps {
     noMobileTopPadding?: boolean;
     hasTopTabs?: boolean;
     hasTopCard?: boolean;
+    /** Unified spacing prop for mobile top padding ("none" = pt-0, "compact" = pt-2, "normal" = pt-4) */
+    mobileTopSpacing?: "none" | "compact" | "normal";
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
@@ -55,6 +57,7 @@ export default function AppShell({
     noMobileTopPadding = false,
     hasTopTabs = false,
     hasTopCard = false,
+    mobileTopSpacing,
     searchValue,
     onSearchChange,
     searchPlaceholder,
@@ -211,9 +214,9 @@ export default function AppShell({
                         <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-2xl overflow-hidden">
                             <main
                                 className={`flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
-                                    noMobileTopPadding
+                                    noMobileTopPadding || mobileTopSpacing === "none"
                                         ? "pt-0"
-                                        : (hasTopTabs || hasTopCard)
+                                        : (hasTopTabs || hasTopCard || mobileTopSpacing === "compact")
                                           ? "pt-2"
                                           : "pt-4"
                                 } ${showBottomNav ? "max-sm:pb-24" : ""} ${mainClassName ?? ""}`}
