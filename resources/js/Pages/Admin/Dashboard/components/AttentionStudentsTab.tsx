@@ -166,9 +166,11 @@ export default function AttentionStudentsTab({
 
                     {/* Tablet & Desktop Table (>= sm) */}
                     <div className="hidden sm:block">
-                        <Card className="p-4 sm:p-6 rounded-2xl shadow-card">
-                            <Table columns={attentionColumns} data={filteredAttentionStudents} keyExtractor={(s) => s.id} />
-                        </Card>
+                        <Table
+                            columns={attentionColumns}
+                            data={filteredAttentionStudents}
+                            keyExtractor={(s) => s.id}
+                        />
                     </div>
                 </>
             )}
