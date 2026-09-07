@@ -272,7 +272,7 @@ export default function TeachersTab({
                         </Button>
                     </Card>
                 ) : (
-                    <div className="space-y-2">
+                    <>
                         {/* Mobile Filter & Select All Bar */}
                         <MobileFilterSelectBar
                             selectedCount={selectedIds.length}
@@ -283,7 +283,6 @@ export default function TeachersTab({
                             searchValue={filters?.search ?? ""}
                             onSearchChange={(val) => onSearchChange?.(val)}
                             searchPlaceholder="Cari NIP, kode, nama guru..."
-                            className="mb-1"
                         />
 
                         {teacherList.map((t) => {
@@ -424,7 +423,7 @@ export default function TeachersTab({
                                 </div>
                             );
                         })}
-                    </div>
+                    </>
                 )}
 
                 {/* Mobile Native Pagination */}

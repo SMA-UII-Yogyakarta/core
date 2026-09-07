@@ -288,7 +288,7 @@ export default function StudentsTab({
                         </Button>
                     </Card>
                 ) : (
-                    <div className="space-y-2">
+                    <>
                         {/* Mobile Filter & Select All Bar */}
                         <MobileFilterSelectBar
                             selectedCount={selectedIds.length}
@@ -299,7 +299,6 @@ export default function StudentsTab({
                             searchValue={filters?.search ?? ""}
                             onSearchChange={(val) => onSearchChange?.(val)}
                             searchPlaceholder="Cari NIS, nama siswa..."
-                            className="mb-1"
                         />
 
                         {/* Card List Stack */}
@@ -437,7 +436,7 @@ export default function StudentsTab({
                                 </div>
                             );
                         })}
-                    </div>
+                    </>
                 )}
 
                 {/* Mobile Native Pagination */}

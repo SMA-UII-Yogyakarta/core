@@ -279,7 +279,7 @@ export default function ClassesTab({
                         </Button>
                     </Card>
                 ) : (
-                    <div className="space-y-2">
+                    <>
                         {/* Mobile Filter & Select All Bar */}
                         <MobileFilterSelectBar
                             selectedCount={selectedIds.length}
@@ -290,7 +290,6 @@ export default function ClassesTab({
                             searchValue={filters?.search ?? ""}
                             onSearchChange={(val) => onSearchChange?.(val)}
                             searchPlaceholder="Cari nama kelas atau wali..."
-                            className="mb-1"
                         />
 
                         {displayClasses.map((c) => {
@@ -431,7 +430,7 @@ export default function ClassesTab({
                                 </div>
                             );
                         })}
-                    </div>
+                    </>
                 )}
 
                 {/* Mobile Native Pagination */}

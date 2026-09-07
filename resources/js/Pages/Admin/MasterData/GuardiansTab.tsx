@@ -250,7 +250,7 @@ export default function GuardiansTab({
                         </Button>
                     </Card>
                 ) : (
-                    <div className="space-y-2">
+                    <>
                         {/* Mobile Filter & Select All Bar */}
                         <MobileFilterSelectBar
                             selectedCount={selectedIds.length}
@@ -261,7 +261,6 @@ export default function GuardiansTab({
                             searchValue={filters?.search ?? ""}
                             onSearchChange={(val) => onSearchChange?.(val)}
                             searchPlaceholder="Cari NIK, nama wali..."
-                            className="mb-1"
                         />
 
                         {guardianList.map((g) => {
@@ -402,7 +401,7 @@ export default function GuardiansTab({
                                 </div>
                             );
                         })}
-                    </div>
+                    </>
                 )}
 
                 {/* Mobile Native Pagination */}
