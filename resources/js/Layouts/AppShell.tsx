@@ -208,12 +208,12 @@ export default function AppShell({
                         {/* Main Content Card Container */}
                         <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-2xl overflow-hidden">
                             <main
-                                className={`flex-1 min-h-0 overflow-y-auto flex flex-col ${
+                                className={`flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
                                     noMobileTopPadding
-                                        ? "px-4 pb-4 pt-0 sm:p-4 lg:p-6"
+                                        ? "pt-0"
                                         : hasTopTabs
-                                          ? "px-4 pb-4 pt-2 sm:p-4 lg:p-6"
-                                          : "p-4 lg:p-6"
+                                          ? "pt-2"
+                                          : "pt-4"
                                 } ${showBottomNav ? "max-sm:pb-24" : ""} ${mainClassName ?? ""}`}
                             >
                                 <ErrorBoundary>{children}</ErrorBoundary>
