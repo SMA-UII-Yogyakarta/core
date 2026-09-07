@@ -23,10 +23,12 @@ export default function TeacherDrawerForm({
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
+    const [prevMode, setPrevMode] = useState(mode);
     const [isUnlocked, setIsUnlocked] = useState(() => isCreate || mode === "edit");
 
-    if (open !== prevOpen) {
+    if (open !== prevOpen || mode !== prevMode) {
         setPrevOpen(open);
+        setPrevMode(mode);
         if (open) {
             setIsUnlocked(isCreate || mode === "edit");
         }
@@ -34,14 +36,13 @@ export default function TeacherDrawerForm({
 
     useEffect(() => {
         if (open && !isDesktop) {
-            onClose();
             if (isCreate) {
                 router.visit("/master-data/create?tab=teachers");
             } else if (teacher?.id) {
-                router.visit(`/master-data/teachers/${teacher.id}/edit`);
+                router.visit(`/master-data/teachers/${teacher.id}/${mode === "detail" ? "detail" : "edit"}`);
             }
         }
-    }, [open, isDesktop, isCreate, teacher, onClose]);
+    }, [open, isDesktop, isCreate, teacher, mode]);
 
     const handleToggleUnlock = () => {
         if (isCreate) return;

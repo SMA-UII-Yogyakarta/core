@@ -40,7 +40,13 @@ export default function SearchBar({
         onSearchRef.current = onSearch;
     }, [onSearch]);
 
+    const isInitialMount = useRef(true);
+
     useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
         if (autoSearch) {
             onSearchRef.current(debouncedValue);
         }

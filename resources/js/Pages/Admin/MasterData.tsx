@@ -30,7 +30,7 @@ import {
     FiZap,
 } from "react-icons/fi";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { MasterDataProps } from "./MasterData/types";
+import type { MasterDataProps, Student, Teacher, SchoolClass, Guardian } from "./MasterData/types";
 import StudentsTab from "./MasterData/StudentsTab";
 import TeachersTab from "./MasterData/TeachersTab";
 import ClassesTab from "./MasterData/ClassesTab";
@@ -72,6 +72,8 @@ export default function MasterData({
     activeTab,
     filters = {},
     initialCreateTab = null,
+    initialEditItem = null,
+    initialEditMode = null,
 }: MasterDataProps) {
     const isDesktop = useMediaQuery("(min-width: 640px)");
 
@@ -84,6 +86,9 @@ export default function MasterData({
                 return activeTabMap[tab] as "students" | "teachers" | "class" | "guardians";
             }
         }
+        if (activeTab && activeTabMap[activeTab]) {
+            return activeTabMap[activeTab] as "students" | "teachers" | "class" | "guardians";
+        }
         return null;
     };
 
@@ -92,12 +97,12 @@ export default function MasterData({
     >(getInitialMobileSubPage);
 
     const [currentTab, setCurrentTab] = useState<string>(() => {
+        if (activeTab && activeTabMap[activeTab]) return activeTabMap[activeTab];
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             const tab = params.get("tab");
             if (tab && activeTabMap[tab]) return activeTabMap[tab];
         }
-        if (activeTab && activeTabMap[activeTab]) return activeTabMap[activeTab];
         return "students";
     });
 
@@ -125,6 +130,41 @@ export default function MasterData({
     const [createTab, setCreateTab] = useState<
         "students" | "teachers" | "class" | "guardians" | null
     >(initialCreateTab ?? null);
+    const [editItem, setEditItem] = useState<
+        Student | Teacher | SchoolClass | Guardian | null
+    >(initialEditItem ?? null);
+    const [editMode, setEditMode] = useState<"edit" | "detail" | null>(
+        initialEditMode ?? null
+    );
+
+    useEffect(() => {
+        if (initialEditItem) {
+            setEditItem(initialEditItem);
+        }
+        if (initialEditMode) {
+            setEditMode(initialEditMode);
+        }
+        if (initialCreateTab) {
+            setCreateTab(initialCreateTab);
+        }
+    }, [initialEditItem, initialEditMode, initialCreateTab]);
+
+    const handleCloseDrawer = () => {
+        setCreateTab(null);
+        setEditItem(null);
+        setEditMode(null);
+        if (typeof window !== "undefined") {
+            const path = window.location.pathname;
+            if (
+                path.includes("/detail") ||
+                path.includes("/edit") ||
+                path.includes("/create")
+            ) {
+                const currentParam = currentTab ? `?tab=${currentTab}` : "";
+                window.history.replaceState({}, "", `/master-data${currentParam}`);
+            }
+        }
+    };
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [importModalOpen, setImportModalOpen] = useState(false);
@@ -161,6 +201,9 @@ export default function MasterData({
         setSelectedTeacherType("");
         setSelectedLevel("");
         setSelectedHasStudent("");
+        setEditItem(null);
+        setEditMode(null);
+        setCreateTab(null);
         router.visit(`/master-data?tab=${key}`, { preserveState: false, preserveScroll: true });
     };
 
@@ -205,6 +248,7 @@ export default function MasterData({
     };
 
     const handleSearch = (val: string) => {
+        if (val === search) return;
         setSearch(val);
         router.get(
             "/master-data",
@@ -450,13 +494,7 @@ export default function MasterData({
     ];
 
     const handleCloseCreate = () => {
-        setCreateTab(null);
-        if (
-            typeof window !== "undefined" &&
-            (window.location.pathname.includes("/create") || window.location.pathname.includes("/edit"))
-        ) {
-            router.visit(`/master-data?tab=${currentTab}`);
-        }
+        handleCloseDrawer();
     };
 
     const getSearchPlaceholder = () => {
@@ -862,7 +900,10 @@ export default function MasterData({
                             }}
                             onFilterChange={handleFilterChange}
                             createOpen={createTab === "students"}
-                            onCloseCreate={handleCloseCreate}
+                            onCloseCreate={handleCloseDrawer}
+                            editItem={currentTab === "students" ? (editItem as Student | null) : null}
+                            editMode={currentTab === "students" ? editMode : null}
+                            onCloseDrawer={handleCloseDrawer}
                             selectedIds={selectedIds}
                             onSelectedIdsChange={setSelectedIds}
                             onRequestDelete={requestDelete}
@@ -879,7 +920,10 @@ export default function MasterData({
                             }}
                             onFilterChange={handleFilterChange}
                             createOpen={createTab === "teachers"}
-                            onCloseCreate={handleCloseCreate}
+                            onCloseCreate={handleCloseDrawer}
+                            editItem={currentTab === "teachers" ? (editItem as Teacher | null) : null}
+                            editMode={currentTab === "teachers" ? editMode : null}
+                            onCloseDrawer={handleCloseDrawer}
                             selectedIds={selectedIds}
                             onSelectedIdsChange={setSelectedIds}
                             onRequestDelete={requestDelete}
@@ -898,7 +942,10 @@ export default function MasterData({
                             }}
                             onFilterChange={handleFilterChange}
                             createOpen={createTab === "class"}
-                            onCloseCreate={handleCloseCreate}
+                            onCloseCreate={handleCloseDrawer}
+                            editItem={currentTab === "class" ? (editItem as SchoolClass | null) : null}
+                            editMode={currentTab === "class" ? editMode : null}
+                            onCloseDrawer={handleCloseDrawer}
                             selectedIds={selectedIds}
                             onSelectedIdsChange={setSelectedIds}
                             onRequestDelete={requestDelete}
@@ -915,7 +962,10 @@ export default function MasterData({
                             }}
                             onFilterChange={handleFilterChange}
                             createOpen={createTab === "guardians"}
-                            onCloseCreate={handleCloseCreate}
+                            onCloseCreate={handleCloseDrawer}
+                            editItem={currentTab === "guardians" ? (editItem as Guardian | null) : null}
+                            editMode={currentTab === "guardians" ? editMode : null}
+                            onCloseDrawer={handleCloseDrawer}
                             selectedIds={selectedIds}
                             onSelectedIdsChange={setSelectedIds}
                             onRequestDelete={requestDelete}
@@ -1055,7 +1105,10 @@ export default function MasterData({
                                         onSearchChange={(val) => handleSearch(val)}
                                         onFilterChange={handleFilterChange}
                                         createOpen={createTab === "students"}
-                                        onCloseCreate={() => setCreateTab(null)}
+                                        onCloseCreate={handleCloseDrawer}
+                                        editItem={mobileSubPage === "students" ? (editItem as Student | null) : null}
+                                        editMode={mobileSubPage === "students" ? editMode : null}
+                                        onCloseDrawer={handleCloseDrawer}
                                         selectedIds={selectedIds}
                                         onSelectedIdsChange={setSelectedIds}
                                         onRequestDelete={requestDelete}
@@ -1073,7 +1126,10 @@ export default function MasterData({
                                         onSearchChange={(val) => handleSearch(val)}
                                         onFilterChange={handleFilterChange}
                                         createOpen={createTab === "teachers"}
-                                        onCloseCreate={() => setCreateTab(null)}
+                                        onCloseCreate={handleCloseDrawer}
+                                        editItem={mobileSubPage === "teachers" ? (editItem as Teacher | null) : null}
+                                        editMode={mobileSubPage === "teachers" ? editMode : null}
+                                        onCloseDrawer={handleCloseDrawer}
                                         selectedIds={selectedIds}
                                         onSelectedIdsChange={setSelectedIds}
                                         onRequestDelete={requestDelete}
@@ -1093,7 +1149,10 @@ export default function MasterData({
                                         onSearchChange={(val) => handleSearch(val)}
                                         onFilterChange={handleFilterChange}
                                         createOpen={createTab === "class"}
-                                        onCloseCreate={() => setCreateTab(null)}
+                                        onCloseCreate={handleCloseDrawer}
+                                        editItem={mobileSubPage === "class" ? (editItem as SchoolClass | null) : null}
+                                        editMode={mobileSubPage === "class" ? editMode : null}
+                                        onCloseDrawer={handleCloseDrawer}
                                         selectedIds={selectedIds}
                                         onSelectedIdsChange={setSelectedIds}
                                         onRequestDelete={requestDelete}
@@ -1111,7 +1170,10 @@ export default function MasterData({
                                         onSearchChange={(val) => handleSearch(val)}
                                         onFilterChange={handleFilterChange}
                                         createOpen={createTab === "guardians"}
-                                        onCloseCreate={() => setCreateTab(null)}
+                                        onCloseCreate={handleCloseDrawer}
+                                        editItem={mobileSubPage === "guardians" ? (editItem as Guardian | null) : null}
+                                        editMode={mobileSubPage === "guardians" ? editMode : null}
+                                        onCloseDrawer={handleCloseDrawer}
                                         selectedIds={selectedIds}
                                         onSelectedIdsChange={setSelectedIds}
                                         onRequestDelete={requestDelete}

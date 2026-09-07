@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Table,
     TableFooter,
@@ -31,6 +31,9 @@ interface ClassesTabProps {
     onFilterChange?: (key: string, val: string) => void;
     createOpen?: boolean;
     onCloseCreate?: () => void;
+    editItem?: SchoolClass | null;
+    editMode?: "edit" | "detail" | null;
+    onCloseDrawer?: () => void;
     selectedIds?: number[];
     onSelectedIdsChange?: (ids: number[]) => void;
     onRequestDelete: (entity: string, ids: number | number[], label: string) => void;
@@ -44,12 +47,26 @@ export default function ClassesTab({
     onSearchChange,
     createOpen = false,
     onCloseCreate,
+    editItem = null,
+    editMode = null,
+    onCloseDrawer,
     selectedIds: propsSelectedIds,
     onSelectedIdsChange,
     onRequestDelete,
 }: ClassesTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(null);
-    const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
+        editMode ?? null
+    );
+    const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(
+        editItem ?? null
+    );
+
+    useEffect(() => {
+        if (editItem && editMode) {
+            setSelectedClass(editItem);
+            setDrawerMode(editMode);
+        }
+    }, [editItem, editMode]);
     const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
 
     const isClientMode = searchConfig?.mode === "client";
@@ -455,7 +472,9 @@ export default function ClassesTab({
                 allTeachers={allTeachers}
                 onClose={() => {
                     setDrawerMode(null);
+                    setSelectedClass(null);
                     onCloseCreate?.();
+                    onCloseDrawer?.();
                 }}
                 onRequestDelete={onRequestDelete}
             />

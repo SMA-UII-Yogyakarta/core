@@ -1,5 +1,5 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Table,
     TableFooter,
@@ -31,6 +31,9 @@ interface GuardiansTabProps {
     onFilterChange?: (key: string, val: string) => void;
     createOpen?: boolean;
     onCloseCreate?: () => void;
+    editItem?: Guardian | null;
+    editMode?: "edit" | "detail" | null;
+    onCloseDrawer?: () => void;
     selectedIds?: number[];
     onSelectedIdsChange?: (ids: number[]) => void;
     onRequestDelete: (entity: string, ids: number | number[], label: string) => void;
@@ -42,12 +45,26 @@ export default function GuardiansTab({
     onSearchChange,
     createOpen = false,
     onCloseCreate,
+    editItem = null,
+    editMode = null,
+    onCloseDrawer,
     selectedIds: propsSelectedIds,
     onSelectedIdsChange,
     onRequestDelete,
 }: GuardiansTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(null);
-    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(null);
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
+        editMode ?? null
+    );
+    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(
+        editItem ?? null
+    );
+
+    useEffect(() => {
+        if (editItem && editMode) {
+            setSelectedGuardian(editItem);
+            setDrawerMode(editMode);
+        }
+    }, [editItem, editMode]);
     const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
 
     const guardianList = guardians?.data || [];
@@ -425,7 +442,9 @@ export default function GuardiansTab({
                 guardian={createOpen ? null : selectedGuardian}
                 onClose={() => {
                     setDrawerMode(null);
+                    setSelectedGuardian(null);
                     onCloseCreate?.();
+                    onCloseDrawer?.();
                 }}
                 onRequestDelete={onRequestDelete}
             />

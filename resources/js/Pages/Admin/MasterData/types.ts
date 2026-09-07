@@ -71,4 +71,5 @@ export interface MasterDataProps {
     filters?: Record<string, string | undefined>;
     initialCreateTab?: "students" | "teachers" | "class" | "guardians" | null;
     initialEditItem?: Student | Teacher | SchoolClass | Guardian | null;
+    initialEditMode?: "edit" | "detail" | null;
 }

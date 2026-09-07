@@ -62,9 +62,15 @@ export default function MobileFormPage(props: MobileFormPageProps) {
     const formMode = mode === "import" ? "create" : mode;
 
     if (isDesktop) {
+        const normalizedTab = ((tab as string) === "classes" ? "class" : tab) as
+            | "students"
+            | "teachers"
+            | "class"
+            | "guardians";
+
         return (
             <MasterData
-                activeTab={tab}
+                activeTab={normalizedTab}
                 students={students}
                 teachers={teachers}
                 schoolClasses={schoolClasses}
@@ -72,8 +78,9 @@ export default function MobileFormPage(props: MobileFormPageProps) {
                 classOptions={classOptions}
                 allGuardians={allGuardians}
                 allTeachers={allTeachers}
-                initialCreateTab={mode === "create" ? tab : null}
+                initialCreateTab={mode === "create" ? normalizedTab : null}
                 initialEditItem={mode === "edit" || mode === "detail" ? item : null}
+                initialEditMode={mode === "edit" || mode === "detail" ? mode : null}
             />
         );
     }
