@@ -30,6 +30,7 @@ export interface DrawerProps {
     footer?: ReactNode;
     leftFooter?: ReactNode;
     fullScreenMobile?: boolean;
+    asForm?: boolean;
     bodyClassName?: string;
     showCloseButton?: boolean;
 }
@@ -49,6 +50,7 @@ export default function Drawer({
     children,
     onSubmit,
     submitFormId,
+    asForm,
     onCancel,
     submitLabel = "Simpan",
     cancelLabel = "Batal",
@@ -132,7 +134,8 @@ export default function Drawer({
         );
     };
 
-    const isFormWrapper = Boolean(onSubmit) && !submitFormId;
+    const isFormWrapper = asForm ?? (Boolean(onSubmit) && !submitFormId);
+    const ContentWrapper = isFormWrapper ? "form" : "div";
 
     return (
         <AnimatePresence>
@@ -228,58 +231,32 @@ export default function Drawer({
                         </div>
 
                         {/* Drawer Content */}
-                        {isFormWrapper ? (
-                            <form
-                                onSubmit={handleSubmitClick}
-                                className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter"
+                        <ContentWrapper
+                            onSubmit={isFormWrapper ? handleSubmitClick : undefined}
+                            className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter"
+                        >
+                            <div
+                                className={`flex-1 ${
+                                    bodyClassName !== undefined
+                                        ? bodyClassName
+                                        : "overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-4"
+                                } overscroll-contain ${!showFooter ? "pb-safe" : ""}`}
                             >
-                                <div
-                                    className={`flex-1 ${
-                                        bodyClassName !== undefined
-                                            ? bodyClassName
-                                            : "overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-4"
-                                    } overscroll-contain`}
-                                >
-                                    {children}
-                                </div>
-
-                                {/* Sticky Footer (Only shown when showFooter is true) */}
-                                {showFooter && (
-                                    <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe min-w-0">
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            {leftFooter}
-                                        </div>
-                                        <div className="flex items-center gap-2.5 shrink-0 ml-auto">
-                                            {renderFooterContent()}
-                                        </div>
-                                    </div>
-                                )}
-                            </form>
-                        ) : (
-                            <div className="flex-1 flex flex-col min-h-0 overflow-hidden font-inter">
-                                <div
-                                    className={`flex-1 ${
-                                        bodyClassName !== undefined
-                                            ? bodyClassName
-                                            : "overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-4"
-                                    } overscroll-contain ${!showFooter ? "pb-safe" : ""}`}
-                                >
-                                    {children}
-                                </div>
-
-                                {/* Custom Sticky Footer */}
-                                {showFooter && (
-                                    <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe min-w-0">
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            {leftFooter}
-                                        </div>
-                                        <div className="flex items-center gap-2.5 shrink-0 ml-auto">
-                                            {renderFooterContent()}
-                                        </div>
-                                    </div>
-                                )}
+                                {children}
                             </div>
-                        )}
+
+                            {/* Sticky Footer (Only shown when showFooter is true) */}
+                            {showFooter && (
+                                <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe min-w-0">
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        {leftFooter}
+                                    </div>
+                                    <div className="flex items-center gap-2.5 shrink-0 ml-auto">
+                                        {renderFooterContent()}
+                                    </div>
+                                </div>
+                            )}
+                        </ContentWrapper>
                     </motion.div>
                 </div>
             )}

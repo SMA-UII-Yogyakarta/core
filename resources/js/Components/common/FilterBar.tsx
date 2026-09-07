@@ -62,12 +62,16 @@ interface FilterSearchProps {
 }
 
 function FilterSearch({ value, onChange, onSubmit, placeholder = "Cari data...", label }: FilterSearchProps) {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (onSubmit) onSubmit(e);
+        }
+    };
+
     return (
-        <form
-            onSubmit={(e) => {
-                if (onSubmit) onSubmit(e);
-                else e.preventDefault();
-            }}
+        <div
+            role="search"
             className="flex flex-col sm:flex-row sm:items-center gap-1.5 w-full sm:w-auto"
         >
             {label && (
@@ -81,11 +85,12 @@ function FilterSearch({ value, onChange, onSubmit, placeholder = "Cari data...",
                     type="text"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder={placeholder}
                     className="w-full pl-10 pr-4 py-2 border border-border rounded-xl text-[13px] font-medium font-inter text-text-primary bg-surface shadow-2xs hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-text-inactive transition-all"
                 />
             </div>
-        </form>
+        </div>
     );
 }
 

@@ -1069,6 +1069,7 @@ export default function EnrolmentKelas({
                         cancelLabel="Tutup"
                         disabled={selectedModalStudentIds.length === 0}
                         onSubmit={handleBulkAssign}
+                        asForm={false}
                         onCancel={handleCloseAddStudent}
                     >
                         <div className="flex flex-col gap-4">

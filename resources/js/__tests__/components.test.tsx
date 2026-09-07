@@ -9,6 +9,8 @@ import {
     StatCard,
     AttendanceCalendar,
     ExportButtonGroup,
+    SearchBar,
+    Drawer,
 } from "@/Components";
 
 describe("Design System Component Tests", () => {
@@ -75,5 +77,47 @@ describe("Design System Component Tests", () => {
         expect(screen.getByText("Unduh Excel")).toBeDefined();
         expect(screen.getByText("Unduh PDF")).toBeDefined();
         expect(screen.getByText("Cetak")).toBeDefined();
+    });
+
+    it("renders SearchBar with role='search' and without <form> wrapper", () => {
+        let searchedVal = "";
+        const { container } = render(
+            <SearchBar
+                value="siswa"
+                onChange={() => {}}
+                onSearch={(val) => {
+                    searchedVal = val;
+                }}
+            />,
+        );
+
+        // Must NOT render a <form> tag to prevent invalid HTML nested forms
+        expect(container.querySelector("form")).toBeNull();
+        expect(screen.getByRole("search")).toBeDefined();
+
+        const input = screen.getByPlaceholderText("Cari data...");
+        expect(input).toBeDefined();
+
+        // Pressing Enter must trigger onSearch
+        fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+        expect(searchedVal).toBe("siswa");
+    });
+
+    it("renders Drawer as div when asForm={false} and allows embedding SearchBar safely", () => {
+        const { container } = render(
+            <Drawer
+                open={true}
+                onClose={() => {}}
+                title="Pilih Siswa"
+                onSubmit={() => {}}
+                asForm={false}
+            >
+                <SearchBar value="" onChange={() => {}} placeholder="Cari di modal..." />
+            </Drawer>,
+        );
+
+        // Ensures there are ZERO form elements, completely avoiding nested form violation
+        expect(container.querySelector("form")).toBeNull();
+        expect(screen.getByPlaceholderText("Cari di modal...")).toBeDefined();
     });
 });
