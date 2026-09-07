@@ -136,7 +136,7 @@ class ApiContractTest extends TestCase
             ->assertJsonStructure(['success', 'message', 'errors', 'data'])
             ->assertJsonPath('success', false)
             ->assertJsonPath('data', null)
-            ->assertJsonStructure(['errors' => ['nis', 'nisn', 'name', 'class_id']]);
+            ->assertJsonStructure(['errors' => ['nis', 'nisn', 'name']]);
     }
 
     /**

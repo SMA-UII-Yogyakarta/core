@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { router, Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
@@ -11,8 +11,10 @@ import {
     Card,
     PageHeader,
     Drawer,
+    SearchBar,
+    FilterPopover,
 } from "@/Components";
-import TabSwitcher from "@/Components/common/TabSwitcher";
+import TabSwitcher, { type TabItem } from "@/Components/common/TabSwitcher";
 import EmptyState from "@/Components/common/EmptyState";
 import Input from "@/Components/ui/Input";
 import NativeSelect from "@/Components/ui/NativeSelect";
@@ -28,6 +30,7 @@ import {
     FiChevronRight,
     FiActivity,
     FiLayers,
+    FiCheckSquare,
 } from "react-icons/fi";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import type { StatusVariant } from "@/types/component";
@@ -179,29 +182,43 @@ export default function Dashboard({
     monthlyTrend,
     weeklyTrend,
 }: DashboardProps) {
-    const [activeTab, setActiveTab] = useState<"overview" | "attention">(() => (selectedClassId ? "attention" : "overview"));
+    const today = new Date().toISOString().split("T")[0];
+
+    const [activeTab, setActiveTab] = useState<"overview" | "attention">(() => {
+        if (typeof window !== "undefined") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get("tab");
+            if (tabParam === "attention" || tabParam === "overview") {
+                return tabParam;
+            }
+        }
+        return selectedClassId ? "attention" : "overview";
+    });
+    const [attentionSearch, setAttentionSearch] = useState("");
     const [period, setPeriod] = useState<Period>("Bulanan");
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+    const [isFilterPopoverOpen, setIsFilterPopoverOpen] = useState(false);
 
     // Mobile Drawer filter state
     const [drawerClassId, setDrawerClassId] = useState<string>(selectedClassId ? String(selectedClassId) : "");
     const [drawerDate, setDrawerDate] = useState<string>(selectedDate);
 
-    useEffect(() => {
+    const [prevSelectedClassId, setPrevSelectedClassId] = useState(selectedClassId);
+    const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
+    const [prevMobileFilterOpen, setPrevMobileFilterOpen] = useState(mobileFilterOpen);
+
+    if (selectedClassId !== prevSelectedClassId || selectedDate !== prevSelectedDate || mobileFilterOpen !== prevMobileFilterOpen) {
+        setPrevSelectedClassId(selectedClassId);
+        setPrevSelectedDate(selectedDate);
+        setPrevMobileFilterOpen(mobileFilterOpen);
         setDrawerClassId(selectedClassId ? String(selectedClassId) : "");
         setDrawerDate(selectedDate);
-    }, [selectedClassId, selectedDate, mobileFilterOpen]);
-
-    // ── Live Polling for Admin Stats (30s) ──────────────────────────────────
-    useInertiaPolling({
-        only: ["stats", "classDetail", "weeklyTrend", "monthlyTrend"],
-        intervalMs: 30000,
-    });
-
+    }
     const handleClassFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
         router.get(
             "/dashboard",
-            { class_id: e.target.value || undefined, date: selectedDate },
+            { tab: activeTab, class_id: e.target.value || undefined, date: selectedDate },
             { preserveState: true, replace: true },
         );
     };
@@ -209,7 +226,7 @@ export default function Dashboard({
     const handleDateFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
         router.get(
             "/dashboard",
-            { class_id: selectedClassId || undefined, date: e.target.value },
+            { tab: activeTab, class_id: selectedClassId || undefined, date: e.target.value },
             { preserveState: true, replace: true },
         );
     };
@@ -218,24 +235,132 @@ export default function Dashboard({
         setMobileFilterOpen(false);
         router.get(
             "/dashboard",
-            { class_id: drawerClassId || undefined, date: drawerDate },
+            { tab: activeTab, class_id: drawerClassId || undefined, date: drawerDate },
             { preserveState: true, replace: true },
         );
     };
 
     const handleResetMobileFilter = () => {
         setDrawerClassId("");
-        const today = new Date().toISOString().split("T")[0];
         setDrawerDate(today);
         setMobileFilterOpen(false);
         router.get(
             "/dashboard",
-            { class_id: undefined, date: today },
+            { tab: activeTab, class_id: undefined, date: today },
             { preserveState: true, replace: true },
         );
     };
 
-    const students: AttentionStudent[] = classDetail?.students ?? [];
+    // ── Desktop Filter Popover Content ───────────────────────────────────────
+    const desktopFilterContent = (
+        <FilterPopover
+            open={isFilterPopoverOpen}
+            onClose={() => setIsFilterPopoverOpen(false)}
+            align="right"
+            trigger={
+                <Button
+                    variant="accent"
+                    onClick={() => setIsFilterPopoverOpen((prev) => !prev)}
+                    className="h-10 px-3.5 text-[13px] font-bold shadow-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border-transparent"
+                    title="Filter Kelas & Tanggal"
+                    aria-label="Filter Kelas & Tanggal"
+                >
+                    <FiFilter className="text-[14px] text-primary" />
+                    <span>Filter</span>
+                    {(selectedClassId || selectedDate !== today) && (
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    )}
+                </Button>
+            }
+        >
+            <div className="flex flex-col gap-4 font-inter p-1">
+                <div className="flex items-center justify-between border-b border-border pb-2.5">
+                    <h4 className="text-[14px] font-bold text-text-primary">
+                        Filter Presensi
+                    </h4>
+                    {(selectedClassId || selectedDate !== today) && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsFilterPopoverOpen(false);
+                                handleResetMobileFilter();
+                            }}
+                            className="text-[12px] font-semibold text-danger hover:underline cursor-pointer"
+                        >
+                            Reset Filter
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-[12px] font-bold text-text-secondary">
+                        Pilih Rombongan Belajar (Kelas)
+                    </label>
+                    <NativeSelect
+                        value={selectedClassId ? String(selectedClassId) : ""}
+                        onChange={(e) => {
+                            handleClassFilter(e);
+                            setIsFilterPopoverOpen(false);
+                        }}
+                        className="h-10 text-[13px] rounded-xl"
+                    >
+                        <option value="">-- Semua Kelas --</option>
+                        {classes.map((c) => (
+                            <option key={c.id} value={c.id}>
+                                Kelas {c.name}
+                            </option>
+                        ))}
+                    </NativeSelect>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <label className="text-[12px] font-bold text-text-secondary">
+                        Pilih Tanggal Presensi
+                    </label>
+                    <Input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => {
+                            handleDateFilter(e);
+                            setIsFilterPopoverOpen(false);
+                        }}
+                        className="h-10 text-[13px] rounded-xl"
+                    />
+                </div>
+            </div>
+        </FilterPopover>
+    );
+
+    // ── Live Polling for Admin Stats (30s) ──────────────────────────────────
+    useInertiaPolling({
+        only: ["stats", "classDetail", "weeklyTrend", "monthlyTrend"],
+        intervalMs: 30000,
+    });
+
+    const handleTabChange = (k: "overview" | "attention") => {
+        setActiveTab(k);
+        router.get(
+            "/dashboard",
+            {
+                tab: k,
+                class_id: selectedClassId || undefined,
+                date: selectedDate,
+            },
+            { preserveState: true, replace: true }
+        );
+    };
+
+    const filteredAttentionStudents = useMemo(() => {
+        if (!classDetail?.students) return [];
+        if (!attentionSearch.trim()) return classDetail.students;
+        const q = attentionSearch.toLowerCase().trim();
+        return classDetail.students.filter(
+            (s) =>
+                (s.name && s.name.toLowerCase().includes(q)) ||
+                (s.nis && s.nis.toLowerCase().includes(q)) ||
+                (s.nisn && s.nisn.toLowerCase().includes(q))
+        );
+    }, [classDetail, attentionSearch]);
 
     const avgAttendanceFixed =
         stats.total_students > 0 ? ((stats.verified_present / stats.total_students) * 100).toFixed(1) + "%" : "0%";
@@ -271,20 +396,36 @@ export default function Dashboard({
 
     const isFilterActive = Boolean(selectedClassId || (selectedDate && selectedDate !== new Date().toISOString().split("T")[0]));
 
-    // Mobile Header Filter Button (only visible on mobile < sm when on attention tab)
+    const verificationButtonNode = useMemo(() => {
+        if (pendingLeaveCount <= 0) return null;
+        return (
+            <Button
+                variant="primary"
+                size="sm"
+                onClick={() => router.get("/leave-requests/verification")}
+                className="h-10 px-4 text-[13px] font-bold shadow-xs rounded-xl shrink-0"
+            >
+                Verifikasi ({pendingLeaveCount})
+            </Button>
+        );
+    }, [pendingLeaveCount]);
+
+    // Mobile header action: optional filter button (only < sm on attention tab)
     const mobileHeaderAction = activeTab === "attention" ? (
-        <button
-            type="button"
-            onClick={() => setMobileFilterOpen(true)}
-            className="sm:hidden w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative cursor-pointer"
-            title="Filter Data Presensi"
-            aria-label="Filter Data Presensi"
-        >
-            <FiFilter className="text-[15px]" />
-            {isFilterActive && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-primary" />
-            )}
-        </button>
+        <div className="sm:hidden flex items-center gap-2 select-none font-inter">
+            <button
+                type="button"
+                onClick={() => setMobileFilterOpen(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative cursor-pointer"
+                title="Filter Data Presensi"
+                aria-label="Filter Data Presensi"
+            >
+                <FiFilter className="text-[15px]" />
+                {isFilterActive && (
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-primary" />
+                )}
+            </button>
+        </div>
     ) : undefined;
 
     const attentionColumns: Column<AttentionStudent>[] = [
@@ -366,9 +507,29 @@ export default function Dashboard({
         },
     ];
 
+    const dashboardTabs = useMemo<TabItem[]>(
+        () => [
+            {
+                key: "overview",
+                label: "Statistik & Tren",
+                icon: <FiPieChart className="w-3.5 h-3.5 shrink-0" />,
+            },
+            {
+                key: "attention",
+                label: "Perhatian Khusus",
+                icon: <FiAlertCircle className="w-3.5 h-3.5 shrink-0" />,
+            },
+        ],
+        [],
+    );
+
     return (
-        <AppShell title="Dashboard Admin" headerActions={mobileHeaderAction}>
-            {/* Desktop PageHeader (hidden on mobile) */}
+        <AppShell
+            title="Dashboard Admin"
+            hasTopTabs={true}
+            headerActions={mobileHeaderAction}
+        >
+            {/* Desktop PageHeader (hidden on mobile & tablet) */}
             <div className="hidden lg:block">
                 <PageHeader
                     title="Statistik Kehadiran Sekolah"
@@ -381,70 +542,52 @@ export default function Dashboard({
                 />
             </div>
 
-            {/* Top Toolbar / Tab Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+            {/* 📱 MOBILE ONLY (< sm): Standard Tab Row */}
+            <div className="sm:hidden flex flex-col gap-2.5 mb-3 font-inter">
                 <TabSwitcher
-                    tabs={[
-                        {
-                            key: "overview",
-                            label: "Statistik & Tren",
-                            icon: <FiPieChart className="w-3.5 h-3.5" />,
-                        },
-                        {
-                            key: "attention",
-                            label: "Perhatian Khusus",
-                            icon: <FiAlertCircle className="w-3.5 h-3.5" />,
-                            badge: pendingLeaveCount > 0 ? (
-                                <span className="ml-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-bg text-danger border border-danger/20">
-                                    {pendingLeaveCount} Menunggu
-                                </span>
-                            ) : undefined,
-                        },
-                    ]}
+                    tabs={dashboardTabs}
                     activeKey={activeTab}
-                    onChange={(k) => setActiveTab(k as "overview" | "attention")}
+                    onChange={(k) => handleTabChange(k as "overview" | "attention")}
                     variant="segmented"
-                    className="shrink-0 w-full sm:w-auto"
+                    fullWidth
                 />
+            </div>
 
-                {/* Tablet & Desktop Controls (hidden on mobile < sm, visible on >= sm) */}
-                <div className="hidden sm:flex items-center gap-2.5 shrink-0 font-inter">
-                    {activeTab === "overview" && (
-                        <TabSwitcher
-                            tabs={PERIODS.map((p) => ({ key: p, label: p }))}
-                            activeKey={period}
-                            onChange={(k) => setPeriod(k as Period)}
-                            variant="segmented"
-                            className="shrink-0"
-                        />
-                    )}
+            {/* 🖥️ TABLET & DESKTOP (>= sm): Clean Light Toolbar Row */}
+            <div className="hidden sm:flex items-center justify-between gap-2.5 mb-4 shrink-0 font-inter max-w-full min-w-0 w-full">
+                {/* Tab Switcher (Shrinkable & Truncated on tablet/desktop view) */}
+                <div className="shrink min-w-0">
+                    <TabSwitcher
+                        tabs={dashboardTabs}
+                        activeKey={activeTab}
+                        onChange={(k) => handleTabChange(k as "overview" | "attention")}
+                        variant="segmented"
+                        theme="light"
+                        shrinkable
+                    />
+                </div>
 
-                    {activeTab === "attention" && (
-                        <div className="flex items-center gap-2.5 font-inter">
-                            <NativeSelect
-                                value={selectedClassId ?? ""}
-                                onChange={handleClassFilter}
-                                className="min-w-[190px]"
-                                aria-label="Pilih Kelas"
-                            >
-                                <option value="">Semua Kelas / Rombel</option>
-                                {classes.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </NativeSelect>
+                {/* Verification Action for Overview Tab (Tablet & Desktop sm+) */}
+                {activeTab === "overview" && verificationButtonNode && (
+                    <div className="flex items-center gap-2 shrink-0 ml-auto font-inter">
+                        {verificationButtonNode}
+                    </div>
+                )}
 
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={handleDateFilter}
-                                inputClassName="h-10 text-[13px] rounded-xl"
-                                aria-label="Pilih Tanggal"
+                {/* Search Bar & Filter Button in Attention Tab for Tablet & Desktop */}
+                {activeTab === "attention" && (
+                    <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 ml-auto font-inter">
+                        <div className="w-44 sm:w-56 md:w-64">
+                            <SearchBar
+                                value={attentionSearch}
+                                onChange={setAttentionSearch}
+                                onSearch={() => {}}
+                                placeholder="Cari NIS, NISN, atau nama..."
                             />
                         </div>
-                    )}
-                </div>
+                        {desktopFilterContent}
+                    </div>
+                )}
             </div>
 
             {/* ── Tab Content 1: Overview ── */}
@@ -593,12 +736,12 @@ export default function Dashboard({
 
                         {/* 3. Interactive Attendance Trend Card */}
                         <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                <div>
-                                    <h3 className="text-[13px] font-bold text-text-primary">
+                            <div className="flex items-center justify-between gap-2 min-w-0">
+                                <div className="min-w-0">
+                                    <h3 className="text-[13px] font-bold text-text-primary leading-tight truncate">
                                         {chartTitle(period, selectedDate)}
                                     </h3>
-                                    <p className="text-[10px] text-text-muted mt-0.5">
+                                    <p className="text-[10px] text-text-muted mt-0.5 truncate">
                                         {chartRangeLabel(period, year, selectedDate)}
                                     </p>
                                 </div>
@@ -607,7 +750,8 @@ export default function Dashboard({
                                     activeKey={period}
                                     onChange={(k) => setPeriod(k as Period)}
                                     variant="segmented"
-                                    className="shrink-0 self-start sm:self-auto text-[11px]"
+                                    size="sm"
+                                    className="shrink-0"
                                 />
                             </div>
 
@@ -704,7 +848,7 @@ export default function Dashboard({
 
                             {/* Ekspor Rekap Presensi */}
                             <Link
-                                href="/reports"
+                                href="/export"
                                 className="bg-surface border border-border rounded-2xl p-3.5 shadow-card hover:border-primary/40 active:scale-[0.98] transition-all flex items-center justify-between group mt-1"
                             >
                                 <div className="flex items-center gap-3">
@@ -800,21 +944,41 @@ export default function Dashboard({
                                 className="py-4"
                             />
                         </Card>
-                    ) : students.length === 0 ? (
+                    ) : filteredAttentionStudents.length === 0 ? (
                         <Card className="p-8 rounded-2xl shadow-card">
                             <EmptyState
                                 variant="no-data"
-                                icon={<FiCheckCircle className="text-4xl text-success" />}
-                                title="Semua Hadir Tepat Waktu"
-                                description="Semua siswa di kelas ini sudah hadir dan terdata aktif hari ini."
+                                icon={
+                                    attentionSearch.trim() ? (
+                                        <FiAlertCircle className="text-4xl text-text-inactive" />
+                                    ) : (
+                                        <FiCheckCircle className="text-4xl text-success" />
+                                    )
+                                }
+                                title={attentionSearch.trim() ? "Tidak Ada Hasil" : "Semua Hadir Tepat Waktu"}
+                                description={
+                                    attentionSearch.trim()
+                                        ? `Tidak ditemukan siswa yang cocok dengan pencarian "${attentionSearch}".`
+                                        : "Semua siswa di kelas ini sudah hadir dan terdata aktif hari ini."
+                                }
                                 className="py-4"
                             />
                         </Card>
                     ) : (
                         <>
+                            {/* Mobile Search Bar (< sm) */}
+                            <div className="sm:hidden mb-1">
+                                <SearchBar
+                                    value={attentionSearch}
+                                    onChange={setAttentionSearch}
+                                    onSearch={setAttentionSearch}
+                                    placeholder="Cari NIS, NISN, atau nama..."
+                                />
+                            </div>
+
                             {/* Mobile Student List Feed (< sm) */}
                             <div className="flex flex-col gap-3 sm:hidden">
-                                {students.map((s) => {
+                                {filteredAttentionStudents.map((s) => {
                                     const cfg = statusConfig[s.status] ?? statusConfig["Absent"];
                                     const isAbsent = s.status === "Absent";
                                     const isLate = s.status === "Late";
@@ -884,7 +1048,7 @@ export default function Dashboard({
                             {/* Tablet & Desktop Table (>= sm) */}
                             <div className="hidden sm:block">
                                 <Card className="p-4 sm:p-6 rounded-2xl shadow-card">
-                                    <Table columns={attentionColumns} data={students} keyExtractor={(s) => s.id} />
+                                    <Table columns={attentionColumns} data={filteredAttentionStudents} keyExtractor={(s) => s.id} />
                                 </Card>
                             </div>
                         </>
@@ -954,6 +1118,19 @@ export default function Dashboard({
                     </div>
                 </div>
             </Drawer>
+
+            {/* 🎈 FLOATING BALLOON: Verifikasi Izin untuk Mobile (< sm) khusus Tab Statistik & Tren */}
+            {activeTab === "overview" && pendingLeaveCount > 0 && (
+                <button
+                    type="button"
+                    onClick={() => router.get("/leave-requests/verification")}
+                    className="sm:hidden fixed bottom-20 right-4 z-40 bg-primary text-white font-bold text-[13px] px-4 py-2.5 rounded-full shadow-xl hover:bg-primary-hover active:scale-95 transition-all flex items-center gap-2 border border-white/20 backdrop-blur-sm cursor-pointer"
+                    aria-label={`Verifikasi ${pendingLeaveCount} izin menunggu`}
+                >
+                    <FiCheckSquare className="text-[16px]" />
+                    <span>Verifikasi ({pendingLeaveCount})</span>
+                </button>
+            )}
         </AppShell>
     );
 }

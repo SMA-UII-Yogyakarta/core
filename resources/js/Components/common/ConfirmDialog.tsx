@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Modal from "./Modal";
 import Button from "../ui/Button";
+import { FiTrash2, FiAlertTriangle, FiHelpCircle } from "react-icons/fi";
 
 export type ConfirmDialogVariant = "danger" | "warning" | "primary";
 
@@ -19,23 +20,32 @@ export interface ConfirmDialogProps {
 
 const variantConfig: Record<
     ConfirmDialogVariant,
-    { icon: string; iconBg: string; iconColor: string; buttonVariant: "danger" | "primary" | "secondary" }
+    {
+        icon: ReactNode;
+        iconBg: string;
+        iconBorder: string;
+        iconColor: string;
+        buttonVariant: "danger" | "primary" | "secondary";
+    }
 > = {
     danger: {
-        icon: "fa-trash-alt",
-        iconBg: "bg-danger-bg border border-danger-light",
+        icon: <FiTrash2 className="w-6 h-6 stroke-[2.2]" />,
+        iconBg: "bg-danger/10",
+        iconBorder: "border-danger/20",
         iconColor: "text-danger",
         buttonVariant: "danger",
     },
     warning: {
-        icon: "fa-exclamation-triangle",
-        iconBg: "bg-warning-bg border border-warning-light",
-        iconColor: "text-warning",
-        buttonVariant: "secondary",
+        icon: <FiAlertTriangle className="w-6 h-6 stroke-[2.2]" />,
+        iconBg: "bg-amber-500/10",
+        iconBorder: "border-amber-500/20",
+        iconColor: "text-amber-600",
+        buttonVariant: "primary",
     },
     primary: {
-        icon: "fa-question-circle",
-        iconBg: "bg-primary-light/40 border border-primary/20",
+        icon: <FiHelpCircle className="w-6 h-6 stroke-[2.2]" />,
+        iconBg: "bg-primary/10",
+        iconBorder: "border-primary/20",
         iconColor: "text-primary",
         buttonVariant: "primary",
     },
@@ -57,35 +67,38 @@ export default function ConfirmDialog({
 
     return (
         <Modal open={open} onClose={onClose} title={title} width="sm">
-            <div className="flex flex-col items-center text-center p-2" dusk={dusk}>
+            <div className="flex flex-col items-center text-center pt-2 pb-1 font-inter select-none" dusk={dusk}>
+                {/* Modern Icon Container */}
                 <div
-                    className={`w-14 h-14 rounded-full flex items-center justify-center text-xl mb-4 ${config.iconBg} ${config.iconColor}`}
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-3.5 border ${config.iconBg} ${config.iconBorder} ${config.iconColor} shadow-2xs`}
                 >
-                    <i className={`fas ${config.icon}`} />
+                    {config.icon}
                 </div>
 
+                {/* Formatted Message Box */}
                 {message && (
-                    <div className="text-[14px] text-text-secondary font-inter mb-6 leading-relaxed">
+                    <div className="w-full bg-muted/40 border border-border/70 rounded-xl p-3.5 text-[13px] text-text-secondary mb-5 leading-relaxed text-center font-normal">
                         {message}
                     </div>
                 )}
 
-                <div className="flex items-center justify-center gap-3 w-full">
-                    <Button
-                        variant="ghost"
+                {/* Footer Action Buttons */}
+                <div className="flex items-center justify-center gap-2.5 w-full">
+                    <button
+                        type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="flex-1"
+                        className="flex-1 h-10 px-4 rounded-xl text-[13px] font-bold text-text-secondary bg-surface hover:bg-muted/60 border border-border transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-2xs"
                         dusk={`${dusk}-cancel`}
                         data-testid={`${dusk}-cancel`}
                     >
                         {cancelLabel}
-                    </Button>
+                    </button>
                     <Button
                         variant={config.buttonVariant}
                         onClick={onConfirm}
                         loading={loading}
-                        className="flex-1"
+                        className="flex-1 h-10 text-[13px] font-extrabold rounded-xl shadow-xs"
                         dusk={`${dusk}-submit`}
                         data-testid={`${dusk}-submit`}
                     >

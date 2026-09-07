@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useForm, Link } from "@inertiajs/react";
+import { useForm, Link, router } from "@inertiajs/react";
 import {
     FiFileText,
     FiSend,
@@ -20,8 +20,11 @@ import {
     Button,
     StatusBadge,
     Table,
+    TableFooter,
     EmptyState,
     FormError,
+    Pagination,
+    MobileNativePagination,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { leaveApplicationSchema } from "@/schemas";
@@ -50,6 +53,7 @@ interface PageProps {
         current_page: number;
         last_page: number;
         total: number;
+        per_page?: number;
     };
 }
 
@@ -164,6 +168,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                 <PageHeader
                     title="Pengajuan Izin Ketidakhadiran"
                     description="Ajukan permohonan izin ketidakhadiran anak Anda langsung ke Wali Kelas."
+                    className="hidden lg:flex shrink-0 mb-4"
                 >
                     <Link href="/guardian">
                         <Button variant="outline" size="sm" icon={<FiArrowLeft className="w-4 h-4" />}>
@@ -335,11 +340,98 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                             description="Riwayat pengajuan izin anak Anda akan muncul di sini setelah Anda mengirimkan formulir di atas."
                         />
                     ) : (
-                        <Table
-                            columns={leaveColumns}
-                            data={leaveRequests.data}
-                            keyExtractor={(item: LeaveRequestRecord) => item.id}
-                        />
+                        <>
+                            {/* Mobile Card Stack (< sm) */}
+                            <div className="sm:hidden space-y-3">
+                                {leaveRequests.data.map((item) => {
+                                    const opt = CATEGORY_OPTIONS.find((c) => c.value === item.category);
+                                    const s = item.approval_status?.toLowerCase() ?? "pending";
+                                    const variant =
+                                        s === "approved"
+                                            ? "approved"
+                                            : s === "rejected"
+                                            ? "rejected"
+                                            : "pending";
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <h4 className="text-[14px] font-bold text-text-primary truncate">
+                                                        {item.student?.name}
+                                                    </h4>
+                                                    <p className="text-[12px] text-text-secondary">
+                                                        {opt?.label ?? item.category}
+                                                    </p>
+                                                </div>
+                                                <StatusBadge variant={variant} />
+                                            </div>
+                                            <div className="flex items-center justify-between text-[11px] text-text-muted pt-2 border-t border-border">
+                                                <span>Periode</span>
+                                                <span>
+                                                    {item.start_date}
+                                                    {item.end_date && item.end_date !== item.start_date ? ` s/d ${item.end_date}` : ""}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                {leaveRequests.last_page > 1 && (
+                                    <div className="pt-2 font-inter">
+                                        <MobileNativePagination
+                                            currentPage={leaveRequests.current_page}
+                                            totalPages={leaveRequests.last_page}
+                                            totalItems={leaveRequests.total}
+                                            onPageChange={(page) =>
+                                                router.get(
+                                                    "/guardian/leave-application",
+                                                    { page },
+                                                    { preserveState: true }
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Tablet & Desktop View (>= sm) */}
+                            <div className="hidden sm:block space-y-3">
+                                <Table
+                                    columns={leaveColumns}
+                                    data={leaveRequests.data}
+                                    keyExtractor={(item: LeaveRequestRecord) => item.id}
+                                />
+                                <TableFooter
+                                    info={
+                                        leaveRequests.total > 0 ? (
+                                            <span>
+                                                Menampilkan <strong className="text-text-primary">{(leaveRequests.current_page - 1) * (leaveRequests.per_page ?? 10) + 1}–{Math.min(leaveRequests.current_page * (leaveRequests.per_page ?? 10), leaveRequests.total)}</strong> dari total <strong className="text-text-primary">{leaveRequests.total}</strong> pengajuan izin.
+                                            </span>
+                                        ) : undefined
+                                    }
+                                    pagination={
+                                        leaveRequests.last_page > 1 ? (
+                                            <Pagination
+                                                currentPage={leaveRequests.current_page}
+                                                totalPages={leaveRequests.last_page}
+                                                totalItems={leaveRequests.total}
+                                                perPage={leaveRequests.per_page ?? 10}
+                                                onPageChange={(page) =>
+                                                    router.get(
+                                                        "/guardian/leave-application",
+                                                        { page },
+                                                        { preserveState: true }
+                                                    )
+                                                }
+                                            />
+                                        ) : undefined
+                                    }
+                                />
+                            </div>
+                        </>
                     )}
                 </section>
             </div>

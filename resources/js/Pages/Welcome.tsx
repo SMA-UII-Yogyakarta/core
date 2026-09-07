@@ -181,34 +181,40 @@ export default function Welcome() {
     return (
         <PublicLayout title={t("welcome.documentTitle")}>
             <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
+
                 {/* --- HEADER --- */}
-                <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-neutral-950/80 border-b border-slate-200/80 dark:border-neutral-900/80">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-accent font-bold text-xl shadow-md shadow-primary/20">
+                <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-neutral-950/90 border-b border-slate-200/80 dark:border-neutral-900/80">
+                    <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+
+                        {/* Logo + Brand */}
+                        <div className="flex items-center gap-2.5 min-w-0 shrink">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-accent font-bold text-base sm:text-xl shadow-md shadow-primary/20 shrink-0">
                                 UII
                             </div>
-                            <div>
-                                <span className="font-brand font-bold text-lg tracking-tight text-primary dark:text-white">
+                            <div className="min-w-0">
+                                <span className="font-brand font-bold text-base sm:text-lg tracking-tight text-primary dark:text-white block leading-tight">
                                     SMART Absen
                                 </span>
-                                <span className="block text-[10px] text-neutral-500 font-semibold tracking-wider uppercase -mt-1">
+                                {/* Subtitle hanya tampil ab sm agar tidak overflow di 320px */}
+                                <span className="hidden xs:block text-[9px] sm:text-[10px] text-neutral-500 font-semibold tracking-wider uppercase leading-tight">
                                     SMA UII Yogyakarta
                                 </span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        {/* Right actions */}
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                            {/* Sistem Online — hanya tampil di md+ */}
                             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                 {t("welcome.systemOnline")}
                             </div>
 
-                            {/* --- LANGUAGE SWITCHER --- */}
-                            <div className="flex items-center border border-slate-200 dark:border-neutral-800 rounded-lg p-1 bg-slate-50 dark:bg-neutral-900">
+                            {/* Language Switcher — compact di mobile */}
+                            <div className="flex items-center border border-slate-200 dark:border-neutral-800 rounded-lg p-0.5 sm:p-1 bg-slate-50 dark:bg-neutral-900">
                                 <button
                                     onClick={() => setLanguage("id")}
-                                    className={`px-2 py-1 text-xs font-bold rounded-md transition-all ${
+                                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all ${
                                         locale === "id"
                                             ? "bg-white dark:bg-neutral-800 text-primary dark:text-white shadow-xs"
                                             : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
@@ -218,7 +224,7 @@ export default function Welcome() {
                                 </button>
                                 <button
                                     onClick={() => setLanguage("en")}
-                                    className={`px-2 py-1 text-xs font-bold rounded-md transition-all ${
+                                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all ${
                                         locale === "en"
                                             ? "bg-white dark:bg-neutral-800 text-primary dark:text-white shadow-xs"
                                             : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
@@ -228,42 +234,48 @@ export default function Welcome() {
                                 </button>
                             </div>
 
+                            {/* Login button — xs: hanya icon + text pendek, sm+: full */}
                             <Link
                                 href="/login"
-                                className="px-4 py-2 bg-primary hover:bg-primary/95 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 rounded-lg text-sm font-semibold transition-all shadow-sm"
+                                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary hover:bg-primary/95 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm whitespace-nowrap"
                             >
-                                {t("welcome.loginButton")}
+                                <span className="sm:hidden">Masuk</span>
+                                <span className="hidden sm:inline">{t("welcome.loginButton")}</span>
                             </Link>
                         </div>
                     </div>
                 </header>
 
                 {/* --- HERO SECTION --- */}
-                <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28">
+                <section className="relative overflow-hidden pt-10 pb-14 sm:pt-16 sm:pb-20 lg:pt-24 lg:pb-28">
                     {/* Background Ambient Glows */}
-                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/5 dark:bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute top-1/3 left-1/4 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary-light/50 dark:bg-neutral-900 border border-primary/10 dark:border-neutral-800 text-primary dark:text-indigo-300 text-xs font-semibold mb-6">
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-light/50 dark:bg-neutral-900 border border-primary/10 dark:border-neutral-800 text-primary dark:text-indigo-300 text-[11px] sm:text-xs font-semibold mb-5 sm:mb-6">
                             {t("welcome.badge")}
                         </div>
 
-                        <h1 className="font-brand font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight max-w-4xl mx-auto">
+                        {/* Headline — mobile: 2.25rem, sm: 3rem, lg: 4rem */}
+                        <h1 className="font-brand font-extrabold text-[2rem] xs:text-[2.25rem] sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] max-w-4xl mx-auto">
                             <span className="block text-neutral-900 dark:text-white">{t("welcome.titleLine1")}</span>
-                            <span className="block mt-2 bg-linear-to-r from-primary to-indigo-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-accent">
+                            <span className="block mt-1 sm:mt-2 bg-linear-to-r from-primary to-indigo-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-accent">
                                 {t("welcome.titleLine2")}
                             </span>
                         </h1>
 
-                        <p className="mt-6 text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+                        {/* Subtitle — sedikit lebih kecil di xs */}
+                        <p className="mt-4 sm:mt-6 text-sm sm:text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-xl sm:max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
                             {t("welcome.subtitle")}
                         </p>
 
-                        <div className="mt-10 flex flex-wrap justify-center gap-4">
+                        {/* CTA — full width di xs agar mudah di-tap */}
+                        <div className="mt-8 sm:mt-10 flex justify-center px-4 sm:px-0">
                             <a
                                 href="#portal-masuk"
-                                className="px-6 py-3 bg-primary hover:bg-primary/95 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 rounded-xl font-semibold shadow-lg shadow-primary/15 transition-all text-sm flex items-center gap-2"
+                                className="w-full max-w-xs sm:w-auto px-6 py-3.5 sm:py-3 bg-primary hover:bg-primary/95 text-white dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-100 rounded-xl font-semibold shadow-lg shadow-primary/15 transition-all text-sm flex items-center justify-center gap-2"
                             >
                                 {t("welcome.ctaButton")} <FiChevronRight className="w-4 h-4" />
                             </a>
@@ -274,44 +286,45 @@ export default function Welcome() {
                 {/* --- ROLE ACCESS SELECTOR --- */}
                 <section
                     id="portal-masuk"
-                    className="py-16 bg-slate-50 dark:bg-neutral-900/40 border-y border-slate-200/50 dark:border-neutral-900/50"
+                    className="py-10 sm:py-16 bg-slate-50 dark:bg-neutral-900/40 border-y border-slate-200/50 dark:border-neutral-900/50"
                 >
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center max-w-3xl mx-auto mb-12">
-                            <h2 className="font-brand font-bold text-2xl sm:text-3xl text-neutral-900 dark:text-white">
+                        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+                            <h2 className="font-brand font-bold text-xl sm:text-2xl sm:text-3xl text-neutral-900 dark:text-white">
                                 {t("welcome.portalTitle")}
                             </h2>
-                            <p className="mt-3 text-neutral-600 dark:text-neutral-400 text-sm sm:text-base">
+                            <p className="mt-2 sm:mt-3 text-neutral-600 dark:text-neutral-400 text-sm sm:text-base">
                                 {t("welcome.portalSubtitle")}
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Mobile: 2-cols compact cards. md: 2-cols. lg: 4-cols */}
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                             {roles.map((role, idx) => {
                                 const IconComponent = role.icon;
                                 return (
                                     <Link
                                         key={idx}
                                         href={role.link}
-                                        className={`group relative flex flex-col p-6 bg-white dark:bg-neutral-900 border rounded-2xl shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${role.color}`}
+                                        className={`group relative flex flex-col p-4 sm:p-6 bg-white dark:bg-neutral-900 border rounded-2xl shadow-xs transition-all duration-300 active:scale-[0.98] hover:-translate-y-1 hover:shadow-md ${role.color}`}
                                     >
-                                        <div className="flex justify-between items-start mb-5">
+                                        <div className="flex justify-between items-start mb-3 sm:mb-5">
                                             <div
-                                                className={`p-3 rounded-xl ${role.iconBg} transition-transform group-hover:scale-110`}
+                                                className={`p-2 sm:p-3 rounded-xl ${role.iconBg} transition-transform group-hover:scale-110`}
                                             >
-                                                <IconComponent className="w-6 h-6" />
+                                                <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                                             </div>
-                                            <span className="text-[10px] font-bold tracking-wider uppercase bg-slate-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded-md">
+                                            <span className="text-[9px] sm:text-[10px] font-bold tracking-wider uppercase bg-slate-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 px-1.5 sm:px-2 py-0.5 rounded-md leading-tight">
                                                 {role.badge}
                                             </span>
                                         </div>
 
-                                        <h3 className="font-bold text-lg text-neutral-900 dark:text-white mb-2 group-hover:text-primary dark:group-hover:text-white flex items-center gap-1.5">
+                                        <h3 className="font-bold text-sm sm:text-lg text-neutral-900 dark:text-white mb-1 sm:mb-2 group-hover:text-primary dark:group-hover:text-white flex items-center gap-1">
                                             {role.title}
-                                            <FiChevronRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-250" />
+                                            <FiChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-250 shrink-0" />
                                         </h3>
 
-                                        <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed grow">
+                                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed grow">
                                             {role.description}
                                         </p>
                                     </Link>
@@ -322,29 +335,30 @@ export default function Welcome() {
                 </section>
 
                 {/* --- FEATURES GRID --- */}
-                <section className="py-20">
+                <section className="py-12 sm:py-20">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="font-brand font-bold text-2xl sm:text-3xl text-neutral-900 dark:text-white">
+                        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+                            <h2 className="font-brand font-bold text-xl sm:text-2xl sm:text-3xl text-neutral-900 dark:text-white">
                                 {t("welcome.featuresTitle")}
                             </h2>
-                            <p className="mt-3 text-neutral-600 dark:text-neutral-400 text-sm sm:text-base">
+                            <p className="mt-2 sm:mt-3 text-neutral-600 dark:text-neutral-400 text-sm sm:text-base">
                                 {t("welcome.featuresSubtitle")}
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {/* Mobile: 2-col grid. md: 4-col */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
                             {features.map((feat, idx) => {
                                 const IconComponent = feat.icon;
                                 return (
-                                    <div key={idx} className="flex flex-col items-center text-center p-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-primary/5 dark:bg-neutral-900 border border-primary/10 dark:border-neutral-800 text-primary dark:text-indigo-400 flex items-center justify-center mb-5 shadow-inner">
-                                            <IconComponent className="w-5 h-5" />
+                                    <div key={idx} className="flex flex-col items-center text-center p-3 sm:p-4">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/5 dark:bg-neutral-900 border border-primary/10 dark:border-neutral-800 text-primary dark:text-indigo-400 flex items-center justify-center mb-3 sm:mb-5 shadow-inner shrink-0">
+                                            <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </div>
-                                        <h3 className="font-bold text-base text-neutral-900 dark:text-white mb-2">
+                                        <h3 className="font-bold text-sm sm:text-base text-neutral-900 dark:text-white mb-1 sm:mb-2">
                                             {feat.title}
                                         </h3>
-                                        <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
                                             {feat.description}
                                         </p>
                                     </div>
@@ -355,7 +369,7 @@ export default function Welcome() {
                 </section>
 
                 {/* --- DEV TOOLBAR SHORTCUT (For Testing) --- */}
-                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10">
                     <div className="border border-dashed border-neutral-300 dark:border-neutral-800 rounded-xl p-4 bg-slate-50/50 dark:bg-neutral-900/20 text-center">
                         <button
                             onClick={() => setShowDevShortcuts(!showDevShortcuts)}
@@ -391,8 +405,8 @@ export default function Welcome() {
                 </section>
 
                 {/* --- FOOTER --- */}
-                <footer className="border-t border-slate-200 dark:border-neutral-900 bg-white dark:bg-neutral-950 py-8">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                <footer className="border-t border-slate-200 dark:border-neutral-900 bg-white dark:bg-neutral-950 py-6 sm:py-8">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                         <div className="text-xs text-neutral-500 dark:text-neutral-400">
                             &copy; {new Date().getFullYear()} {t("welcome.footerCopyright")}
                         </div>

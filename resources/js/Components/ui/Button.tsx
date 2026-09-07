@@ -18,7 +18,8 @@ export type ButtonProps<E extends ElementType = "button"> = {
 
 const variantStyles: Record<ButtonVariant | "success", string> = {
     primary: "bg-primary text-white hover:bg-primary/90 shadow-xs",
-    secondary: "bg-accent text-primary hover:bg-accent/90 font-bold border border-border/50",
+    secondary: "bg-accent text-primary hover:brightness-95 font-bold shadow-xs border border-transparent",
+    accent: "bg-accent text-primary hover:brightness-95 font-bold shadow-xs border border-transparent",
     outline: "border border-primary text-primary hover:bg-primary hover:text-white",
     danger: "bg-danger text-white hover:bg-danger/90 shadow-xs",
     "danger-outline":

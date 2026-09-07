@@ -4,6 +4,7 @@ import AppShell from "@/Layouts/AppShell";
 import {
     Button,
     Pagination,
+    MobileNativePagination,
     Drawer,
     Checkbox,
     EmptyState,
@@ -14,7 +15,7 @@ import {
     PageHeader,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
+import { FiCheck, FiX, FiCheckSquare, FiXCircle, FiInfo } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 
 interface PaginatedData<T> {
@@ -175,10 +176,11 @@ export default function VerifikasiIzin({
     };
 
     return (
-        <AppShell title="Verifikasi Izin & Sakit">
+        <AppShell title="Verifikasi Izin & Sakit" hasTopTabs={true}>
             <PageHeader
                 title="Verifikasi Izin & Sakit"
                 description="Verifikasi berkas keterangan dispensasi dan ketidakhadiran siswa."
+                className="hidden lg:flex shrink-0 mb-4"
             />
 
             <StickyContainer>
@@ -189,6 +191,7 @@ export default function VerifikasiIzin({
                         setStatusFilter(key);
                         handleFilter(key, categoryFilter);
                     }}
+                    fullWidth="mobile-only"
                 />
             </StickyContainer>
 
@@ -354,10 +357,10 @@ export default function VerifikasiIzin({
                     </div>
                 )}
 
-                {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
+                {/* Desktop Symmetrical Footer Info & Table Pagination */}
+                <div className="hidden sm:flex pt-2 flex-row items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
                     <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                        <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
+                        <FiInfo className="text-primary text-[14px] shrink-0" />
                         <span>Menampilkan pengajuan izin siswa yang diverifikasi.</span>
                     </div>
                     {leaveRequests.last_page > 1 && (
@@ -376,6 +379,25 @@ export default function VerifikasiIzin({
                         />
                     )}
                 </div>
+
+                {/* Mobile Native App Pagination */}
+                {leaveRequests.last_page > 1 && (
+                    <div className="sm:hidden pt-2 shrink-0 font-inter">
+                        <MobileNativePagination
+                            currentPage={leaveRequests.current_page}
+                            totalPages={leaveRequests.last_page}
+                            totalItems={leaveRequests.total}
+                            perPage={leaveRequests.per_page}
+                            onPageChange={(page) =>
+                                router.get(
+                                    "/leave-requests/verification",
+                                    { page, status: statusFilter, category: categoryFilter, class_id: selectedClassId },
+                                    { preserveState: true },
+                                )
+                            }
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Intuitive Detail Drawer with Clean Indonesian Formatting */}

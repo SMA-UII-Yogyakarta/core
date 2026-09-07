@@ -41,6 +41,32 @@ class SchoolClass extends Model
 
     protected $fillable = ['name', 'level', 'academic_year', 'teacher_id', 'capacity'];
 
+    protected $appends = ['full_name'];
+
+    public function getFullNameAttribute(): string
+    {
+        $level = trim((string) ($this->level ?? ''));
+        $name = trim((string) ($this->name ?? ''));
+
+        if ($level === '') {
+            return $name;
+        }
+
+        if (str_starts_with(strtoupper($name), strtoupper($level) . '-')) {
+            return $name;
+        }
+
+        return "{$level}-{$name}";
+    }
+
+    public static function currentAcademicYear(): string
+    {
+        $now = now();
+        $year = $now->year;
+
+        return $now->month >= 7 ? "{$year}/" . ($year + 1) : ($year - 1) . "/{$year}";
+    }
+
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Teacher::class);

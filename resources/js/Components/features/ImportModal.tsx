@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { FaFileUpload, FaCheckCircle, FaExclamationCircle, FaDownload, FaKey } from "react-icons/fa";
+import { router } from "@inertiajs/react";
+import { FiUploadCloud, FiCheckCircle, FiAlertCircle, FiDownload, FiKey } from "react-icons/fi";
 import Modal from "@/Components/common/Modal";
 import Button from "@/Components/ui/Button";
 import Input from "@/Components/ui/Input";
@@ -132,7 +133,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                             download
                             className="inline-flex items-center gap-1.5 text-[12px] font-bold text-primary hover:underline"
                         >
-                            <FaDownload className="text-[11px]" />
+                            <FiDownload className="text-[11px]" />
                             Unduh Template
                         </a>
                     </div>
@@ -145,7 +146,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                     >
                         {file ? (
                             <div className="flex flex-col items-center gap-2">
-                                <FaFileUpload className="w-8 h-8 text-primary" />
+                                <FiUploadCloud className="w-8 h-8 text-primary" />
                                 <p className="text-[14px] font-medium text-text-primary">{file.name}</p>
                                 <p className="text-[12px] text-text-inactive">{(file.size / 1024).toFixed(1)} KB</p>
                                 <button
@@ -161,7 +162,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                             </div>
                         ) : (
                             <div className="flex flex-col items-center gap-2">
-                                <FaFileUpload className="w-10 h-10 text-text-inactive" />
+                                <FiUploadCloud className="w-10 h-10 text-text-inactive" />
                                 <p className="text-[14px] font-medium text-text-primary">
                                     Seret file ke sini atau klik untuk memilih
                                 </p>
@@ -180,7 +181,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                     {supportsPassword && (
                         <div className="mt-4 p-3.5 bg-muted/20 border border-border rounded-xl space-y-1.5 font-inter">
                             <label className="text-[12px] font-bold text-text-primary flex items-center gap-1.5">
-                                <FaKey className="text-primary text-[11px]" />
+                                <FiKey className="text-primary text-[11px]" />
                                 Default Kata Sandi Akun Baru (Opsional)
                             </label>
                             <Input
@@ -235,9 +236,9 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
             ) : (
                 <div className="text-center py-4 font-inter">
                     {result.error_count === 0 ? (
-                        <FaCheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
+                        <FiCheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
                     ) : (
-                        <FaExclamationCircle className="w-12 h-12 text-warning mx-auto mb-3" />
+                        <FiAlertCircle className="w-12 h-12 text-warning mx-auto mb-3" />
                     )}
                     <p className="text-[16px] font-bold text-text-primary">
                         {result.success_count} data berhasil diimport
@@ -274,7 +275,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                             onClick={() => {
                                 reset();
                                 onClose();
-                                window.location.reload();
+                                router.reload();
                             }}
                         >
                             Selesai & Muat Ulang

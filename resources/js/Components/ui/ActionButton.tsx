@@ -4,7 +4,7 @@ type ActionVariant = "detail" | "edit" | "delete" | "import" | "add";
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant: ActionVariant;
-    icon?: string | ReactNode;
+    icon?: ReactNode;
     label: string;
     iconOnly?: boolean;
 }
@@ -39,12 +39,7 @@ export default function ActionButton({
             } ${className}`}
             {...props}
         >
-            {icon &&
-                (typeof icon === "string" ? (
-                    <i className={`fas ${icon} text-[13px]`} />
-                ) : (
-                    <span className="flex items-center justify-center text-[13px]">{icon}</span>
-                ))}
+            {icon && <span className="flex items-center justify-center text-[13px]">{icon}</span>}
             {!iconOnly && <span>{label}</span>}
         </button>
     );

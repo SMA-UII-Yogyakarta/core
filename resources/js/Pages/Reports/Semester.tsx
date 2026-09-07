@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, StatCard, AttendanceChart, Table, ExportButtonGroup } from "@/Components";
+import { PageHeader, Card, SelectInput, StatCard, AttendanceChart, Table, ExportButtonGroup, BottomSheet, Button } from "@/Components";
+import { FiFilter } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -40,7 +42,7 @@ export default function SemesterReport({
 
     const filteredMonths = monthlyStats.months.filter((m) => semesterMonths.includes(monthNames.indexOf(m.label) + 1));
 
-const columns: Column<{ label: string; present: number; late: number; absent: number }>[] = [
+    const columns: Column<{ label: string; present: number; late: number; absent: number }>[] = [
         {
             key: "label",
             header: t("reports.month"),
@@ -76,14 +78,38 @@ const columns: Column<{ label: string; present: number; late: number; absent: nu
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = Boolean(selectedClassId);
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                    hasActiveFilters
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                }`}
+                title="Filter Rekap Semester"
+                aria-label="Filter Rekap Semester"
+            >
+                <FiFilter className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Rekap Semester">
+        <AppShell title="Rekap Semester" headerActions={mobileHeaderActions}>
             <Head>
                 <title>Rekap Semester - SMART Presensi</title>
             </Head>
 
-            <div className="space-y-6">
-                <PageHeader title={t("reports.semesterTitle")}>
+            <div className="space-y-6 font-inter">
+                <PageHeader
+                    title={t("reports.semesterTitle")}
+                    className="hidden lg:flex shrink-0 mb-4"
+                >
                     <div className="flex items-center gap-3">
                         <SelectInput
                             value={selectedYear.toString()}
@@ -124,6 +150,61 @@ const columns: Column<{ label: string; present: number; late: number; absent: nu
                     </div>
                 </PageHeader>
 
+                {/* Mobile & Tablet Toolbar Card (< lg) */}
+                <Card className="p-4 lg:hidden mb-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
+                        {/* Left: Year, Semester, Class filters (hidden on mobile, sm:flex on tablet) */}
+                        <div className="hidden sm:flex flex-nowrap items-center gap-2.5 w-auto">
+                            <div className="w-32">
+                                <SelectInput
+                                    value={selectedYear.toString()}
+                                    onChange={(value: string | number | null) =>
+                                        router.get("/reports/semester", { year: value, semester: selectedSemester, class_id: selectedClassId || undefined }, { preserveState: true })
+                                    }
+                                    options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
+                                        value: y.toString(),
+                                        label: `TA ${y}/${y + 1}`,
+                                    }))}
+                                    className="w-full h-10 text-[13px]"
+                                />
+                            </div>
+                            <div className="w-44">
+                                <SelectInput
+                                    value={selectedSemester.toString()}
+                                    onChange={(value: string | number | null) =>
+                                        router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
+                                    }
+                                    options={[
+                                        { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
+                                        { value: "2", label: `${t("reports.semester2")} (Jan-Jun)` },
+                                    ]}
+                                    className="w-full h-10 text-[13px]"
+                                />
+                            </div>
+                            <div className="w-44">
+                                <SelectInput
+                                    value={selectedClassId?.toString() ?? ""}
+                                    onChange={(value: string | number | null) =>
+                                        router.get("/reports/semester", { year: selectedYear, semester: selectedSemester, class_id: value || undefined }, { preserveState: true })
+                                    }
+                                    options={[
+                                        { value: "", label: t("reports.allClasses") },
+                                        ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
+                                    ]}
+                                    className="w-full h-10 text-[13px]"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Right: Export button */}
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 sm:ml-auto justify-end">
+                            <ExportButtonGroup
+                                onExportExcel={() => window.open(`/export/monthly-recap?year=${selectedYear}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                            />
+                        </div>
+                    </div>
+                </Card>
+
                 {/* Semester Trend Chart */}
                 <Card>
                     <div className="p-6">
@@ -152,14 +233,95 @@ const columns: Column<{ label: string; present: number; late: number; absent: nu
                 </div>
 
                 {/* Semester Breakdown Table */}
-<Card>
+                <Card>
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-text mb-4">{t("reports.semesterBreakdown")}</h3>
                         <Table columns={columns} data={filteredMonths} keyExtractor={(m) => m.label} emptyMessage="Tidak ada data." />
                     </div>
                 </Card>
             </div>
+
+            {/* 📱 MOBILE FILTER BOTTOM SHEET */}
+            <BottomSheet
+                open={isMobileFilterOpen}
+                onClose={() => setIsMobileFilterOpen(false)}
+                title="Filter Rekap Semester"
+                subtitle="Atur tahun ajaran, semester, dan kelas"
+            >
+                <div className="flex flex-col gap-4 font-inter pb-2">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Tahun Ajaran
+                        </label>
+                        <SelectInput
+                            value={selectedYear.toString()}
+                            onChange={(value: string | number | null) =>
+                                router.get("/reports/semester", { year: value, semester: selectedSemester, class_id: selectedClassId || undefined }, { preserveState: true })
+                            }
+                            options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
+                                value: y.toString(),
+                                label: `TA ${y}/${y + 1}`,
+                            }))}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Semester
+                        </label>
+                        <SelectInput
+                            value={selectedSemester.toString()}
+                            onChange={(value: string | number | null) =>
+                                router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
+                            }
+                            options={[
+                                { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
+                                { value: "2", label: `${t("reports.semester2")} (Jan-Jun)` },
+                            ]}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Pilih Kelas
+                        </label>
+                        <SelectInput
+                            value={selectedClassId?.toString() ?? ""}
+                            onChange={(value: string | number | null) =>
+                                router.get("/reports/semester", { year: selectedYear, semester: selectedSemester, class_id: value || undefined }, { preserveState: true })
+                            }
+                            options={[
+                                { value: "", label: t("reports.allClasses") },
+                                ...classes.map((c) => ({ value: c.id.toString(), label: c.name })),
+                            ]}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        {hasActiveFilters && (
+                            <Button
+                                variant="secondary"
+                                onClick={() =>
+                                    router.get("/reports/semester", { year: selectedYear, semester: selectedSemester }, { preserveState: true })
+                                }
+                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                            >
+                                Reset Filter
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            onClick={() => setIsMobileFilterOpen(false)}
+                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                        >
+                            Terapkan
+                        </Button>
+                    </div>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }
-

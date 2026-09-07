@@ -72,6 +72,7 @@ export default function GuardianDashboard({
                 <PageHeader
                     title={`Selamat Datang, ${guardian?.name ?? "Wali Murid"}`}
                     description="Portal Informasi Kehadiran & Pengajuan Izin Siswa · SMA UII Yogyakarta"
+                    className="hidden lg:flex shrink-0 mb-4"
                 />
 
                 <div className="relative bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-card overflow-hidden">

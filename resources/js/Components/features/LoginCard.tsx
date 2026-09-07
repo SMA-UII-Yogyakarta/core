@@ -1,5 +1,6 @@
 import { Link } from "@inertiajs/react";
 import { useState, type FormEventHandler } from "react";
+import { FiUser, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import BrandLogo from "@/Components/layout/BrandLogo";
 import Button from "@/Components/ui/Button";
 import Input from "@/Components/ui/Input";
@@ -87,7 +88,7 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                                 name="username"
                                 label="Username / NISN"
                                 placeholder="Masukkan username atau NISN"
-                                icon="fa-user"
+                                icon={<FiUser className="text-[15px]" />}
                                 autoComplete="username"
                                 autoFocus
                                 required
@@ -99,7 +100,7 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                                 label="Password"
                                 type={showPassword ? "text" : "password"}
                                 placeholder="Masukkan password"
-                                icon="fa-lock"
+                                icon={<FiLock className="text-[15px]" />}
                                 autoComplete="current-password"
                                 required
                                 value={data?.password ?? ""}
@@ -110,9 +111,9 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                                         tabIndex={-1}
                                         aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                                         onClick={() => setShowPassword((v) => !v)}
-                                        className="text-text-muted hover:text-primary transition-colors cursor-pointer"
+                                        className="text-text-muted hover:text-primary transition-colors cursor-pointer flex items-center justify-center"
                                     >
-                                        <i className={`fas ${showPassword ? "fa-eye-slash" : "fa-eye"}`} />
+                                        {showPassword ? <FiEyeOff className="text-[16px]" /> : <FiEye className="text-[16px]" />}
                                     </button>
                                 }
                             />

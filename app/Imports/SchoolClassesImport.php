@@ -71,8 +71,12 @@ class SchoolClassesImport
     {
         DB::transaction(function () use ($data) {
             $name = trim($data['name'] ?? $data['Nama Kelas'] ?? $data['nama_kelas'] ?? $data['Nama'] ?? '');
-            $level = trim($data['level'] ?? $data['Tingkat'] ?? $data['tingkat'] ?? 'X');
-            $academicYear = trim($data['academic_year'] ?? $data['Tahun Ajaran'] ?? $data['tahun_ajaran'] ?? $data['Angkatan'] ?? $data['angkatan'] ?? '2024/2025');
+            $level = trim((string) ($data['level'] ?? $data['Tingkat'] ?? $data['tingkat'] ?? 'X'));
+            $currentYear = SchoolClass::currentAcademicYear();
+            $academicYear = trim($data['academic_year'] ?? $data['Tahun Ajaran'] ?? $data['tahun_ajaran'] ?? $data['Angkatan'] ?? $data['angkatan'] ?? $currentYear);
+            if ($academicYear === '') {
+                $academicYear = $currentYear;
+            }
             $capacity = (int) ($data['capacity'] ?? $data['Kapasitas'] ?? $data['kapasitas'] ?? 36);
             $teacherCode = trim($data['teacher_code'] ?? $data['Kode Guru'] ?? $data['wali_kelas'] ?? '');
 
@@ -109,7 +113,7 @@ class SchoolClassesImport
             SchoolClass::create([
                 'name' => $name,
                 'level' => in_array($level, ['X', 'XI', 'XII']) ? $level : 'X',
-                'academic_year' => ! empty($academicYear) ? $academicYear : '2024/2025',
+                'academic_year' => $academicYear,
                 'capacity' => $capacity > 0 ? $capacity : 36,
                 'teacher_id' => $teacherId,
             ]);

@@ -8,8 +8,13 @@ import {
     Modal,
     PageHeader,
     Table,
+    TableFooter,
     EmptyState,
     FilterBar,
+    Pagination,
+    MobileNativePagination,
+    BottomSheet,
+    NativeSelect,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { FiCamera, FiFilter } from "react-icons/fi";
@@ -56,6 +61,15 @@ export default function AttendanceHistory({ student, attendances, month, year }:
     const [yearVal, setYearVal] = useState(year.toString());
     const [photoModal, setPhotoModal] = useState<{ url: string; date: string } | null>(null);
     const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+    const [attPage, setAttPage] = useState(1);
+    const attPageSize = 10;
+    const attTotalPages = Math.max(1, Math.ceil(attendances.length / attPageSize));
+    const attSafePage = Math.min(Math.max(1, attPage), attTotalPages);
+    const paginatedAttendances = useMemo(() => {
+        const start = (attSafePage - 1) * attPageSize;
+        return attendances.slice(start, start + attPageSize);
+    }, [attendances, attSafePage, attPageSize]);
 
     // Calculate monthly rate percentage
     const stats = useMemo(() => {
@@ -138,11 +152,33 @@ export default function AttendanceHistory({ student, attendances, month, year }:
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = monthVal !== month.toString() || yearVal !== year.toString();
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                    hasActiveFilters
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                }`}
+                title="Filter Riwayat"
+                aria-label="Filter Riwayat"
+            >
+                <FiFilter className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Riwayat Presensi Siswa">
+        <AppShell title="Riwayat Presensi Siswa" headerActions={mobileHeaderActions}>
             <PageHeader
                 title="Riwayat Presensi Siswa"
                 description={`Daftar lengkap rekapitulasi kehadiran ${student.name} per bulan.`}
+                className="hidden lg:flex shrink-0 mb-4"
             >
                 <div className="flex items-center gap-2 bg-surface px-4 py-2 border border-border rounded-xl shadow-xs">
                     <span className="text-[12px] font-bold text-text-muted uppercase">Tingkat Kehadiran:</span>
@@ -151,40 +187,42 @@ export default function AttendanceHistory({ student, attendances, month, year }:
             </PageHeader>
 
             <div className="space-y-6 font-inter">
-                {/* Filter Controls */}
-                <FilterBar>
-                    <FilterBar.Select
-                        label="Bulan"
-                        options={MONTH_NAMES.map((name, i) => ({
-                            value: (i + 1).toString(),
-                            label: name,
-                        }))}
-                        value={monthVal}
-                        onChange={(e) => setMonthVal(e.target.value)}
-                        dusk="select-month"
-                        data-testid="select-month"
-                    />
-                    <FilterBar.Select
-                        label="Tahun"
-                        options={["2024", "2025", "2026", "2027"].map((t) => ({
-                            value: t,
-                            label: t,
-                        }))}
-                        value={yearVal}
-                        onChange={(e) => setYearVal(e.target.value)}
-                        dusk="select-year"
-                        data-testid="select-year"
-                    />
-                    <Button
-                        variant="primary"
-                        onClick={handleFilter}
-                        icon={<FiFilter className="w-4 h-4" />}
-                        dusk="btn-filter-history"
-                        data-testid="btn-filter-history"
-                    >
-                        Tampilkan
-                    </Button>
-                </FilterBar>
+                {/* Filter Controls (Desktop/Tablet only) */}
+                <div className="hidden sm:block">
+                    <FilterBar>
+                        <FilterBar.Select
+                            label="Bulan"
+                            options={MONTH_NAMES.map((name, i) => ({
+                                value: (i + 1).toString(),
+                                label: name,
+                            }))}
+                            value={monthVal}
+                            onChange={(e) => setMonthVal(e.target.value)}
+                            dusk="select-month"
+                            data-testid="select-month"
+                        />
+                        <FilterBar.Select
+                            label="Tahun"
+                            options={["2024", "2025", "2026", "2027"].map((t) => ({
+                                value: t,
+                                label: t,
+                            }))}
+                            value={yearVal}
+                            onChange={(e) => setYearVal(e.target.value)}
+                            dusk="select-year"
+                            data-testid="select-year"
+                        />
+                        <Button
+                            variant="accent"
+                            onClick={handleFilter}
+                            icon={<FiFilter className="w-4 h-4" />}
+                            dusk="btn-filter-history"
+                            data-testid="btn-filter-history"
+                        >
+                            Tampilkan
+                        </Button>
+                    </FilterBar>
+                </div>
 
                 {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
                 <div className="hidden lg:grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
@@ -251,9 +289,29 @@ export default function AttendanceHistory({ student, attendances, month, year }:
 
                         <Table
                             columns={columns}
-                            data={attendances}
+                            data={paginatedAttendances}
                             keyExtractor={(att) => att.id}
                             emptyMessage="Belum ada data kehadiran untuk periode bulan dan tahun ini."
+                        />
+                        <TableFooter
+                            info={
+                                attendances.length > 0 ? (
+                                    <span>
+                                        Menampilkan <strong className="text-text-primary">{(attSafePage - 1) * attPageSize + 1}–{Math.min(attSafePage * attPageSize, attendances.length)}</strong> dari total <strong className="text-text-primary">{attendances.length}</strong> hari terdata.
+                                    </span>
+                                ) : undefined
+                            }
+                            pagination={
+                                attendances.length > attPageSize ? (
+                                    <Pagination
+                                        currentPage={attSafePage}
+                                        totalPages={attTotalPages}
+                                        totalItems={attendances.length}
+                                        perPage={attPageSize}
+                                        onPageChange={setAttPage}
+                                    />
+                                ) : undefined
+                            }
                         />
                     </div>
                 </div>
@@ -285,8 +343,8 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                 <span className="text-[11px] font-bold text-primary font-mono">{stats.rate}% Hadir</span>
                             </div>
 
-                            {attendances.map((att, idx) => {
-                                const isLast = idx === attendances.length - 1;
+                            {paginatedAttendances.map((att, idx) => {
+                                const isLast = idx === paginatedAttendances.length - 1;
                                 return (
                                     <div
                                         key={att.id}
@@ -324,6 +382,18 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                     </div>
                                 );
                             })}
+
+                            {attendances.length > attPageSize && (
+                                <div className="p-3 border-t border-border bg-surface">
+                                    <MobileNativePagination
+                                        currentPage={attSafePage}
+                                        totalPages={attTotalPages}
+                                        totalItems={attendances.length}
+                                        perPage={attPageSize}
+                                        onPageChange={setAttPage}
+                                    />
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -350,6 +420,74 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                     </div>
                 </Modal>
             )}
+            {/* 📱 MOBILE FILTER BOTTOM SHEET */}
+            <BottomSheet
+                open={isMobileFilterOpen}
+                onClose={() => setIsMobileFilterOpen(false)}
+                title="Filter Riwayat Presensi"
+                subtitle="Atur bulan dan tahun rekapitulasi presensi"
+            >
+                <div className="flex flex-col gap-4 font-inter pb-2">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Pilih Bulan
+                        </label>
+                        <NativeSelect
+                            value={monthVal}
+                            onChange={(e) => setMonthVal(e.target.value)}
+                            className="h-10 text-[13px] rounded-xl"
+                        >
+                            {MONTH_NAMES.map((name, i) => (
+                                <option key={i + 1} value={(i + 1).toString()}>
+                                    {name}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Pilih Tahun
+                        </label>
+                        <NativeSelect
+                            value={yearVal}
+                            onChange={(e) => setYearVal(e.target.value)}
+                            className="h-10 text-[13px] rounded-xl"
+                        >
+                            {["2024", "2025", "2026", "2027"].map((t) => (
+                                <option key={t} value={t}>
+                                    {t}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        {hasActiveFilters && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setMonthVal(month.toString());
+                                    setYearVal(year.toString());
+                                }}
+                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                            >
+                                Reset Filter
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                handleFilter();
+                                setIsMobileFilterOpen(false);
+                            }}
+                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                        >
+                            Terapkan
+                        </Button>
+                    </div>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { FiCopy, FiTrash2, FiEdit3, FiLock, FiCheck, FiChevronDown } from "react-icons/fi";
+import { FiCopy, FiTrash2, FiEdit2, FiLock, FiCheck, FiChevronDown } from "react-icons/fi";
 import { toast } from "sonner";
 import Tooltip from "@/Components/ui/Tooltip";
+import { copyToClipboard } from "@/utils/helpers";
 
 export interface CopyField {
     label: string;
@@ -19,10 +20,11 @@ interface DrawerHeaderActionsProps {
     hideUnlock?: boolean;
     hideDelete?: boolean;
     hideCopy?: boolean;
+    variant?: "default" | "header";
 }
 
 export default function DrawerHeaderActions({
-    mode,
+    mode = "detail",
     isCreate = false,
     isUnlocked = false,
     onToggleUnlock,
@@ -32,16 +34,18 @@ export default function DrawerHeaderActions({
     hideUnlock = false,
     hideDelete = false,
     hideCopy = false,
+    variant = "default",
 }: DrawerHeaderActionsProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [copiedType, setCopiedType] = useState<"csv" | "md" | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const isInCreateMode = isCreate || mode === "create";
+    const isInCreateMode = mode === "create" || isCreate;
+    const isHeaderVariant = variant === "header";
 
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setMenuOpen(false);
             }
         };
@@ -64,7 +68,7 @@ export default function DrawerHeaderActions({
             .join(",");
         const csvContent = `${headers}\n${values}`;
 
-        navigator.clipboard.writeText(csvContent).then(() => {
+        copyToClipboard(csvContent).then(() => {
             setCopiedType("csv");
             toast.success(`${entityTitle} tersalin dalam format CSV!`);
             setTimeout(() => {
@@ -79,7 +83,7 @@ export default function DrawerHeaderActions({
         const rows = copyFields.map((f) => `| ${f.label} | ${f.value ?? "-"} |`).join("\n");
         const mdContent = `### ${entityTitle}\n\n| Kolom / Field | Nilai |\n| :--- | :--- |\n${rows}`;
 
-        navigator.clipboard.writeText(mdContent).then(() => {
+        copyToClipboard(mdContent).then(() => {
             setCopiedType("md");
             toast.success(`${entityTitle} tersalin dalam format Tabel Markdown!`);
             setTimeout(() => {
@@ -90,37 +94,51 @@ export default function DrawerHeaderActions({
     };
 
     if (isInCreateMode) {
+        if (isHeaderVariant) return null;
         return (
             <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                    Tambah Baru
+                    Mode Tambah
                 </span>
             </div>
         );
     }
 
     return (
-        <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
+        <div className="flex items-center gap-1.5 font-inter">
             {/* Copy Dropdown */}
             {!hideCopy && copyFields.length > 0 && (
-                <div className="relative" ref={menuRef}>
+                <div className="relative" ref={dropdownRef}>
                     <button
                         type="button"
                         onClick={() => setMenuOpen((prev) => !prev)}
-                        className={`h-7 sm:h-7.5 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
-                            menuOpen
-                                ? "bg-muted border-primary text-primary"
-                                : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
-                        }`}
+                        className={
+                            isHeaderVariant
+                                ? `w-8 h-8 rounded-xl border text-[12px] font-semibold transition-all flex items-center justify-center cursor-pointer backdrop-blur-xs ${
+                                      menuOpen
+                                          ? "bg-white/25 border-white/40 text-white shadow-xs"
+                                          : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
+                                  }`
+                                : `h-7.5 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                                      menuOpen
+                                          ? "bg-muted border-primary text-primary"
+                                          : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
+                                  }`
+                        }
                         aria-label="Salin data"
+                        title="Salin data"
                     >
                         {copiedType ? (
-                            <FiCheck className="w-3.5 h-3.5 text-success" />
+                            <FiCheck className="w-3.5 h-3.5 text-emerald-400" />
                         ) : (
                             <FiCopy className="w-3.5 h-3.5" />
                         )}
-                        <span>Salin</span>
-                        <FiChevronDown className="w-3 h-3 text-text-muted" />
+                        {!isHeaderVariant && (
+                            <>
+                                <span>Salin</span>
+                                <FiChevronDown className="w-3 h-3 opacity-80" />
+                            </>
+                        )}
                     </button>
 
                     {menuOpen && (
@@ -168,22 +186,31 @@ export default function DrawerHeaderActions({
                     <button
                         type="button"
                         onClick={onToggleUnlock}
-                        className={`h-7 sm:h-7.5 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                            isUnlocked
-                                ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
-                                : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
-                        }`}
+                        className={
+                            isHeaderVariant
+                                ? `w-8 h-8 rounded-xl border text-[12px] font-semibold transition-all flex items-center justify-center cursor-pointer backdrop-blur-xs ${
+                                      isUnlocked
+                                          ? "bg-amber-400/20 text-amber-200 border-amber-300/40 hover:bg-amber-400/30"
+                                          : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
+                                  }`
+                                : `h-7.5 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                                      isUnlocked
+                                          ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
+                                          : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
+                                  }`
+                        }
                         aria-label={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                        title={isUnlocked ? "Kunci form" : "Buka kunci edit"}
                     >
                         {isUnlocked ? (
                             <>
                                 <FiLock className="w-3.5 h-3.5" />
-                                <span>Kunci</span>
+                                {!isHeaderVariant && <span>Kunci</span>}
                             </>
                         ) : (
                             <>
-                                <FiEdit3 className="w-3.5 h-3.5" />
-                                <span>Edit</span>
+                                <FiEdit2 className="w-3.5 h-3.5" />
+                                {!isHeaderVariant && <span>Edit</span>}
                             </>
                         )}
                     </button>
@@ -196,10 +223,15 @@ export default function DrawerHeaderActions({
                     <button
                         type="button"
                         onClick={onDelete}
-                        className="h-7 w-7 sm:h-7.5 sm:w-7.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                        className={
+                            isHeaderVariant
+                                ? "w-8 h-8 rounded-xl border border-white/20 bg-white/10 text-white/90 hover:bg-danger hover:border-danger hover:text-white transition-all flex items-center justify-center cursor-pointer shrink-0 backdrop-blur-xs"
+                                : "h-7.5 px-2.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 text-[11.5px] font-semibold"
+                        }
                         aria-label="Hapus data"
                     >
                         <FiTrash2 className="w-3.5 h-3.5" />
+                        {!isHeaderVariant && <span>Hapus</span>}
                     </button>
                 </Tooltip>
             )}

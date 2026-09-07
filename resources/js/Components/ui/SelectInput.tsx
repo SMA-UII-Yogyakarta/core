@@ -17,6 +17,8 @@ interface SelectInputProps {
     onChange?: (value: string | number | null) => void;
     className?: string;
     disabled?: boolean;
+    clearable?: boolean;
+    searchable?: boolean;
 }
 
 export default function SelectInput({
@@ -29,7 +31,10 @@ export default function SelectInput({
     onChange,
     className = "",
     disabled = false,
+    clearable = false,
+    searchable,
 }: SelectInputProps) {
+    const showSearch = searchable ?? options.length > 7;
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -68,10 +73,10 @@ export default function SelectInput({
     }, [close]);
 
     useEffect(() => {
-        if (isOpen) {
-            searchInputRef.current?.focus();
+        if (isOpen && showSearch) {
+            searchInputRef.current?.focus({ preventScroll: true });
         }
-    }, [isOpen]);
+    }, [isOpen, showSearch]);
 
     useEffect(() => {
         if (optionsRef.current) {
@@ -144,7 +149,7 @@ export default function SelectInput({
                         {selectedOption?.label || placeholder}
                     </span>
                     <div className="flex items-center gap-1">
-                        {selectedOption && !disabled && (
+                        {clearable && selectedOption && value !== "" && value !== null && value !== undefined && !disabled && (
                             <button
                                 type="button"
                                 onClick={handleClear}
@@ -168,24 +173,26 @@ export default function SelectInput({
                 </div>
 
                 {isOpen && (
-                    <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">
-                        <div className="px-3 py-2 border-b border-border">
-                            <input
-                                ref={searchInputRef}
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setHighlightedIndex(0);
-                                }}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Cari..."
-                                className="w-full bg-transparent text-[14px] text-text-primary placeholder:text-text-inactive focus:outline-none font-inter"
-                            />
-                        </div>
-                        <div ref={optionsRef} className="max-h-60 overflow-auto py-1">
+                    <div className="absolute left-0 right-0 w-full mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">
+                        {showSearch && (
+                            <div className="px-3 py-2 border-b border-border">
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setHighlightedIndex(0);
+                                    }}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Cari..."
+                                    className="w-full bg-transparent text-[13px] text-text-primary placeholder:text-text-inactive focus:outline-none font-inter"
+                                />
+                            </div>
+                        )}
+                        <div ref={optionsRef} className="max-h-60 overflow-y-auto overflow-x-hidden py-1">
                             {filteredOptions.length === 0 ? (
-                                <div className="px-3 py-2 text-[14px] text-text-inactive font-inter">
+                                <div className="px-3 py-2 text-[13px] text-text-inactive font-inter">
                                     Tidak ada data
                                 </div>
                             ) : (
@@ -194,11 +201,12 @@ export default function SelectInput({
                                         key={opt.value}
                                         onClick={() => handleSelect(opt.value)}
                                         onMouseEnter={() => setHighlightedIndex(index)}
-                                        className={`px-3 py-2 text-[14px] font-inter cursor-pointer whitespace-nowrap ${
+                                        className={`px-3 py-2 text-[13px] font-inter cursor-pointer truncate ${
                                             opt.value === value
                                                 ? "bg-primary/20 text-primary font-medium"
                                                 : "text-text-primary hover:bg-primary/10"
                                         } ${index === highlightedIndex ? "ring-2 ring-primary/40 ring-inset" : ""}`}
+                                        title={opt.label}
                                     >
                                         {opt.label}
                                     </div>

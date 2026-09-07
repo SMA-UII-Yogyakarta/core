@@ -99,7 +99,10 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
 
             <div className="space-y-6">
                 {/* Header with Date Selector */}
-                <PageHeader title={t("overview.title")}>
+                <PageHeader
+                    title={t("overview.title")}
+                    className="hidden lg:flex shrink-0 mb-4"
+                >
                     <div className="relative">
                         <Input
                             type="date"

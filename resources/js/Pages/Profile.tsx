@@ -1,5 +1,5 @@
-import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
-import { useState, useMemo, useRef } from "react";
+import { Head, Link, router, useForm } from "@inertiajs/react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import {
     PageHeader,
@@ -59,16 +59,66 @@ interface ProfileProps {
     }>;
 }
 
+type ProfileSubPage = "profile" | "security" | "notifications" | "sessions";
+
+const VALID_PROFILE_TABS: Record<string, ProfileSubPage> = {
+    profile: "profile",
+    security: "security",
+    notifications: "notifications",
+    sessions: "sessions",
+};
+
+const getInitialProfileTab = (): ProfileSubPage | null => {
+    if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get("tab");
+        if (tab && VALID_PROFILE_TABS[tab]) {
+            return VALID_PROFILE_TABS[tab];
+        }
+    }
+    return null;
+};
+
 export default function Profile({ user, sessions }: ProfileProps) {
     const { t } = useLanguage();
-    const { url } = usePage();
-    const [desktopTab, setDesktopTab] = useState<string>(() => {
-        const query = url.includes("?") ? url.split("?")[1] : "";
-        const params = new URLSearchParams(query);
-        return params.get("tab") || "profile";
-    });
+    const initialTab = getInitialProfileTab();
+    const [desktopTab, setDesktopTab] = useState<string>(initialTab || "profile");
+    const [mobileSubPage, setMobileSubPage] = useState<ProfileSubPage | null>(initialTab);
 
-    const [mobileSubPage, setMobileSubPage] = useState<"profile" | "security" | "notifications" | "sessions" | null>(null);
+    // Sync subpage state with browser popstate navigation (Back / Forward button)
+    useEffect(() => {
+        const handlePopState = () => {
+            if (typeof window !== "undefined") {
+                const params = new URLSearchParams(window.location.search);
+                const tab = params.get("tab");
+                if (tab && VALID_PROFILE_TABS[tab]) {
+                    const mapped = VALID_PROFILE_TABS[tab];
+                    setMobileSubPage(mapped);
+                    setDesktopTab(mapped);
+                } else {
+                    setMobileSubPage(null);
+                }
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, []);
+
+    const handleOpenMobileSubPage = (key: ProfileSubPage) => {
+        setMobileSubPage(key);
+        setDesktopTab(key);
+        if (typeof window !== "undefined") {
+            window.history.pushState({ tab: key }, "", `/profile?tab=${key}`);
+        }
+    };
+
+    const handleMobileBack = () => {
+        setMobileSubPage(null);
+        if (typeof window !== "undefined") {
+            window.history.pushState({ tab: null }, "", "/profile");
+        }
+    };
 
     const [localPreview, setLocalPreview] = useState<string | null>(null);
     const avatarPreview = localPreview ?? (user.avatar || user.avatar_url || null);
@@ -255,10 +305,15 @@ export default function Profile({ user, sessions }: ProfileProps) {
         }
     }, [mobileSubPage]);
 
-    const handleMobileBack = mobileSubPage !== null ? () => setMobileSubPage(null) : undefined;
+    const onBackAction = mobileSubPage !== null ? handleMobileBack : undefined;
 
     return (
-        <AppShell title={mobileHeaderTitle} onBack={handleMobileBack}>
+        <AppShell
+            title={mobileHeaderTitle}
+            onBack={onBackAction}
+            showBottomNav={mobileSubPage === null}
+            showNotificationBell={mobileSubPage === null}
+        >
             <Head>
                 <title>Profil - SMART Presensi</title>
             </Head>
@@ -273,6 +328,13 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         {/* 1. Clean Profile Hero Card (Identity Only) */}
                         <div className="bg-surface border border-border rounded-2xl p-5 shadow-card flex flex-col items-center text-center relative overflow-hidden">
                             <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+
+                            {/* Role Badge in Top-Right Corner */}
+                            <div className="absolute top-3.5 right-3.5 z-10">
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+                                    {getRoleLabel(user.role)}
+                                </span>
+                            </div>
 
                             <div className="relative mb-3 mt-1">
                                 <Avatar
@@ -303,26 +365,25 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                 <span className="truncate max-w-[240px]">{user.email || "Email belum didaftarkan"}</span>
                             </p>
 
-                            <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
-                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
-                                    {getRoleLabel(user.role)}
-                                </span>
-                                {user.student && (
-                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                        {user.student.class?.name ?? "Tanpa Kelas"} • NIS: {user.student.nis}
-                                    </span>
-                                )}
-                                {user.teacher && (
-                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                        Kode: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
-                                    </span>
-                                )}
-                                {user.guardian && (
-                                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                                        WA: {user.guardian.phone || "—"}
-                                    </span>
-                                )}
-                            </div>
+                            {(user.student || user.teacher || user.guardian) && (
+                                <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
+                                    {user.student && (
+                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
+                                            {user.student.class?.name ?? "Tanpa Kelas"} • NIS: {user.student.nis}
+                                        </span>
+                                    )}
+                                    {user.teacher && (
+                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
+                                            Kode: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
+                                        </span>
+                                    )}
+                                    {user.guardian && (
+                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
+                                            WA: {user.guardian.phone || "—"}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
 
                             {avatarError && (
                                 <div className="mt-2.5 px-3 py-1.5 rounded-lg bg-danger/10 border border-danger/20 text-danger text-[11px] font-medium text-center">
@@ -387,74 +448,74 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                 {/* Stack Item 1: Edit Profile */}
                                 <button
                                     type="button"
-                                    onClick={() => setMobileSubPage("profile")}
-                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left"
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                            <FiUser size={18} />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[14px] text-text-primary">Data Akun & Profil</div>
-                                            <div className="text-[11px] text-text-muted mt-0.5">Ubah foto profil, nama & email resmi</div>
-                                        </div>
-                                    </div>
-                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                </button>
+                                    onClick={() => handleOpenMobileSubPage("profile")}
+                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                 >
+                                     <div className="flex items-center gap-3.5">
+                                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                             <FiUser size={18} />
+                                         </div>
+                                         <div>
+                                             <div className="font-bold text-[14px] text-text-primary">Data Akun & Profil</div>
+                                             <div className="text-[11px] text-text-muted mt-0.5">Ubah foto profil, nama & email resmi</div>
+                                         </div>
+                                     </div>
+                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                 </button>
 
-                                {/* Stack Item 2: Security */}
-                                <button
-                                    type="button"
-                                    onClick={() => setMobileSubPage("security")}
-                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left"
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                            <FiShield size={18} />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[14px] text-text-primary">Keamanan & Kata Sandi</div>
-                                            <div className="text-[11px] text-text-muted mt-0.5">Ganti kata sandi akun</div>
-                                        </div>
-                                    </div>
-                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                </button>
+                                 {/* Stack Item 2: Security */}
+                                 <button
+                                     type="button"
+                                     onClick={() => handleOpenMobileSubPage("security")}
+                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                 >
+                                     <div className="flex items-center gap-3.5">
+                                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                             <FiShield size={18} />
+                                         </div>
+                                         <div>
+                                             <div className="font-bold text-[14px] text-text-primary">Keamanan & Kata Sandi</div>
+                                             <div className="text-[11px] text-text-muted mt-0.5">Ganti kata sandi akun</div>
+                                         </div>
+                                     </div>
+                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                 </button>
 
-                                {/* Stack Item 3: Notifications */}
-                                <button
-                                    type="button"
-                                    onClick={() => setMobileSubPage("notifications")}
-                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left"
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div className="w-10 h-10 rounded-xl bg-accent/20 text-accent-dark flex items-center justify-center shrink-0">
-                                            <FiBell size={18} />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[14px] text-text-primary">Preferensi Notifikasi</div>
-                                            <div className="text-[11px] text-text-muted mt-0.5">Atur saluran pesan & push alerts</div>
-                                        </div>
-                                    </div>
-                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                </button>
+                                 {/* Stack Item 3: Notifications */}
+                                 <button
+                                     type="button"
+                                     onClick={() => handleOpenMobileSubPage("notifications")}
+                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                 >
+                                     <div className="flex items-center gap-3.5">
+                                         <div className="w-10 h-10 rounded-xl bg-accent/20 text-accent-dark flex items-center justify-center shrink-0">
+                                             <FiBell size={18} />
+                                         </div>
+                                         <div>
+                                             <div className="font-bold text-[14px] text-text-primary">Preferensi Notifikasi</div>
+                                             <div className="text-[11px] text-text-muted mt-0.5">Atur saluran pesan & push alerts</div>
+                                         </div>
+                                     </div>
+                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                 </button>
 
-                                {/* Stack Item 4: Sessions */}
-                                <button
-                                    type="button"
-                                    onClick={() => setMobileSubPage("sessions")}
-                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left"
-                                >
-                                    <div className="flex items-center gap-3.5">
-                                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                                            <FiSmartphone size={18} />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-[14px] text-text-primary">Perangkat & Sesi Aktif</div>
-                                            <div className="text-[11px] text-text-muted mt-0.5">{sessions.length} perangkat terhubung</div>
-                                        </div>
-                                    </div>
-                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                </button>
+                                 {/* Stack Item 4: Sessions */}
+                                 <button
+                                     type="button"
+                                     onClick={() => handleOpenMobileSubPage("sessions")}
+                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                 >
+                                     <div className="flex items-center gap-3.5">
+                                         <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                                             <FiSmartphone size={18} />
+                                         </div>
+                                         <div>
+                                             <div className="font-bold text-[14px] text-text-primary">Perangkat & Sesi Aktif</div>
+                                             <div className="text-[11px] text-text-muted mt-0.5">{sessions.length} perangkat terhubung</div>
+                                         </div>
+                                     </div>
+                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                 </button>
                             </div>
                         </div>
 
@@ -480,123 +541,113 @@ export default function Profile({ user, sessions }: ProfileProps) {
                     <div key={mobileSubPage} className="animate-mobile-push flex flex-col gap-4">
                         {/* Sub-page 1: Data Akun & Profil */}
                         {mobileSubPage === "profile" && (
-                            <Card className="p-4 rounded-2xl shadow-card">
-                                <form onSubmit={handleProfileSubmit} className="flex flex-col gap-4">
-                                    <div>
-                                        <h3 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                            <FiUser className="text-primary" />
-                                            Data Akun Pengguna
-                                        </h3>
-                                        <p className="text-[11px] text-text-muted mt-0.5">
+                            <div className="flex flex-col gap-4 pb-24">
+                                <form id="mobile-profile-data-form" onSubmit={handleProfileSubmit} className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
+                                            Informasi Data Akun
+                                        </span>
+                                        <p className="text-[12px] text-text-muted px-1 leading-relaxed">
                                             Perbarui foto profil, nama lengkap, dan email resmi akun Anda.
                                         </p>
                                     </div>
 
-                                    {/* Photo Uploader Widget */}
-                                    <div className="p-3.5 rounded-xl border border-border bg-muted/30 flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <Avatar
-                                                name={user.name}
-                                                src={avatarPreview}
-                                                size="lg"
-                                                className="shadow-xs ring-2 ring-surface shrink-0"
-                                            />
-                                            <div className="min-w-0">
-                                                <div className="text-[13px] font-bold text-text-primary">Foto Profil</div>
-                                                <div className="text-[11px] text-text-muted">JPG, PNG, WebP (maks. 2MB)</div>
+                                    {/* Native Grouped Card */}
+                                    <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-4">
+                                        {/* Photo Uploader Widget */}
+                                        <div className="p-3.5 rounded-xl border border-border bg-muted/20 flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <Avatar
+                                                    name={user.name}
+                                                    src={avatarPreview}
+                                                    size="lg"
+                                                    className="shadow-xs ring-2 ring-surface shrink-0"
+                                                />
+                                                <div className="min-w-0">
+                                                    <div className="text-[13px] font-bold text-text-primary">Foto Profil</div>
+                                                    <div className="text-[11px] text-text-muted">JPG, PNG, WebP (maks. 2MB)</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                size="sm"
-                                                loading={uploadingAvatar}
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="h-8 text-[11px] px-3 rounded-lg font-bold"
-                                                icon={<FiCamera className="text-[12px]" />}
-                                            >
-                                                Pilih Foto
-                                            </Button>
-                                            {avatarPreview && (
+                                            <div className="flex items-center gap-1.5 shrink-0">
                                                 <Button
                                                     type="button"
-                                                    variant="danger"
+                                                    variant="secondary"
                                                     size="sm"
-                                                    disabled={uploadingAvatar}
-                                                    onClick={() => setShowDeleteAvatarModal(true)}
-                                                    className="h-8 text-[11px] px-2 rounded-lg"
-                                                    title="Hapus Foto"
-                                                    icon={<FiTrash2 className="text-[12px]" />}
+                                                    loading={uploadingAvatar}
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="h-8 text-[11px] px-3 rounded-lg font-bold"
+                                                    icon={<FiCamera className="text-[12px]" />}
+                                                >
+                                                    Pilih Foto
+                                                </Button>
+                                                {avatarPreview && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="danger"
+                                                        size="sm"
+                                                        disabled={uploadingAvatar}
+                                                        onClick={() => setShowDeleteAvatarModal(true)}
+                                                        className="h-8 text-[11px] px-2 rounded-lg"
+                                                        title="Hapus Foto"
+                                                        icon={<FiTrash2 className="text-[12px]" />}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                        {avatarError && (
+                                            <div className="px-3 py-1.5 rounded-xl bg-danger/10 border border-danger/20 text-danger text-[11px] font-medium">
+                                                {avatarError}
+                                            </div>
+                                        )}
+
+                                        <div className="flex flex-col gap-3.5">
+                                            <div>
+                                                <label className="block text-[13px] font-bold text-text-primary mb-1">
+                                                    Nama Lengkap <span className="text-danger">*</span>
+                                                </label>
+                                                <Input
+                                                    value={data.name}
+                                                    onChange={(e) => setData("name", e.target.value)}
+                                                    error={errors.name}
+                                                    inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
+                                                    placeholder="Masukkan nama lengkap..."
                                                 />
-                                            )}
-                                        </div>
-                                    </div>
-                                    {avatarError && (
-                                        <div className="px-3 py-1.5 rounded-lg bg-danger/10 border border-danger/20 text-danger text-[11px] font-medium">
-                                            {avatarError}
-                                        </div>
-                                    )}
+                                            </div>
 
-                                    <div className="flex flex-col gap-3 pt-2 border-t border-border/60">
-                                        <div>
-                                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                Nama Lengkap <span className="text-danger">*</span>
-                                            </label>
-                                            <Input
-                                                value={data.name}
-                                                onChange={(e) => setData("name", e.target.value)}
-                                                error={errors.name}
-                                                inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                                placeholder="Masukkan nama lengkap..."
-                                            />
+                                            <div>
+                                                <label className="block text-[13px] font-bold text-text-primary mb-1">
+                                                    Email Resmi <span className="text-danger">*</span>
+                                                </label>
+                                                <Input
+                                                    type="email"
+                                                    value={data.email}
+                                                    onChange={(e) => setData("email", e.target.value)}
+                                                    error={errors.email}
+                                                    inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
+                                                    placeholder="nama@smauii.sch.id"
+                                                />
+                                            </div>
                                         </div>
-
-                                        <div>
-                                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                                Email Resmi <span className="text-danger">*</span>
-                                            </label>
-                                            <Input
-                                                type="email"
-                                                value={data.email}
-                                                onChange={(e) => setData("email", e.target.value)}
-                                                error={errors.email}
-                                                inputClassName="h-11 bg-surface border-border font-medium text-[13px] rounded-xl"
-                                                placeholder="nama@smauii.sch.id"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <Button
-                                            type="submit"
-                                            loading={processing}
-                                            variant="primary"
-                                            className="w-full h-11 font-bold text-[14px] rounded-xl shadow-sm"
-                                            icon={<FiSave className="text-[14px]" />}
-                                        >
-                                            Simpan Perubahan
-                                        </Button>
                                     </div>
                                 </form>
-                            </Card>
+                            </div>
                         )}
 
                         {/* Sub-page 2: Keamanan & Kata Sandi */}
                         {mobileSubPage === "security" && (
-                            <Card className="p-4 rounded-2xl shadow-card">
-                                <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-                                    <div>
-                                        <h3 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                            <FiShield className="text-primary" />
-                                            Keamanan & Kata Sandi
-                                        </h3>
-                                        <p className="text-[11px] text-text-muted mt-0.5">
-                                            Perbarui kata sandi akun Anda secara berkala.
+                            <div className="flex flex-col gap-4 pb-24">
+                                <form id="mobile-profile-password-form" onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
+                                            Ganti Kata Sandi Akun
+                                        </span>
+                                        <p className="text-[12px] text-text-muted px-1 leading-relaxed">
+                                            Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan.
                                         </p>
                                     </div>
 
-                                    <div className="flex flex-col gap-3 pt-2 border-t border-border/60">
+                                    {/* Native Grouped Card */}
+                                    <div className="bg-surface border border-border rounded-2xl p-4 shadow-card flex flex-col gap-3.5">
                                         <div>
                                             <label className="block text-[13px] font-bold text-text-primary mb-1">
                                                 Kata Sandi Saat Ini <span className="text-danger">*</span>
@@ -639,45 +690,32 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                             />
                                         </div>
 
-                                        <div className="p-3 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-2 text-[12px] text-text-secondary mt-1">
-                                            <FiAlertCircle className="text-primary text-[14px] shrink-0 mt-0.5" />
+                                        <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-2.5 text-[12px] text-text-secondary mt-1">
+                                            <FiAlertCircle className="text-primary text-[15px] shrink-0 mt-0.5" />
                                             <span>Kata sandi minimal 8 karakter dengan kombinasi huruf, angka, dan simbol.</span>
                                         </div>
                                     </div>
-
-                                    <div className="pt-2">
-                                        <Button
-                                            type="submit"
-                                            loading={processing}
-                                            variant="primary"
-                                            className="w-full h-11 font-bold text-[14px] rounded-xl shadow-sm"
-                                            icon={<FiLock className="text-[14px]" />}
-                                        >
-                                            Perbarui Kata Sandi
-                                        </Button>
-                                    </div>
                                 </form>
-                            </Card>
+                            </div>
                         )}
 
                         {/* Sub-page 3: Preferensi Notifikasi */}
                         {mobileSubPage === "notifications" && (
-                            <Card className="p-4 rounded-2xl shadow-card flex flex-col gap-4">
-                                <div>
-                                    <h3 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                        <FiBell className="text-primary" />
-                                        Preferensi Notifikasi
-                                    </h3>
-                                    <p className="text-[11px] text-text-muted mt-0.5">
-                                        Atur jenis notifikasi yang ingin Anda terima.
+                            <div className="flex flex-col gap-4 pb-8">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
+                                        Saluran Notifikasi System
+                                    </span>
+                                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
+                                        Atur jenis notifikasi yang ingin Anda terima di aplikasi.
                                     </p>
                                 </div>
 
-                                <div className="border border-border rounded-xl divide-y divide-border bg-surface overflow-hidden">
-                                    <div className="flex items-center justify-between p-3.5">
+                                <div className="border border-border rounded-2xl divide-y divide-border bg-surface overflow-hidden shadow-card">
+                                    <div className="flex items-center justify-between p-4">
                                         <div>
-                                            <div className="font-bold text-[13px] text-text-primary">Email Notifikasi</div>
-                                            <div className="text-[11px] text-text-muted">Kirimkan salinan ke email</div>
+                                            <div className="font-bold text-[13.5px] text-text-primary">Email Notifikasi</div>
+                                            <div className="text-[11.5px] text-text-muted mt-0.5">Kirimkan salinan pesan ke email resmi</div>
                                         </div>
                                         <Toggle
                                             checked={notifPrefs.email}
@@ -685,10 +723,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         />
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3.5">
+                                    <div className="flex items-center justify-between p-4">
                                         <div>
-                                            <div className="font-bold text-[13px] text-text-primary">Push Notifications</div>
-                                            <div className="text-[11px] text-text-muted">Pemberitahuan pop-up real-time</div>
+                                            <div className="font-bold text-[13.5px] text-text-primary">Push Notifications</div>
+                                            <div className="text-[11.5px] text-text-muted mt-0.5">Pemberitahuan pop-up real-time di perangkat</div>
                                         </div>
                                         <Toggle
                                             checked={notifPrefs.push}
@@ -696,10 +734,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         />
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3.5">
+                                    <div className="flex items-center justify-between p-4">
                                         <div>
-                                            <div className="font-bold text-[13px] text-text-primary">Notifikasi Pengajuan Izin</div>
-                                            <div className="text-[11px] text-text-muted">Status persetujuan izin & sakit</div>
+                                            <div className="font-bold text-[13.5px] text-text-primary">Notifikasi Pengajuan Izin</div>
+                                            <div className="text-[11.5px] text-text-muted mt-0.5">Status persetujuan izin & sakit</div>
                                         </div>
                                         <Toggle
                                             checked={notifPrefs.leave}
@@ -707,10 +745,10 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         />
                                     </div>
 
-                                    <div className="flex items-center justify-between p-3.5">
+                                    <div className="flex items-center justify-between p-4">
                                         <div>
-                                            <div className="font-bold text-[13px] text-text-primary">Notifikasi Rekap Presensi</div>
-                                            <div className="text-[11px] text-text-muted">Pengingat & rekap harian</div>
+                                            <div className="font-bold text-[13.5px] text-text-primary">Notifikasi Rekap Presensi</div>
+                                            <div className="text-[11.5px] text-text-muted mt-0.5">Pengingat & rekap harian presensi</div>
                                         </div>
                                         <Toggle
                                             checked={notifPrefs.attendance}
@@ -718,19 +756,18 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                         />
                                     </div>
                                 </div>
-                            </Card>
+                            </div>
                         )}
 
                         {/* Sub-page 4: Perangkat & Sesi Aktif */}
                         {mobileSubPage === "sessions" && (
-                            <div className="flex flex-col gap-3">
-                                <div>
-                                    <h3 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                                        <FiSmartphone className="text-primary" />
-                                        Perangkat & Sesi Aktif
-                                    </h3>
-                                    <p className="text-[11px] text-text-muted mt-0.5">
-                                        Daftar perangkat yang terhubung ke akun Anda.
+                            <div className="flex flex-col gap-3 pb-8">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider px-1">
+                                        Sesi & Perangkat Terhubung
+                                    </span>
+                                    <p className="text-[12px] text-text-muted px-1 leading-relaxed">
+                                        Daftar perangkat yang saat ini aktif terhubung ke akun Anda.
                                     </p>
                                 </div>
 
@@ -738,7 +775,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                     {sessions.map((s, idx) => (
                                         <div
                                             key={s.id}
-                                            className="p-3.5 rounded-2xl border border-border bg-surface shadow-card flex flex-col gap-2.5"
+                                            className="p-4 rounded-2xl border border-border bg-surface shadow-card flex flex-col gap-2.5"
                                         >
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="flex items-center gap-3">
@@ -786,18 +823,74 @@ export default function Profile({ user, sessions }: ProfileProps) {
                 )}
             </div>
 
+            {/* 📱 Sticky Mobile Bottom Action Bar (Docked at bottom of screen, only in form subpages) */}
+            {mobileSubPage === "profile" && (
+                <div className="fixed bottom-0 left-0 right-0 p-3 bg-surface/95 backdrop-blur-md border-t border-border/80 z-30 sm:hidden">
+                    <div className="max-w-xl mx-auto">
+                        <Button
+                            type="submit"
+                            form="mobile-profile-data-form"
+                            loading={processing}
+                            variant="primary"
+                            size="lg"
+                            className="w-full justify-center font-bold text-[14.5px] shadow-sm py-3"
+                            icon={<FiSave className="text-[17px]" />}
+                        >
+                            Simpan Perubahan
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {mobileSubPage === "security" && (
+                <div className="fixed bottom-0 left-0 right-0 p-3 bg-surface/95 backdrop-blur-md border-t border-border/80 z-30 sm:hidden">
+                    <div className="max-w-xl mx-auto">
+                        <Button
+                            type="submit"
+                            form="mobile-profile-password-form"
+                            loading={processing}
+                            variant="primary"
+                            size="lg"
+                            className="w-full justify-center font-bold text-[14.5px] shadow-sm py-3"
+                            icon={<FiLock className="text-[17px]" />}
+                        >
+                            Perbarui Kata Sandi
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* ═══════════════════════════════════════════════════════════════════════════
                 B. DESKTOP & TABLET VIEW (hidden sm:block)
             ═══════════════════════════════════════════════════════════════════════════ */}
             <div className="hidden sm:block">
-                {/* 1. Desktop PageHeader */}
+                {/* 1. Desktop PageHeader (hidden on tablet, only visible on lg+) */}
                 <PageHeader
                     title={t("profile.title")}
                     description={t("profile.description")}
-                    className="shrink-0 mb-4"
-                >
+                    className="hidden lg:flex shrink-0 mb-4"
+                />
+
+                {/* 2. Desktop & Tablet Tab Switcher + Pengaturan Sistem Action Button */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+                    <div className="min-w-0 overflow-x-auto no-scrollbar">
+                        <TabSwitcher
+                            tabs={tabs.map((tab) => ({
+                                key: tab.key,
+                                label: tab.label,
+                                icon: <tab.icon className="text-[14px]" />,
+                            }))}
+                            activeKey={desktopTab}
+                            onChange={(key) => {
+                                setDesktopTab(key);
+                                router.get("/profile", { tab: key }, { preserveState: true, replace: true });
+                            }}
+                            variant="segmented"
+                        />
+                    </div>
+
                     {user.role === "admin" && (
-                        <Link href="/settings">
+                        <Link href="/settings" className="shrink-0 self-start sm:self-auto">
                             <Button
                                 variant="primary"
                                 size="sm"
@@ -808,23 +901,6 @@ export default function Profile({ user, sessions }: ProfileProps) {
                             </Button>
                         </Link>
                     )}
-                </PageHeader>
-
-                {/* 2. Desktop Tab Switcher */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0 font-inter">
-                    <TabSwitcher
-                        tabs={tabs.map((tab) => ({
-                            key: tab.key,
-                            label: tab.label,
-                            icon: <tab.icon className="text-[14px]" />,
-                        }))}
-                        activeKey={desktopTab}
-                        onChange={(key) => {
-                            setDesktopTab(key);
-                            router.get("/profile", { tab: key }, { preserveState: true, replace: true });
-                        }}
-                        variant="segmented"
-                    />
                 </div>
 
                 {/* 3. Desktop Tab 1: Profil */}

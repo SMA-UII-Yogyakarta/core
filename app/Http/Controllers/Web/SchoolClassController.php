@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSchoolClassRequest;
+use App\Http\Requests\UpdateSchoolClassRequest;
 use App\Models\SchoolClass;
 use App\Models\Teacher;
 use App\Services\SchoolClassService;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class SchoolClassController extends Controller
@@ -36,7 +36,7 @@ class SchoolClassController extends Controller
             'activeTab' => 'classes',
             'schoolClasses' => $classes,
             'allTeachers' => $allTeachers,
-            'classOptions' => $classes->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->all(),
+            'classOptions' => $classes->map(fn ($c) => ['id' => $c->id, 'name' => $c->full_name])->all(),
             'searchConfig' => [
                 'mode' => $isClientMode ? 'client' : 'server',
                 'allData' => $isClientMode ? $classes->all() : null,
@@ -45,71 +45,43 @@ class SchoolClassController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreSchoolClassRequest $request)
     {
         $this->authorize('create', SchoolClass::class);
 
-        $academicYear = $request->input('academic_year', '2024/2025') ?: '2024/2025';
-
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('school_classes')->where(fn ($q) => $q->where('academic_year', $academicYear)),
-            ],
-            'level' => 'nullable|string|in:X,XI,XII',
-            'academic_year' => 'nullable|string|max:20',
-            'teacher_id' => 'nullable|exists:teachers,id',
-            'capacity' => 'nullable|integer|min:1',
-        ]);
-
+        $validated = $request->validated();
         $validated['level'] = $validated['level'] ?? 'X';
-        $validated['academic_year'] = $academicYear;
+        $validated['academic_year'] = $validated['academic_year'] ?: SchoolClass::currentAcademicYear();
         $this->schoolClassService->create($validated);
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Class added successfully.',
+                'message' => 'Kelas rombel berhasil ditambahkan.',
             ]);
         }
 
         return redirect()
             ->back()
-            ->with('success', 'Class added successfully.');
+            ->with('success', 'Kelas rombel berhasil ditambahkan.');
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateSchoolClassRequest $request, int $id)
     {
         $this->authorize('update', SchoolClass::class);
 
-        $academicYear = $request->input('academic_year', '2024/2025') ?: '2024/2025';
-
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('school_classes')->ignore($id)->where(fn ($q) => $q->where('academic_year', $academicYear)),
-            ],
-            'level' => 'nullable|string|in:X,XI,XII',
-            'academic_year' => 'nullable|string|max:20',
-            'teacher_id' => 'nullable|exists:teachers,id',
-            'capacity' => 'nullable|integer|min:1',
-        ]);
-
-        $validated['academic_year'] = $academicYear;
+        $validated = $request->validated();
+        $validated['academic_year'] = $validated['academic_year'] ?: SchoolClass::currentAcademicYear();
         $this->schoolClassService->update($id, $validated);
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Class data updated successfully.',
+                'message' => 'Data kelas berhasil diperbarui.',
             ]);
         }
 
         return redirect()
             ->back()
-            ->with('success', 'Class data updated successfully.');
+            ->with('success', 'Data kelas berhasil diperbarui.');
     }
 
     public function destroy(int $id)
@@ -119,4 +91,22 @@ class SchoolClassController extends Controller
         $this->schoolClassService->delete($id);
         return redirect()->back()->with('success', 'Class deleted successfully.');
     }
+
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('delete', SchoolClass::class);
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:school_classes,id',
+        ]);
+
+        $count = $this->schoolClassService->bulkDelete($validated['ids']);
+
+        return redirect()->back()->with(
+            'success',
+            $count . ' kelas terpilih berhasil dihapus.',
+        );
+    }
 }
+

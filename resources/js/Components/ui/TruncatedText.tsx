@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, createElement } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Tooltip, { type TooltipPosition } from "./Tooltip";
 
 export interface TruncatedTextProps {
@@ -21,7 +21,7 @@ export default function TruncatedText({
     const textRef = useRef<HTMLElement>(null);
     const [isTruncated, setIsTruncated] = useState(false);
 
-    const checkTruncation = () => {
+    const checkTruncation = useCallback(() => {
         const el = textRef.current;
         if (!el) return;
 
@@ -34,7 +34,7 @@ export default function TruncatedText({
             const hasVerticalOverflow = el.scrollHeight > el.clientHeight + 1;
             setIsTruncated(hasVerticalOverflow);
         }
-    };
+    }, [lines]);
 
     useEffect(() => {
         checkTruncation();
@@ -59,17 +59,18 @@ export default function TruncatedText({
             }
             window.removeEventListener("resize", checkTruncation);
         };
-    }, [text, lines]);
+    }, [text, lines, checkTruncation]);
 
     const clampClass = lines === 1 ? "truncate" : `line-clamp-${lines}`;
+    const Tag = as as React.ElementType;
 
-    const textElement = createElement(
-        as,
-        {
-            ref: textRef,
-            className: `${clampClass} ${className} ${isTruncated ? "cursor-help" : ""}`,
-        },
-        text
+    const textElement = (
+        <Tag
+            ref={textRef}
+            className={`${clampClass} ${className} ${isTruncated ? "cursor-help" : ""}`}
+        >
+            {text}
+        </Tag>
     );
 
     if (!isTruncated) {

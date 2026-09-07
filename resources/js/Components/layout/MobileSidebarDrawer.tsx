@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@inertiajs/react";
+import { FiX, FiUser, FiSliders, FiRefreshCw, FiChevronUp, FiLogOut } from "react-icons/fi";
 import type { NavSection } from "@/Layouts/AppShell";
 import Avatar from "../ui/Avatar";
 
@@ -94,7 +95,7 @@ export default function MobileSidebarDrawer({
                         type="button"
                         aria-label="Tutup menu"
                     >
-                        <i className="fas fa-times text-[16px]" />
+                        <FiX className="text-[18px]" />
                     </button>
                 </div>
 
@@ -154,7 +155,7 @@ export default function MobileSidebarDrawer({
                                     }}
                                     className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-text-primary hover:bg-muted rounded-xl transition-colors"
                                 >
-                                    <i className="fas fa-user-cog text-[13px] text-primary" />
+                                    <FiUser className="text-[14px] text-primary" />
                                     Profil Saya
                                 </Link>
 
@@ -167,7 +168,7 @@ export default function MobileSidebarDrawer({
                                         }}
                                         className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-text-primary hover:bg-muted rounded-xl transition-colors"
                                     >
-                                        <i className="fas fa-sliders-h text-[13px] text-primary" />
+                                        <FiSliders className="text-[14px] text-primary" />
                                         Pengaturan Sistem
                                     </Link>
                                 )}
@@ -182,7 +183,7 @@ export default function MobileSidebarDrawer({
                                         }}
                                         className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-primary hover:bg-primary/10 rounded-xl transition-colors cursor-pointer text-left"
                                     >
-                                        <i className="fas fa-sync-alt text-[13px] text-primary" />
+                                        <FiRefreshCw className="text-[14px] text-primary" />
                                         Ganti Peran Guru
                                     </button>
                                 )}
@@ -209,7 +210,7 @@ export default function MobileSidebarDrawer({
                                 className="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                                 aria-label="Menu profil"
                             >
-                                <i className={`fas fa-chevron-up text-[10px] transition-transform ${profileMenuOpen ? "rotate-180" : ""}`} />
+                                <FiChevronUp className={`text-[12px] transition-transform duration-200 ${profileMenuOpen ? "rotate-180" : ""}`} />
                             </button>
                             <button
                                 onClick={(e) => {
@@ -223,7 +224,7 @@ export default function MobileSidebarDrawer({
                                 type="button"
                                 aria-label="Keluar Akun"
                             >
-                                <i className="fas fa-sign-out-alt text-[14px]" />
+                                <FiLogOut className="text-[15px]" />
                             </button>
                         </div>
                     </div>

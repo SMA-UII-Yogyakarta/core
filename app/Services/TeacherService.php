@@ -16,6 +16,7 @@ class TeacherService
             ->with(['user', 'schoolClasses'])
             ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('name', 'like', "%{$v}%")
                 ->orWhere('teacher_code', 'like', "%{$v}%"))
+            ->when($filters['teacher_type'] ?? null, fn ($q, $v) => $q->whereJsonContains('teacher_type', $v))
             ->latest()
             ->paginate($perPage);
     }
@@ -33,19 +34,30 @@ class TeacherService
     public function create(array $data): Teacher
     {
         return DB::transaction(function () use ($data) {
+            $code = trim((string) $data['teacher_code']);
+            $name = trim((string) $data['name']);
+            $email = ! empty($data['email']) ? trim((string) $data['email']) : null;
+
+            if (! $email) {
+                $parts = explode(' ', $name);
+                $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
+                $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'guru';
+                $email = "{$cleanFirst}@smauiiyk.sch.id";
+            }
+
             $user = User::create([
-                'username' => $data['teacher_code'],
-                'name' => $data['name'],
-                'email' => $data['email'] ?? null,
-                'password' => Hash::make($data['password'] ?? 'password'),
+                'username' => $code,
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : 'SmaUii@2026'),
                 'role' => 'teacher',
             ]);
             $user->assignRole('teacher');
 
             $teacher = Teacher::create([
                 'user_id' => $user->id,
-                'name' => $data['name'],
-                'teacher_code' => $data['teacher_code'],
+                'name' => $name,
+                'teacher_code' => $code,
                 'teacher_type' => $data['teacher_type'] ?? ['duty'],
             ]);
 
@@ -82,7 +94,37 @@ class TeacherService
     {
         DB::transaction(function () use ($id) {
             $teacher = Teacher::findOrFail($id);
-            $teacher->user->delete();
+            if ($teacher->user) {
+                $teacher->user->delete();
+            } else {
+                $teacher->delete();
+            }
         });
     }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    public function bulkDelete(array $ids): int
+    {
+        $deleted = 0;
+
+        DB::transaction(function () use ($ids, &$deleted) {
+            foreach (array_unique($ids) as $id) {
+                $teacher = Teacher::with('user')->find($id);
+                if (! $teacher) {
+                    continue;
+                }
+                if ($teacher->user) {
+                    $teacher->user->delete();
+                } else {
+                    $teacher->delete();
+                }
+                $deleted++;
+            }
+        });
+
+        return $deleted;
+    }
 }
+

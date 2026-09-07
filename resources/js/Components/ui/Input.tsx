@@ -5,7 +5,7 @@ import FormError from "./FormError";
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
-    icon?: string;
+    icon?: ReactNode | string;
     rightIcon?: ReactNode;
     numeric?: boolean;
     description?: string;
@@ -53,8 +53,8 @@ export default function Input({
             {label && <Label htmlFor={id}>{label}</Label>}
             <div className="relative">
                 {icon && (
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none">
-                        <i className={`fas ${icon}`} />
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none flex items-center justify-center">
+                        {typeof icon === "string" ? <i className={`fas ${icon}`} /> : icon}
                     </span>
                 )}
                 <input

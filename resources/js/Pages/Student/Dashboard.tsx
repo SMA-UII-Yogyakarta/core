@@ -70,6 +70,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                 <PageHeader
                     title={`Selamat Datang, ${student.name}`}
                     description={`Siswa Kelas ${className} • NIS: ${student.nis} (NISN: ${student.nisn || "-"})`}
+                    className="hidden lg:flex shrink-0 mb-4"
                 />
 
                 {/* Hero Greeting Card */}

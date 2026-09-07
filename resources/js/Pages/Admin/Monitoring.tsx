@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
+import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
-import { FiSearch, FiBarChart2 } from "react-icons/fi";
+import { FiSearch, FiBarChart2, FiFilter } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 
@@ -165,12 +165,33 @@ export default function Monitoring({
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = Boolean(classId);
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                    hasActiveFilters
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                }`}
+                title="Filter Monitoring Presensi"
+                aria-label="Filter Monitoring Presensi"
+            >
+                <FiFilter className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AppShell title="Monitoring Presensi">
-            {/* Filter Section */}
-            <Card className="mb-6">
+        <AppShell title="Monitoring Presensi" headerActions={mobileHeaderActions}>
+            {/* Filter Section (Desktop & Tablet) */}
+            <Card className="mb-6 hidden sm:block">
                 <Card.Body className="p-4 lg:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
                     <SelectInput
                         label="Filter Kelas"
@@ -186,7 +207,7 @@ export default function Monitoring({
                         className="w-full sm:w-[240px]"
                     />
                     <Input type="date" label="Tanggal" defaultValue={today} className="w-full sm:w-[200px]" />
-                    <Button variant="primary" size="md" onClick={handleFilter}>
+                    <Button variant="accent" size="md" onClick={handleFilter}>
                         <FiSearch className="mr-2" />
                         Tampilkan
                     </Button>
@@ -228,6 +249,71 @@ export default function Monitoring({
                     />
                 </Card>
             )}
+
+            {/* 📱 MOBILE FILTER BOTTOM SHEET */}
+            <BottomSheet
+                open={isMobileFilterOpen}
+                onClose={() => setIsMobileFilterOpen(false)}
+                title="Filter Monitoring Presensi"
+                subtitle="Pilih kelas dan tanggal untuk memantau kehadiran"
+            >
+                <div className="flex flex-col gap-4 font-inter pb-2">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Filter Kelas
+                        </label>
+                        <SelectInput
+                            value={classId}
+                            onChange={(val) => setClassId(String(val))}
+                            options={[
+                                { label: "-- Pilih Kelas --", value: "" },
+                                ...classes.map((c) => ({
+                                    label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
+                                    value: c.id.toString(),
+                                })),
+                            ]}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Tanggal
+                        </label>
+                        <Input
+                            type="date"
+                            defaultValue={today}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        {hasActiveFilters && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setClassId("");
+                                    router.get("/monitoring", {}, { preserveState: true });
+                                    setIsMobileFilterOpen(false);
+                                }}
+                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                            >
+                                Reset Filter
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                handleFilter();
+                                setIsMobileFilterOpen(false);
+                            }}
+                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                        >
+                            Tampilkan
+                        </Button>
+                    </div>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }

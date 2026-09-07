@@ -41,7 +41,7 @@ class GuardianAssignmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $allStudents = Student::with('class')
+        $allStudents = Student::with(['class', 'guardian:id,name'])
             ->orderBy('name')
             ->select(['id', 'nis', 'nisn', 'name', 'class_id', 'guardian_id'])
             ->get();
@@ -66,6 +66,11 @@ class GuardianAssignmentController extends Controller
         ]);
 
         $student = Student::findOrFail($validated['student_id']);
+
+        if ($student->guardian_id !== null) {
+            return redirect()->back()->with('error', 'Siswa sudah dihubungkan dengan wali murid dan tidak dapat dihubungkan lagi.');
+        }
+
         $student->update(['guardian_id' => $validated['guardian_id']]);
 
         return redirect()->back()->with('success', 'Siswa berhasil dihubungkan dengan Wali Murid.');

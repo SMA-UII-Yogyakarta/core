@@ -4,13 +4,16 @@ import AppShell from "@/Layouts/AppShell";
 import {
     PageHeader,
     Table,
+    TableFooter,
     Pagination,
+    MobileNativePagination,
     Drawer,
     NativeSelect,
     Button,
     Input,
     FilterBar,
     StatCard,
+    TabSwitcher,
 } from "@/Components";
 import {
     FiRefreshCw,
@@ -18,6 +21,7 @@ import {
     FiEdit3,
     FiCalendar,
     FiFileText,
+    FiInfo,
 } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
@@ -262,6 +266,7 @@ export default function DutyDashboard({
             <PageHeader
                 title="Overview Monitoring Guru Piket"
                 description="Pantau kehadiran siswa secara real-time dan kelola siswa yang memerlukan perhatian khusus."
+                className="hidden lg:flex shrink-0 mb-4"
             >
                 <div className="flex items-center gap-2">
                     <Button
@@ -344,71 +349,92 @@ export default function DutyDashboard({
                         emptyMessage="Tidak ada data siswa yang memerlukan perhatian khusus."
                     />
 
-                    {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                            <span>Menampilkan {paginatedAttention.length} dari {filteredAttention.length} siswa terpantau hari ini.</span>
-                        </div>
-                        {filteredAttention.length > pageSize && (
-                            <Pagination
-                                currentPage={safePage}
-                                totalPages={totalPages}
-                                totalItems={filteredAttention.length}
-                                perPage={pageSize}
-                                onPageChange={setCurrentPage}
-                            />
-                        )}
-                    </div>
+                    <TableFooter
+                        info={`Menampilkan ${paginatedAttention.length} dari ${filteredAttention.length} siswa terpantau hari ini.`}
+                        pagination={
+                            filteredAttention.length > pageSize ? (
+                                <Pagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={filteredAttention.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            ) : undefined
+                        }
+                    />
                 </div>
             </div>
 
             {/* ── MOBILE (lg:hidden) ──────────────────────────────────────── */}
             <div className="block lg:hidden flex flex-col gap-4 font-inter">
-                {/* Filter Controls */}
-                <div className="grid grid-cols-2 gap-3">
-                    <NativeSelect
-                        value={classVal}
-                        onChange={(e) => handleClassChange(e.target.value)}
-                    >
-                        {classOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </NativeSelect>
-                    <Input
-                        type="date"
-                        value={dateVal}
-                        onChange={(e) => handleDateChange(e.target.value)}
-                        inputClassName="h-11 rounded-xl font-bold shadow-xs text-[13px]"
-                    />
+                {/* Filter & Action Controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
+                    <div className="grid grid-cols-2 sm:flex sm:items-center gap-3">
+                        <div className="w-full sm:w-44">
+                            <NativeSelect
+                                value={classVal}
+                                onChange={(e) => handleClassChange(e.target.value)}
+                                className="h-10 text-[13px]"
+                            >
+                                {classOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+                        <div className="w-full sm:w-36">
+                            <Input
+                                type="date"
+                                value={dateVal}
+                                onChange={(e) => handleDateChange(e.target.value)}
+                                inputClassName="h-10 rounded-xl font-bold shadow-xs text-[12.5px]"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
+                        <Button
+                            variant={isPolling ? "outline" : "ghost"}
+                            size="sm"
+                            onClick={togglePolling}
+                            className="text-[12px] h-10 px-3"
+                        >
+                            <span
+                                className={`w-2 h-2 rounded-full mr-1.5 ${
+                                    isPolling ? "bg-success animate-pulse" : "bg-text-inactive"
+                                }`}
+                            />
+                            {isPolling ? "Live (10s)" : "Paused"}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={triggerRefresh}
+                            loading={isRefreshing}
+                            className="h-10 px-3"
+                            title={`Terakhir diperbarui: ${
+                                lastUpdated ? lastUpdated.toLocaleTimeString("id-ID") : "—"
+                            }`}
+                        >
+                            <FiRefreshCw className={`text-[13px] ${isRefreshing ? "animate-spin" : ""}`} />
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Tab Switcher */}
-                <div className="flex gap-2 p-1 bg-muted rounded-xl">
-                    <button
-                        type="button"
-                        onClick={() => setMobileTab("anomali")}
-                        className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-colors cursor-pointer ${
-                            mobileTab === "anomali"
-                                ? "bg-surface text-text-primary shadow-xs border border-border"
-                                : "text-text-muted hover:text-text-primary"
-                        }`}
-                    >
-                        ANOMALI ({summary.late + summary.absent})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setMobileTab("izin")}
-                        className={`flex-1 py-2 text-[12px] font-bold rounded-lg transition-colors cursor-pointer ${
-                            mobileTab === "izin"
-                                ? "bg-surface text-text-primary shadow-xs border border-border"
-                                : "text-text-muted hover:text-text-primary"
-                        }`}
-                    >
-                        DATA IZIN ({summary.sick_permission})
-                    </button>
+                {/* Tab Switcher (Mobile & Tablet) */}
+                <div className="lg:hidden">
+                    <TabSwitcher
+                        tabs={[
+                            { key: "anomali", label: `ANOMALI (${summary.late + summary.absent})` },
+                            { key: "izin", label: `DATA IZIN (${summary.sick_permission})` },
+                        ]}
+                        activeKey={mobileTab}
+                        onChange={(k) => setMobileTab(k as MobileTab)}
+                        variant="segmented"
+                        fullWidth
+                    />
                 </div>
 
                 {/* Stat Summary Cards */}
@@ -501,39 +527,57 @@ export default function DutyDashboard({
                         {mobileTab === "anomali" ? "Siswa Anomali Kehadiran" : "Pengajuan Izin Siswa"}
                     </h3>
 
-                    {displayStudents.map((s) => (
-                        <div
-                            key={s.id}
-                            onClick={() => setSelectedStudent(s)}
-                            className="bg-surface border border-border rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-xs active:bg-muted cursor-pointer"
-                        >
-                            <div className="space-y-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-bold text-text-primary text-[14px] truncate">
-                                        {s.name}
-                                    </span>
-                                    <span className="text-[11px] font-semibold text-text-muted px-1.5 py-0.5 bg-muted rounded">
-                                        {s.class ? s.class.split(" (")[0] : "-"}
-                                    </span>
-                                </div>
-                                <p className="text-[12px] text-text-secondary truncate">
-                                    {rowNote(s)}
-                                </p>
-                            </div>
-
-                            <div className="shrink-0">
-                                {s.status === "alpa" ? (
-                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger-bg text-danger border border-danger-light">ALPA</span>
-                                ) : s.status === "terlambat" ? (
-                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-warning-bg text-warning border border-warning-light">TERLAMBAT</span>
-                                ) : s.status === "pending" ? (
-                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary-light">PENDING</span>
-                                ) : (
-                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success-bg text-success border border-success-light">DIIZINKAN</span>
-                                )}
-                            </div>
+                    {paginatedAttention.length === 0 ? (
+                        <div className="bg-surface border border-border rounded-xl p-6 text-center text-text-muted">
+                            Tidak ada data siswa yang memerlukan perhatian khusus.
                         </div>
-                    ))}
+                    ) : (
+                        paginatedAttention.map((s) => (
+                            <div
+                                key={s.id}
+                                onClick={() => setSelectedStudent(s)}
+                                className="bg-surface border border-border rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-xs active:bg-muted cursor-pointer"
+                            >
+                                <div className="space-y-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-bold text-text-primary text-[14px] truncate">
+                                            {s.name}
+                                        </span>
+                                        <span className="text-[11px] font-semibold text-text-muted px-1.5 py-0.5 bg-muted rounded">
+                                            {s.class ? s.class.split(" (")[0] : "-"}
+                                        </span>
+                                    </div>
+                                    <p className="text-[12px] text-text-secondary truncate">
+                                        {rowNote(s)}
+                                    </p>
+                                </div>
+
+                                <div className="shrink-0">
+                                    {s.status === "alpa" ? (
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-danger-bg text-danger border border-danger-light">ALPA</span>
+                                    ) : s.status === "terlambat" ? (
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-warning-bg text-warning border border-warning-light">TERLAMBAT</span>
+                                    ) : s.status === "pending" ? (
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary-light">PENDING</span>
+                                    ) : (
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-success-bg text-success border border-success-light">DIIZINKAN</span>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+
+                    {filteredAttention.length > pageSize && (
+                        <div className="pt-2 font-inter">
+                            <MobileNativePagination
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredAttention.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

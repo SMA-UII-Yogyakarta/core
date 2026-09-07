@@ -1,3 +1,5 @@
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
 export interface PaginationProps {
     currentPage: number;
     totalPages: number;
@@ -5,7 +7,7 @@ export interface PaginationProps {
     perPage?: number;
     onPageChange: (page: number) => void;
     compact?: boolean;
-    align?: "auto" | "between" | "center";
+    align?: "auto" | "between" | "center" | "start" | "left";
     className?: string;
 }
 
@@ -71,6 +73,7 @@ export default function Pagination({
     if (totalPages <= 0) return null;
 
     const isCentered = align === "center";
+    const isStart = align === "start" || align === "left";
     const paginationRange = getPaginationRange(currentPage, totalPages, compact);
     const startItem = totalItems > 0 ? (currentPage - 1) * perPage + 1 : 0;
     const endItem = Math.min(currentPage * perPage, totalItems);
@@ -78,8 +81,8 @@ export default function Pagination({
     return (
         <div
             className={`flex items-center ${
-                isCentered ? "justify-center" : "justify-between"
-            } gap-2 text-[13px] text-text-muted font-inter select-none w-full max-w-full ${className}`}
+                isCentered ? "justify-center" : isStart ? "justify-start gap-3" : "justify-between gap-2"
+            } text-[13px] text-text-muted font-inter select-none w-full max-w-full ${className}`}
         >
             {/* Info Text — Tepi Kiri */}
             <span className="text-[12px] whitespace-nowrap text-text-secondary text-left">
@@ -112,7 +115,7 @@ export default function Pagination({
                     aria-label="Halaman sebelumnya"
                     title="Halaman sebelumnya"
                 >
-                    <i className="fas fa-chevron-left text-[9px] sm:text-[10px]" />
+                    <FiChevronLeft className="text-[12px] sm:text-[13px]" />
                 </button>
 
                 {/* Page Number Buttons */}
@@ -159,7 +162,7 @@ export default function Pagination({
                     aria-label="Halaman selanjutnya"
                     title="Halaman selanjutnya"
                 >
-                    <i className="fas fa-chevron-right text-[9px] sm:text-[10px]" />
+                    <FiChevronRight className="text-[12px] sm:text-[13px]" />
                 </button>
             </nav>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, router } from "@inertiajs/react";
+import { FiBell, FiBellOff, FiArrowRight } from "react-icons/fi";
 
 export interface NotificationItem {
     id: number;
@@ -69,7 +70,7 @@ export default function NotificationPopover({
                 dusk="btn-bell-popover"
                 data-testid="btn-bell-popover"
             >
-                <i className="fas fa-bell text-[16px]" />
+                <FiBell className="text-[18px]" />
                 {unreadCount > 0 && (
                     <span
                         className="absolute -top-0.5 -right-0.5 bg-danger text-white text-[9px] font-bold w-[16px] h-[16px] flex items-center justify-center rounded-full border-2 border-primary shadow-sm select-none animate-pulse"
@@ -115,7 +116,7 @@ export default function NotificationPopover({
                         {notifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-text-muted mb-3 text-lg">
-                                    <i className="fas fa-bell-slash" />
+                                    <FiBellOff className="text-[22px]" />
                                 </div>
                                 <p className="text-[14px] font-semibold text-text-primary">Tidak ada notifikasi baru</p>
                                 <p className="text-[12px] text-text-muted mt-1 max-w-[240px]">
@@ -133,7 +134,7 @@ export default function NotificationPopover({
                                     }`}
                                 >
                                     <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5 text-[14px]">
-                                        <i className="fas fa-bell" />
+                                        <FiBell className="text-[15px]" />
                                     </div>
 
                                     <div className="flex-1 min-w-0">
@@ -175,7 +176,7 @@ export default function NotificationPopover({
                             data-testid="btn-view-all-notifications"
                         >
                             <span>Lihat Semua Notifikasi</span>
-                            <i className="fas fa-arrow-right text-[11px]" />
+                            <FiArrowRight className="text-[13px]" />
                         </Link>
                     </div>
                 </div>

@@ -52,29 +52,61 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Monitoring
     Route::get('/monitoring', [AttendanceController::class, 'monitoring'])->name('monitoring');
 
-    // Master Data
-    Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
-    Route::post('/master-data', [StudentController::class, 'store'])->name('master-data.store');
-    Route::patch('/master-data/students/{id}', [StudentController::class, 'update'])->name('master-data.students.update');
-    Route::post('/master-data/students/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('master-data.students.bulk-destroy');
-    Route::patch('/master-data/students/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('master-data.students.toggle');
-    Route::get('/master-data/teachers', fn () => redirect()->route('master-data', ['tab' => 'teachers']));
-    Route::post('/master-data/teachers', [TeacherController::class, 'store'])->name('master-data.teachers.store');
-    Route::patch('/master-data/teachers/{id}', [TeacherController::class, 'update'])->name('master-data.teachers.update');
-    Route::get('/master-data/classes', fn () => redirect()->route('master-data', ['tab' => 'class']));
-    Route::post('/master-data/classes', [SchoolClassController::class, 'store'])->name('master-data.classes.store');
-    Route::patch('/master-data/classes/{id}', [SchoolClassController::class, 'update'])->name('master-data.classes.update');
-    Route::get('/master-data/guardians', fn () => redirect()->route('master-data', ['tab' => 'guardians']));
-    Route::post('/master-data/guardians', [GuardianController::class, 'store'])->name('master-data.guardians.store');
-    Route::patch('/master-data/guardians/{id}', [GuardianController::class, 'update'])->name('master-data.guardians.update');
-    Route::delete('/master-data/students/{id}', [StudentController::class, 'destroy'])->name('master-data.students.destroy');
-    Route::delete('/master-data/teachers/{id}', [TeacherController::class, 'destroy'])->name('master-data.teachers.destroy');
-    Route::delete('/master-data/classes/{id}', [SchoolClassController::class, 'destroy'])->name('master-data.classes.destroy');
-    Route::delete('/master-data/guardians/{id}', [GuardianController::class, 'destroy'])->name('master-data.guardians.destroy');
+    // Master Data Grouped Routes
+    Route::prefix('master-data')->name('master-data.')->group(function () {
+        // Main Hub View & Mobile Subpages (Create / Detail / Edit)
+        Route::get('/', [StudentController::class, 'index'])->name('index');
+        Route::get('/create', [StudentController::class, 'create'])->name('create');
+        Route::get('/import-page', [StudentController::class, 'importForm'])->name('import-page');
+        Route::get('/{entity}/{id}/detail', [StudentController::class, 'editForm'])->name('detail');
+        Route::get('/{entity}/{id}/edit', [StudentController::class, 'editForm'])->name('edit');
 
-    // Master Data Import & Templates
-    Route::post('/master-data/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('master-data.import');
-    Route::get('/master-data/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('master-data.import.template');
+        // Students RESTful CRUD
+        Route::prefix('students')->name('students.')->group(function () {
+            Route::post('/', [StudentController::class, 'store'])->name('store');
+            Route::patch('/{id}', [StudentController::class, 'update'])->name('update');
+            Route::delete('/{id}', [StudentController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('bulk-destroy');
+            Route::patch('/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('toggle');
+        });
+
+        // Teachers RESTful CRUD & Shortcut Redirect
+        Route::prefix('teachers')->name('teachers.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'teachers']));
+            Route::post('/', [TeacherController::class, 'store'])->name('store');
+            Route::patch('/{id}', [TeacherController::class, 'update'])->name('update');
+            Route::delete('/{id}', [TeacherController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [TeacherController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Classes RESTful CRUD & Shortcut Redirect
+        Route::prefix('classes')->name('classes.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'class']));
+            Route::post('/', [SchoolClassController::class, 'store'])->name('store');
+            Route::patch('/{id}', [SchoolClassController::class, 'update'])->name('update');
+            Route::delete('/{id}', [SchoolClassController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [SchoolClassController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Guardians RESTful CRUD & Shortcut Redirect
+        Route::prefix('guardians')->name('guardians.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'guardians']));
+            Route::post('/', [GuardianController::class, 'store'])->name('store');
+            Route::patch('/{id}', [GuardianController::class, 'update'])->name('update');
+            Route::delete('/{id}', [GuardianController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [GuardianController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Master Data Import & Templates
+        Route::post('/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('import');
+        Route::get('/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('import.template');
+
+        // Backward compatibility fallback for legacy POST /master-data
+        Route::post('/', [StudentController::class, 'store']);
+    });
+
+    // Route alias for 'master-data'
+    Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
 
     // Class Enrolment
     Route::get('/class-enrolment', [ClassEnrolmentController::class, 'index'])->name('class-enrolment');

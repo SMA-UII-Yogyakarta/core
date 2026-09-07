@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
 import {
     FiUser,
@@ -6,7 +6,6 @@ import {
     FiFilter,
     FiClock,
     FiFileText,
-    FiBarChart2,
 } from "react-icons/fi";
 import AttendanceChart from "@/Components/features/AttendanceChart";
 import {
@@ -15,10 +14,15 @@ import {
     FilterBar,
     Button,
     Table,
+    TableFooter,
     PageHeader,
     Card,
     EmptyState,
     Avatar,
+    Pagination,
+    MobileNativePagination,
+    BottomSheet,
+    NativeSelect,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
@@ -56,6 +60,7 @@ interface Stats {
     present: number;
     late: number;
     absent: number;
+    sick_permission?: number;
 }
 
 interface PageProps {
@@ -98,6 +103,24 @@ export default function History({
 }: PageProps) {
     const [monthVal, setMonthVal] = useState(month.toString());
     const [yearVal, setYearVal] = useState(year.toString());
+
+    const [attPage, setAttPage] = useState(1);
+    const attPageSize = 10;
+    const attTotalPages = Math.max(1, Math.ceil(attendances.length / attPageSize));
+    const attSafePage = Math.min(Math.max(1, attPage), attTotalPages);
+    const paginatedAttendances = useMemo(() => {
+        const start = (attSafePage - 1) * attPageSize;
+        return attendances.slice(start, start + attPageSize);
+    }, [attendances, attSafePage, attPageSize]);
+
+    const [leavePage, setLeavePage] = useState(1);
+    const leavePageSize = 10;
+    const leaveTotalPages = Math.max(1, Math.ceil(leaveRequests.length / leavePageSize));
+    const leaveSafePage = Math.min(Math.max(1, leavePage), leaveTotalPages);
+    const paginatedLeaves = useMemo(() => {
+        const start = (leaveSafePage - 1) * leavePageSize;
+        return leaveRequests.slice(start, start + leavePageSize);
+    }, [leaveRequests, leaveSafePage, leavePageSize]);
 
     const handleSelectStudent = (id: number) => {
         router.get(
@@ -190,13 +213,35 @@ export default function History({
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = monthVal !== month.toString() || yearVal !== year.toString();
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                    hasActiveFilters
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                }`}
+                title="Filter Riwayat Anak"
+                aria-label="Filter Riwayat Anak"
+            >
+                <FiFilter className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Riwayat Presensi Anak">
+        <AppShell title="Riwayat Presensi Anak" headerActions={mobileHeaderActions}>
             <div className="flex flex-col gap-6 font-inter">
                 {/* Header */}
                 <PageHeader
                     title="Riwayat Presensi Anak"
                     description="Pantau laporan kehadiran harian, keterlambatan, dan riwayat pengajuan izin anak Anda."
+                    className="hidden lg:flex shrink-0 mb-4"
                 />
 
                 {/* Child Selector Tabs */}
@@ -250,61 +295,85 @@ export default function History({
                             </div>
                         </Card>
 
-                        {/* Summary Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-                            <StatCard
-                                label="Hari Tercatat"
-                                value={stats?.total_days ?? 0}
-                            />
-                            <StatCard
-                                label="Hadir Tepat"
-                                value={stats?.present ?? 0}
-                            />
-                            <StatCard
-                                label="Terlambat"
-                                value={stats?.late ?? 0}
-                            />
-                            <StatCard
-                                label="Tidak Hadir / Alpa"
-                                value={stats?.absent ?? 0}
-                            />
+                        {/* Summary Stat Cards Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <StatCard label="TOTAL HADIR" value={stats?.present ?? 0} variant="success" />
+                            <StatCard label="TERLAMBAT" value={stats?.late ?? 0} variant="warning" />
+                            <StatCard label="ALPA / ABSEN" value={stats?.absent ?? 0} variant="danger" />
+                            <StatCard label="SAKIT & IZIN" value={stats?.sick_permission ?? 0} variant="info" />
                         </div>
 
-                        {/* Monthly Trend Chart */}
+                        {/* Monthly Attendance Trend Chart */}
                         {monthlyTrend && monthlyTrend.length > 0 && (
                             <Card className="p-5 border-border">
-                                <h3 className="text-[15px] font-bold text-text-primary font-inter mb-4 flex items-center gap-2">
-                                    <FiBarChart2 className="w-4 h-4 text-primary" />
-                                    <span>Grafik Tren Kehadiran Bulanan</span>
+                                <h3 className="text-[14px] font-bold text-text-primary mb-3">
+                                    Tren Kehadiran Bulanan
                                 </h3>
                                 <AttendanceChart data={monthlyTrend} />
                             </Card>
                         )}
 
-                        {/* Filter Bar */}
-                        <FilterBar>
-                            <FilterBar.Select
-                                label="Bulan"
-                                options={MONTH_NAMES.map((name, i) => ({
-                                    value: (i + 1).toString(),
-                                    label: name,
-                                }))}
-                                value={monthVal}
-                                onChange={(e) => setMonthVal(e.target.value)}
-                            />
-                            <FilterBar.Select
-                                label="Tahun"
-                                options={["2024", "2025", "2026", "2027"].map((t) => ({
-                                    value: t,
-                                    label: t,
-                                }))}
-                                value={yearVal}
-                                onChange={(e) => setYearVal(e.target.value)}
-                            />
-                            <Button variant="primary" onClick={handleFilter} icon={<FiFilter className="w-4 h-4" />}>
-                                Tampilkan Filter
-                            </Button>
-                        </FilterBar>
+                        {/* Filter Bar (Desktop/Tablet only) */}
+                        <div className="hidden sm:block">
+                            <FilterBar>
+                                <FilterBar.Select
+                                    label="Bulan"
+                                    options={MONTH_NAMES.map((name, i) => ({
+                                        value: (i + 1).toString(),
+                                        label: name,
+                                    }))}
+                                    value={monthVal}
+                                    onChange={(e) => setMonthVal(e.target.value)}
+                                />
+                                <FilterBar.Select
+                                    label="Tahun"
+                                    options={["2024", "2025", "2026", "2027"].map((t) => ({
+                                        value: t,
+                                        label: t,
+                                    }))}
+                                    value={yearVal}
+                                    onChange={(e) => setYearVal(e.target.value)}
+                                />
+                                <Button variant="accent" onClick={handleFilter} icon={<FiFilter className="w-4 h-4" />}>
+                                    Tampilkan Filter
+                                </Button>
+                            </FilterBar>
+                        </div>
+
+                        {/* Mobile Filter BottomSheet */}
+                        <BottomSheet open={isMobileFilterOpen} onClose={() => setIsMobileFilterOpen(false)} title="Filter Riwayat">
+                            <div className="p-4 space-y-4">
+                                <div>
+                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">Bulan</label>
+                                    <NativeSelect
+                                        value={monthVal}
+                                        onChange={(e) => setMonthVal(e.target.value)}
+                                    >
+                                        {MONTH_NAMES.map((name, i) => (
+                                            <option key={i + 1} value={(i + 1).toString()}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </NativeSelect>
+                                </div>
+                                <div>
+                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">Tahun</label>
+                                    <NativeSelect
+                                        value={yearVal}
+                                        onChange={(e) => setYearVal(e.target.value)}
+                                    >
+                                        {["2024", "2025", "2026", "2027"].map((t) => (
+                                            <option key={t} value={t}>
+                                                {t}
+                                            </option>
+                                        ))}
+                                    </NativeSelect>
+                                </div>
+                                <Button className="w-full mt-2" variant="primary" onClick={() => { handleFilter(); setIsMobileFilterOpen(false); }}>
+                                    Terapkan Filter
+                                </Button>
+                            </div>
+                        </BottomSheet>
 
                         {/* Attendance Table */}
                         <section className="flex flex-col gap-3">
@@ -323,11 +392,81 @@ export default function History({
                                     description={`Tidak ada rekaman data presensi untuk periode ${MONTH_NAMES[month - 1]} ${year}.`}
                                 />
                             ) : (
-                                <Table
-                                    columns={attendanceColumns}
-                                    data={attendances}
-                                    keyExtractor={(item: AttendanceRecord) => item.id}
-                                />
+                                <>
+                                    {/* Mobile Card Stack */}
+                                    <div className="sm:hidden space-y-3">
+                                        {paginatedAttendances.map((item) => {
+                                            const statusLower = item.status?.toLowerCase() ?? "";
+                                            const variant =
+                                                statusLower === "present"
+                                                    ? "present"
+                                                    : statusLower === "late"
+                                                    ? "late"
+                                                    : "absent";
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
+                                                            <FiCalendar className="w-4 h-4 text-text-muted shrink-0" />
+                                                            <span>{item.attendance_date}</span>
+                                                        </div>
+                                                        <StatusBadge variant={variant} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
+                                                        <span>Jam Masuk</span>
+                                                        <span className="font-mono font-medium text-text-primary">
+                                                            {item.check_in_time ? `${item.check_in_time} WIB` : "—"}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        {attendances.length > attPageSize && (
+                                            <div className="pt-2 font-inter">
+                                                <MobileNativePagination
+                                                    currentPage={attSafePage}
+                                                    totalPages={attTotalPages}
+                                                    totalItems={attendances.length}
+                                                    perPage={attPageSize}
+                                                    onPageChange={setAttPage}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tablet & Desktop View (>= sm) */}
+                                    <div className="hidden sm:block space-y-3">
+                                        <Table
+                                            columns={attendanceColumns}
+                                            data={paginatedAttendances}
+                                            keyExtractor={(item: AttendanceRecord) => item.id}
+                                        />
+                                        <TableFooter
+                                            info={
+                                                attendances.length > 0 ? (
+                                                    <span>
+                                                        Menampilkan <strong className="text-text-primary">{(attSafePage - 1) * attPageSize + 1}–{Math.min(attSafePage * attPageSize, attendances.length)}</strong> dari total <strong className="text-text-primary">{attendances.length}</strong> hari presensi.
+                                                    </span>
+                                                ) : undefined
+                                            }
+                                            pagination={
+                                                attendances.length > attPageSize ? (
+                                                    <Pagination
+                                                        currentPage={attSafePage}
+                                                        totalPages={attTotalPages}
+                                                        totalItems={attendances.length}
+                                                        perPage={attPageSize}
+                                                        onPageChange={setAttPage}
+                                                    />
+                                                ) : undefined
+                                            }
+                                        />
+                                    </div>
+                                </>
                             )}
                         </section>
 
@@ -348,11 +487,81 @@ export default function History({
                                     description="Siswa ini belum memiliki riwayat pengajuan izin atau sakit."
                                 />
                             ) : (
-                                <Table
-                                    columns={leaveColumns}
-                                    data={leaveRequests}
-                                    keyExtractor={(item: LeaveRequest) => item.id}
-                                />
+                                <>
+                                    {/* Mobile Card Stack */}
+                                    <div className="sm:hidden space-y-3">
+                                        {paginatedLeaves.map((item) => {
+                                            const s = item.approval_status?.toLowerCase() ?? "pending";
+                                            const variant =
+                                                s === "approved"
+                                                    ? "approved"
+                                                    : s === "rejected"
+                                                    ? "rejected"
+                                                    : "pending";
+                                            return (
+                                                <div
+                                                    key={item.id}
+                                                    className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-2"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2 font-medium text-text-primary text-[14px]">
+                                                            <FiFileText className="w-4 h-4 text-primary shrink-0" />
+                                                            <span>{item.category}</span>
+                                                        </div>
+                                                        <StatusBadge variant={variant} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
+                                                        <span>Periode</span>
+                                                        <span className="font-medium text-text-primary">
+                                                            {item.start_date} {item.end_date && item.end_date !== item.start_date ? `s/d ${item.end_date}` : ""}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        {leaveRequests.length > leavePageSize && (
+                                            <div className="pt-2 font-inter">
+                                                <MobileNativePagination
+                                                    currentPage={leaveSafePage}
+                                                    totalPages={leaveTotalPages}
+                                                    totalItems={leaveRequests.length}
+                                                    perPage={leavePageSize}
+                                                    onPageChange={setLeavePage}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tablet & Desktop View (>= sm) */}
+                                    <div className="hidden sm:block space-y-3">
+                                        <Table
+                                            columns={leaveColumns}
+                                            data={paginatedLeaves}
+                                            keyExtractor={(item: LeaveRequest) => item.id}
+                                        />
+                                        <TableFooter
+                                            info={
+                                                leaveRequests.length > 0 ? (
+                                                    <span>
+                                                        Menampilkan <strong className="text-text-primary">{(leaveSafePage - 1) * leavePageSize + 1}–{Math.min(leaveSafePage * leavePageSize, leaveRequests.length)}</strong> dari total <strong className="text-text-primary">{leaveRequests.length}</strong> pengajuan.
+                                                    </span>
+                                                ) : undefined
+                                            }
+                                            pagination={
+                                                leaveRequests.length > leavePageSize ? (
+                                                    <Pagination
+                                                        currentPage={leaveSafePage}
+                                                        totalPages={leaveTotalPages}
+                                                        totalItems={leaveRequests.length}
+                                                        perPage={leavePageSize}
+                                                        onPageChange={setLeavePage}
+                                                    />
+                                                ) : undefined
+                                            }
+                                        />
+                                    </div>
+                                </>
                             )}
                         </section>
                     </>

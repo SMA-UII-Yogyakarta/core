@@ -5,6 +5,7 @@ import {
     PageHeader,
     Card,
     Table,
+    TableFooter,
     StatusBadge,
     ActionButton,
     Drawer,
@@ -12,14 +13,17 @@ import {
     Input,
     Button,
     Pagination,
+    MobileNativePagination,
     SearchBar,
     ConfirmDialog,
+    EmptyState,
+    BottomSheet,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 import { attendanceCorrectionSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiFilter } from "react-icons/fi";
+import { FiFilter, FiEdit2, FiRotateCcw } from "react-icons/fi";
 
 interface Student {
     id: number;
@@ -215,14 +219,14 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                 <div className="flex items-center gap-2 justify-end">
                     <ActionButton
                         variant="edit"
-                        icon="fa-pen"
+                        icon={<FiEdit2 className="text-[13px]" />}
                         label="Koreksi"
                         onClick={() => openCorrectionDrawer(s)}
                     />
                     {s.override_id && (
                         <ActionButton
                             variant="delete"
-                            icon="fa-undo"
+                            icon={<FiRotateCcw className="text-[13px]" />}
                             label="Reset"
                             onClick={() => deleteOverride(s.override_id!)}
                         />
@@ -233,16 +237,44 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = Boolean(selectedClass) || selectedDate !== filters.date;
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(true)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                    hasActiveFilters
+                        ? "bg-primary text-white"
+                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                }`}
+                title="Filter Koreksi Absensi"
+                aria-label="Filter Koreksi Absensi"
+            >
+                <FiFilter className="text-[14px]" />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Koreksi Absensi">
+        <AppShell
+            title="Koreksi Absensi"
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Cari siswa..."
+            headerActions={mobileHeaderActions}
+        >
             <div className="space-y-6">
                 <PageHeader
                     title="Koreksi Absensi"
                     description="Sesuaikan atau ubah status absensi siswa harian secara manual dengan pencatatan alasan resmi."
+                    className="hidden lg:flex shrink-0 mb-4"
                 />
 
-                {/* Filter Toolbar */}
-                <Card>
+                {/* Filter Toolbar (Desktop & Tablet) */}
+                <Card className="hidden sm:block">
                     <div className="p-4 flex flex-wrap gap-4 items-end">
                         <div className="w-full sm:w-48">
                             <Input
@@ -263,7 +295,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                 ]}
                             />
                         </div>
-                        <Button variant="primary" onClick={applyFilter} className="h-10">
+                        <Button variant="accent" onClick={applyFilter} className="h-10">
                             <FiFilter className="mr-2 text-[12px]" />
                             Terapkan Filter
                         </Button>
@@ -281,17 +313,61 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                     </div>
                 </Card>
 
-                {/* Student Table */}
-                <Card>
-                    <Table
-                        columns={columns}
-                        data={paginatedStudents}
-                        keyExtractor={(s) => s.id}
-                        emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
-                    />
+                {/* Mobile Card Stack (< sm) */}
+                <div className="sm:hidden space-y-3">
+                    {paginatedStudents.length === 0 ? (
+                        <div className="bg-surface border border-border rounded-xl p-6 shadow-card">
+                            <EmptyState
+                                variant="no-data"
+                                title="Tidak Ada Data"
+                                description={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
+                            />
+                        </div>
+                    ) : (
+                        paginatedStudents.map((s) => (
+                            <div
+                                key={s.id}
+                                className="bg-surface border border-border rounded-xl p-4 shadow-card space-y-3"
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
+                                        <p className="text-[11px] text-text-muted">NIS: {s.nis} • Kelas {s.class}</p>
+                                    </div>
+                                    <div className="shrink-0 flex items-center gap-1.5">
+                                        <StatusBadge variant={statusToVariant[s.current_status] ?? "absent"} />
+                                        {s.override_id && (
+                                            <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                                                Koreksi
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
+                                    <span>Jam: <span className="font-semibold text-text-primary">{s.check_in_time ?? "—"}</span></span>
+                                    <div className="flex items-center gap-2">
+                                        <ActionButton
+                                            variant="edit"
+                                            icon={<FiEdit2 className="text-[13px]" />}
+                                            label="Koreksi"
+                                            onClick={() => openCorrectionDrawer(s)}
+                                        />
+                                        {s.override_id && (
+                                            <ActionButton
+                                                variant="delete"
+                                                icon={<FiRotateCcw className="text-[13px]" />}
+                                                label="Reset"
+                                                onClick={() => deleteOverride(s.override_id!)}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
                     {filteredStudents.length > pageSize && (
-                        <div className="p-4 bg-surface">
-                            <Pagination
+                        <div className="pt-2 font-inter">
+                            <MobileNativePagination
                                 currentPage={safePage}
                                 totalPages={totalPages}
                                 totalItems={filteredStudents.length}
@@ -300,7 +376,37 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                             />
                         </div>
                     )}
-                </Card>
+                </div>
+
+                {/* Tablet & Desktop View (>= sm): Standard Table */}
+                <div className="hidden sm:flex flex-col gap-3">
+                    <Table
+                        columns={columns}
+                        data={paginatedStudents}
+                        keyExtractor={(s) => s.id}
+                        emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
+                    />
+                    <TableFooter
+                        info={
+                            filteredStudents.length > 0 ? (
+                                <span>
+                                    Menampilkan <strong className="text-text-primary">{(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredStudents.length)}</strong> dari total <strong className="text-text-primary">{filteredStudents.length}</strong> siswa.
+                                </span>
+                            ) : undefined
+                        }
+                        pagination={
+                            filteredStudents.length > pageSize ? (
+                                <Pagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={filteredStudents.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            ) : undefined
+                        }
+                    />
+                </div>
 
                 {/* Correction Drawer */}
                 <Drawer
@@ -360,6 +466,70 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                 message="Hapus koreksi absensi ini dan kembalikan ke status asli?"
                 variant="danger"
             />
+
+            {/* 📱 MOBILE FILTER BOTTOM SHEET */}
+            <BottomSheet
+                open={isMobileFilterOpen}
+                onClose={() => setIsMobileFilterOpen(false)}
+                title="Filter Koreksi Absensi"
+                subtitle="Atur tanggal dan kelas untuk memfilter data absensi"
+            >
+                <div className="flex flex-col gap-4 font-inter pb-2">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Tanggal Absensi
+                        </label>
+                        <Input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">
+                            Pilih Kelas
+                        </label>
+                        <SelectInput
+                            value={selectedClass}
+                            onChange={(val) => setSelectedClass(val as string)}
+                            options={[
+                                { value: "", label: "Semua Kelas" },
+                                ...classes.map((c) => ({ value: String(c.id), label: c.name })),
+                            ]}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        {hasActiveFilters && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setSelectedDate(filters.date);
+                                    setSelectedClass("");
+                                    router.get("/attendance-correction", { date: filters.date }, { preserveState: true });
+                                    setIsMobileFilterOpen(false);
+                                }}
+                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                            >
+                                Reset Filter
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                applyFilter();
+                                setIsMobileFilterOpen(false);
+                            }}
+                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                        >
+                            Terapkan
+                        </Button>
+                    </div>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }

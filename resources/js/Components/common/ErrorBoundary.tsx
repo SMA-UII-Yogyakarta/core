@@ -10,7 +10,7 @@ import {
     FiChevronDown,
 } from "react-icons/fi";
 import Button from "@/Components/ui/Button";
-import { cn } from "@/utils/helpers";
+import { cn, copyToClipboard } from "@/utils/helpers";
 
 interface Props {
     children: ReactNode;
@@ -37,7 +37,7 @@ export function ErrorDisplay({ error, onRetry, className = "" }: ErrorDisplayPro
 
     const handleCopy = () => {
         const errorInfo = `Error: ${error?.message || "Unknown error"}\n\nStack Trace:\n${error?.stack || "No stack trace"}`;
-        navigator.clipboard.writeText(errorInfo);
+        copyToClipboard(errorInfo);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -51,77 +51,88 @@ export function ErrorDisplay({ error, onRetry, className = "" }: ErrorDisplayPro
     };
 
     return (
-        <div className={cn("flex-1 min-h-[440px] flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter w-full", className)}>
-            <div className="w-full max-w-lg bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-card flex flex-col items-center text-center relative overflow-hidden transition-all">
-                {/* Decorative Ambient Background */}
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-danger/5 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
+        <div
+            className={cn(
+                "flex-1 min-h-[70vh] flex items-center justify-center p-3.5 sm:p-6 lg:p-8 font-inter w-full",
+                className
+            )}
+        >
+            <div className="w-full max-w-lg bg-surface border border-border rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-card flex flex-col items-center text-center relative overflow-hidden transition-all">
+                {/* Ambient Decorative Glows */}
+                <div className="absolute -top-12 -right-12 w-36 h-36 bg-danger/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Warning Icon Badge */}
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-danger-bg border border-danger/20 flex items-center justify-center text-danger mb-4 shadow-xs shrink-0">
+                {/* Warning Badge Icon */}
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-danger/10 border border-danger/20 flex items-center justify-center text-danger mb-3.5 shadow-xs shrink-0">
                     <FiAlertTriangle className="w-7 h-7 sm:w-8 sm:h-8 text-danger" />
                 </div>
 
-                {/* Header Text */}
-                <h2 className="text-[18px] sm:text-[20px] font-bold text-text-primary tracking-tight font-inter">
+                {/* Heading & Subtitle */}
+                <h2 className="text-[17px] sm:text-[20px] font-bold text-text-primary tracking-tight font-inter">
                     Terjadi Kendala Teknis
                 </h2>
 
-                <p className="text-[13px] text-text-secondary max-w-sm mt-1.5 leading-relaxed">
+                <p className="text-[12.5px] sm:text-[13.5px] text-text-secondary max-w-sm mt-1.5 leading-relaxed">
                     Halaman ini mengalami kendala saat memuat atau memproses data. Silakan muat ulang atau kembali ke halaman utama.
                 </p>
 
                 {/* Error Snippet Box */}
-                <div className="w-full mt-4 p-3 rounded-xl bg-muted/60 border border-border text-left flex items-start gap-2.5">
-                    <span className="px-2 py-0.5 rounded-md bg-danger/10 text-danger text-[11px] font-bold shrink-0 uppercase tracking-wider mt-0.5">
+                <div className="w-full mt-4 p-3 rounded-xl bg-danger/5 border border-danger/15 text-left flex items-start gap-2.5">
+                    <span className="px-2 py-0.5 rounded-md bg-danger text-white text-[10px] font-bold shrink-0 uppercase tracking-wider mt-0.5">
                         Error
                     </span>
-                    <p className="text-[12px] font-mono text-text-primary break-all flex-1 select-all font-medium leading-tight">
+                    <p className="text-[11.5px] sm:text-[12px] font-mono text-danger-text font-medium break-words leading-snug flex-1 select-all">
                         {error?.message || "Terjadi kesalahan yang tidak terduga."}
                     </p>
                 </div>
 
-                {/* Responsive Action Buttons Row */}
-                <div className="flex flex-wrap items-center justify-center gap-2 mt-5 w-full">
-                    <Button
-                        variant="primary"
-                        onClick={onRetry}
-                        className="h-10 px-4 font-bold text-[13px] rounded-xl shadow-xs flex-1 sm:flex-initial justify-center"
-                        icon={<FiRefreshCw className="w-4 h-4" />}
-                    >
-                        Coba Lagi
-                    </Button>
+                {/* Action Buttons Matrix */}
+                <div className="w-full space-y-2 mt-5">
+                    {/* Primary Actions (Equal Grid on Tablet/Desktop, Full-Width Stack on Mobile) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                        <Button
+                            variant="primary"
+                            onClick={onRetry}
+                            className="h-10 px-4 font-bold text-[13px] rounded-xl shadow-xs justify-center w-full"
+                            icon={<FiRefreshCw className="w-4 h-4" />}
+                        >
+                            Coba Lagi
+                        </Button>
 
-                    <Button
-                        variant="outline"
-                        onClick={() => (window.location.href = "/")}
-                        className="h-10 px-4 font-bold text-[13px] rounded-xl flex-1 sm:flex-initial justify-center"
-                        icon={<FiHome className="w-4 h-4" />}
-                    >
-                        Beranda
-                    </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => (window.location.href = "/")}
+                            className="h-10 px-4 font-bold text-[13px] rounded-xl justify-center w-full"
+                            icon={<FiHome className="w-4 h-4" />}
+                        >
+                            Beranda
+                        </Button>
+                    </div>
 
-                    <Button
-                        variant="ghost"
-                        onClick={handleCopy}
-                        className="h-10 px-3.5 text-[13px] font-semibold rounded-xl text-text-secondary hover:text-text-primary hover:bg-muted transition-colors flex-1 sm:flex-initial justify-center"
-                        icon={copied ? <FiCheck className="w-4 h-4 text-success" /> : <FiCopy className="w-4 h-4" />}
-                    >
-                        {copied ? "Tersalin!" : "Salin Info"}
-                    </Button>
+                    {/* Secondary Actions (Equal 2-Col Grid across all screens) */}
+                    <div className="grid grid-cols-2 gap-2 w-full">
+                        <Button
+                            variant="ghost"
+                            onClick={handleCopy}
+                            className="h-9 px-3 text-[12px] font-semibold rounded-xl text-text-secondary hover:text-text-primary bg-muted/50 hover:bg-muted transition-colors justify-center w-full"
+                            icon={copied ? <FiCheck className="w-3.5 h-3.5 text-success" /> : <FiCopy className="w-3.5 h-3.5" />}
+                        >
+                            {copied ? "Tersalin!" : "Salin Info"}
+                        </Button>
 
-                    <Button
-                        variant="ghost"
-                        onClick={handleReport}
-                        className="h-10 px-3.5 text-[13px] font-semibold rounded-xl text-text-secondary hover:text-text-primary hover:bg-muted transition-colors flex-1 sm:flex-initial justify-center"
-                        icon={<FiMail className="w-4 h-4" />}
-                    >
-                        Laporkan
-                    </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={handleReport}
+                            className="h-9 px-3 text-[12px] font-semibold rounded-xl text-text-secondary hover:text-text-primary bg-muted/50 hover:bg-muted transition-colors justify-center w-full"
+                            icon={<FiMail className="w-3.5 h-3.5" />}
+                        >
+                            Laporkan
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Expandable Technical Details (Stack Trace) */}
-                <details className="mt-5 w-full text-left border-t border-border pt-3.5 group">
+                {/* Expandable Stack Trace Drawer */}
+                <details className="mt-4 w-full text-left border-t border-border/80 pt-3 group">
                     <summary className="text-[12px] font-semibold text-text-muted hover:text-text-primary cursor-pointer select-none flex items-center justify-between transition-colors list-none py-1">
                         <span className="flex items-center gap-1.5">
                             <FiTerminal className="w-3.5 h-3.5 text-primary" />
@@ -130,7 +141,7 @@ export function ErrorDisplay({ error, onRetry, className = "" }: ErrorDisplayPro
                         <FiChevronDown className="w-3.5 h-3.5 text-text-muted group-open:rotate-180 transition-transform duration-200" />
                     </summary>
                     <div className="mt-2 text-left">
-                        <pre className="p-3 bg-slate-900 text-slate-200 border border-slate-800 rounded-xl text-[11px] font-mono leading-relaxed overflow-auto max-h-40 select-all scrollbar-thin">
+                        <pre className="p-3 sm:p-3.5 bg-slate-950 text-slate-300 border border-slate-800 rounded-xl text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-h-48 select-all scrollbar-thin">
                             {error?.stack || "No stack trace available"}
                         </pre>
                     </div>

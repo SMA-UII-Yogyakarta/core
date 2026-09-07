@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid } from "react-icons/fi";
+import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid, FiInfo } from "react-icons/fi";
 import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 
@@ -192,7 +192,7 @@ export default function MonthlyTable({ students, summary, chartData, month, year
                                 <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
                                     {card.info && (
-                                        <i className="fa-solid fa-circle-info text-text-muted ml-1" />
+                                        <FiInfo className="text-text-muted ml-1 inline text-[13px]" />
                                     )}
                                 </p>
                                 {card.info && (

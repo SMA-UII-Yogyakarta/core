@@ -4,12 +4,14 @@ import AppShell from "@/Layouts/AppShell";
 import {
     PageHeader,
     Table,
+    TableFooter,
     Pagination,
+    MobileNativePagination,
     SearchBar,
     EmptyState,
     Button,
 } from "@/Components";
-import { FiUserX } from "react-icons/fi";
+import { FiUserX, FiInfo } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 
 interface Teacher {
@@ -225,6 +227,7 @@ export default function HomeroomDashboard({
             <PageHeader
                 title={`Overview Wali Kelas — ${shortClassName}`}
                 description="Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda."
+                className="hidden lg:flex shrink-0 mb-4"
             />
 
             {/* Desktop Layout without outer Card wrapper */}
@@ -296,28 +299,82 @@ export default function HomeroomDashboard({
                         </div>
                     </div>
 
-                    <Table<Student>
-                        columns={columns}
-                        data={paginatedAttention}
-                        keyExtractor={(s) => s.id}
-                        emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
-                    />
-
-                    {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                            <span>Menampilkan daftar siswa kelas {shortClassName} yang memerlukan perhatian khusus.</span>
-                        </div>
-                        {attentionStudents.length > pageSize && (
-                            <Pagination
-                                currentPage={safePage}
-                                totalPages={totalPages}
-                                totalItems={attentionStudents.length}
-                                perPage={pageSize}
-                                onPageChange={setCurrentPage}
-                            />
+                    {/* Mobile Card Stack (< sm) */}
+                    <div className="sm:hidden space-y-3">
+                        {paginatedAttention.length === 0 ? (
+                            <div className="bg-surface border border-border rounded-xl p-6 text-center text-text-muted">
+                                Semua siswa di kelas ini hadir tepat waktu hari ini.
+                            </div>
+                        ) : (
+                            paginatedAttention.map((s) => {
+                                const st = getRowStatus(s);
+                                const config = statusBadgeConfig[st];
+                                return (
+                                    <div
+                                        key={s.id}
+                                        className="bg-surface border border-border rounded-xl p-3.5 space-y-2 shadow-card"
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
+                                                <p className="text-[11px] text-text-muted">NISN: {s.nis}</p>
+                                            </div>
+                                            <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide shrink-0 ${config.bg} ${config.text} ${config.border}`}>
+                                                {st.toUpperCase()}
+                                            </span>
+                                        </div>
+                                        <div className="text-[12px] text-text-secondary pt-2 border-t border-border flex items-center justify-between">
+                                            <span className="truncate">{rowNote(s)}</span>
+                                            {st === "pending" && (
+                                                <Link
+                                                    href="/leave-requests"
+                                                    className="px-2.5 py-1 bg-primary text-white rounded-lg text-[11px] font-bold shrink-0 ml-2"
+                                                >
+                                                    Verifikasi
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })
                         )}
+
+                        {attentionStudents.length > pageSize && (
+                            <div className="pt-2 font-inter">
+                                <MobileNativePagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={attentionStudents.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tablet & Desktop View (>= sm) */}
+                    <div className="hidden sm:block space-y-4">
+                        <Table<Student>
+                            columns={columns}
+                            data={paginatedAttention}
+                            keyExtractor={(s) => s.id}
+                            emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
+                        />
+
+                        <TableFooter
+                            info={`Menampilkan daftar siswa kelas ${shortClassName} yang memerlukan perhatian khusus.`}
+                            pagination={
+                                attentionStudents.length > pageSize ? (
+                                    <Pagination
+                                        currentPage={safePage}
+                                        totalPages={totalPages}
+                                        totalItems={attentionStudents.length}
+                                        perPage={pageSize}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                ) : undefined
+                            }
+                        />
                     </div>
                 </div>
             </div>

@@ -100,20 +100,26 @@ class StudentsImport
                 throw new \RuntimeException('NIS dan nama siswa wajib diisi.');
             }
 
-            if (empty($birthDate)) {
-                throw new \RuntimeException("Tanggal lahir wajib diisi untuk siswa {$name}.");
+            $enrollmentYear = $enrollmentYear !== '' && preg_match('/^\d{4}$/', $enrollmentYear)
+                ? (int) $enrollmentYear
+                : (int) date('Y');
+
+            if ($birthDate === '') {
+                $birthDate = ($enrollmentYear - 15) . '-01-01';
             }
 
-            if ($enrollmentYear !== '' && ! preg_match('/^\d{4}$/', $enrollmentYear)) {
-                throw new \RuntimeException("Tahun masuk tidak valid untuk siswa {$name}.");
+            $generatedEmail = $email;
+            if ($generatedEmail === '') {
+                $parts = explode(' ', $name);
+                $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
+                $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'siswa';
+                $generatedEmail = "{$cleanFirst}{$nis}@smauiiyk.sch.id";
             }
-
-            $enrollmentYear = $enrollmentYear !== '' ? $enrollmentYear : date('Y');
 
             $classId = null;
             if (! empty($className)) {
                 $class = SchoolClass::where('name', $className)
-                    ->when($enrollmentYear, fn ($q) => $q->orderByRaw('academic_year LIKE ? DESC', ["%{$enrollmentYear}%"]))
+                    ->orWhere('name', 'LIKE', "{$className}%")
                     ->first();
                 if ($class) {
                     $classId = $class->id;
@@ -195,7 +201,7 @@ class StudentsImport
             $user = User::create([
                 'username' => $nis,
                 'name' => $name,
-                'email' => ! empty($email) ? $email : null,
+                'email' => ! empty($email) ? $email : (! empty($generatedEmail) ? $generatedEmail : null),
                 'password' => Hash::make($initialPassword),
                 'role' => 'student',
             ]);

@@ -16,7 +16,7 @@ export default function TableFooter({
 
     return (
         <div
-            className={`pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px] select-none ${className}`}
+            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px] select-none ${className}`}
         >
             {info ? (
                 <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium min-w-0 flex-1">

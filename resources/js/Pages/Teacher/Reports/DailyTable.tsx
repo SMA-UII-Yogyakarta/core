@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { FiCamera, FiFileText } from "react-icons/fi";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
+import { MobileNativePagination } from "@/Components";
 
 interface Student {
     id: number;
@@ -111,6 +112,15 @@ const BORDER_COLORS: Record<RowStatus, string> = {
 export default function DailyTable({ students }: DailyTableProps) {
     const { t } = useLanguage();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const totalPages = Math.max(1, Math.ceil(students.length / pageSize));
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedMobileStudents = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return students.slice(start, start + pageSize);
+    }, [students, safePage, pageSize]);
 
     const HEADERS = [
         { label: t("reports.headerNo"), align: "left" as const },
@@ -213,7 +223,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {students.map((s) => {
+                        {paginatedMobileStudents.map((s) => {
                             const status = normalizeStatus(s.status);
                             const badge = getBadgeStyle(status, t);
                             const btn = getButtonConfig(status, s.photo_url, s.document_url, t);
@@ -258,6 +268,18 @@ export default function DailyTable({ students }: DailyTableProps) {
                                 </div>
                             );
                         })}
+
+                        {students.length > pageSize && (
+                            <div className="pt-2 font-inter">
+                                <MobileNativePagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={students.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

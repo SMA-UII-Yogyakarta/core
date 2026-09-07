@@ -22,6 +22,13 @@ class GuardianService
         return Guardian::query()
             ->with(['user', 'students'])
             ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('name', 'like', "%{$v}%"))
+            ->when($filters['has_student'] ?? null, function ($q, $v) {
+                if ($v === 'linked') {
+                    $q->has('students');
+                } elseif ($v === 'unlinked') {
+                    $q->doesntHave('students');
+                }
+            })
             ->latest()
             ->paginate($perPage);
     }
@@ -39,20 +46,24 @@ class GuardianService
     public function create(array $data): Guardian
     {
         return DB::transaction(function () use ($data) {
+            $name = trim((string) $data['name']);
+            $phone = ! empty($data['phone']) ? (string) preg_replace('/[^0-9]/', '', (string) $data['phone']) : null;
+            $username = $phone ?: 'wali-' . strtolower((string) preg_replace('/[^a-z0-9]/', '', $name));
+
             $user = User::create([
-                'username' => $data['phone'] ?? 'wali-' . strtolower(str_replace(' ', '', $data['name'])),
-                'name' => $data['name'],
-                'email' => $data['email'] ?? null,
-                'password' => Hash::make($data['password'] ?? 'password'),
+                'username' => $username,
+                'name' => $name,
+                'email' => ! empty($data['email']) ? trim((string) $data['email']) : null,
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : 'SmaUii@2026'),
                 'role' => 'guardian',
             ]);
             $user->assignRole('guardian');
 
             $guardian = Guardian::create([
                 'user_id' => $user->id,
-                'name' => $data['name'],
-                'phone' => $data['phone'] ?? null,
-                'address' => $data['address'] ?? null,
+                'name' => $name,
+                'phone' => ! empty($data['phone']) ? trim((string) $data['phone']) : null,
+                'address' => ! empty($data['address']) ? trim((string) $data['address']) : null,
             ]);
 
             return $guardian->load(['user', 'students']);
@@ -62,11 +73,31 @@ class GuardianService
     public function update(int $id, array $data): Guardian
     {
         $guardian = Guardian::findOrFail($id);
-        $guardian->update($data);
 
-        if (isset($data['name'])) {
-            $guardian->user->update(['name' => $data['name']]);
-        }
+        DB::transaction(function () use ($guardian, $data) {
+            $guardian->update($data);
+
+            $userUpdates = [];
+            if (isset($data['name'])) {
+                $userUpdates['name'] = trim((string) $data['name']);
+            }
+            if (array_key_exists('email', $data) && ! empty($data['email'])) {
+                $userUpdates['email'] = trim((string) $data['email']);
+            }
+            if (! empty($data['password'])) {
+                $userUpdates['password'] = Hash::make($data['password']);
+            }
+            if (! empty($data['phone'])) {
+                $cleanPhone = (string) preg_replace('/[^0-9]/', '', (string) $data['phone']);
+                if ($cleanPhone !== '') {
+                    $userUpdates['username'] = $cleanPhone;
+                }
+            }
+
+            if (! empty($userUpdates)) {
+                $guardian->user->update($userUpdates);
+            }
+        });
 
         return $guardian->fresh(['user', 'students']);
     }
@@ -75,8 +106,37 @@ class GuardianService
     {
         DB::transaction(function () use ($id) {
             $guardian = Guardian::findOrFail($id);
-            $guardian->user->delete();
+            if ($guardian->user) {
+                $guardian->user->delete();
+            } else {
+                $guardian->delete();
+            }
         });
+    }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    public function bulkDelete(array $ids): int
+    {
+        $deleted = 0;
+
+        DB::transaction(function () use ($ids, &$deleted) {
+            foreach (array_unique($ids) as $id) {
+                $guardian = Guardian::with('user')->find($id);
+                if (! $guardian) {
+                    continue;
+                }
+                if ($guardian->user) {
+                    $guardian->user->delete();
+                } else {
+                    $guardian->delete();
+                }
+                $deleted++;
+            }
+        });
+
+        return $deleted;
     }
 
     public function linkToStudent(int $guardianId, int $studentId): void

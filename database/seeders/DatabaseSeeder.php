@@ -4,11 +4,13 @@ namespace Database\Seeders;
 
 use App\Models\AcademicCalendar;
 use App\Models\Attendance;
+use App\Models\AttendanceOverride;
 use App\Models\AttendanceTimeSetting;
 use App\Models\DutySchedule;
 use App\Models\Guardian;
 use App\Models\LeaveRequest;
 use App\Models\Notification;
+use App\Models\NotificationRead;
 use App\Models\SchoolClass;
 use App\Models\SchoolLocationSetting;
 use App\Models\Student;
@@ -69,6 +71,18 @@ class DatabaseSeeder extends Seeder
                 'username' => 'tatausaha',
                 'name' => 'Siti Nurjanah, S.E.',
                 'email' => 'tu@smauii.sch.id',
+                'role' => 'admin',
+            ],
+            [
+                'username' => 'hanif',
+                'name' => 'Hanif',
+                'email' => 'hanif@smauii.sch.id',
+                'role' => 'admin',
+            ],
+            [
+                'username' => 'mahfud',
+                'name' => 'Bpk. Mahfud',
+                'email' => 'mahfud@smauii.sch.id',
                 'role' => 'admin',
             ],
         ];
@@ -455,7 +469,10 @@ class DatabaseSeeder extends Seeder
                 $uName = 'siswa_' . $studentCounter;
                 $nis = $nisPrefix . str_pad((string)$studentCounter, 4, '0', STR_PAD_LEFT);
                 $nisn = '00' . substr((string)$birthYear, 2, 2) . str_pad((string)$studentCounter, 6, '0', STR_PAD_LEFT);
-                $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
+
+                // Cadangkan guardian index 0 s/d 74 untuk siswa, index 75 s/d 87 (13 wali) belum ditugaskan
+                $availableGuardiansCount = min(75, $guardians->count());
+                $guardian = $guardians[($studentCounter - 1) % $availableGuardiansCount];
 
                 $key = "{$cIdx}_{$i}";
                 if (isset($specialDemoStudents[$key])) {
@@ -465,6 +482,13 @@ class DatabaseSeeder extends Seeder
                     if (isset($guardians[$demo['guardian_idx']])) {
                         $guardian = $guardians[$demo['guardian_idx']];
                     }
+                }
+
+                // 19 siswa di Kelas XII-IPS 2 (index 9, nomor urut 5-23) dibiarkan belum memiliki wali
+                // untuk menguji fungsionalitas & pagination tab 'Belum Punya Wali' di Penugasan Wali Murid
+                $hasGuardian = true;
+                if ($cIdx === 9 && $i >= 5 && !isset($specialDemoStudents[$key])) {
+                    $hasGuardian = false;
                 }
 
                 $birthMonth = str_pad((string)(($i % 12) + 1), 2, '0', STR_PAD_LEFT);
@@ -486,13 +510,13 @@ class DatabaseSeeder extends Seeder
                     ['user_id' => $user->id],
                     [
                         'class_id' => $class->id,
-                        'guardian_id' => $guardian->id,
+                        'guardian_id' => $hasGuardian ? $guardian->id : null,
                         'nis' => $nis,
                         'nisn' => $nisn,
                         'name' => $fullName,
                         'birth_date' => $birthDate,
                         'phone' => '088' . fake()->numerify('########'),
-                        'address' => $guardian->address,
+                        'address' => $hasGuardian ? $guardian->address : 'Jl. Taman Siswa No. 158, Mergangsan, Kota Yogyakarta',
                         'enrollment_year' => $enrollmentYear,
                         'status' => 'Active',
                     ],
@@ -503,6 +527,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // B. Generate 15 Siswa UNASSIGNED (Belum Masuk Kelas) untuk Menguji Enrolment Kelas
+        // 5 di antaranya (u = 11 s/d 15) juga belum memiliki wali (total 19 + 5 = 24 siswa tanpa wali)
         for ($u = 1; $u <= 15; $u++) {
             $isMale = ($u % 2 === 1);
             $fn = $isMale ? $firstNamesM[($u * 3) % count($firstNamesM)] : $firstNamesF[($u * 3) % count($firstNamesF)];
@@ -514,7 +539,9 @@ class DatabaseSeeder extends Seeder
             $nisn = '0009' . str_pad((string)($studentCounter), 6, '0', STR_PAD_LEFT);
             $birthDate = '2009-07-' . str_pad((string)($u + 5), 2, '0', STR_PAD_LEFT);
 
-            $guardian = $guardians[($studentCounter - 1) % $guardians->count()];
+            $hasGuardian = ($u <= 10);
+            $availableGuardiansCount = min(75, $guardians->count());
+            $guardian = $hasGuardian ? $guardians[($studentCounter - 1) % $availableGuardiansCount] : null;
 
             $user = User::updateOrCreate(
                 ['username' => $uName],
@@ -531,13 +558,13 @@ class DatabaseSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'class_id' => null, // UNASSIGNED!
-                    'guardian_id' => $guardian->id,
+                    'guardian_id' => $hasGuardian ? $guardian->id : null,
                     'nis' => $nis,
                     'nisn' => $nisn,
                     'name' => $fullName,
                     'birth_date' => $birthDate,
                     'phone' => '088' . fake()->numerify('########'),
-                    'address' => $guardian->address,
+                    'address' => $hasGuardian ? $guardian->address : 'Jl. Taman Siswa No. 158, Mergangsan, Kota Yogyakarta',
                     'enrollment_year' => 2024,
                     'status' => 'Active',
                 ],
@@ -598,16 +625,47 @@ class DatabaseSeeder extends Seeder
         // 10. Leave Requests (Pengajuan Izin & Sakit Realistis)
         // ─────────────────────────────────────────────────────────────
         $leaveSamples = [
-            ['student_idx' => 0, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Sakit demam dan batuk pilek, istirahat dokter di RS UII Pandanaran.'],
+            // Status: Pending (14 pengajuan - menguji antrean verifikasi di Admin, Piket, dan Wali Kelas)
+            ['student_idx' => 0, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Sakit demam tinggi dan batuk pilek, istirahat dokter di RS UII Pandanaran.'],
+            ['student_idx' => 23, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 1, 'desc' => 'Gejala tipes, disarankan dokter istirahat total di rumah.'],
+            ['student_idx' => 46, 'category' => 'Event', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 2, 'desc' => 'Menghadiri prosesi pemakaman kakek di Magelang.'],
+            ['student_idx' => 69, 'category' => 'Competition', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 3, 'desc' => 'Mewakili kontingen DIY dalam Lomba Cerdas Cermat Sains Nasional.'],
+            ['student_idx' => 92, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 2, 'desc' => 'Sakit radang tenggorokan akut disertai demam.'],
+            ['student_idx' => 115, 'category' => 'Event', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 1, 'desc' => 'Izin menghadiri acara syukuran kelulusan keluarga di Kulon Progo.'],
+            ['student_idx' => 138, 'category' => 'Competition', 'status' => 'Pending', 'days_ago' => 2, 'duration' => 2, 'desc' => 'Mengikuti turnamen basket antarpelajar SMA se-Jawa Tengah & DIY.'],
+            ['student_idx' => 161, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 2, 'duration' => 3, 'desc' => 'Sakit cacar air, disarankan karantina mandiri oleh puskesmas.'],
+            ['student_idx' => 184, 'category' => 'Other', 'status' => 'Pending', 'days_ago' => 0, 'duration' => 1, 'desc' => 'Pengurusan visa dan paspor untuk program pertukaran pelajar.'],
+            ['student_idx' => 5, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 1, 'desc' => 'Sakit maag kambuh dan muntah-muntah, istirahat dokter.'],
+            ['student_idx' => 25, 'category' => 'Event', 'status' => 'Pending', 'days_ago' => 2, 'duration' => 2, 'desc' => 'Upacara adat keluarga besar di Keraton Surakarta.'],
+            ['student_idx' => 48, 'category' => 'Competition', 'status' => 'Pending', 'days_ago' => 3, 'duration' => 3, 'desc' => 'Lomba karya ilmiah remaja di Universitas Gadjah Mada.'],
+            ['student_idx' => 71, 'category' => 'Other', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 1, 'desc' => 'Pemeriksaan kesehatan mata dan pembuatan kacamata resep dokter.'],
+            ['student_idx' => 94, 'category' => 'Sick', 'status' => 'Pending', 'days_ago' => 2, 'duration' => 2, 'desc' => 'Cedera engkel saat latihan olahraga ekstrakurikuler.'],
+
+            // Status: Approved (16 pengajuan - riwayat izin yang telah disetujui)
             ['student_idx' => 2, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 3, 'duration' => 3, 'desc' => 'Demam Berdarah (DBD), dirawat di RS PKU Muhammadiyah Kotagede.'],
-            ['student_idx' => 4, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 5, 'duration' => 1, 'desc' => 'Menghadiri pernikahan kakak kandung di Solo.'],
+            ['student_idx' => 4, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 5, 'duration' => 1, 'desc' => 'Menghadiri akad nikah kakak kandung di Solo.'],
             ['student_idx' => 6, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 7, 'duration' => 3, 'desc' => 'Mewakili SMA UII dalam Olimpiade Sains Nasional (OSN) Tingkat DIY.'],
-            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 10, 'duration' => 1, 'desc' => 'Izin tidak masuk tanpa surat dokter yang jelas.', 'reject_reason' => 'Izin tidak disertai surat keterangan dokter yang sah.'],
-            ['student_idx' => 10, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 12, 'duration' => 2, 'desc' => 'Acara keluarga silaturahmi ke Jawa Timur.'],
+            ['student_idx' => 10, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 12, 'duration' => 2, 'desc' => 'Acara silaturahmi keluarga tahunan ke Jawa Timur.'],
             ['student_idx' => 12, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 15, 'duration' => 2, 'desc' => 'Mengikuti Kejuaraan Futsal Pelajar Tingkat Kabupaten Bantul.'],
-            ['student_idx' => 14, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 18, 'duration' => 1, 'desc' => 'Sakit flu dan radang tenggorokan.'],
-            ['student_idx' => 16, 'category' => 'Other', 'status' => 'Pending', 'days_ago' => 1, 'duration' => 1, 'desc' => 'Mengurus administrasi paspor untuk pertukaran pelajar.'],
-            ['student_idx' => 18, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 22, 'duration' => 2, 'desc' => 'Sakit migrain dan pusing berat.'],
+            ['student_idx' => 14, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 18, 'duration' => 1, 'desc' => 'Sakit flu dan radang amandel, surat istirahat terlampir.'],
+            ['student_idx' => 18, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 22, 'duration' => 2, 'desc' => 'Sakit migrain parah dan vertigo, pemeriksaan dokter RS Sardjito.'],
+            ['student_idx' => 27, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 8, 'duration' => 1, 'desc' => 'Izin urusan keluarga mendesak di Klaten.'],
+            ['student_idx' => 29, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 11, 'duration' => 2, 'desc' => 'Lomba pidato bahasa Arab tingkat DIY-Jateng di UIN Sunan Kalijaga.'],
+            ['student_idx' => 50, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 14, 'duration' => 2, 'desc' => 'Sakit demam dan batuk berdahak, istirahat dokter klinik.'],
+            ['student_idx' => 73, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 17, 'duration' => 1, 'desc' => 'Mengikuti kegiatan keagamaan di Pondok Pesantren Krapyak.'],
+            ['student_idx' => 96, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 20, 'duration' => 3, 'desc' => 'Olimpiade Biologi Nasional di Kampus IPB Bogor.'],
+            ['student_idx' => 117, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 24, 'duration' => 1, 'desc' => 'Pencabutan gigi bungsu di RSGM UGM, perlu istirahat 1 hari.'],
+            ['student_idx' => 140, 'category' => 'Event', 'status' => 'Approved', 'days_ago' => 26, 'duration' => 2, 'desc' => 'Menghadiri wisuda sarjana kakak di Universitas Diponegoro.'],
+            ['student_idx' => 163, 'category' => 'Sick', 'status' => 'Approved', 'days_ago' => 28, 'duration' => 2, 'desc' => 'Sakit infeksi saluran pernapasan, istirahat dokter.'],
+            ['student_idx' => 186, 'category' => 'Competition', 'status' => 'Approved', 'days_ago' => 30, 'duration' => 2, 'desc' => 'Kejuaraan renang antarpelajar tingkat provinsi DIY.'],
+
+            // Status: Rejected (6 pengajuan - riwayat izin ditolak beserta alasan)
+            ['student_idx' => 8, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 10, 'duration' => 1, 'desc' => 'Izin tidak masuk sekolah tanpa surat dokter yang sah.', 'reject_reason' => 'Izin tidak disertai surat keterangan dokter resmi atau bukti pendukung yang sah.'],
+            ['student_idx' => 31, 'category' => 'Event', 'status' => 'Rejected', 'days_ago' => 13, 'duration' => 3, 'desc' => 'Izin berlibur bersama teman di luar masa libur sekolah.', 'reject_reason' => 'Alasan liburan pribadi saat hari efektif KBM tidak dapat disetujui sekolah.'],
+            ['student_idx' => 52, 'category' => 'Other', 'status' => 'Rejected', 'days_ago' => 16, 'duration' => 1, 'desc' => 'Izin terlambat masuk karena kesiangan bangun tidur.', 'reject_reason' => 'Kategori izin tidak sesuai dan permohonan diajukan melampaui batas waktu hari H.'],
+            ['student_idx' => 75, 'category' => 'Competition', 'status' => 'Rejected', 'days_ago' => 19, 'duration' => 2, 'desc' => 'Turnamen game online pribadi di luar agenda resmi sekolah.', 'reject_reason' => 'Bukan kegiatan perlombaan resmi yang terafiliasi atau direkomendasikan Disdikpora.'],
+            ['student_idx' => 119, 'category' => 'Sick', 'status' => 'Rejected', 'days_ago' => 23, 'duration' => 2, 'desc' => 'Surat dokter tanggal kadaluarsa dari bulan sebelumnya.', 'reject_reason' => 'Tanggal pada surat keterangan dokter tidak sesuai dengan tanggal ketidakhadiran.'],
+            ['student_idx' => 165, 'category' => 'Event', 'status' => 'Rejected', 'days_ago' => 27, 'duration' => 2, 'desc' => 'Menghadiri konser musik saat hari aktif sekolah.', 'reject_reason' => 'Kegiatan hiburan non-akademik di hari efektif sekolah tidak dapat diizinkan.'],
         ];
 
         foreach ($leaveSamples as $ls) {
@@ -644,6 +702,13 @@ class DatabaseSeeder extends Seeder
         $schoolLng = 110.375944;
         $photoUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=320&h=240&q=80';
 
+        // Preload kalender libur ke memori untuk efisiensi eksekusi
+        $holidayDates = AcademicCalendar::where('is_holiday', true)
+            ->pluck('holiday_date')
+            ->map(fn ($d) => substr((string) $d, 0, 10))
+            ->flip()
+            ->toArray();
+
         // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI INI (agar rekap harian wali kelas langsung terisi)
         $startDate = Carbon::create(now()->year, 1, 5);
         $endDate = now();
@@ -662,7 +727,7 @@ class DatabaseSeeder extends Seeder
         }
 
         for ($current = $startDate->copy(); $current->lte($endDate); $current->addDay()) {
-            if (! $this->isSchoolDay($current)) {
+            if (! $this->isSchoolDay($current, $holidayDates)) {
                 continue;
             }
 
@@ -728,50 +793,393 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────────────────────────
-        // 12. System Notifications (Notifikasi Realistis untuk Multi-Role)
+        // 11.5 Attendance Overrides (Koreksi Presensi Realistis untuk UAT)
         // ─────────────────────────────────────────────────────────────
-        $notifications = [
+        $overrideSamples = [
             [
-                'recipient_id' => $students[0]->user_id, // Ahmad
-                'title' => 'Presensi Berhasil Diverifikasi',
-                'content' => 'Presensi kehadiran Anda hari ini telah dicatat sistem pada pukul 06:42 WIB dengan status Hadir Tepat Waktu.',
-                'target_group' => 'student',
+                'student_idx' => 0, // Ahmad Reza Pahlevi (X-A)
+                'days_ago' => 0,
+                'original_status' => 'Late',
+                'new_status' => 'Present',
+                'reason' => 'Siswa terlambat karena ban sepeda motor bocor di Jl. Gejayan, telah melapor piket dan menyerahkan nota tambal ban.',
             ],
             [
-                'recipient_id' => $students[0]->user_id,
-                'title' => 'Pengingat Agenda Sekolah',
-                'content' => 'Penilaian Tengah Semester (PTS) Ganjil akan dimulai 2 minggu lagi. Pastikan kehadiran dan persiapan belajar Anda optimal.',
-                'target_group' => 'student',
+                'student_idx' => 1, // Clarissa Maharani (X-A)
+                'days_ago' => 1,
+                'original_status' => 'Absent',
+                'new_status' => 'Excused',
+                'reason' => 'Koreksi alpa menjadi izin karena surat izin orang tua susulan telah diterima tata usaha.',
             ],
             [
-                'recipient_id' => $teachers[0]->user_id, // Budi Hartono (Wali X-A)
-                'title' => 'Pengajuan Izin Siswa Baru',
-                'content' => 'Siswa Ahmad Reza Pahlevi mengajukan izin kategori Sakit selama 2 hari. Silakan lakukan verifikasi berkas surat dokter.',
-                'target_group' => 'teacher',
+                'student_idx' => 2, // Budi Santoso (X-A)
+                'days_ago' => 2,
+                'original_status' => 'Late',
+                'new_status' => 'Present',
+                'reason' => 'Mengantar adik ke fasilitas kesehatan terlebih dahulu, surat keterangan dokter puskesmas terlampir.',
             ],
             [
-                'recipient_id' => $guardians[0]->user_id, // Ir. Wahyu Hidayat
-                'title' => 'Laporan Kehadiran Mingguan Ananda',
-                'content' => 'Ananda Ahmad Reza Pahlevi tercatat 100% Hadir Tepat Waktu pada pekan ini di kelas X-A SMA UII Yogyakarta.',
-                'target_group' => 'guardian',
+                'student_idx' => 23, // Eko Prasetyo (X-B)
+                'days_ago' => 1,
+                'original_status' => 'Absent',
+                'new_status' => 'Sick',
+                'reason' => 'Surat dokter RS Bethesda diserahkan langsung oleh wali murid pada jam istirahat pertama.',
             ],
             [
-                'recipient_id' => 1, // Admin Utama
-                'title' => 'Rekapitulasi Presensi Harian Siap',
-                'content' => 'Rekap presensi seluruh rombongan belajar per hari ini telah diolah. Tingkat kehadiran sekolah mencapai 94.8%.',
-                'target_group' => 'all',
+                'student_idx' => 46, // Muhammad Irvan (X-C)
+                'days_ago' => 3,
+                'original_status' => 'Late',
+                'new_status' => 'Present',
+                'reason' => 'Menjalankan tugas sekolah mewakili upacara hari pramuka di Kwarda DIY sebelum tiba di sekolah.',
+            ],
+            [
+                'student_idx' => 69, // Miftahul Huda (XI-MIPA 1)
+                'days_ago' => 0,
+                'original_status' => 'Absent',
+                'new_status' => 'Excused',
+                'reason' => 'Dispensasi persiapan lomba karya tulis ilmiah remaja tingkat provinsi.',
+            ],
+            [
+                'student_idx' => 115, // Utami Rahayu (XI-IPS 1)
+                'days_ago' => 2,
+                'original_status' => 'Late',
+                'new_status' => 'Present',
+                'reason' => 'Koreksi teknis: sinyal GPS smartphone siswa mengalami distorsi akurasi saat presensi mandiri di gerbang selatan.',
+            ],
+            [
+                'student_idx' => 161, // Danang Tri (XII-MIPA 1)
+                'days_ago' => 4,
+                'original_status' => 'Absent',
+                'new_status' => 'Excused',
+                'reason' => 'Mewakili kontingen taekwondo DIY dalam kejurnas pelajar di GOR Popki Jakarta.',
             ],
         ];
 
-        foreach ($notifications as $notif) {
-            Notification::create($notif);
+        foreach ($overrideSamples as $ov) {
+            $student = $students[$ov['student_idx']];
+            $date = now()->subDays($ov['days_ago'])->toDateString();
+
+            AttendanceOverride::updateOrCreate(
+                [
+                    'student_id' => $student->id,
+                    'attendance_date' => $date,
+                ],
+                [
+                    'user_id' => 1, // Admin Utama
+                    'original_status' => $ov['original_status'],
+                    'new_status' => $ov['new_status'],
+                    'reason' => $ov['reason'],
+                ]
+            );
+        }
+
+        // ─────────────────────────────────────────────────────────────
+        // 12. System Notifications (32 Notifikasi Lengkap untuk Multi-Role & Pagination UAT)
+        // ─────────────────────────────────────────────────────────────
+        $notificationList = [
+            // Target Group: All (12 pengumuman sekolah)
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Pemeliharaan Server Presensi Digital',
+                'content' => 'Sistem presensi akan menjalani maintenance rutin pada hari Sabtu pukul 22:00 - 24:00 WIB. Layanan akan normal kembali setelah proses selesai.',
+                'created_at' => now()->subDays(1),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Upacara Peringatan Hari Kemerdekaan RI Ke-81',
+                'content' => 'Seluruh civitas akademika SMA UII wajib mengikuti upacara bendera HUT RI pada 17 Agustus pukul 07:00 WIB di lapangan utama mengenakan seragam upacara lengkap.',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Jadwal Penilaian Tengah Semester (PTS) Ganjil',
+                'content' => 'PTS Ganjil tahun pelajaran 2026/2027 akan diselenggarakan mulai tanggal 15 September. Pastikan seluruh siswa mempersiapkan diri dengan baik.',
+                'created_at' => now()->subDays(3),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Pemberitahuan Libur Nasional Maulid Nabi Muhammad SAW',
+                'content' => 'Kegiatan belajar mengajar diliburkan dalam rangka Maulid Nabi Muhammad SAW. KBM aktif kembali pada hari berikutnya.',
+                'created_at' => now()->subDays(5),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Sosialisasi Tertib Waktu & Disiplin Presensi',
+                'content' => 'Mengingatkan kembali batas akhir presensi pagi adalah pukul 07:00 WIB. Siswa yang hadir setelah pukul 07:00 WIB tercatat Terlambat secara otomatis.',
+                'created_at' => now()->subDays(7),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Milad Universitas Islam Indonesia (UII) Ke-83',
+                'content' => 'Selamat Milad UII Ke-83. SMA UII menyelenggarakan serangkaian bakti sosial dan doa bersama di Masjid Kampus Terpadu.',
+                'created_at' => now()->subDays(9),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Pelaksanaan Program Gerakan Sekolah Sehat & Bersih',
+                'content' => 'Kerja bakti serentak di lingkungan kelas dan laboratorium SMA UII diadakan setiap Jumat pagi pekan pertama setiap bulannya.',
+                'created_at' => now()->subDays(11),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Protokol Kesehatan & Kebersihan Lingkungan Sekolah',
+                'content' => 'Siswa dan guru yang mengalami gejala demam atau flu dihimbau menggunakan masker atau beristirahat di rumah dengan surat keterangan dokter.',
+                'created_at' => now()->subDays(14),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Pembaruan Fitur Geofencing Presensi Mobile',
+                'content' => 'Aplikasi presensi kini mendukung radius geofence 100 meter dari titik koordinat SMA UII Yogyakarta untuk memastikan keakuratan lokasi kehadiran.',
+                'created_at' => now()->subDays(16),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Kegiatan Sholat Berjamaah Dhuhur & Ashar Terjadwal',
+                'content' => 'Seluruh siswa dan guru wajib mengikuti sholat berjamaah di musholla sekolah sesuai jadwal rombel yang telah ditentukan.',
+                'created_at' => now()->subDays(18),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Penyelenggaraan Class Meeting & Expo Bakat Minat',
+                'content' => 'Class meeting pasca ujian akan mempertandingkan futsal, basket, debat bahasa Inggris, dan tahfidz quran antarkelas.',
+                'created_at' => now()->subDays(20),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'all',
+                'title' => 'Laporan Rekapitulasi Presensi Bulanan Sekolah Siap',
+                'content' => 'Rekap presensi seluruh rombongan belajar bulan lalu telah selesai diarsip dengan rata-rata tingkat kehadiran sekolah mencapai 95.2%.',
+                'created_at' => now()->subDays(24),
+            ],
+
+            // Target Group: Teacher (8 pengumuman dinas guru & staf)
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Rapat Pleno Dewan Guru Evaluasi KBM',
+                'content' => 'Undangan rapat dinas dewan guru pada Kamis pukul 13:30 WIB di Ruang Sidang Utama mengenai capaian kurikulum merdeka.',
+                'created_at' => now()->subDays(1),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Batas Akhir Pengunggahan Modul Ajar Semester Ganjil',
+                'content' => 'Bapak/Ibu Guru dimohon segera menyelesaikan unggah modul ajar di portal kurikulum paling lambat akhir pekan ini.',
+                'created_at' => now()->subDays(3),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Pengingat Tugas Guru Piket Harian Pagi',
+                'content' => 'Guru piket bertugas dimohon hadir pukul 06:15 WIB untuk menyambut kedatangan siswa di gerbang utama dan memantau log kehadiran.',
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Verifikasi Permohonan Izin & Sakit Siswa Rombel',
+                'content' => 'Bapak/Ibu Wali Kelas dimohon memeriksa dan memverifikasi dokumen pengajuan izin sakit siswa di portal sebelum pukul 12:00 WIB.',
+                'created_at' => now()->subDays(6),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Jadwal Supervisi Pembelajaran Akademik Guru',
+                'content' => 'Jadwal pelaksanaan supervisi kelas oleh Kepala Sekolah dan Tim Penjamin Mutu telah diterbitkan di papan pengumuman ruang guru.',
+                'created_at' => now()->subDays(8),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Workshop Pemanfaatan Teknologi Pembelajaran AI',
+                'content' => 'Pelatihan pemanfaatan AI dalam asesmen diagnostik pembelajaran akan diadakan hari Sabtu di Laboratorium Komputer 1.',
+                'created_at' => now()->subDays(10),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Pengisian Buku Jurnal Mengajar dan Presensi Kelas',
+                'content' => 'Pastikan jurnal mengajar kelas terisi lengkap setiap pergantian jam pelajaran demi ketertiban administrasi dinas.',
+                'created_at' => now()->subDays(13),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'teacher',
+                'title' => 'Koordinasi Wali Kelas untuk Siswa Berisiko Presensi Rendah',
+                'content' => 'Rapat koordinasi wali kelas dan guru BK mengenai penanganan siswa dengan akumulasi alpa di atas 3 kali pada semester berjalan.',
+                'created_at' => now()->subDays(17),
+            ],
+
+            // Target Group: Student (6 pengumuman siswa)
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Pemilihan Ketua & Pengurus OSIS Periode 2026/2027',
+                'content' => 'Pendaftaran bakal calon ketua OSIS SMA UII telah dibuka di ruang kesiswaan. Siapkan visi, misi, dan program kerja terbaikmu.',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Pengembalian Buku Paket Perpustakaan Sekolah',
+                'content' => 'Siswa yang masih meminjam buku paket kurikulum semester lalu harap segera mengembalikan atau memperpanjang masa pinjam.',
+                'created_at' => now()->subDays(5),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Informasi Beasiswa Prestasi Akademik & Tahfidz Quran',
+                'content' => 'Tersedia kuota beasiswa bagi siswa berprestasi ranking 1-3 paralel dan hafalan tahfidz minimal 3 juz. Formulir di ruang TU.',
+                'created_at' => now()->subDays(8),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Pendaftaran Ekstrakurikuler Wajib & Pilihan Tahun Ini',
+                'content' => 'Silakan pilih ekstrakurikuler favoritmu: Pramuka, PMR, Paskibra, Robotik, Futsal, Basket, Paduan Suara, atau Tahfidz Qur\'an.',
+                'created_at' => now()->subDays(12),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Tata Tertib Penampilan & Kelengkapan Seragam Sekolah',
+                'content' => 'Siswa wajib mengenakan seragam sesuai jadwal (Senin: Putih Abu-abu, Selasa: Batik SMA UII, Kamis: Pramuka) beserta atribut topi & dasi.',
+                'created_at' => now()->subDays(15),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'student',
+                'title' => 'Latihan Rutin Tim Paduan Suara & Petugas Upacara',
+                'content' => 'Latihan intensif persiapan petugas upacara hari Senin diadakan hari Jumat pukul 15:30 WIB di aula serbaguna.',
+                'created_at' => now()->subDays(21),
+            ],
+
+            // Target Group: Guardian (6 pengumuman wali murid)
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Pertemuan Orang Tua / Wali Murid Kelas X, XI, XII',
+                'content' => 'Undangan silaturahmi komite sekolah dan laporan progres akademik semester ganjil pada hari Sabtu pukul 08:30 WIB di Auditorium.',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Pemantauan Kehadiran Real-Time Ananda di Sekolah',
+                'content' => 'Bapak/Ibu Wali dapat memantau jam kehadiran dan kepulangan putra/putri secara langsung melalui portal wali murid.',
+                'created_at' => now()->subDays(4),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Seminar Parenting: Mendidik Karakter Remaja Era Digital',
+                'content' => 'Komite SMA UII mengundang bapak/ibu wali murid menghadiri seminar parenting bersama pakar psikologi pendidikan keluarga.',
+                'created_at' => now()->subDays(7),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Tata Cara Pengajuan Izin Tidak Masuk Sekolah',
+                'content' => 'Bila putra/putri berhalangan hadir karena sakit atau urusan keluarga, mohon ajukan permohonan izin berlampir surat via aplikasi ini.',
+                'created_at' => now()->subDays(10),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Informasi Pembayaran Iuran Komite Sekolah (IPP)',
+                'content' => 'Layanan administrasi pembayaran IPP bulan berjalan dapat dilakukan melalui transfer virtual account bank syariah mitra sekolah.',
+                'created_at' => now()->subDays(16),
+            ],
+            [
+                'sender_id' => 1,
+                'recipient_id' => null,
+                'target_group' => 'guardian',
+                'title' => 'Jadwal Konsultasi Belajar Bersama Wali Kelas & BK',
+                'content' => 'Wali kelas membuka jadwal konsultasi bimbingan karir dan peminatan perkuliahan bagi orang tua siswa kelas XII.',
+                'created_at' => now()->subDays(22),
+            ],
+        ];
+
+        $createdNotifs = collect();
+        foreach ($notificationList as $notifData) {
+            $notif = Notification::create($notifData);
+            $createdNotifs->push($notif);
+        }
+
+        // Seed NotificationRead untuk akun demo agar status Terbaca / Belum Terbaca realistis
+        $demoUsersToMarkRead = [
+            1 => [0, 1, 2, 3], // Admin Utama: membaca notifikasi index 0, 1, 2, 3
+            $students[0]->user_id => [0, 1, 20, 21], // Ahmad (Siswa): membaca notif all 0, 1 dan student 20, 21
+            $teachers[0]->user_id => [0, 1, 12, 13], // Budi Hartono (Guru): membaca notif all 0, 1 dan teacher 12, 13
+            $guardians[0]->user_id => [0, 1, 26, 27], // Ir. Wahyu Hidayat (Wali): membaca notif all 0, 1 dan guardian 26, 27
+        ];
+
+        foreach ($demoUsersToMarkRead as $userId => $notifIdxs) {
+            foreach ($notifIdxs as $nIdx) {
+                if (isset($createdNotifs[$nIdx])) {
+                    NotificationRead::updateOrCreate(
+                        [
+                            'notification_id' => $createdNotifs[$nIdx]->id,
+                            'user_id' => $userId,
+                        ],
+                        [
+                            'read_at' => now()->subHours(rand(1, 24)),
+                        ]
+                    );
+                }
+            }
         }
     }
 
-    private function isSchoolDay(Carbon $date): bool
+    private function isSchoolDay(Carbon $date, array $holidayDates = []): bool
     {
         if ($date->isWeekend()) {
             return false;
+        }
+
+        if (! empty($holidayDates)) {
+            return ! isset($holidayDates[$date->toDateString()]);
         }
 
         return ! AcademicCalendar::whereDate('holiday_date', $date->toDateString())

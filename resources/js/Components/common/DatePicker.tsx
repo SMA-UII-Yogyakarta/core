@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { FiX, FiCalendar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 interface DatePickerProps {
     value?: string;
@@ -277,8 +278,9 @@ export default function DatePicker({
                             onClick={clearValue}
                             className="p-1 text-text-muted hover:text-text-primary transition-colors"
                             tabIndex={-1}
+                            aria-label="Hapus tanggal"
                         >
-                            <i className="fas fa-times text-[10px]" />
+                            <FiX className="text-[12px]" />
                         </button>
                     )}
                     <button
@@ -286,8 +288,9 @@ export default function DatePicker({
                         onClick={() => !disabled && setIsOpen(!isOpen)}
                         className="p-1 text-text-muted hover:text-text-primary transition-colors"
                         tabIndex={-1}
+                        aria-label="Pilih tanggal"
                     >
-                        <i className="fas fa-calendar text-[12px]" />
+                        <FiCalendar className="text-[14px]" />
                     </button>
                 </div>
             </div>
@@ -299,14 +302,14 @@ export default function DatePicker({
             {isOpen && !disabled && (
                 <div className="absolute z-50 mt-1 bg-surface border border-border rounded-xl shadow-dropdown p-3 w-[280px]">
                     <div className="flex items-center justify-between mb-3">
-                        <button type="button" onClick={prevMonth} className="p-1 hover:bg-muted rounded-lg transition-colors">
-                            <i className="fas fa-chevron-left text-[11px] text-text-muted" />
+                        <button type="button" onClick={prevMonth} className="p-1 hover:bg-muted rounded-lg transition-colors" aria-label="Bulan sebelumnya">
+                            <FiChevronLeft className="text-[14px] text-text-muted" />
                         </button>
                         <span className="text-[13px] font-bold text-text-primary">
                             {MONTH_NAMES[viewMonth.month - 1]} {viewMonth.year}
                         </span>
-                        <button type="button" onClick={nextMonth} className="p-1 hover:bg-muted rounded-lg transition-colors">
-                            <i className="fas fa-chevron-right text-[11px] text-text-muted" />
+                        <button type="button" onClick={nextMonth} className="p-1 hover:bg-muted rounded-lg transition-colors" aria-label="Bulan selanjutnya">
+                            <FiChevronRight className="text-[14px] text-text-muted" />
                         </button>
                     </div>
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SchoolClass;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class SchoolClassService
 {
@@ -18,6 +19,10 @@ class SchoolClassService
             ->when(
                 $filters['search'] ?? null,
                 fn ($q, $v) => $q->where('name', 'like', "%{$v}%"),
+            )
+            ->when(
+                $filters['level'] ?? null,
+                fn ($q, $v) => $q->where('level', $v),
             )
             ->latest()
             ->paginate($perPage);
@@ -52,4 +57,26 @@ class SchoolClassService
     {
         SchoolClass::findOrFail($id)->delete();
     }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    public function bulkDelete(array $ids): int
+    {
+        $deleted = 0;
+
+        DB::transaction(function () use ($ids, &$deleted) {
+            foreach (array_unique($ids) as $id) {
+                $class = SchoolClass::find($id);
+                if (! $class) {
+                    continue;
+                }
+                $class->delete();
+                $deleted++;
+            }
+        });
+
+        return $deleted;
+    }
 }
+

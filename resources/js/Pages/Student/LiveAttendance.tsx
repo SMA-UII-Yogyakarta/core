@@ -238,7 +238,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
     return (
         <AppShell title="Live Presensi Siswa">
             {/* Page header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+            <div className="hidden lg:flex flex-row items-center justify-between gap-2 mb-6">
                 <div>
                     <h1 className="text-[22px] font-bold text-text-primary font-inter">Live Presensi Masuk</h1>
                     <p className="text-[13px] text-text-muted font-inter mt-0.5">
@@ -248,7 +248,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
                 {currentTime && (
                     <div
-                        className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[13px] font-bold font-mono self-start sm:self-auto"
+                        className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[13px] font-bold font-mono shrink-0"
                         dusk="live-clock-badge"
                     >
                         <FiClock className="text-[12px]" />

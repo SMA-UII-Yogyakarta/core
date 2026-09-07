@@ -13,7 +13,6 @@ services:
     volumes:
       - .:/var/www/html
       - ./env/.env.production:/var/www/html/.env:ro
-      - /var/www/html/public/hot
 
   worker:
     image: core-app

@@ -1,5 +1,4 @@
 import type { InputHTMLAttributes } from "react";
-import { FaCircle } from "react-icons/fa";
 import Label from "./Label";
 import FormError from "./FormError";
 
@@ -42,7 +41,7 @@ export default function Radio({
                     }
                 `}
             >
-                {checked && <FaCircle className="text-[8px]" />}
+                {checked && <span className="w-2 h-2 rounded-full bg-white" />}
             </span>
             {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}
         </label>

@@ -2,7 +2,9 @@ import { useState } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
+    TableFooter,
     Pagination,
+    MobileNativePagination,
     Drawer,
     EmptyState,
     FilterBar,
@@ -77,10 +79,11 @@ export default function LeaveRequestsIndex({
     };
 
     return (
-        <AppShell title="Pengajuan Izin">
+        <AppShell title="Pengajuan Izin" hasTopTabs={true}>
             <PageHeader
                 title="Pengajuan Izin"
                 description="Kelola permohonan dispensasi dan ketidakhadiran siswa."
+                className="hidden lg:flex shrink-0 mb-4"
             />
 
             <StickyContainer>
@@ -91,6 +94,7 @@ export default function LeaveRequestsIndex({
                         setStatusTab(key);
                         handleFilter({ status: key || undefined });
                     }}
+                    fullWidth="mobile-only"
                 />
             </StickyContainer>
 
@@ -138,26 +142,61 @@ export default function LeaveRequestsIndex({
                 </div>
 
                 {/* Symmetrical Footer & Pagination */}
-                {leaveRequests.last_page > 1 && (
-                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <Pagination
-                            currentPage={leaveRequests.current_page}
-                            totalPages={leaveRequests.last_page}
-                            totalItems={leaveRequests.total}
-                            perPage={leaveRequests.per_page}
-                            onPageChange={(page) =>
-                                router.get(
-                                    "/leave-requests",
-                                    {
-                                        page,
-                                        status: statusTab || undefined,
-                                        category: categoryFilter || undefined,
-                                        search: search || undefined,
-                                    },
-                                    { preserveState: true },
-                                )
-                            }
-                        />
+                {leaveRequests.total > 0 && (
+                    <div className="pt-2 shrink-0 mt-auto font-inter min-h-[36px]">
+                        <div className="hidden sm:block">
+                            <TableFooter
+                                info={
+                                    <span>
+                                        Menampilkan <strong className="text-text-primary">{(leaveRequests.current_page - 1) * leaveRequests.per_page + 1}–{Math.min(leaveRequests.current_page * leaveRequests.per_page, leaveRequests.total)}</strong> dari total <strong className="text-text-primary">{leaveRequests.total}</strong> pengajuan izin.
+                                    </span>
+                                }
+                                pagination={
+                                    leaveRequests.last_page > 1 ? (
+                                        <Pagination
+                                            currentPage={leaveRequests.current_page}
+                                            totalPages={leaveRequests.last_page}
+                                            totalItems={leaveRequests.total}
+                                            perPage={leaveRequests.per_page}
+                                            onPageChange={(page) =>
+                                                router.get(
+                                                    "/leave-requests",
+                                                    {
+                                                        page,
+                                                        status: statusTab || undefined,
+                                                        category: categoryFilter || undefined,
+                                                        search: search || undefined,
+                                                    },
+                                                    { preserveState: true },
+                                                )
+                                            }
+                                        />
+                                    ) : undefined
+                                }
+                            />
+                        </div>
+                        {leaveRequests.last_page > 1 && (
+                            <div className="sm:hidden">
+                                <MobileNativePagination
+                                    currentPage={leaveRequests.current_page}
+                                    totalPages={leaveRequests.last_page}
+                                    totalItems={leaveRequests.total}
+                                    perPage={leaveRequests.per_page}
+                                    onPageChange={(page) =>
+                                        router.get(
+                                            "/leave-requests",
+                                            {
+                                                page,
+                                                status: statusTab || undefined,
+                                                category: categoryFilter || undefined,
+                                                search: search || undefined,
+                                            },
+                                            { preserveState: true },
+                                        )
+                                    }
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

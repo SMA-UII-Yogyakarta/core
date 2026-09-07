@@ -34,15 +34,15 @@ class StudentResource extends JsonResource
             'address' => $this->address,
             'enrollment_year' => $this->enrollment_year,
             'status' => $this->status,
-            'class' => $this->whenLoaded('class', fn () => [
+            'class' => $this->whenLoaded('class', fn () => $this->class ? [
                 'id' => $this->class->id,
                 'name' => $this->class->name,
                 'level' => $this->class->level,
-            ]),
-            'guardian' => $this->whenLoaded('guardian', fn () => [
+            ] : null),
+            'guardian' => $this->whenLoaded('guardian', fn () => $this->guardian ? [
                 'id' => $this->guardian->id,
                 'name' => $this->guardian->name,
-            ]),
+            ] : null),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

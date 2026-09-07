@@ -1,4 +1,5 @@
 import React from "react";
+import { FiFileText, FiMaximize2, FiUser, FiLock, FiX, FiCheck, FiEye } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
 import Button from "./Button";
 
@@ -99,7 +100,7 @@ export function LeaveRequestCard({
             <div className="w-full sm:w-[130px] shrink-0">
                 <div className="w-full sm:w-[130px] h-[130px] bg-slate-200/60 border border-border rounded-xl overflow-hidden flex flex-col justify-between relative shadow-2xs">
                     <div className="flex-1 flex items-center justify-center text-text-muted">
-                        <i className="fas fa-file-prescription text-3xl opacity-70"></i>
+                        <FiFileText className="text-3xl opacity-70" />
                     </div>
                     {leaveRequest.document_url ? (
                         <button
@@ -111,7 +112,7 @@ export function LeaveRequestCard({
                             }}
                             className="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[11px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-t border-border/50"
                         >
-                            <i className="fas fa-search-plus text-[10px]"></i> Perbesar
+                            <FiMaximize2 className="text-[12px]" /> Perbesar
                         </button>
                     ) : (
                         <div className="w-full py-1.5 bg-muted border-t border-border/50 flex items-center justify-center text-[10px] text-text-muted font-semibold">
@@ -141,7 +142,7 @@ export function LeaveRequestCard({
 
                     {/* Subtitle Line: Diajukan oleh */}
                     <p className="text-[12px] text-text-muted mb-3 flex items-center gap-1.5 leading-none">
-                        <i className="fas fa-user text-[11px]"></i> Diajukan oleh: {guardianInfo} - {formatRelativeOrTime(leaveRequest.created_at || "")}
+                        <FiUser className="text-[12px]" /> Diajukan oleh: {guardianInfo} - {formatRelativeOrTime(leaveRequest.created_at || "")}
                     </p>
 
                     {/* Metadata Gray Box */}
@@ -169,7 +170,7 @@ export function LeaveRequestCard({
                         actionSlot
                     ) : !isHomeroom && leaveRequest.approval_status === "Pending" ? (
                         <div className="text-[12px] font-bold text-danger border border-dashed border-danger/40 bg-danger-bg px-3.5 py-1.5 rounded-xl inline-flex items-center gap-1.5">
-                            <i className="fas fa-lock text-[11px]"></i> Hak akses persetujuan hanya untuk Wali Kelas.
+                            <FiLock className="text-[12px]" /> Hak akses persetujuan hanya untuk Wali Kelas.
                         </div>
                     ) : leaveRequest.approval_status === "Pending" && (onApprove || onReject) ? (
                         <div className="flex gap-2.5">
@@ -183,7 +184,7 @@ export function LeaveRequestCard({
                                         onReject(leaveRequest);
                                     }}
                                 >
-                                    <i className="fas fa-times mr-1 text-[11px]" /> Tolak
+                                    <FiX className="mr-1 text-[13px]" /> Tolak
                                 </Button>
                             )}
                             {onApprove && (
@@ -196,7 +197,7 @@ export function LeaveRequestCard({
                                         onApprove(leaveRequest);
                                     }}
                                 >
-                                    <i className="fas fa-check mr-1 text-[11px]" /> Setujui Izin
+                                    <FiCheck className="mr-1 text-[13px]" /> Setujui Izin
                                 </Button>
                             )}
                         </div>
@@ -209,7 +210,7 @@ export function LeaveRequestCard({
                             }}
                             className="px-4 py-1.5 bg-surface border border-border rounded-xl text-[12px] font-bold text-text-primary hover:bg-muted transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                         >
-                            <i className="fas fa-eye text-[11px]"></i> Detail
+                            <FiEye className="text-[12px]" /> Detail
                         </button>
                     ) : null}
                 </div>

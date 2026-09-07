@@ -18,6 +18,7 @@ export default function LeaveVerificationHeader({
             <PageHeader
                 title="Verifikasi Izin Siswa"
                 description={`Tinjau dan proses pengajuan izin / sakit siswa rombel ${classNameStr}.`}
+                className="hidden lg:flex shrink-0 mb-4 sm:mb-0"
             />
 
             <div className="flex items-center gap-2 self-start sm:self-auto">

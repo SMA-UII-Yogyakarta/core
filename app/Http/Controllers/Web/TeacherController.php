@@ -21,13 +21,13 @@ class TeacherController extends Controller
         $this->authorize('viewAny', Teacher::class);
 
         $teachers = $this->teacherService->paginate(
-            request()->only(['search']),
+            request()->only(['search', 'teacher_type']),
         );
 
         return Inertia::render('Admin/MasterData', [
             'activeTab' => 'guru',
             'teachers' => $teachers,
-            'filters' => request()->only(['search']),
+            'filters' => request()->only(['search', 'teacher_type']),
         ]);
     }
 
@@ -54,4 +54,22 @@ class TeacherController extends Controller
         $this->teacherService->delete($id);
         return redirect()->back()->with('success', 'Teacher deleted successfully.');
     }
+
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('delete', Teacher::class);
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:teachers,id',
+        ]);
+
+        $count = $this->teacherService->bulkDelete($validated['ids']);
+
+        return redirect()->back()->with(
+            'success',
+            $count . ' guru terpilih berhasil dihapus.',
+        );
+    }
 }
+

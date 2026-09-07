@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { ReactNode } from "react";
 import { Link } from "@inertiajs/react";
+import { FiChevronDown, FiUser, FiSliders, FiRefreshCw, FiLogOut } from "react-icons/fi";
 import Avatar from "../ui/Avatar";
 import NotificationPopover, { NotificationItem } from "./NotificationPopover";
 
@@ -16,7 +17,6 @@ interface NavbarProps {
     showSearch?: boolean;
     showNotificationBell?: boolean;
     onLogout?: () => void;
-    onSearchClick?: () => void;
     unreadCount?: number;
     notifications?: NotificationItem[];
 }
@@ -29,11 +29,10 @@ export default function Navbar({
     userRole = "admin",
     teacherTypes = [],
     showLogout = true,
-    headerActions,
-    showSearch = true,
+    headerActions: _headerActions,
+    showSearch: _showSearch = true,
     showNotificationBell = true,
     onLogout,
-    onSearchClick,
     unreadCount = 0,
     notifications = [],
 }: NavbarProps) {
@@ -66,36 +65,22 @@ export default function Navbar({
                 </span>
             </div>
 
-            {/* Right — Page Header Actions + Icons + User */}
-            <div className="flex items-center gap-3 sm:gap-4">
-                {headerActions && (
-                    <div className="flex items-center gap-2 mr-1">
-                        {headerActions}
-                    </div>
-                )}
 
-                {showSearch && (
-                    <button
-                        onClick={onSearchClick}
-                        className="w-9 h-9 flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors text-[16px] focus:outline-none focus:ring-2 focus:ring-accent/40 cursor-pointer"
-                        aria-label="Cari"
-                        type="button"
-                    >
-                        <i className="fas fa-search" />
-                    </button>
-                )}
+            {/* Right — Icons + User Profile */}
+            <div className="flex items-center gap-3 sm:gap-4">
 
                 {/* Facebook-style Desktop Notification Popover */}
                 {showNotificationBell && (
-                    <NotificationPopover
-                        unreadCount={unreadCount}
-                        notifications={notifications}
-                        dusk="desktop-notification-popover"
-                    />
+                    <>
+                        <NotificationPopover
+                            unreadCount={unreadCount}
+                            notifications={notifications}
+                            dusk="desktop-notification-popover"
+                        />
+                        {/* Vertical Divider */}
+                        <div className="h-6 w-[1px] bg-white/20 mx-1" />
+                    </>
                 )}
-
-                {/* Vertical Divider */}
-                <div className="h-6 w-[1px] bg-white/20 mx-1" />
 
                 {/* Mobile: Simple Link to Profile */}
                 <Link
@@ -114,8 +99,8 @@ export default function Navbar({
                     >
                         <Avatar name={username || userInitial} src={userAvatar} size="xs" variant="accent" />
                         <span className="text-white/90 text-[13px] font-medium font-inter">{username}</span>
-                        <i
-                            className={`fas fa-chevron-down text-[10px] text-white/70 ml-1 transition-transform ${
+                        <FiChevronDown
+                            className={`text-[12px] text-white/70 ml-1 transition-transform duration-200 ${
                                 dropdownOpen ? "rotate-180" : ""
                             }`}
                         />
@@ -134,7 +119,7 @@ export default function Navbar({
                                 className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-text-secondary hover:text-text-primary hover:bg-muted transition-colors"
                                 onClick={() => setDropdownOpen(false)}
                             >
-                                <i className="fas fa-user-cog text-[13px] text-text-muted" />
+                                <FiUser className="text-[14px] text-text-muted" />
                                 Profil Saya
                             </Link>
 
@@ -144,7 +129,7 @@ export default function Navbar({
                                     className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-text-secondary hover:text-text-primary hover:bg-muted transition-colors"
                                     onClick={() => setDropdownOpen(false)}
                                 >
-                                    <i className="fas fa-sliders-h text-[13px] text-text-muted" />
+                                    <FiSliders className="text-[14px] text-text-muted" />
                                     Pengaturan Sistem
                                 </Link>
                             )}
@@ -157,7 +142,7 @@ export default function Navbar({
                                     }}
                                     className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-text-secondary hover:text-text-primary hover:bg-muted transition-colors cursor-pointer text-left"
                                 >
-                                    <i className="fas fa-sync text-[13px] text-text-muted" />
+                                    <FiRefreshCw className="text-[14px] text-text-muted" />
                                     Ganti Peran Guru
                                 </button>
                             )}
@@ -168,7 +153,7 @@ export default function Navbar({
                                         onClick={onLogout}
                                         className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left font-medium"
                                     >
-                                        <i className="fas fa-sign-out-alt text-[13px]" />
+                                        <FiLogOut className="text-[14px]" />
                                         Keluar Akun
                                     </button>
                                 </div>

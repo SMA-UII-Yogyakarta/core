@@ -1,7 +1,7 @@
 import { router } from "@inertiajs/react";
 import { useState, useMemo } from "react";
 import AppShell from "@/Layouts/AppShell";
-import { SearchBar, Button, EmptyState } from "@/Components";
+import { SearchBar, Button, EmptyState, Pagination, MobileNativePagination } from "@/Components";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { toast } from "@/Components/common/Toast";
 import { FiFilter, FiCheckSquare } from "react-icons/fi";
@@ -137,6 +137,17 @@ export default function LeaveVerification({
         sortMode,
     ]);
 
+    // Client-side pagination (10 items per page)
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const totalPages = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const paginatedRequests = useMemo(() => {
+        const start = (safePage - 1) * pageSize;
+        return filteredRequests.slice(start, start + pageSize);
+    }, [filteredRequests, safePage, pageSize]);
+
     // Action handlers
     const handleApprove = (leave: LeaveRequest) => {
         setDecisionModal({ open: true, type: "approve", leave });
@@ -237,7 +248,7 @@ export default function LeaveVerification({
         Boolean(endDateFilter);
 
     return (
-        <AppShell title="Verifikasi Izin Siswa">
+        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true}>
             <div className="space-y-6">
                 {/* Header */}
                 <LeaveVerificationHeader
@@ -254,7 +265,10 @@ export default function LeaveVerification({
                     approvedCount={approvedCount}
                     rejectedCount={rejectedCount}
                     totalHistoryCount={totalHistoryCount}
-                    onChange={setActiveTab}
+                    onChange={(tab) => {
+                        setActiveTab(tab);
+                        setCurrentPage(1);
+                    }}
                 />
 
                 {/* Filter Toolbar */}
@@ -262,15 +276,21 @@ export default function LeaveVerification({
                     <div className="max-w-md w-full">
                         <SearchBar
                             value={searchQuery}
-                            onChange={setSearchQuery}
-                            onSearch={setSearchQuery}
+                            onChange={(q) => {
+                                setSearchQuery(q);
+                                setCurrentPage(1);
+                            }}
+                            onSearch={(q) => {
+                                setSearchQuery(q);
+                                setCurrentPage(1);
+                            }}
                             placeholder="Cari nama siswa, NIS, atau keterangan..."
                         />
                     </div>
 
                     <div className="flex items-center gap-2">
                         <Button
-                            variant={hasActiveFilters ? "primary" : "secondary"}
+                            variant="accent"
                             onClick={() => setFilterModalOpen(true)}
                             icon={<FiFilter size={16} />}
                         >
@@ -281,18 +301,43 @@ export default function LeaveVerification({
 
                 {/* Card List */}
                 {filteredRequests.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                        {filteredRequests.map((leave) => (
-                            <LeaveRequestCard
-                                key={leave.id}
-                                leave={leave}
-                                isPending={leave.approval_status === "Pending"}
-                                onPreviewImage={(url) => setPreviewImageUrl(url)}
-                                onApprove={handleApprove}
-                                onReject={handleReject}
-                                onRevert={handleRevert}
-                            />
-                        ))}
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4">
+                            {paginatedRequests.map((leave) => (
+                                <LeaveRequestCard
+                                    key={leave.id}
+                                    leave={leave}
+                                    isPending={leave.approval_status === "Pending"}
+                                    onPreviewImage={(url) => setPreviewImageUrl(url)}
+                                    onApprove={handleApprove}
+                                    onReject={handleReject}
+                                    onRevert={handleRevert}
+                                />
+                            ))}
+                        </div>
+
+                        {filteredRequests.length > pageSize && (
+                            <div className="pt-2 font-inter">
+                                <div className="hidden sm:block">
+                                    <Pagination
+                                        currentPage={safePage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredRequests.length}
+                                        perPage={pageSize}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                                <div className="sm:hidden">
+                                    <MobileNativePagination
+                                        currentPage={safePage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredRequests.length}
+                                        perPage={pageSize}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <EmptyState
@@ -329,17 +374,18 @@ export default function LeaveVerification({
                 sortMode={sortMode}
                 startDate={startDateFilter}
                 endDate={endDateFilter}
-                onCategoryChange={setCategoryFilter}
-                onDateModeChange={setDateMode}
-                onSortModeChange={setSortMode}
-                onStartDateChange={setStartDateFilter}
-                onEndDateChange={setEndDateFilter}
+                onCategoryChange={(c) => { setCategoryFilter(c); setCurrentPage(1); }}
+                onDateModeChange={(m) => { setDateMode(m); setCurrentPage(1); }}
+                onSortModeChange={(s) => { setSortMode(s); setCurrentPage(1); }}
+                onStartDateChange={(d) => { setStartDateFilter(d); setCurrentPage(1); }}
+                onEndDateChange={(d) => { setEndDateFilter(d); setCurrentPage(1); }}
                 onReset={() => {
                     setCategoryFilter("all");
                     setDateMode("all");
                     setSortMode("urgency");
                     setStartDateFilter("");
                     setEndDateFilter("");
+                    setCurrentPage(1);
                 }}
                 onClose={() => setFilterModalOpen(false)}
             />

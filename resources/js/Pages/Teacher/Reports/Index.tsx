@@ -148,12 +148,12 @@ export default function HomeroomReportIndex({
             title={t("reports.export")}
             aria-label={t("reports.export")}
         >
-            <i className="fas fa-download text-[14px]" />
+            <FiDownload className="text-[15px]" />
         </button>
     );
 
     return (
-        <AppShell title={t("reports.title")} headerActions={exportHeaderAction} showSearch={false}>
+        <AppShell title={t("reports.title")} hasTopTabs={true} headerActions={exportHeaderAction} showSearch={false}>
             <div className="space-y-3 lg:space-y-6">
                 {/* Page Header */}
                 <div>
@@ -225,7 +225,7 @@ export default function HomeroomReportIndex({
 
                 {/* Mobile Tabs + Filter (Full Width, with Export Icon in Mobile Header) */}
                 <div className="sm:hidden sticky top-0 z-20 bg-background space-y-2">
-                    <TabSwitcher tabs={TABS} activeKey={tab} onChange={handleTabChange} />
+                    <TabSwitcher tabs={TABS} activeKey={tab} onChange={handleTabChange} fullWidth />
                     <div className="bg-surface border border-border rounded-xl p-2.5 shadow-xs">
                         {tab === "daily" && (
                             <div className="w-full">
@@ -355,7 +355,7 @@ export default function HomeroomReportIndex({
                 )}
 
                 {/* Footer note */}
-                <p className="text-[12px] text-text-muted italic pb-12 lg:pb-0">
+                <p className="text-[12px] text-text-muted italic">
                     <span className="inline-flex items-center mr-1 relative -top-px">
                         <FiAlertCircle className="text-[11px]" />
                     </span>
