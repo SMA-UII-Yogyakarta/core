@@ -45,13 +45,8 @@ export interface Guardian {
     students?: Student[];
 }
 
-export interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-}
+import type { PaginatedData } from "@/types";
+export type { PaginatedData };
 
 export interface SearchConfig {
     mode: "client" | "server";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { router } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
@@ -80,7 +80,7 @@ export default function Monitoring({
     const [statsState, setStatsState] = useState(initialStats);
 
     // Real-time monitoring with Laravel Echo
-    useState(() => {
+    useEffect(() => {
         if (typeof window !== "undefined" && window.Echo && classId) {
             window.Echo.channel(`monitoring.${classId}`).listen(
                 ".attendance.created",
@@ -135,7 +135,7 @@ export default function Monitoring({
                 window.Echo.leaveChannel(`monitoring.${classId}`);
             }
         };
-    });
+    }, [classId]);
 
     const handleFilter = () => {
         router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });

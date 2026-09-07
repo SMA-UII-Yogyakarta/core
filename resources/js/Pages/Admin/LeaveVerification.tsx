@@ -16,15 +16,7 @@ import {
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
 import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
-import type { LeaveRequest } from "@/types";
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-}
+import type { LeaveRequest, PaginatedData } from "@/types";
 
 interface Filters {
     status?: string;

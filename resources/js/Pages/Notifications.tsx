@@ -26,6 +26,7 @@ import {
 } from "react-icons/fi";
 import { notificationSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
+import type { PaginatedData } from "@/types";
 
 interface NotificationSender {
     id: number;
@@ -43,14 +44,6 @@ interface NotificationItem {
     created_at: string;
     is_read?: boolean;
     sender?: NotificationSender | null;
-}
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
 }
 
 interface NotificationsProps {

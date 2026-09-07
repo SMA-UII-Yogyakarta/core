@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { router, useForm } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
 import {
-    Pagination,
     MobileNativePagination,
     Table,
     TableFooter,
@@ -20,6 +19,7 @@ import {
     FilterPopover,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
+import type { PaginatedData } from "@/types";
 import { holidaySchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
 import {
@@ -47,14 +47,6 @@ interface Holiday {
     holiday_date: string;
     description: string | null;
     is_holiday: boolean;
-}
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
 }
 
 interface Filters {
@@ -843,22 +835,16 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
 
                     <TableFooter
                         info={`Total ${holidays.total} hari libur terdaftar pada periode ini.`}
-                        pagination={
-                            holidays.total > holidays.per_page ? (
-                                <Pagination
-                                    currentPage={holidays.current_page}
-                                    totalPages={holidays.last_page}
-                                    totalItems={holidays.total}
-                                    perPage={holidays.per_page}
-                                    onPageChange={(page) =>
-                                        router.get(
-                                            "/operational-settings",
-                                            { tab: "holiday", page, year: filters.year, month: filters.month },
-                                            { preserveState: true },
-                                        )
-                                    }
-                                />
-                            ) : undefined
+                        currentPage={holidays.current_page}
+                        totalPages={holidays.last_page}
+                        totalItems={holidays.total}
+                        perPage={holidays.per_page}
+                        onPageChange={(page) =>
+                            router.get(
+                                "/operational-settings",
+                                { tab: "holiday", page, year: filters.year, month: filters.month },
+                                { preserveState: true },
+                            )
                         }
                     />
                 </div>
