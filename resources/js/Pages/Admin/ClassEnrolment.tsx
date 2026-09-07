@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { useClientPagination } from "@/hooks/useClientPagination";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
     Button,
     Table,
@@ -77,19 +78,26 @@ export default function EnrolmentKelas({
     const { url } = usePage();
 
     const [classId, setClassId] = useState(selectedClassId?.toString() ?? "");
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [isMobileAddView, setIsMobileAddView] = useState(false);
+    const isDesktop = useMediaQuery("(min-width: 640px)");
+    const [isAddStudentOpen, setIsAddStudentOpen] = useState<boolean>(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("action") === "add";
+        }
+        return false;
+    });
+
+    const isMobileAddView = !isDesktop && isAddStudentOpen;
+    const showAddDrawer = isDesktop && isAddStudentOpen;
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
 
-    // Handle physical/browser popstate navigation (Back / Forward) for mobile Add Student subview
+    // Handle physical/browser popstate navigation (Back / Forward) for Add Student
     useEffect(() => {
         const handlePopState = () => {
             if (typeof window !== "undefined") {
                 const params = new URLSearchParams(window.location.search);
                 const isAdd = params.get("action") === "add";
-                if (window.innerWidth < 640) {
-                    setIsMobileAddView(isAdd);
-                }
+                setIsAddStudentOpen(isAdd);
             }
         };
 
@@ -126,15 +134,7 @@ export default function EnrolmentKelas({
         const query = url.includes("?") ? url.split("?")[1] : "";
         const params = new URLSearchParams(query);
         const action = params.get("action");
-        if (action === "add") {
-            if (typeof window !== "undefined" && window.innerWidth < 640) {
-                setIsMobileAddView(true);
-            } else {
-                setShowAddModal(true);
-            }
-        } else {
-            setIsMobileAddView(false);
-        }
+        setIsAddStudentOpen(action === "add");
     }
 
     const toggleCardExpanded = () => {
@@ -221,21 +221,16 @@ export default function EnrolmentKelas({
         setModalSearch("");
         setModalCurrentPage(1);
         setSelectedModalStudentIds([]);
-        if (typeof window !== "undefined" && window.innerWidth < 640) {
-            setIsMobileAddView(true);
-            if (typeof window !== "undefined") {
-                const params = new URLSearchParams(window.location.search);
-                params.set("action", "add");
-                window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
-            }
-        } else {
-            setShowAddModal(true);
+        setIsAddStudentOpen(true);
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            params.set("action", "add");
+            window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
         }
     };
 
     const handleCloseAddStudent = () => {
-        setShowAddModal(false);
-        setIsMobileAddView(false);
+        setIsAddStudentOpen(false);
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             params.delete("action");
@@ -536,7 +531,7 @@ export default function EnrolmentKelas({
         >
             {/* 📱 DEDICATED MOBILE ADD STUDENT SUB-PAGE (< sm) */}
             {isMobileAddView ? (
-                <div className="sm:hidden flex flex-col gap-3 font-inter pb-24">
+                <div className="flex flex-col gap-3 font-inter pb-24">
                     {/* Filter & Search Bar (Standalone Pattern matching Gambar 1) */}
                     <MobileFilterSelectBar
                         selectedCount={modalSelectedInPageCount}
@@ -1037,72 +1032,74 @@ export default function EnrolmentKelas({
                         ]}
                     />
 
-                    {/* 📐 SIDE DRAWER FOR TABLET & DESKTOP (>= sm) */}
-                    <Drawer
-                        open={showAddModal}
-                        onClose={handleCloseAddStudent}
-                        title={`Tambah Siswa ke Kelas ${selectedClass?.name ?? ""}`}
-                        description="Pilih siswa yang belum terdaftar di rombongan belajar mana pun untuk dimasukkan ke kelas ini."
-                        headerActions={
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
-                                <FiUsers className="w-3.5 h-3.5" />
-                                <span>{unassignedStudents.length} Belum Punya Kelas</span>
-                            </span>
-                        }
-                        width="xl"
-                        showFooter={true}
-                        leftFooter={
-                            filteredUnassigned.length > modalPageSize ? (
-                                <Pagination
-                                    currentPage={modalSafePage}
-                                    totalPages={modalTotalPages}
-                                    totalItems={filteredUnassigned.length}
-                                    perPage={modalPageSize}
-                                    onPageChange={setModalCurrentPage}
-                                    compact
-                                    align="start"
-                                />
-                            ) : null
-                        }
-                        submitLabel={`Tambahkan (${selectedModalStudentIds.length} Siswa)`}
-                        submitVariant="primary"
-                        cancelLabel="Tutup"
-                        disabled={selectedModalStudentIds.length === 0}
-                        onSubmit={handleBulkAssign}
-                        asForm={false}
-                        onCancel={handleCloseAddStudent}
-                    >
-                        <div className="flex flex-col gap-4">
-                            {unassignedStudents.length > 0 && (
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex-1">
-                                        <SearchBar
-                                            value={modalSearch}
-                                            onChange={(val) => {
-                                                setModalSearch(val);
-                                                setModalCurrentPage(1);
-                                            }}
-                                            onSearch={() => setModalCurrentPage(1)}
-                                            placeholder="Cari NIS / Nama siswa..."
-                                        />
+                    {/* 📐 SIDE DRAWER FOR TABLET & DESKTOP (>= sm) ONLY */}
+                    {isDesktop && (
+                        <Drawer
+                            open={showAddDrawer}
+                            onClose={handleCloseAddStudent}
+                            title={`Tambah Siswa ke Kelas ${selectedClass?.name ?? ""}`}
+                            description="Pilih siswa yang belum terdaftar di rombongan belajar mana pun untuk dimasukkan ke kelas ini."
+                            headerActions={
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0 select-none">
+                                    <FiUsers className="w-3.5 h-3.5" />
+                                    <span>{unassignedStudents.length} Belum Punya Kelas</span>
+                                </span>
+                            }
+                            width="xl"
+                            showFooter={true}
+                            leftFooter={
+                                filteredUnassigned.length > modalPageSize ? (
+                                    <Pagination
+                                        currentPage={modalSafePage}
+                                        totalPages={modalTotalPages}
+                                        totalItems={filteredUnassigned.length}
+                                        perPage={modalPageSize}
+                                        onPageChange={setModalCurrentPage}
+                                        compact
+                                        align="start"
+                                    />
+                                ) : null
+                            }
+                            submitLabel={`Tambahkan (${selectedModalStudentIds.length} Siswa)`}
+                            submitVariant="primary"
+                            cancelLabel="Tutup"
+                            disabled={selectedModalStudentIds.length === 0}
+                            onSubmit={handleBulkAssign}
+                            asForm={false}
+                            onCancel={handleCloseAddStudent}
+                        >
+                            <div className="flex flex-col gap-4">
+                                {unassignedStudents.length > 0 && (
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex-1">
+                                            <SearchBar
+                                                value={modalSearch}
+                                                onChange={(val) => {
+                                                    setModalSearch(val);
+                                                    setModalCurrentPage(1);
+                                                }}
+                                                onSearch={() => setModalCurrentPage(1)}
+                                                placeholder="Cari NIS / Nama siswa..."
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            <div className="overflow-x-auto min-h-[320px]">
-                                <Table
-                                    columns={modalColumns}
-                                    data={paginatedUnassigned}
-                                    keyExtractor={(s) => s.id}
-                                    emptyMessage={
-                                        modalSearch
-                                            ? "Tidak ada siswa yang cocok dengan pencarian."
-                                            : "Semua siswa telah terdaftar di kelas."
-                                    }
-                                />
+                                <div className="overflow-x-auto min-h-[320px]">
+                                    <Table
+                                        columns={modalColumns}
+                                        data={paginatedUnassigned}
+                                        keyExtractor={(s) => s.id}
+                                        emptyMessage={
+                                            modalSearch
+                                                ? "Tidak ada siswa yang cocok dengan pencarian."
+                                                : "Semua siswa telah terdaftar di kelas."
+                                        }
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </Drawer>
+                        </Drawer>
+                    )}
                 </>
             )}
 
