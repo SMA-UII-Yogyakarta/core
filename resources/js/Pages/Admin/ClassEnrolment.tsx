@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { router, usePage } from "@inertiajs/react";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import {
     Button,
     Table,
@@ -139,8 +140,6 @@ export default function EnrolmentKelas({
 
     // Enrolled Students Pagination & Search
     const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
 
     const filteredStudents = useMemo(() => {
         let result = [...students];
@@ -172,18 +171,16 @@ export default function EnrolmentKelas({
         return result;
     }, [students, search, emailFilter, sortBy]);
 
-
-    const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedStudents = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return filteredStudents.slice(start, start + pageSize);
-    }, [filteredStudents, safePage, pageSize]);
+    const {
+        safePage,
+        totalPages,
+        paginatedData: paginatedStudents,
+        setCurrentPage,
+        pageSize,
+    } = useClientPagination(filteredStudents, 1, 10);
 
     // Modal Unassigned Students Pagination & Search
     const [modalSearch, setModalSearch] = useState("");
-    const [modalCurrentPage, setModalCurrentPage] = useState(1);
-    const modalPageSize = 10;
 
     const filteredUnassigned = useMemo(() => {
         if (!modalSearch.trim()) return unassignedStudents;
@@ -196,12 +193,13 @@ export default function EnrolmentKelas({
         );
     }, [unassignedStudents, modalSearch]);
 
-    const modalTotalPages = Math.ceil(filteredUnassigned.length / modalPageSize) || 1;
-    const modalSafePage = Math.min(Math.max(1, modalCurrentPage), modalTotalPages);
-    const paginatedUnassigned = useMemo(() => {
-        const start = (modalSafePage - 1) * modalPageSize;
-        return filteredUnassigned.slice(start, start + modalPageSize);
-    }, [filteredUnassigned, modalSafePage, modalPageSize]);
+    const {
+        safePage: modalSafePage,
+        totalPages: modalTotalPages,
+        paginatedData: paginatedUnassigned,
+        setCurrentPage: setModalCurrentPage,
+        pageSize: modalPageSize,
+    } = useClientPagination(filteredUnassigned, 1, 10);
 
     const handleOpenAddStudent = () => {
         setModalSearch("");
@@ -988,24 +986,12 @@ export default function EnrolmentKelas({
                                         }
                                     />
                                     <TableFooter
-                                        info={
-                                            filteredStudents.length > 0 ? (
-                                                <span>
-                                                    Menampilkan <strong className="text-text-primary">{(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredStudents.length)}</strong> dari total <strong className="text-text-primary">{filteredStudents.length}</strong> siswa terdaftar.
-                                                </span>
-                                            ) : undefined
-                                        }
-                                        pagination={
-                                            filteredStudents.length > pageSize ? (
-                                                <Pagination
-                                                    currentPage={safePage}
-                                                    totalPages={totalPages}
-                                                    totalItems={filteredStudents.length}
-                                                    perPage={pageSize}
-                                                    onPageChange={setCurrentPage}
-                                                />
-                                            ) : undefined
-                                        }
+                                        itemLabel="siswa terdaftar"
+                                        currentPage={safePage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredStudents.length}
+                                        perPage={pageSize}
+                                        onPageChange={setCurrentPage}
                                     />
                                 </div>
                             </div>

@@ -12,13 +12,13 @@ import {
     SelectInput,
     Input,
     Button,
-    Pagination,
     MobileNativePagination,
     SearchBar,
     ConfirmDialog,
     EmptyState,
     BottomSheet,
 } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import type { Column } from "@/Components/ui/Table";
 import type { StatusVariant } from "@/types/component";
 import { attendanceCorrectionSchema } from "@/schemas";
@@ -70,12 +70,10 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
     const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; overrideId: number | null }>({
         open: false,
         overrideId: null,
     });
-    const pageSize = 10;
 
     const filteredStudents = useMemo(() => {
         if (!search.trim()) return students;
@@ -88,12 +86,14 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
         );
     }, [students, search]);
 
-    const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedStudents = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return filteredStudents.slice(start, start + pageSize);
-    }, [filteredStudents, safePage, pageSize]);
+    const {
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedStudents,
+        pageSize,
+    } = useClientPagination(filteredStudents, 1, 10);
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
         student_id: 0,
@@ -387,24 +387,12 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                         emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
                     />
                     <TableFooter
-                        info={
-                            filteredStudents.length > 0 ? (
-                                <span>
-                                    Menampilkan <strong className="text-text-primary">{(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredStudents.length)}</strong> dari total <strong className="text-text-primary">{filteredStudents.length}</strong> siswa.
-                                </span>
-                            ) : undefined
-                        }
-                        pagination={
-                            filteredStudents.length > pageSize ? (
-                                <Pagination
-                                    currentPage={safePage}
-                                    totalPages={totalPages}
-                                    totalItems={filteredStudents.length}
-                                    perPage={pageSize}
-                                    onPageChange={setCurrentPage}
-                                />
-                            ) : undefined
-                        }
+                        currentPage={safePage}
+                        totalPages={totalPages}
+                        totalItems={filteredStudents.length}
+                        perPage={pageSize}
+                        onPageChange={setCurrentPage}
+                        itemLabel="siswa"
                     />
                 </div>
 

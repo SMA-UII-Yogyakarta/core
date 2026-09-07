@@ -2,6 +2,7 @@ import { router } from "@inertiajs/react";
 import { useState, useMemo } from "react";
 import AppShell from "@/Layouts/AppShell";
 import { SearchBar, Button, EmptyState, Pagination, MobileNativePagination } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { toast } from "@/Components/common/Toast";
 import { FiFilter, FiCheckSquare } from "react-icons/fi";
@@ -138,15 +139,14 @@ export default function LeaveVerification({
     ]);
 
     // Client-side pagination (10 items per page)
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
-
-    const totalPages = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedRequests = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return filteredRequests.slice(start, start + pageSize);
-    }, [filteredRequests, safePage, pageSize]);
+    const {
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedRequests,
+        pageSize,
+    } = useClientPagination(filteredRequests, 1, 10);
 
     // Action handlers
     const handleApprove = (leave: LeaveRequest) => {

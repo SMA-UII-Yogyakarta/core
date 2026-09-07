@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, Pagination, MobileNativePagination, SearchBar, Table, TableFooter, Input, BottomSheet, Button } from "@/Components";
+import { PageHeader, Card, SelectInput, MobileNativePagination, SearchBar, Table, TableFooter, Input, BottomSheet, Button } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import ExportButtonGroup from "@/Components/features/ExportButtonGroup";
 import { FiInfo, FiFilter } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
@@ -49,9 +50,7 @@ export default function DailyReport({
 }: DailyReportProps) {
     const { t } = useLanguage();
     const [studentSearch, setStudentSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-    const pageSize = 10;
 
     const hasActiveFilters = Boolean(selectedClassId);
 
@@ -73,17 +72,26 @@ export default function DailyReport({
         </div>
     );
 
-    const rawStudents = classDetail?.students ?? [];
-    const filteredStudents = rawStudents.filter(
-        (s) =>
-            s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-            s.nis.includes(studentSearch) ||
-            s.status.toLowerCase().includes(studentSearch.toLowerCase()),
+    const rawStudents = useMemo(() => classDetail?.students ?? [], [classDetail?.students]);
+    const filteredStudents = useMemo(
+        () =>
+            rawStudents.filter(
+                (s) =>
+                    s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+                    s.nis.includes(studentSearch) ||
+                    s.status.toLowerCase().includes(studentSearch.toLowerCase()),
+            ),
+        [rawStudents, studentSearch],
     );
 
-    const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
-    const start = (currentPage - 1) * pageSize;
-    const paginatedStudents = filteredStudents.slice(start, start + pageSize);
+    const {
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedStudents,
+        pageSize,
+    } = useClientPagination(filteredStudents, 1, 10);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -252,7 +260,7 @@ export default function DailyReport({
                             {filteredStudents.length > pageSize && (
                                 <div className="pt-2 font-inter">
                                     <MobileNativePagination
-                                        currentPage={currentPage}
+                                        currentPage={safePage}
                                         totalPages={totalPages}
                                         totalItems={filteredStudents.length}
                                         perPage={pageSize}
@@ -271,23 +279,12 @@ export default function DailyReport({
                                 emptyMessage="Tidak ada data siswa."
                             />
                             <TableFooter
-                                info={
-                                    filteredStudents.length > 0 ? (
-                                        <span>
-                                            Menampilkan <strong className="text-text-primary">{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredStudents.length)}</strong> dari total <strong className="text-text-primary">{filteredStudents.length}</strong> siswa.
-                                        </span>
-                                    ) : undefined
-                                }
-                                pagination={
-                                    filteredStudents.length > pageSize ? (
-                                        <Pagination
-                                            currentPage={currentPage}
-                                            totalPages={totalPages}
-                                            totalItems={filteredStudents.length}
-                                            onPageChange={setCurrentPage}
-                                        />
-                                    ) : undefined
-                                }
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredStudents.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                                itemLabel="siswa"
                             />
                         </div>
                     </div>

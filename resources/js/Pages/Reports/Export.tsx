@@ -17,6 +17,8 @@ import {
 } from "@/Components";
 import Drawer from "@/Components/common/Drawer";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import {
     FiFileText,
     FiGrid,
@@ -86,7 +88,13 @@ export default function ExportPage({
     selectedSemester,
     selectedClassId,
 }: ExportPageProps) {
-    const [currentPage, setCurrentPage] = useState(1);
+    const {
+        safePage,
+        totalPages,
+        paginatedData: paginatedPreview,
+        setCurrentPage,
+        pageSize,
+    } = useClientPagination(preview, 1, 10);
     const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string } | null>(null);
     const [imgLoadError, setImgLoadError] = useState(false);
     const [exportDrawerOpen, setExportDrawerOpen] = useState(false);
@@ -126,29 +134,10 @@ export default function ExportPage({
         };
     }, [desktopDropdownOpen]);
 
-    const pageSize = 10;
-
-    const months = [
-        { value: 1, label: "Januari" },
-        { value: 2, label: "Februari" },
-        { value: 3, label: "Maret" },
-        { value: 4, label: "April" },
-        { value: 5, label: "Mei" },
-        { value: 6, label: "Juni" },
-        { value: 7, label: "Juli" },
-        { value: 8, label: "Agustus" },
-        { value: 9, label: "September" },
-        { value: 10, label: "Oktober" },
-        { value: 11, label: "November" },
-        { value: 12, label: "Desember" },
-    ];
-
-    const totalPages = Math.ceil(preview.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedPreview = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return preview.slice(start, start + pageSize);
-    }, [preview, safePage, pageSize]);
+    const months = useMemo(
+        () => INDONESIAN_MONTHS.map((label, idx) => ({ value: idx + 1, label })),
+        []
+    );
 
     const buildQuery = (period: Period) => {
         const q: Record<string, string | number | null | undefined> = {

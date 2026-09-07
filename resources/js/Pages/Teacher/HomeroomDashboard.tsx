@@ -5,12 +5,12 @@ import {
     PageHeader,
     Table,
     TableFooter,
-    Pagination,
     MobileNativePagination,
     SearchBar,
     EmptyState,
     Button,
 } from "@/Components";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import { FiUserX, FiInfo } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 
@@ -107,8 +107,6 @@ export default function HomeroomDashboard({
     pendingLeaveCount: _pendingLeaveCount = 0,
 }: PageProps) {
     const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
 
     const attentionStudents = useMemo(() => {
         const raw = students.filter((s) => getRowStatus(s) !== "present");
@@ -117,12 +115,14 @@ export default function HomeroomDashboard({
         return raw.filter((s) => s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q));
     }, [students, search]);
 
-    const totalPages = Math.ceil(attentionStudents.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedAttention = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return attentionStudents.slice(start, start + pageSize);
-    }, [attentionStudents, safePage, pageSize]);
+    const {
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedAttention,
+        pageSize,
+    } = useClientPagination(attentionStudents, 1, 10);
 
     if (!kelas) {
         return (
@@ -363,17 +363,11 @@ export default function HomeroomDashboard({
 
                         <TableFooter
                             info={`Menampilkan daftar siswa kelas ${shortClassName} yang memerlukan perhatian khusus.`}
-                            pagination={
-                                attentionStudents.length > pageSize ? (
-                                    <Pagination
-                                        currentPage={safePage}
-                                        totalPages={totalPages}
-                                        totalItems={attentionStudents.length}
-                                        perPage={pageSize}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                ) : undefined
-                            }
+                            currentPage={safePage}
+                            totalPages={totalPages}
+                            totalItems={attentionStudents.length}
+                            perPage={pageSize}
+                            onPageChange={setCurrentPage}
                         />
                     </div>
                 </div>

@@ -5,7 +5,6 @@ import {
     PageHeader,
     Table,
     TableFooter,
-    Pagination,
     MobileNativePagination,
     Drawer,
     NativeSelect,
@@ -25,6 +24,7 @@ import {
 } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 interface Teacher {
     id: number;
@@ -101,8 +101,6 @@ export default function DutyDashboard({
 
     // Search & pagination
     const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
 
     const filteredAttention = useMemo(() => {
         if (!search.trim()) return displayStudents;
@@ -115,12 +113,14 @@ export default function DutyDashboard({
         );
     }, [displayStudents, search]);
 
-    const totalPages = Math.ceil(filteredAttention.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedAttention = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return filteredAttention.slice(start, start + pageSize);
-    }, [filteredAttention, safePage, pageSize]);
+    const {
+        currentPage,
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedAttention,
+        pageSize,
+    } = useClientPagination(filteredAttention, 1, 10);
 
     // Live Polling
     const {
@@ -350,18 +350,12 @@ export default function DutyDashboard({
                     />
 
                     <TableFooter
-                        info={`Menampilkan ${paginatedAttention.length} dari ${filteredAttention.length} siswa terpantau hari ini.`}
-                        pagination={
-                            filteredAttention.length > pageSize ? (
-                                <Pagination
-                                    currentPage={safePage}
-                                    totalPages={totalPages}
-                                    totalItems={filteredAttention.length}
-                                    perPage={pageSize}
-                                    onPageChange={setCurrentPage}
-                                />
-                            ) : undefined
-                        }
+                        currentPage={safePage}
+                        totalPages={totalPages}
+                        totalItems={filteredAttention.length}
+                        perPage={pageSize}
+                        onPageChange={setCurrentPage}
+                        itemLabel="siswa terpantau hari ini"
                     />
                 </div>
             </div>

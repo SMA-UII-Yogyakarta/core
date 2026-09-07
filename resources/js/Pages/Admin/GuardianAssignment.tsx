@@ -25,6 +25,7 @@ import {
     FiCheck,
 } from "react-icons/fi";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import type { Student, Guardian } from "./GuardianAssignment/types";
 import GuardianList from "./GuardianAssignment/components/GuardianList";
 import LinkedStudentsPanel from "./GuardianAssignment/components/LinkedStudentsPanel";
@@ -75,11 +76,6 @@ export default function GuardianAssignment({
 
     const [guardianId, setGuardianId] = useState<string>(getInitialGuardianId);
     const [guardianSearch, setGuardianSearch] = useState("");
-    const [guardianPage, setGuardianPage] = useState(1);
-    const guardianPageSize = 10;
-
-    const [linkedPage, setLinkedPage] = useState(1);
-    const linkedPageSize = 10;
 
     // Stack navigation inside panel / drawer / mobile subpage ("list" -> "assign")
     const [panelView, setPanelView] = useState<"list" | "assign">("list");
@@ -87,8 +83,6 @@ export default function GuardianAssignment({
 
     const [assignTab, setAssignTab] = useState<"unassigned" | "all">("unassigned");
     const [studentSearch, setStudentSearch] = useState("");
-    const [assignPage, setAssignPage] = useState(1);
-    const assignPageSize = 10;
 
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
 
@@ -136,12 +130,14 @@ export default function GuardianAssignment({
         );
     }, [guardians, guardianSearch]);
 
-    const guardianTotalPages = Math.max(1, Math.ceil(filteredGuardians.length / guardianPageSize));
-    const guardianSafePage = Math.min(Math.max(1, guardianPage), guardianTotalPages);
-    const paginatedGuardians = useMemo(() => {
-        const start = (guardianSafePage - 1) * guardianPageSize;
-        return filteredGuardians.slice(start, start + guardianPageSize);
-    }, [filteredGuardians, guardianSafePage, guardianPageSize]);
+    const {
+        currentPage: guardianPage,
+        setCurrentPage: setGuardianPage,
+        totalPages: guardianTotalPages,
+        safePage: guardianSafePage,
+        paginatedData: paginatedGuardians,
+        pageSize: guardianPageSize,
+    } = useClientPagination(filteredGuardians, 1, 10);
 
     // Selected Guardian & Linked Students
     const selectedGuardian = useMemo(() => {
@@ -152,12 +148,14 @@ export default function GuardianAssignment({
         return selectedGuardian?.students || [];
     }, [selectedGuardian]);
 
-    const linkedTotalPages = Math.max(1, Math.ceil(linkedStudents.length / linkedPageSize));
-    const linkedSafePage = Math.min(Math.max(1, linkedPage), linkedTotalPages);
-    const paginatedLinked = useMemo(() => {
-        const start = (linkedSafePage - 1) * linkedPageSize;
-        return linkedStudents.slice(start, start + linkedPageSize);
-    }, [linkedStudents, linkedSafePage, linkedPageSize]);
+    const {
+        currentPage: linkedPage,
+        setCurrentPage: setLinkedPage,
+        totalPages: linkedTotalPages,
+        safePage: linkedSafePage,
+        paginatedData: paginatedLinked,
+        pageSize: linkedPageSize,
+    } = useClientPagination(linkedStudents, 1, 10);
 
     // Assign Students List (Filter & Paginate)
     const availableStudents = assignTab === "unassigned" ? unassignedStudents : allStudents;
@@ -172,12 +170,14 @@ export default function GuardianAssignment({
         );
     }, [availableStudents, studentSearch]);
 
-    const assignTotalPages = Math.max(1, Math.ceil(filteredAssignStudents.length / assignPageSize));
-    const assignSafePage = Math.min(Math.max(1, assignPage), assignTotalPages);
-    const paginatedAssignStudents = useMemo(() => {
-        const start = (assignSafePage - 1) * assignPageSize;
-        return filteredAssignStudents.slice(start, start + assignPageSize);
-    }, [filteredAssignStudents, assignSafePage, assignPageSize]);
+    const {
+        currentPage: assignPage,
+        setCurrentPage: setAssignPage,
+        totalPages: assignTotalPages,
+        safePage: assignSafePage,
+        paginatedData: paginatedAssignStudents,
+        pageSize: assignPageSize,
+    } = useClientPagination(filteredAssignStudents, 1, 10);
 
     // Navigation handlers
     const handleSelectGuardianDesktop = (id: string) => {
