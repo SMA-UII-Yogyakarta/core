@@ -477,6 +477,7 @@ export default function MasterData({
     return (
         <AppShell
             title={getMobileHeaderTitle()}
+            hasTopCard={true}
             onBack={mobileSubPage && !isDesktop ? handleMobileBackToHub : undefined}
             headerActions={mobileHeaderActions}
             showNotificationBell={mobileSubPage === null || isDesktop}

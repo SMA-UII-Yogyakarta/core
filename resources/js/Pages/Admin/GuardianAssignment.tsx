@@ -343,6 +343,7 @@ export default function GuardianAssignment({
     return (
         <AppShell
             title={getMobileHeaderTitle()}
+            hasTopCard={true}
             onBack={isMobile && Boolean(guardianId) ? handleMobileBack : undefined}
             headerActions={mobileHeaderActions}
             searchValue={guardianSearch}

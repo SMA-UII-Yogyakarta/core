@@ -24,6 +24,7 @@ export interface AppShellProps {
     showNotificationBellOnMobile?: boolean;
     noMobileTopPadding?: boolean;
     hasTopTabs?: boolean;
+    hasTopCard?: boolean;
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
@@ -53,6 +54,7 @@ export default function AppShell({
     showNotificationBellOnMobile = true,
     noMobileTopPadding = false,
     hasTopTabs = false,
+    hasTopCard = false,
     searchValue,
     onSearchChange,
     searchPlaceholder,
@@ -211,7 +213,7 @@ export default function AppShell({
                                 className={`flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
                                     noMobileTopPadding
                                         ? "pt-0"
-                                        : hasTopTabs
+                                        : (hasTopTabs || hasTopCard)
                                           ? "pt-2"
                                           : "pt-4"
                                 } ${showBottomNav ? "max-sm:pb-24" : ""} ${mainClassName ?? ""}`}

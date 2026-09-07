@@ -511,6 +511,7 @@ export default function EnrolmentKelas({
     return (
         <AppShell
             title={pageTitle}
+            hasTopCard={true}
             onBack={isMobileAddView ? handleCloseAddStudent : undefined}
             headerActions={mobileHeaderActions}
             searchValue={isMobileAddView || !selectedClass ? undefined : search}
