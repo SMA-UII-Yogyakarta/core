@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import {
@@ -80,6 +80,22 @@ export default function EnrolmentKelas({
     const [showAddModal, setShowAddModal] = useState(false);
     const [isMobileAddView, setIsMobileAddView] = useState(false);
     const [removeConfirmId, setRemoveConfirmId] = useState<number | null>(null);
+
+    // Handle physical/browser popstate navigation (Back / Forward) for mobile Add Student subview
+    useEffect(() => {
+        const handlePopState = () => {
+            if (typeof window !== "undefined") {
+                const params = new URLSearchParams(window.location.search);
+                const isAdd = params.get("action") === "add";
+                if (window.innerWidth < 640) {
+                    setIsMobileAddView(isAdd);
+                }
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, []);
 
     // Filter & Sort States
     const [sortBy, setSortBy] = useState<SortOption>("name_asc");
