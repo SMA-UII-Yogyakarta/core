@@ -8,6 +8,7 @@ export { default as SearchBar } from "@/Components/ui/SearchBar";
 export { default as SelectInput } from "@/Components/ui/SelectInput";
 export { default as StatCard } from "@/Components/ui/StatCard";
 export { default as StatusBadge } from "@/Components/ui/StatusBadge";
+export { default as StatusDot } from "@/Components/ui/StatusDot";
 export { default as Table } from "@/Components/ui/Table";
 export { default as TableFooter } from "@/Components/ui/TableFooter";
 export { default as Pagination } from "@/Components/ui/Pagination";

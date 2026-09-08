@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { FiCamera, FiFileText } from "react-icons/fi";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
-import { MobileNativePagination } from "@/Components";
+import { MobileNativePagination, StatusBadge } from "@/Components";
 import { useClientPagination } from "@/hooks/useClientPagination";
 
 interface Student {
@@ -36,19 +36,27 @@ function normalizeStatus(status: string): RowStatus {
     return "absent";
 }
 
-function getBadgeStyle(status: RowStatus, t: (key: string) => string) {
-    const styles: Record<RowStatus, { label: string; classes: string }> = {
-        present: { label: t("reports.statusPresent"), classes: "bg-success-light text-success" },
-        late: { label: t("reports.statusLate"), classes: "bg-warning-light text-warning" },
-        sick: { label: t("reports.statusSick"), classes: "bg-danger-light text-danger" },
-        permission: { label: t("reports.statusPermission"), classes: "bg-primary/10 text-primary" },
-        absent: { label: t("reports.statusAbsent"), classes: "bg-danger-light text-danger" },
-        pending: { label: t("reports.statusPending"), classes: "bg-info-light text-info" },
-        no_update: { label: "-", classes: "bg-transparent text-text-muted" },
-        no_check_in: { label: t("reports.noteNotCheckedIn"), classes: "bg-background text-text-muted border border-border" },
-        not_open: { label: t("reports.statusNotOpen"), classes: "bg-background text-text-muted border border-border" },
-    };
-    return styles[status];
+function getBadgeLabel(status: RowStatus, t: (key: string) => string): string {
+    switch (status) {
+        case "present":
+            return t("reports.statusPresent");
+        case "late":
+            return t("reports.statusLate");
+        case "sick":
+            return t("reports.statusSick");
+        case "permission":
+            return t("reports.statusPermission");
+        case "absent":
+            return t("reports.statusAbsent");
+        case "pending":
+            return t("reports.statusPending");
+        case "no_update":
+            return "-";
+        case "no_check_in":
+            return t("reports.noteNotCheckedIn");
+        case "not_open":
+            return t("reports.statusNotOpen");
+    }
 }
 
 function getButtonConfig(status: RowStatus, photoUrl?: string | null, docUrl?: string | null, t?: (key: string) => string) {
@@ -160,7 +168,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                         ) : (
                             students.map((s, i) => {
                                 const status = normalizeStatus(s.status);
-                                const badge = getBadgeStyle(status, t);
+                                const label = getBadgeLabel(status, t);
                                 const btn = getButtonConfig(status, s.photo_url, s.document_url, t);
                                 return (
                                     <tr
@@ -173,15 +181,11 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
                                         <td className="px-4 py-3 text-center">
-                                            {status === "no_update" ? (
-                                                <span className="text-[13px] font-bold text-text-muted">-</span>
-                                            ) : (
-                                                <span
-                                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${badge.classes}`}
-                                                >
-                                                    {badge.label}
-                                                </span>
-                                            )}
+                                            <StatusBadge
+                                                variant={status}
+                                                label={label}
+                                                className="text-[11px] font-bold px-2.5 py-1 uppercase"
+                                            />
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center"
@@ -225,7 +229,7 @@ export default function DailyTable({ students }: DailyTableProps) {
                     <div className="space-y-2">
                         {paginatedMobileStudents.map((s) => {
                             const status = normalizeStatus(s.status);
-                            const badge = getBadgeStyle(status, t);
+                            const label = getBadgeLabel(status, t);
                             const btn = getButtonConfig(status, s.photo_url, s.document_url, t);
                             return (
                                 <div
@@ -235,15 +239,11 @@ export default function DailyTable({ students }: DailyTableProps) {
                                 >
                                     <div className="flex items-start justify-between gap-2 mb-1">
                                         <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
-                                        {status === "no_update" ? (
-                                            <span className="text-[13px] font-bold text-text-muted shrink-0">-</span>
-                                        ) : (
-                                            <span
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase ${badge.classes}`}
-                                            >
-                                                {badge.label}
-                                            </span>
-                                        )}
+                                        <StatusBadge
+                                            variant={status}
+                                            label={label}
+                                            className="text-[10px] font-bold px-2 py-0.5 shrink-0 uppercase"
+                                        />
                                     </div>
                                     <p className="text-[12px] text-text-muted mb-2">NIS: {s.nis}</p>
                                     <div className="bg-background rounded-lg px-3 py-2 mb-2">

@@ -64,6 +64,21 @@ const config: Record<StatusVariant, { bg: string; text: string; defaultLabel: st
         text: "text-danger",
         defaultLabel: "Ditolak",
     },
+    no_update: {
+        bg: "bg-transparent",
+        text: "text-text-muted",
+        defaultLabel: "-",
+    },
+    no_check_in: {
+        bg: "bg-background border border-border",
+        text: "text-text-muted",
+        defaultLabel: "Belum Absen",
+    },
+    not_open: {
+        bg: "bg-background border border-border",
+        text: "text-text-muted",
+        defaultLabel: "Belum Buka",
+    },
 };
 
 export function resolveStatusVariant(status: string): StatusVariant {
@@ -78,14 +93,17 @@ export function resolveStatusVariant(status: string): StatusVariant {
     if (s === "pending" || s === "menunggu" || s === "belum verifikasi" || s === "unverified") return "pending";
     if (s === "approved" || s === "disetujui" || s === "diizinkan" || s === "approved_leave") return "approved";
     if (s === "rejected" || s === "ditolak") return "rejected";
+    if (s === "no_update" || s === "-" || s === "noupdate") return "no_update";
+    if (s === "no_check_in" || s === "nocheckin" || s === "belum absen" || s === "belum_absen") return "no_check_in";
+    if (s === "not_open" || s === "notopen" || s === "belum buka" || s === "belum_buka") return "not_open";
     return "pending";
 }
 
-export default function StatusBadge({ variant, label }: StatusBadgeProps) {
+export default function StatusBadge({ variant, label, className = "" }: StatusBadgeProps & { className?: string }) {
     const resolved = resolveStatusVariant(variant);
     const { bg, text, defaultLabel } = config[resolved] ?? config.pending;
     return (
-        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text}`}>
+        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text} ${className}`}>
             {label ?? defaultLabel}
         </span>
     );

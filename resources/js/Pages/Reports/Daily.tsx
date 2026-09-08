@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { router, Head } from "@inertiajs/react";
 import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, MobileNativePagination, SearchBar, Table, TableFooter, Input, BottomSheet, Button } from "@/Components";
+import { PageHeader, Card, SelectInput, MobileNativePagination, SearchBar, Table, TableFooter, Input, BottomSheet, Button, StatusBadge } from "@/Components";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import ExportButtonGroup from "@/Components/features/ExportButtonGroup";
 import { FiInfo, FiFilter } from "react-icons/fi";
@@ -93,21 +93,6 @@ export default function DailyReport({
         pageSize,
     } = useClientPagination(filteredStudents, 1, 10);
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Present":
-                return "text-success bg-success-bg";
-            case "Late":
-                return "text-warning bg-warning-bg";
-            case "Sick":
-                return "text-primary bg-primary-light";
-            case "Permission":
-                return "text-accent bg-accent/10";
-            default:
-                return "text-danger bg-danger-bg";
-        }
-    };
-
     type StudentDetail = NonNullable<DailyReportProps["classDetail"]>["students"][0];
     const studentColumns: Column<StudentDetail>[] = [
         { key: "nis", header: t("reports.nis"), className: "text-text-inactive whitespace-nowrap" },
@@ -117,9 +102,7 @@ export default function DailyReport({
             header: <div className="text-center w-full">{t("reports.status")}</div>,
             render: (s) => (
                 <div className="flex justify-center">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(s.status)}`}>
-                        {s.status}
-                    </span>
+                    <StatusBadge variant={s.status} label={s.status} />
                 </div>
             ),
             className: "whitespace-nowrap",
@@ -246,9 +229,7 @@ export default function DailyReport({
                                                 <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
                                                 <p className="text-[11px] text-text-muted">NIS: {s.nis}</p>
                                             </div>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(s.status)}`}>
-                                                {s.status}
-                                            </span>
+                                            <StatusBadge variant={s.status} label={s.status} />
                                         </div>
                                         <div className="text-[11px] text-text-secondary pt-2 border-t border-border flex justify-between">
                                             <span>Jam Masuk</span>

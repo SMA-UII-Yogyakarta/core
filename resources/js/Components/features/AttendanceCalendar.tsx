@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
+import StatusDot from "@/Components/ui/StatusDot";
 
 export interface AttendanceRecord {
     id?: number;
@@ -81,16 +82,6 @@ export default function AttendanceCalendar({
         return grid;
     }, [month, year]);
 
-    const getStatusDotColor = (status: string): string => {
-        const s = status.toLowerCase();
-        if (s === "present" || s === "hadir") return "bg-success";
-        if (s === "late" || s === "terlambat") return "bg-warning";
-        if (s === "sick" || s === "sakit") return "bg-blue-500";
-        if (s === "leave" || s === "izin" || s === "permit") return "bg-indigo-500";
-        if (s === "absent" || s === "alpa") return "bg-danger";
-        return "bg-slate-300";
-    };
-
     return (
         <div
             className={`bg-surface border border-border rounded-xl p-5 shadow-card font-inter ${className}`}
@@ -155,11 +146,9 @@ export default function AttendanceCalendar({
                             </span>
                             <div className="h-1.5 flex items-center justify-center">
                                 {holiday ? (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+                                    <StatusDot status="absent" size="xs" pulse />
                                 ) : att ? (
-                                    <span
-                                        className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(att.status)}`}
-                                    />
+                                    <StatusDot status={att.status} size="xs" />
                                 ) : null}
                             </div>
                         </button>
@@ -170,19 +159,19 @@ export default function AttendanceCalendar({
             {/* Legend */}
             <div className="flex items-center gap-3.5 mt-5 pt-4 border-t border-border flex-wrap">
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-success" />
+                    <StatusDot status="present" size="sm" />
                     <span className="text-[11px] text-text-muted">Hadir</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-warning" />
+                    <StatusDot status="late" size="sm" />
                     <span className="text-[11px] text-text-muted">Terlambat</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                    <StatusDot status="sick" size="sm" />
                     <span className="text-[11px] text-text-muted">Sakit/Izin</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-danger" />
+                    <StatusDot status="absent" size="sm" />
                     <span className="text-[11px] text-text-muted">Alpa / Libur</span>
                 </div>
             </div>
