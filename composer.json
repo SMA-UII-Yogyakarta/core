@@ -19,6 +19,7 @@
         "league/flysystem-aws-s3-v3": "^3.35",
         "openspout/openspout": "^4.23",
         "pusher/pusher-php-server": "^7.2",
+        "sentry/sentry-laravel": "*",
         "spatie/laravel-permission": "^8.1"
     },
     "require-dev": {

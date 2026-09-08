@@ -12,8 +12,8 @@ RUN apk add --no-cache \
         libwebp-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install pdo pdo_pgsql pgsql bcmath zip gd \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+    && pecl install redis excimer \
+    && docker-php-ext-enable redis excimer
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
