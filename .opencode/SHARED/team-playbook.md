@@ -1,6 +1,6 @@
 # 📘 Team Playbook — SMART Absen SMA UII
 
-> Untuk: Ihsan (Backend), Fathan (Frontend), Hanif (UI/UX), Azis (Mentor), Sandikodev (Lead)
+> Untuk: Ihsan (@Odauna - Backend), Fathan (@Hans02-Neo - Frontend), Hanif (@Rosyiii - UI/UX), Azis (@ziz-mubasyir - Mentor), Sandikodev (@Sandikodev - Lead)
 > Bahasa: Indonesia (untuk memudahkan pembelajaran)
 > Tujuan: Membantu setiap anggota tim naik level, punya inisiatif, dan berkontribusi nyata
 

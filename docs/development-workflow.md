@@ -1,6 +1,6 @@
 # Panduan Development Workflow — SMART Absen SMA UII
 
-> Dokumen ini berisi panduan lengkap untuk seluruh tim (sandikodev, Azis, Fathan, Ihsan, Hanif) dalam mengevaluasi, menyempurnakan, mengelola kode, dan memantau aplikasi secara terukur dan terarah.
+> Dokumen ini berisi panduan lengkap untuk seluruh tim (Sandikodev [@Sandikodev], Azis [@ziz-mubasyir], Fathan [@Hans02-Neo], Ihsan [@Odauna], Hanif [@Rosyiii]) dalam mengevaluasi, menyempurnakan, mengelola kode, dan memantau aplikasi secara terukur dan terarah.
 
 ---
 
@@ -43,13 +43,13 @@ Dokumen ini bertujuan menyamakan pemahaman dan keterampilan seluruh tim pengemba
 
 ### 1.2. Target Pembaca
 
-| Peran | Nama | Fokus |
-|---|---|---|
-| Project Manager & Lead Developer | sandikodev | Arsitektur, review, CI/CD |
-| Learning Mentor | Azis | Review kode, mentoring tim |
-| Junior Frontend Developer | Fathan Mubina | React/Inertia/TypeScript |
-| Junior Backend Developer | Ihsan | Laravel/PostgreSQL |
-| Junior Frontend Developer | Hanif | React/Inertia/TypeScript |
+| Peran | Nama | GitHub Username | Fokus |
+|---|---|---|---|
+| Project Manager & Lead Developer | Sandiko | [@Sandikodev](https://github.com/Sandikodev) | Arsitektur, review, CI/CD |
+| Learning Mentor | Azis | [@ziz-mubasyir](https://github.com/ziz-mubasyir) | Review kode, mentoring tim |
+| Junior Frontend Developer | Fathan Mubina | [@Hans02-Neo](https://github.com/Hans02-Neo) | React/Inertia/TypeScript |
+| Junior Backend Developer | Ihsan | [@Odauna](https://github.com/Odauna) | Laravel/PostgreSQL |
+| Product Analyst / UI/UX | Ahmad Hanif | [@Rosyiii](https://github.com/Rosyiii) | React/Inertia/TypeScript, UX flows |
 
 ### 1.3. Prasyarat Sistem
 
@@ -758,7 +758,7 @@ foreach ($students as $student) {
 | Larastan level 5 | ✅ Wajib | Tidak ada error baru |
 | ESLint zero error | ✅ Wajib | Warning boleh, error tidak |
 | Pint style check pass | ✅ Wajib | PSR-12 compliance |
-| Review minimal 1 orang | ✅ Wajib | sandikodev / Azis |
+| Review minimal 1 orang | ✅ Wajib | Sandikodev (@Sandikodev) / Azis (@ziz-mubasyir) |
 | Coverage test > 80% (service) | 🎯 Target | Untuk file yang diubah |
 
 ### 6.3. Siklus Evaluasi per Sprint

@@ -95,16 +95,16 @@ Gunakan master plan ini sebagai acuan utama untuk semua pekerjaan.
 | File | Untuk Siapa | Isi |
 |---|---|---|
 | **`team-playbook.md`** | **Semua anggota tim** | Filosofi tim, peta belajar (level system), misi-misi kecil (quest), cara komunikasi, standar kode, troubleshooting mental block, inisiatif segar |
-| **`starter-guide.md`** | **Ihsan, Fathan, Hanif, Azis** | Langkah konkret pertama per role, perintah penting, quest pertama yang harus dikerjakan |
+| **`starter-guide.md`** | **Ihsan (@Odauna), Fathan (@Hans02-Neo), Hanif (@Rosyiii), Azis (@ziz-mubasyir)** | Langkah konkret pertama per role, perintah penting, quest pertama yang harus dikerjakan |
 | **`master-plan.md`** | **Semua** | Technical reference lengkap: requirements, gap analysis, phased plan, database schema, endpoints |
 
 Baca `team-playbook.md` dulu untuk paham budaya dan ekspektasi tim.
 
 ## Tim
-| Person | Role |
-|---|---|
-| sandikodev | Project Manager & Lead Developer |
-| Fathan Mubina | Junior Frontend Developer (Inertia/React/TS) |
-| Ihsan | Junior Backend Developer (Laravel/PostgreSQL) |
-| Hanif | UI/UX & Documentation |
-| Azis | Learning Mentor |
+| Person | GitHub Username | Role |
+|---|---|---|
+| Sandiko | [@Sandikodev](https://github.com/Sandikodev) | Project Manager & Lead Developer |
+| Fathan Mubina | [@Hans02-Neo](https://github.com/Hans02-Neo) | Junior Frontend Developer (Inertia/React/TS) |
+| Ihsan | [@Odauna](https://github.com/Odauna) | Junior Backend Developer (Laravel/PostgreSQL) |
+| Ahmad Hanif | [@Rosyiii](https://github.com/Rosyiii) | UI/UX & Documentation |
+| Azis | [@ziz-mubasyir](https://github.com/ziz-mubasyir) | Learning Mentor |

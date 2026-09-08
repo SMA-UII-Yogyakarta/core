@@ -35,13 +35,13 @@
 - **Total payload** ~15.2 MB untuk 760 siswa simultan
 
 ### Tim
-| Person | Role |
-|---|---|
-| sandikodev | Project Manager & Lead Developer |
-| Ahmad Hanif Hasan | Document Developer |
-| Fathan Mubina | Junior Frontend Developer (Inertia/React/TS) |
-| Ihsan | Junior Backend Developer (Laravel/PostgreSQL) |
-| Azis | Learning Mentor |
+| Person | GitHub Username | Role |
+|---|---|---|
+| Sandiko | [@Sandikodev](https://github.com/Sandikodev) | Project Manager & Lead Developer |
+| Ahmad Hanif Hasan | [@Rosyiii](https://github.com/Rosyiii) | Product Analyst & Document Developer |
+| Fathan Mubina | [@Hans02-Neo](https://github.com/Hans02-Neo) | Junior Frontend Developer (Inertia/React/TS) |
+| Ihsan | [@Odauna](https://github.com/Odauna) | Junior Backend Developer (Laravel/PostgreSQL) |
+| Azis | [@ziz-mubasyir](https://github.com/ziz-mubasyir) | Learning Mentor |
 
 ### Budget: Rp 8.500.000
 | Komponen | Biaya |
