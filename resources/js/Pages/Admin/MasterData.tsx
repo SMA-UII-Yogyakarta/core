@@ -533,22 +533,6 @@ export default function MasterData({
                     description="Kelola data siswa, guru, kelas, serta mata pelajaran institusi secara terpusat."
                     className="hidden lg:flex shrink-0 mb-4"
                 >
-                    {selectedIds.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                requestDelete(
-                                    currentImportEntity,
-                                    selectedIds,
-                                    `${selectedIds.length} ${getEntityLabel()} Terpilih`
-                                )
-                            }
-                            className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-danger text-white text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs"
-                        >
-                            <FiTrash2 className="text-[13px]" />
-                            Hapus ({selectedIds.length})
-                        </button>
-                    )}
                     {currentTab !== "class" && (
                         <Button
                             variant="secondary"
@@ -637,8 +621,25 @@ export default function MasterData({
                                 />
                             </div>
 
-                            {/* Filter Group: Yellow FilterPopover (variant=accent) */}
+                            {/* Filter Group: Yellow FilterPopover (variant=accent) & Bulk Delete */}
                             <div className="flex items-center gap-2.5 shrink-0 ml-auto font-inter">
+                                {selectedIds.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            requestDelete(
+                                                currentImportEntity,
+                                                selectedIds,
+                                                `${selectedIds.length} ${getEntityLabel()} Terpilih`
+                                            )
+                                        }
+                                        className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-danger text-white text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
+                                    >
+                                        <FiTrash2 className="text-[14px]" />
+                                        Hapus ({selectedIds.length})
+                                    </button>
+                                )}
+
                                 <FilterPopover
                                     open={isDesktopFilterOpen}
                                     onClose={() => setIsDesktopFilterOpen(false)}
@@ -780,25 +781,8 @@ export default function MasterData({
                             </div>
 
                             {/* Far Right Action Controls for Tablet View (< 1024px) */}
-                            {/* Option A: Small Tablet (< 768px / md:hidden) -> Standalone Hapus button beside Aksi Data */}
+                            {/* Option A: Small Tablet (< 768px / md:hidden) -> Aksi Data / Tambah */}
                             <div className="flex md:hidden items-center gap-2 shrink-0">
-                                {selectedIds.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            requestDelete(
-                                                currentImportEntity,
-                                                selectedIds,
-                                                `${selectedIds.length} ${getEntityLabel()} Terpilih`
-                                            )
-                                        }
-                                        className="flex items-center gap-1.5 h-10 px-3 rounded-xl bg-danger text-white text-[12.5px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
-                                    >
-                                        <FiTrash2 className="text-[14px]" />
-                                        Hapus ({selectedIds.length})
-                                    </button>
-                                )}
-
                                 {currentTab !== "class" ? (
                                     <Button
                                         variant="primary"
@@ -832,23 +816,6 @@ export default function MasterData({
 
                             {/* Option B: Medium/Large Tablet (768px - 1023px / md:flex lg:hidden) -> Explicit Dual Action Buttons in line with filters */}
                             <div className="hidden md:flex lg:hidden items-center gap-2 shrink-0">
-                                {selectedIds.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            requestDelete(
-                                                currentImportEntity,
-                                                selectedIds,
-                                                `${selectedIds.length} ${getEntityLabel()} Terpilih`
-                                            )
-                                        }
-                                        className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-danger text-white text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap"
-                                    >
-                                        <FiTrash2 className="text-[14px]" />
-                                        Hapus ({selectedIds.length})
-                                    </button>
-                                )}
-
                                 {currentTab !== "class" && (
                                     <Button
                                         variant="secondary"
