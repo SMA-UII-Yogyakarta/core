@@ -109,4 +109,3 @@ class SchoolClassController extends Controller
         );
     }
 }
-

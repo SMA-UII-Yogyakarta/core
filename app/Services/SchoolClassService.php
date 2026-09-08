@@ -79,4 +79,3 @@ class SchoolClassService
         return $deleted;
     }
 }
-

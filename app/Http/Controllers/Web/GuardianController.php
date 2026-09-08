@@ -72,4 +72,3 @@ class GuardianController extends Controller
         );
     }
 }
-

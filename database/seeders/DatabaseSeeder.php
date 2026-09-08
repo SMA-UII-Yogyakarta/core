@@ -487,7 +487,7 @@ class DatabaseSeeder extends Seeder
                 // 19 siswa di Kelas XII-IPS 2 (index 9, nomor urut 5-23) dibiarkan belum memiliki wali
                 // untuk menguji fungsionalitas & pagination tab 'Belum Punya Wali' di Penugasan Wali Murid
                 $hasGuardian = true;
-                if ($cIdx === 9 && $i >= 5 && !isset($specialDemoStudents[$key])) {
+                if ($cIdx === 9 && $i >= 5 && ! isset($specialDemoStudents[$key])) {
                     $hasGuardian = false;
                 }
 
@@ -868,7 +868,7 @@ class DatabaseSeeder extends Seeder
                     'original_status' => $ov['original_status'],
                     'new_status' => $ov['new_status'],
                     'reason' => $ov['reason'],
-                ]
+                ],
             );
         }
 
@@ -1165,7 +1165,7 @@ class DatabaseSeeder extends Seeder
                         ],
                         [
                             'read_at' => now()->subHours(rand(1, 24)),
-                        ]
+                        ],
                     );
                 }
             }
