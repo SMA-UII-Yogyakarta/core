@@ -9,6 +9,8 @@ import {
     Button,
     Checkbox,
     MobileFilterSelectBar,
+    MasterDataCard,
+    MasterDataEmptyState,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import {
@@ -262,32 +264,21 @@ export default function TeachersTab({
             {/* ───────────────────────────────────────────────────────────── */}
             <div className="sm:hidden flex flex-col gap-3">
                 {teacherList.length === 0 ? (
-                    <Card className="p-8 text-center text-text-inactive font-inter flex flex-col items-center justify-center">
-                        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 flex items-center justify-center mb-3">
-                            <FiUserCheck className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-[14px] font-bold text-text-primary mb-1">
-                            Belum Ada Data Guru
-                        </h3>
-                        <p className="text-[12px] text-text-secondary max-w-xs mb-4">
-                            Mulai daftarkan tenaga pendidik baru atau gunakan import CSV untuk memasukkan daftar guru sekolah.
-                        </p>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => {
-                                if (typeof window !== "undefined" && window.innerWidth < 640) {
-                                    router.visit("/master-data/create?tab=teachers");
-                                } else {
-                                    setSelectedTeacher(null);
-                                    setDrawerMode("create");
-                                }
-                            }}
-                            icon={<FiPlus className="text-[14px]" />}
-                        >
-                            Tambah Guru Baru
-                        </Button>
-                    </Card>
+                    <MasterDataEmptyState
+                        icon={<FiUserCheck className="w-7 h-7" />}
+                        iconContainerClassName="bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                        title="Belum Ada Data Guru"
+                        description="Mulai daftarkan tenaga pendidik baru atau gunakan import CSV untuk memasukkan daftar guru sekolah."
+                        actionLabel="Tambah Guru Baru"
+                        onAction={() => {
+                            if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                router.visit("/master-data/create?tab=teachers");
+                            } else {
+                                setSelectedTeacher(null);
+                                setDrawerMode("create");
+                            }
+                        }}
+                    />
                 ) : (
                     <>
                         {/* Mobile Filter & Select All Bar */}
@@ -311,9 +302,11 @@ export default function TeachersTab({
                             const hasHome = types.includes("homeroom") || types.includes("wali");
 
                             return (
-                                <div
+                                <MasterDataCard
                                     key={t.id}
-                                    onClick={() => {
+                                    isSelected={isSelected}
+                                    onSelect={(checked) => handleSelectOne(t.id, checked)}
+                                    onOpenDetail={() => {
                                         if (typeof window !== "undefined" && window.innerWidth < 640) {
                                             router.visit(`/master-data/teachers/${t.id}/detail`);
                                         } else {
@@ -321,59 +314,41 @@ export default function TeachersTab({
                                             setDrawerMode("detail");
                                         }
                                     }}
-                                    className={`p-3 bg-surface border rounded-2xl shadow-xs space-y-2 transition-all cursor-pointer active:scale-[0.99] select-none ${
-                                        isSelected
-                                            ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
-                                            : "border-border hover:border-text-muted/30"
-                                    }`}
-                                >
-                                    {/* Top Row: Checkbox, Avatar, Name & Teacher Code */}
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex items-start gap-2 min-w-0 flex-1">
-                                            <div
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleSelectOne(t.id, !isSelected);
-                                                }}
-                                                className="pt-0.5 cursor-pointer p-1 -m-1 rounded hover:bg-muted/50 transition-colors flex items-center justify-center shrink-0"
-                                                title="Pilih Guru"
-                                            >
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    readOnly
-                                                    className="pointer-events-none"
-                                                />
-                                            </div>
-                                            <Avatar name={t.name} size="sm" className="shrink-0 mt-0.5" />
-                                            <div className="min-w-0 flex-1">
-                                                <h4 className="text-[13px] font-bold text-text-primary truncate leading-snug">
-                                                    {t.name}
-                                                </h4>
-                                                <div className="flex items-center gap-1.5 text-[10.5px] text-text-muted mt-0.5">
-                                                    <span className="font-mono font-medium">
-                                                        Kode: {t.teacher_code}
-                                                    </span>
-                                                    {t.user?.email && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <span className="truncate max-w-[130px] inline-flex items-center gap-0.5">
-                                                                <FiMail className="text-[10px]" />
-                                                                {t.user.email}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="shrink-0 flex items-center gap-1 pt-0.5">
-                                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-muted font-bold text-text-secondary border border-border">
-                                                ID #{t.id}
+                                    onEdit={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/teachers/${t.id}/edit`);
+                                        } else {
+                                            setSelectedTeacher(t);
+                                            setDrawerMode("edit");
+                                        }
+                                    }}
+                                    onDelete={() => onRequestDelete("teachers", t.id, t.name)}
+                                    selectLabel="Pilih Guru"
+                                    deleteAriaLabel="Hapus Guru"
+                                    avatarName={t.name}
+                                    title={t.name}
+                                    subtitle={
+                                        <div className="flex items-center gap-1.5 text-[10.5px] text-text-muted">
+                                            <span className="font-mono font-medium">
+                                                Kode: {t.teacher_code}
                                             </span>
+                                            {t.user?.email && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="truncate max-w-[130px] inline-flex items-center gap-0.5">
+                                                        <FiMail className="text-[10px]" />
+                                                        {t.user.email}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
-                                    </div>
-
-                                    {/* Middle Row: Assignment Badges & Classes */}
+                                    }
+                                    rightBadge={
+                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-muted font-bold text-text-secondary border border-border">
+                                            ID #{t.id}
+                                        </span>
+                                    }
+                                >
                                     <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
                                         {hasDuty && (
                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
@@ -400,44 +375,7 @@ export default function TeachersTab({
                                             </div>
                                         )}
                                     </div>
-
-                                    {/* Bottom Action Row */}
-                                    <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                                        <span className="text-[10px] text-text-muted">
-                                            Ketuk kartu untuk detail & edit
-                                        </span>
-                                        <div
-                                            className="flex items-center gap-1 shrink-0"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (typeof window !== "undefined" && window.innerWidth < 640) {
-                                                        router.visit(`/master-data/teachers/${t.id}/edit`);
-                                                    } else {
-                                                        setSelectedTeacher(t);
-                                                        setDrawerMode("edit");
-                                                    }
-                                                }}
-                                                className="h-8 px-3 rounded-xl text-[12px] font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
-                                                aria-label="Edit Data"
-                                            >
-                                                <FiEdit2 className="text-[12.5px]" />
-                                                <span>Edit</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => onRequestDelete("teachers", t.id, t.name)}
-                                                className="h-8 w-8 rounded-xl text-danger bg-danger/10 hover:bg-danger/20 border border-danger/20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-                                                aria-label="Hapus Guru"
-                                                title="Hapus Guru"
-                                            >
-                                                <FiTrash2 className="text-[13px]" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                </MasterDataCard>
                             );
                         })}
                     </>

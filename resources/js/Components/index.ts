@@ -44,6 +44,8 @@ export { default as AttendanceCalendar } from "@/Components/features/AttendanceC
 export { default as FilterPopover } from "@/Components/common/FilterPopover";
 export { default as NotificationPopover } from "@/Components/layout/NotificationPopover";
 export { default as ExportButtonGroup } from "@/Components/features/ExportButtonGroup";
+export { default as MasterDataCard } from "@/Components/features/MasterDataCard";
+export { default as MasterDataEmptyState } from "@/Components/features/MasterDataEmptyState";
 
 // ─── Action ───
 export { default as ActionButton } from "@/Components/ui/ActionButton";

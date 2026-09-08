@@ -9,6 +9,8 @@ import {
     Button,
     Checkbox,
     MobileFilterSelectBar,
+    MasterDataCard,
+    MasterDataEmptyState,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import {
@@ -240,32 +242,21 @@ export default function GuardiansTab({
             {/* ───────────────────────────────────────────────────────────── */}
             <div className="sm:hidden flex flex-col gap-3">
                 {guardianList.length === 0 ? (
-                    <Card className="p-8 text-center text-text-inactive font-inter flex flex-col items-center justify-center">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center mb-3">
-                            <FiShield className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-[14px] font-bold text-text-primary mb-1">
-                            Belum Ada Data Wali Murid
-                        </h3>
-                        <p className="text-[12px] text-text-secondary max-w-xs mb-4">
-                            Mulai tambahkan wali murid atau gunakan fitur import CSV untuk menghubungkan akun orang tua.
-                        </p>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => {
-                                if (typeof window !== "undefined" && window.innerWidth < 640) {
-                                    router.visit("/master-data/create?tab=guardians");
-                                } else {
-                                    setSelectedGuardian(null);
-                                    setDrawerMode("create");
-                                }
-                            }}
-                            icon={<FiPlus className="text-[14px]" />}
-                        >
-                            Tambah Wali Baru
-                        </Button>
-                    </Card>
+                    <MasterDataEmptyState
+                        icon={<FiShield className="w-7 h-7" />}
+                        iconContainerClassName="bg-amber-500/10 border-amber-500/20 text-amber-600"
+                        title="Belum Ada Data Wali Murid"
+                        description="Mulai tambahkan wali murid atau gunakan fitur import CSV untuk menghubungkan akun orang tua."
+                        actionLabel="Tambah Wali Baru"
+                        onAction={() => {
+                            if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                router.visit("/master-data/create?tab=guardians");
+                            } else {
+                                setSelectedGuardian(null);
+                                setDrawerMode("create");
+                            }
+                        }}
+                    />
                 ) : (
                     <>
                         {/* Mobile Filter & Select All Bar */}
@@ -285,9 +276,11 @@ export default function GuardiansTab({
                             const linked = g.students || [];
 
                             return (
-                                <div
+                                <MasterDataCard
                                     key={g.id}
-                                    onClick={() => {
+                                    isSelected={isSelected}
+                                    onSelect={(checked) => handleSelectOne(g.id, checked)}
+                                    onOpenDetail={() => {
                                         if (typeof window !== "undefined" && window.innerWidth < 640) {
                                             router.visit(`/master-data/guardians/${g.id}/detail`);
                                         } else {
@@ -295,59 +288,41 @@ export default function GuardiansTab({
                                             setDrawerMode("detail");
                                         }
                                     }}
-                                    className={`p-3 bg-surface border rounded-2xl shadow-xs space-y-2 transition-all cursor-pointer active:scale-[0.99] select-none ${
-                                        isSelected
-                                            ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
-                                            : "border-border hover:border-text-muted/30"
-                                    }`}
+                                    onEdit={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/guardians/${g.id}/edit`);
+                                        } else {
+                                            setSelectedGuardian(g);
+                                            setDrawerMode("edit");
+                                        }
+                                    }}
+                                    onDelete={() => onRequestDelete("guardians", g.id, g.name)}
+                                    selectLabel="Pilih Wali"
+                                    deleteAriaLabel="Hapus Wali"
+                                    avatarName={g.name}
+                                    title={g.name}
+                                    subtitle={
+                                        <div className="flex items-center gap-2 text-[10.5px] text-text-muted">
+                                            {g.phone ? (
+                                                <a
+                                                    href={`tel:${g.phone}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="inline-flex items-center gap-1 font-mono text-primary font-medium hover:underline"
+                                                >
+                                                    <FiPhone className="text-[10px]" />
+                                                    <span>{g.phone}</span>
+                                                </a>
+                                            ) : (
+                                                <span className="italic">No. Telp Belum Diisi</span>
+                                            )}
+                                        </div>
+                                    }
+                                    rightBadge={
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                                            {linked.length} Siswa
+                                        </span>
+                                    }
                                 >
-                                    {/* Top Row: Checkbox, Avatar, Name & Contact */}
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex items-start gap-2 min-w-0 flex-1">
-                                            <div
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleSelectOne(g.id, !isSelected);
-                                                }}
-                                                className="pt-0.5 cursor-pointer p-1 -m-1 rounded hover:bg-muted/50 transition-colors flex items-center justify-center shrink-0"
-                                                title="Pilih Wali"
-                                            >
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    readOnly
-                                                    className="pointer-events-none"
-                                                />
-                                            </div>
-                                            <Avatar name={g.name} size="sm" className="shrink-0 mt-0.5" />
-                                            <div className="min-w-0 flex-1">
-                                                <h4 className="text-[13px] font-bold text-text-primary truncate leading-snug">
-                                                    {g.name}
-                                                </h4>
-                                                <div className="flex items-center gap-2 text-[10.5px] text-text-muted mt-0.5">
-                                                    {g.phone ? (
-                                                        <a
-                                                            href={`tel:${g.phone}`}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            className="inline-flex items-center gap-1 font-mono text-primary font-medium hover:underline"
-                                                        >
-                                                            <FiPhone className="text-[10px]" />
-                                                            <span>{g.phone}</span>
-                                                        </a>
-                                                    ) : (
-                                                        <span className="italic">No. Telp Belum Diisi</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="shrink-0 flex items-center gap-1 pt-0.5">
-                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20">
-                                                {linked.length} Siswa
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Middle Row: Linked Students */}
                                     <div className="space-y-1 pt-0.5">
                                         <div className="flex items-center gap-1 text-[10.5px] text-text-muted">
                                             <FiUsers className="text-[10px] text-primary" />
@@ -371,51 +346,13 @@ export default function GuardiansTab({
                                         )}
                                     </div>
 
-                                    {/* Address line if any */}
                                     {g.address && (
                                         <div className="flex items-start gap-1 text-[10.5px] text-text-secondary pt-0.5 truncate">
                                             <FiMapPin className="text-[10px] shrink-0 mt-0.5 text-text-muted" />
                                             <span className="truncate">{g.address}</span>
                                         </div>
                                     )}
-
-                                    {/* Bottom Action Row */}
-                                    <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                                        <span className="text-[10px] text-text-muted">
-                                            Ketuk kartu untuk detail & edit
-                                        </span>
-                                        <div
-                                            className="flex items-center gap-1 shrink-0"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (typeof window !== "undefined" && window.innerWidth < 640) {
-                                                        router.visit(`/master-data/guardians/${g.id}/edit`);
-                                                    } else {
-                                                        setSelectedGuardian(g);
-                                                        setDrawerMode("edit");
-                                                    }
-                                                }}
-                                                className="h-8 px-3 rounded-xl text-[12px] font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
-                                                aria-label="Edit Data"
-                                            >
-                                                <FiEdit2 className="text-[12.5px]" />
-                                                <span>Edit</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => onRequestDelete("guardians", g.id, g.name)}
-                                                className="h-8 w-8 rounded-xl text-danger bg-danger/10 hover:bg-danger/20 border border-danger/20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-                                                aria-label="Hapus Wali"
-                                                title="Hapus Wali"
-                                            >
-                                                <FiTrash2 className="text-[13px]" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                </MasterDataCard>
                             );
                         })}
                     </>
