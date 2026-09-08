@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
 import AppShell from "@/Layouts/AppShell";
-import { PageHeader, StatCard, Button, StatusBadge } from "@/Components";
+import { PageHeader, StatCard, Button, StatusBadge, DashboardHero } from "@/Components";
 import { FiCalendar, FiCamera, FiCheckCircle } from "react-icons/fi";
 
 interface Student {
@@ -37,33 +36,6 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
     const absent = stats.absent ?? 0;
     const className = student.class?.name ?? "-";
 
-    const [currentTime, setCurrentTime] = useState<string>("");
-    const [currentDate, setCurrentDate] = useState<string>("");
-
-    useEffect(() => {
-        const updateTime = () => {
-            const now = new Date();
-            setCurrentTime(
-                now.toLocaleTimeString("id-ID", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                }) + " WIB",
-            );
-            setCurrentDate(
-                now.toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                }),
-            );
-        };
-        updateTime();
-        const timer = setInterval(updateTime, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
     return (
         <AppShell title="Overview Siswa">
             <div className="flex flex-col gap-6 font-inter">
@@ -74,35 +46,13 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                 />
 
                 {/* Hero Greeting Card */}
-                <div
-                    className="relative bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-card overflow-hidden"
+                <DashboardHero
+                    title={student.name}
+                    description={`Kelas ${className}`}
+                    descriptionClassName="text-accent text-[13px] font-semibold"
                     dusk="student-greeting-card"
                     data-testid="student-greeting-card"
-                >
-                    <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                            <p className="text-white/80 text-[13px] font-medium">
-                                {currentDate}
-                            </p>
-                            <h2 className="text-white text-[22px] font-bold leading-tight mt-0.5 truncate">
-                                {student.name}
-                            </h2>
-                            <p className="text-accent text-[13px] font-semibold mt-1">
-                                Kelas {className}
-                            </p>
-                        </div>
-
-                        {/* Digital Clock Badge */}
-                        <div className="text-right shrink-0 bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-3.5 py-2">
-                            <p className="text-[20px] font-extrabold font-mono text-white leading-none">
-                                {currentTime ? currentTime.replace(" WIB", "") : "--:--"}
-                            </p>
-                            <p className="text-[9px] font-bold text-accent uppercase tracking-widest mt-0.5">
-                                WIB
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                />
 
                 {/* Primary Action Button */}
                 {todayAttendance ? (

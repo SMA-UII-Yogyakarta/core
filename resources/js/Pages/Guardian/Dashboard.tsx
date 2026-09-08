@@ -9,7 +9,7 @@ import {
     FiChevronRight,
     FiActivity,
 } from "react-icons/fi";
-import { Card, StatCard, NativeSelect, Button, StatusBadge, PageHeader } from "@/Components";
+import { Card, StatCard, NativeSelect, Button, StatusBadge, PageHeader, DashboardHero } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 
 interface Student {
@@ -53,18 +53,6 @@ export default function GuardianDashboard({
         router.get("/guardian", { student_id: val }, { preserveState: true });
     };
 
-    const now = new Date();
-    const currentDate = now.toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-    const currentTime = now.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-
     return (
         <AppShell title="Overview Wali Murid">
             <div className="flex flex-col gap-6 font-inter">
@@ -75,46 +63,20 @@ export default function GuardianDashboard({
                     className="hidden lg:flex shrink-0 mb-4"
                 />
 
-                <div className="relative bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-card overflow-hidden">
-                    <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-accent/15 blur-2xl pointer-events-none" />
-                    <div className="absolute -left-6 -top-6 w-32 h-32 rounded-full bg-white/5 blur-xl pointer-events-none" />
-
-                    <div className="relative z-10">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                            <div className="min-w-0">
-                                <p className="text-white/70 text-[11px] font-bold tracking-wider uppercase mb-1">
-                                    {currentDate}
-                                </p>
-                                <h2 className="text-white text-[20px] sm:text-[24px] font-bold leading-tight truncate">
-                                    Pantauan Presensi Real-Time
-                                </h2>
-                                <p className="text-white/80 text-[13px] font-medium mt-1">
-                                    SMA UII Yogyakarta
-                                </p>
-                            </div>
-
-                            <div className="self-start sm:self-auto shrink-0 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-4 py-2.5 text-right">
-                                <p className="text-[22px] font-extrabold font-mono text-white leading-none">
-                                    {currentTime}
-                                </p>
-                                <p className="text-[9px] font-bold text-accent uppercase tracking-widest mt-1">
-                                    WIB
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5 mt-5 flex-wrap">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-medium bg-white/15 text-white backdrop-blur-xs border border-white/10">
-                                <FiUsers className="w-3.5 h-3.5 text-accent" />
-                                <span>{students.length} Siswa Terdaftar</span>
-                            </div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[12px] font-medium bg-white/10 text-white/90 border border-white/5">
-                                <FiCalendar className="w-3.5 h-3.5 text-white/70" />
-                                <span>Tahun Ajaran 2026/2027</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <DashboardHero
+                    title="Pantauan Presensi Real-Time"
+                    description="SMA UII Yogyakarta"
+                    badges={[
+                        {
+                            icon: <FiUsers className="w-3.5 h-3.5 text-accent" />,
+                            label: `${students.length} Siswa Terdaftar`,
+                        },
+                        {
+                            icon: <FiCalendar className="w-3.5 h-3.5 text-white/70" />,
+                            label: "Tahun Ajaran 2026/2027",
+                        },
+                    ]}
+                />
 
                 {/* 2. Selector Profil Anak */}
                 <Card className="p-5 border-border">

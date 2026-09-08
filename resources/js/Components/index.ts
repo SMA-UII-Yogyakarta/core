@@ -21,6 +21,7 @@ export { default as LiveBadge } from "@/Components/ui/LiveBadge";
 export { default as MetricPill } from "@/Components/ui/MetricPill";
 export { default as Tooltip } from "@/Components/ui/Tooltip";
 export { default as TruncatedText } from "@/Components/ui/TruncatedText";
+export { default as DashboardHero } from "@/Components/ui/DashboardHero";
 
 // ─── Layout ───
 export { default as Navbar } from "@/Components/layout/Navbar";
