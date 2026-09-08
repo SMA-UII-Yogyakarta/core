@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Modal from "./Modal";
+import { FiAlertTriangle, FiHelpCircle, FiTrash2 } from "react-icons/fi";
 import Button from "../ui/Button";
-import { FiTrash2, FiAlertTriangle, FiHelpCircle } from "react-icons/fi";
+import Modal from "./Modal";
 
 export type ConfirmDialogVariant = "danger" | "warning" | "primary";
 

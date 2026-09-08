@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, KeyboardEvent, ReactNode } from "react";
-import Label from "./Label";
 import FormError from "./FormError";
+import Label from "./Label";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;

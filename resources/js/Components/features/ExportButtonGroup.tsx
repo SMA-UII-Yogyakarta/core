@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { FiDownload, FiFileText, FiGrid, FiPrinter } from "react-icons/fi";
-import Button from "../ui/Button";
-import Modal from "../common/Modal";
 import type { ButtonSize } from "@/types/component";
+import Modal from "../common/Modal";
+import Button from "../ui/Button";
 
 export interface ExportButtonGroupProps {
     onExportExcel?: () => void;
@@ -49,11 +49,7 @@ export default function ExportButtonGroup({
     };
 
     return (
-        <div
-            className={`inline-flex items-center gap-2 ${className}`}
-            dusk={dusk}
-            data-testid={dusk}
-        >
+        <div className={`inline-flex items-center gap-2 ${className}`} dusk={dusk} data-testid={dusk}>
             <Button
                 variant="primary"
                 size={size}
@@ -68,12 +64,7 @@ export default function ExportButtonGroup({
             </Button>
 
             {/* Export Format Selection Modal */}
-            <Modal
-                open={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="Pilih Format Unduhan"
-                width="md"
-            >
+            <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Pilih Format Unduhan" width="md">
                 <div className="space-y-3 font-inter">
                     <p className="text-[13px] text-text-secondary mb-4">
                         Pilih format dokumen laporan presensi yang ingin Anda unduh ke perangkat Anda:

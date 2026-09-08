@@ -11,10 +11,7 @@ export interface MetricPillProps extends HTMLAttributes<HTMLDivElement> {
     dusk?: string;
 }
 
-const variantStyles: Record<
-    MetricPillVariant,
-    { valueText: string; bg: string; border: string }
-> = {
+const variantStyles: Record<MetricPillVariant, { valueText: string; bg: string; border: string }> = {
     success: {
         valueText: "text-success",
         bg: "bg-surface",
@@ -77,13 +74,9 @@ export default function MetricPill({
         >
             <div className="flex items-center gap-1.5">
                 {icon}
-                <span className={`font-bold leading-none ${v.valueText} ${s.value}`}>
-                    {value}
-                </span>
+                <span className={`font-bold leading-none ${v.valueText} ${s.value}`}>{value}</span>
             </div>
-            <span className={`font-bold text-text-inactive uppercase tracking-wide ${s.label}`}>
-                {label}
-            </span>
+            <span className={`font-bold text-text-inactive uppercase tracking-wide ${s.label}`}>{label}</span>
         </div>
     );
 }

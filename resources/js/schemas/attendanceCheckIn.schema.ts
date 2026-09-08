@@ -13,9 +13,8 @@ export const attendanceCheckInSchema = z.object({
         .refine((val) => !isNaN(val) && val >= -180 && val <= 180 && val !== 0, {
             message: "Koordinat GPS longitude tidak valid. Pastikan GPS aktif.",
         }),
-    photo_blob: z
-        .string()
-        .min(50, "Foto selfie bukti kehadiran wajib diambil melalui kamera."),
+    photo_blob: z.string().min(50, "Foto selfie bukti kehadiran wajib diambil melalui kamera."),
+    is_liveness_verified: z.union([z.boolean(), z.number(), z.string()]).optional(),
 });
 
 export type AttendanceCheckInForm = z.infer<typeof attendanceCheckInSchema>;

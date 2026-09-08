@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { FiBookOpen } from "react-icons/fi";
+import { describe, expect, it, vi } from "vitest";
 import MasterDataCard from "@/Components/features/MasterDataCard";
 import MasterDataEmptyState from "@/Components/features/MasterDataEmptyState";
 
@@ -22,7 +22,7 @@ describe("MasterDataCard Component", () => {
                 rightBadge={<span data-testid="status-badge">Aktif</span>}
             >
                 <div data-testid="card-child">Kelas: X-A</div>
-            </MasterDataCard>
+            </MasterDataCard>,
         );
 
         expect(screen.getByText("Ahmad Dahlan")).toBeDefined();
@@ -41,7 +41,7 @@ describe("MasterDataCard Component", () => {
                 onOpenDetail={vi.fn()}
                 onEdit={vi.fn()}
                 title="X IPA 1"
-            />
+            />,
         );
 
         expect(screen.getByText("X IPA 1")).toBeDefined();
@@ -57,7 +57,7 @@ describe("MasterDataCard Component", () => {
                 onOpenDetail={handleOpen}
                 onEdit={vi.fn()}
                 title="Budi Santoso"
-            />
+            />,
         );
 
         fireEvent.click(screen.getByText("Budi Santoso"));
@@ -76,7 +76,7 @@ describe("MasterDataCard Component", () => {
                 onEdit={vi.fn()}
                 title="Siti Aminah"
                 selectLabel="Pilih Siti Aminah"
-            />
+            />,
         );
 
         const checkboxWrapper = screen.getByTitle("Pilih Siti Aminah");
@@ -98,7 +98,7 @@ describe("MasterDataCard Component", () => {
                 onEdit={handleEdit}
                 title="Budi Santoso"
                 editAriaLabel="Edit Budi Santoso"
-            />
+            />,
         );
 
         const editBtn = screen.getByLabelText("Edit Budi Santoso");
@@ -121,7 +121,7 @@ describe("MasterDataCard Component", () => {
                 onDelete={handleDelete}
                 title="Budi Santoso"
                 deleteAriaLabel="Hapus Budi Santoso"
-            />
+            />,
         );
 
         const deleteBtn = screen.getByLabelText("Hapus Budi Santoso");
@@ -139,7 +139,7 @@ describe("MasterDataCard Component", () => {
                 onOpenDetail={vi.fn()}
                 onEdit={vi.fn()}
                 title="Budi Santoso"
-            />
+            />,
         );
 
         expect(screen.queryByLabelText("Hapus Data")).toBeNull();
@@ -153,7 +153,7 @@ describe("MasterDataCard Component", () => {
                 onOpenDetail={vi.fn()}
                 onEdit={vi.fn()}
                 title="Selected Card"
-            />
+            />,
         );
 
         const card = container.firstChild as HTMLElement;
@@ -173,7 +173,7 @@ describe("MasterDataEmptyState Component", () => {
                 description="Mulai tambahkan kelas baru dengan menekan tombol di bawah."
                 actionLabel="Tambah Kelas"
                 onAction={handleAction}
-            />
+            />,
         );
 
         expect(screen.getByTestId("empty-icon")).toBeDefined();

@@ -96,7 +96,8 @@ export default function Table<T>({
                                             <div className={`flex items-center w-full min-h-[22px] ${justify}`}>
                                                 {col.render
                                                     ? col.render(item)
-                                                    : (((item as Record<string, unknown>)[col.key] as ReactNode) ?? "-")}
+                                                    : (((item as Record<string, unknown>)[col.key] as ReactNode) ??
+                                                      "-")}
                                             </div>
                                         </td>
                                     );

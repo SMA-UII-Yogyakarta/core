@@ -1,6 +1,15 @@
-import { ReactNode } from "react";
-import { FiInbox, FiAlertCircle, FiSearch, FiShield, FiCamera, FiFileText, FiClock, FiInfo } from "react-icons/fi";
-import { FiRefreshCw } from "react-icons/fi";
+import type { ReactNode } from "react";
+import {
+    FiAlertCircle,
+    FiCamera,
+    FiClock,
+    FiFileText,
+    FiInbox,
+    FiInfo,
+    FiRefreshCw,
+    FiSearch,
+    FiShield,
+} from "react-icons/fi";
 
 interface EmptyStateProps {
     variant?:

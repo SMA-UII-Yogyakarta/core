@@ -1,6 +1,6 @@
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
-import { useState, useRef, useEffect, useId } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { useEffect, useId, useRef, useState } from "react";
 
 export type TooltipPosition = "top" | "bottom" | "left" | "right";
 

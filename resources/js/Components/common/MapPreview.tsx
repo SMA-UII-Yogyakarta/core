@@ -10,8 +10,13 @@ declare global {
         L?: {
             map: (element: HTMLElement, options: Record<string, unknown>) => LeafletMap;
             tileLayer: (url: string, options: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
-            marker: (coords: [number, number]) => { addTo: (map: LeafletMap) => { bindPopup: (content: string) => { openPopup: () => void } } };
-            circle: (coords: [number, number], options: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
+            marker: (coords: [number, number]) => {
+                addTo: (map: LeafletMap) => { bindPopup: (content: string) => { openPopup: () => void } };
+            };
+            circle: (
+                coords: [number, number],
+                options: Record<string, unknown>,
+            ) => { addTo: (map: LeafletMap) => void };
         };
     }
 }
@@ -24,13 +29,7 @@ interface MapPreviewProps {
     className?: string;
 }
 
-export function MapPreview({
-    latitude,
-    longitude,
-    radiusMeters = 100,
-    zoom = 16,
-    className = "",
-}: MapPreviewProps) {
+export function MapPreview({ latitude, longitude, radiusMeters = 100, zoom = 16, className = "" }: MapPreviewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<LeafletMap | null>(null);
 
@@ -139,7 +138,9 @@ export function MapPreview({
         return () => {
             isMounted = false;
             window.removeEventListener("resize", triggerInvalidate);
-            timeouts.forEach((t) => clearTimeout(t));
+            timeouts.forEach((t) => {
+                clearTimeout(t);
+            });
             if (resizeObserver) {
                 resizeObserver.disconnect();
             }
@@ -155,7 +156,9 @@ export function MapPreview({
     }, [latitude, longitude, radiusMeters, zoom]);
 
     return (
-        <div className={`relative w-full h-[340px] sm:h-[380px] rounded-xl overflow-hidden bg-slate-100 border border-border shadow-inner ${className}`}>
+        <div
+            className={`relative w-full h-[340px] sm:h-[380px] rounded-xl overflow-hidden bg-slate-100 border border-border shadow-inner ${className}`}
+        >
             <style>{`
                 .leaflet-container {
                     width: 100% !important;

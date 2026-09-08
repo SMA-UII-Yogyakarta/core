@@ -385,15 +385,18 @@ export const translations: Record<string, Record<string, string>> = {
         "leave-verification.endOfListRejected": "Semua izin ditolak telah ditampilkan",
         "leave-verification.endOfListHistory": "Semua riwayat telah ditampilkan",
         "leave-verification.emptyPendingTitle": "Belum Ada Pengajuan Izin",
-        "leave-verification.emptyPendingDesc": "Semua pengajuan izin siswa sudah ditindaklanjuti atau belum ada permohonan baru.",
+        "leave-verification.emptyPendingDesc":
+            "Semua pengajuan izin siswa sudah ditindaklanjuti atau belum ada permohonan baru.",
         "leave-verification.emptyApprovedTitle": "Belum Ada Izin Disetujui",
-        "leave-verification.emptyApprovedDesc": "Belum ada pengajuan izin yang disetujui untuk kriteria atau rentang waktu ini.",
+        "leave-verification.emptyApprovedDesc":
+            "Belum ada pengajuan izin yang disetujui untuk kriteria atau rentang waktu ini.",
         "leave-verification.emptyRejectedTitle": "Tidak Ada Izin Ditolak",
         "leave-verification.emptyRejectedDesc": "Semua pengajuan izin yang masuk berjalan lancar dan memenuhi syarat.",
         "leave-verification.emptyHistoryTitle": "Belum Ada Riwayat Pengajuan",
         "leave-verification.emptyHistoryDesc": "Riwayat pengajuan izin akan muncul di sini.",
         "leave-verification.emptySearchTitle": "Data Tidak Ditemukan",
-        "leave-verification.emptySearchDesc": "Tidak ada data yang cocok dengan kata kunci atau filter yang Anda pilih. Coba sesuaikan kembali pencarian.",
+        "leave-verification.emptySearchDesc":
+            "Tidak ada data yang cocok dengan kata kunci atau filter yang Anda pilih. Coba sesuaikan kembali pencarian.",
     },
     en: {
         "welcome.documentTitle": "Welcome - SMART Absen SMA UII",
@@ -779,14 +782,18 @@ export const translations: Record<string, Record<string, string>> = {
         "leave-verification.endOfListRejected": "All rejected leaves have been displayed",
         "leave-verification.endOfListHistory": "All history has been displayed",
         "leave-verification.emptyPendingTitle": "No Leave Requests Yet",
-        "leave-verification.emptyPendingDesc": "All student leave requests have been processed or there are no new submissions.",
+        "leave-verification.emptyPendingDesc":
+            "All student leave requests have been processed or there are no new submissions.",
         "leave-verification.emptyApprovedTitle": "No Approved Leaves Yet",
-        "leave-verification.emptyApprovedDesc": "No leave requests have been approved for the current criteria or time range.",
+        "leave-verification.emptyApprovedDesc":
+            "No leave requests have been approved for the current criteria or time range.",
         "leave-verification.emptyRejectedTitle": "No Rejected Leaves",
-        "leave-verification.emptyRejectedDesc": "All incoming leave requests are running smoothly and meet the requirements.",
+        "leave-verification.emptyRejectedDesc":
+            "All incoming leave requests are running smoothly and meet the requirements.",
         "leave-verification.emptyHistoryTitle": "No Leave History",
         "leave-verification.emptyHistoryDesc": "Leave request history will appear here.",
         "leave-verification.emptySearchTitle": "Data Not Found",
-        "leave-verification.emptySearchDesc": "No data matches your search keyword or filter. Try adjusting your search.",
-    }
+        "leave-verification.emptySearchDesc":
+            "No data matches your search keyword or filter. Try adjusting your search.",
+    },
 };

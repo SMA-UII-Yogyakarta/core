@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import StatusDot from "@/Components/ui/StatusDot";
 import StatusBadge, { resolveStatusVariant } from "@/Components/ui/StatusBadge";
+import StatusDot from "@/Components/ui/StatusDot";
 
 describe("StatusDot Component", () => {
     it("renders default sm dot with correct status color", () => {

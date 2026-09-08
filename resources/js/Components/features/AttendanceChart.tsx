@@ -1,17 +1,17 @@
-import { useEffect, useRef } from "react";
 import {
-    Chart,
     BarController,
     BarElement,
     CategoryScale,
-    LinearScale,
-    Tooltip,
+    Chart,
+    Filler,
     Legend,
+    LinearScale,
     LineController,
     LineElement,
     PointElement,
-    Filler,
+    Tooltip,
 } from "chart.js";
+import { useEffect, useRef } from "react";
 
 Chart.register(
     BarController,
@@ -58,13 +58,10 @@ interface Props {
     showHolidayBar?: boolean;
 }
 
-const capitalizeFirst = (s: string): string =>
-    s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const capitalizeFirst = (s: string): string => (s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
 const weekdayOf = (dateStr?: string): string =>
-    dateStr
-        ? new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" }).format(new Date(dateStr))
-        : "";
+    dateStr ? new Intl.DateTimeFormat("id-ID", { weekday: "long", timeZone: "UTC" }).format(new Date(dateStr)) : "";
 
 export default function AttendanceChart({ data, type = "bar", height = 300, showHolidayBar = false }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -81,9 +78,7 @@ export default function AttendanceChart({ data, type = "bar", height = 300, show
         const isLine = type === "line" || isRate;
         const isStacked = type === "stacked";
 
-        const holidayData = data.map((d) =>
-            d.isNonSchool && d.isPast ? d.totalStudents ?? 0 : null,
-        );
+        const holidayData = data.map((d) => (d.isNonSchool && d.isPast ? (d.totalStudents ?? 0) : null));
 
         const datasets = isStacked
             ? [
@@ -101,25 +96,25 @@ export default function AttendanceChart({ data, type = "bar", height = 300, show
                   },
                   {
                       label: "Izin",
-                      data: data.map((d) => (d.isNonSchool ? null : d.permission ?? 0)),
+                      data: data.map((d) => (d.isNonSchool ? null : (d.permission ?? 0))),
                       backgroundColor: "#1e3a5f",
                       borderRadius: 2,
                   },
                   {
                       label: "Izin Tertunda",
-                      data: data.map((d) => (d.isNonSchool ? null : d.pending ?? 0)),
+                      data: data.map((d) => (d.isNonSchool ? null : (d.pending ?? 0))),
                       backgroundColor: "#0EA5E9",
                       borderRadius: 2,
                   },
                   {
                       label: "Sakit",
-                      data: data.map((d) => (d.isNonSchool ? null : d.sick ?? 0)),
+                      data: data.map((d) => (d.isNonSchool ? null : (d.sick ?? 0))),
                       backgroundColor: "#a855f7",
                       borderRadius: 2,
                   },
                   {
                       label: "Alpa",
-                      data: data.map((d) => (d.isNonSchool ? null : d.absent ?? 0)),
+                      data: data.map((d) => (d.isNonSchool ? null : (d.absent ?? 0))),
                       backgroundColor: "#ef4444",
                       borderRadius: 2,
                   },

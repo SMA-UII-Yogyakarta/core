@@ -18,27 +18,14 @@ describe("DashboardHero Component", () => {
     });
 
     it("renders digital clock with specified time and timezone", () => {
-        render(
-            <DashboardHero
-                title="Selamat Datang"
-                time="07:30"
-                timezone="WIB"
-            />,
-        );
+        render(<DashboardHero title="Selamat Datang" time="07:30" timezone="WIB" />);
 
         expect(screen.getByText("07:30")).toBeDefined();
         expect(screen.getByText("WIB")).toBeDefined();
     });
 
     it("hides clock badge when showClock is false", () => {
-        render(
-            <DashboardHero
-                title="Selamat Datang"
-                time="07:30"
-                timezone="WIB"
-                showClock={false}
-            />,
-        );
+        render(<DashboardHero title="Selamat Datang" time="07:30" timezone="WIB" showClock={false} />);
 
         expect(screen.queryByText("07:30")).toBeNull();
         expect(screen.queryByText("WIB")).toBeNull();
@@ -48,10 +35,7 @@ describe("DashboardHero Component", () => {
         render(
             <DashboardHero
                 title="Dashboard Wali"
-                badges={[
-                    { label: "3 Siswa Terdaftar" },
-                    { label: "Tahun Ajaran 2026/2027" },
-                ]}
+                badges={[{ label: "3 Siswa Terdaftar" }, { label: "Tahun Ajaran 2026/2027" }]}
             />,
         );
 
@@ -60,12 +44,7 @@ describe("DashboardHero Component", () => {
     });
 
     it("attaches dusk and data-testid attributes", () => {
-        const { container } = render(
-            <DashboardHero
-                title="Ahmad Dahlan"
-                dusk="student-greeting-card"
-            />,
-        );
+        const { container } = render(<DashboardHero title="Ahmad Dahlan" dusk="student-greeting-card" />);
 
         const hero = container.firstElementChild as HTMLElement;
         expect(hero.getAttribute("dusk")).toBe("student-greeting-card");

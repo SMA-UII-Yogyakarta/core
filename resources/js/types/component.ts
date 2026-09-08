@@ -13,7 +13,15 @@ export interface NavSection {
     items: NavItem[];
 }
 
-export type ButtonVariant = "primary" | "secondary" | "accent" | "outline" | "danger" | "danger-outline" | "success" | "ghost";
+export type ButtonVariant =
+    | "primary"
+    | "secondary"
+    | "accent"
+    | "outline"
+    | "danger"
+    | "danger-outline"
+    | "success"
+    | "ghost";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export type StatColor = "green" | "amber" | "blue" | "red" | "grey";

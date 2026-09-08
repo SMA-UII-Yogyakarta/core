@@ -1,5 +1,5 @@
+import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface SelectionActionButton {
     label: string;
@@ -58,10 +58,10 @@ export default function MobileSelectionBar({
                             act.variant === "danger"
                                 ? "bg-danger hover:bg-danger/90 text-white"
                                 : act.variant === "accent"
-                                ? "bg-accent hover:brightness-95 text-primary"
-                                : act.variant === "secondary"
-                                ? "bg-white/15 hover:bg-white/25 text-white border border-white/20"
-                                : "bg-surface hover:bg-surface/90 text-primary";
+                                  ? "bg-accent hover:brightness-95 text-primary"
+                                  : act.variant === "secondary"
+                                    ? "bg-white/15 hover:bg-white/25 text-white border border-white/20"
+                                    : "bg-surface hover:bg-surface/90 text-primary";
 
                         return (
                             <button

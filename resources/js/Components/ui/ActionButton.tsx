@@ -32,11 +32,7 @@ export default function ActionButton({
             type="button"
             className={`inline-flex items-center justify-center rounded-md font-inter font-semibold transition-all duration-150 cursor-pointer ${
                 variantStyles[variant]
-            } ${
-                iconOnly
-                    ? "w-8 h-8 text-[13px] shrink-0"
-                    : "px-2.5 py-1.5 text-[12px] gap-1.5"
-            } ${className}`}
+            } ${iconOnly ? "w-8 h-8 text-[13px] shrink-0" : "px-2.5 py-1.5 text-[12px] gap-1.5"} ${className}`}
             {...props}
         >
             {icon && <span className="flex items-center justify-center text-[13px]">{icon}</span>}

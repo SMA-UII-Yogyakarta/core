@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Tooltip, { type TooltipPosition } from "./Tooltip";
 
 export interface TruncatedTextProps {
@@ -65,10 +65,7 @@ export default function TruncatedText({
     const Tag = as as React.ElementType;
 
     const textElement = (
-        <Tag
-            ref={textRef}
-            className={`${clampClass} ${className} ${isTruncated ? "cursor-help" : ""}`}
-        >
+        <Tag ref={textRef} className={`${clampClass} ${className} ${isTruncated ? "cursor-help" : ""}`}>
             {text}
         </Tag>
     );
@@ -78,12 +75,7 @@ export default function TruncatedText({
     }
 
     return (
-        <Tooltip
-            content={text}
-            position={tooltipPosition}
-            tooltipClassName={tooltipClassName}
-            className="max-w-full"
-        >
+        <Tooltip content={text} position={tooltipPosition} tooltipClassName={tooltipClassName} className="max-w-full">
             {textElement}
         </Tooltip>
     );

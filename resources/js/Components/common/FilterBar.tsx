@@ -15,11 +15,7 @@ interface FilterSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 function FilterSelect({ label, options, className = "", ...props }: FilterSelectProps) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 w-full sm:w-auto">
-            {label && (
-                <label className="text-[13px] font-bold text-text-secondary font-inter shrink-0">
-                    {label}
-                </label>
-            )}
+            {label && <label className="text-[13px] font-bold text-text-secondary font-inter shrink-0">{label}</label>}
             <select
                 className={`w-full sm:w-auto border border-border rounded-xl px-3.5 py-2 text-[13px] font-semibold font-inter text-text-primary bg-surface shadow-2xs hover:border-primary/40 focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all cursor-pointer ${className}`}
                 {...props}
@@ -43,12 +39,7 @@ interface FilterDateProps {
 function FilterDate({ label, value, onChange }: FilterDateProps) {
     return (
         <div className="w-full sm:w-auto">
-            <DatePicker
-                label={label}
-                value={value}
-                onChange={(val) => onChange?.(val)}
-                className="w-full sm:w-auto"
-            />
+            <DatePicker label={label} value={value} onChange={(val) => onChange?.(val)} className="w-full sm:w-auto" />
         </div>
     );
 }
@@ -70,15 +61,8 @@ function FilterSearch({ value, onChange, onSubmit, placeholder = "Cari data...",
     };
 
     return (
-        <div
-            role="search"
-            className="flex flex-col sm:flex-row sm:items-center gap-1.5 w-full sm:w-auto"
-        >
-            {label && (
-                <label className="text-[13px] font-bold text-text-secondary font-inter shrink-0">
-                    {label}
-                </label>
-            )}
+        <div role="search" className="flex flex-col sm:flex-row sm:items-center gap-1.5 w-full sm:w-auto">
+            {label && <label className="text-[13px] font-bold text-text-secondary font-inter shrink-0">{label}</label>}
             <div className="relative w-full sm:w-64">
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none" />
                 <input

@@ -1,20 +1,20 @@
-import React from "react";
+import type React from "react";
 import {
-    FiFileText,
-    FiMaximize2,
-    FiUser,
-    FiLock,
-    FiX,
+    FiCalendar,
     FiCheck,
     FiEye,
-    FiCalendar,
-    FiRotateCcw,
+    FiFileText,
     FiImage,
+    FiLock,
+    FiMaximize2,
+    FiRotateCcw,
+    FiUser,
+    FiX,
 } from "react-icons/fi";
 import type { LeaveRequest } from "@/types";
+import { formatIndonesianDate } from "@/utils/helpers";
 import Avatar from "./Avatar";
 import Button from "./Button";
-import { formatIndonesianDate } from "@/utils/helpers";
 
 export interface LeaveRequestItem {
     id: number;
@@ -57,35 +57,33 @@ const statusBorderClass: Record<string, string> = {
     Rejected: "border-l-danger",
 };
 
-const categoryConfig: Record<
-    string,
-    { label: string; textColor: string; badgeBgColor: string; borderColor: string }
-> = {
-    Sick: {
-        label: "Sakit",
-        textColor: "text-text-medical",
-        badgeBgColor: "bg-medical-bg",
-        borderColor: "border-l-medical",
-    },
-    Event: {
-        label: "Izin Acara",
-        textColor: "text-text-permit",
-        badgeBgColor: "bg-permit-bg",
-        borderColor: "border-l-permit",
-    },
-    Competition: {
-        label: "Lomba",
-        textColor: "text-text-achievement",
-        badgeBgColor: "bg-achievement-bg",
-        borderColor: "border-l-achievement",
-    },
-    Other: {
-        label: "Lainnya",
-        textColor: "text-text-info",
-        badgeBgColor: "bg-info-bg",
-        borderColor: "border-l-info",
-    },
-};
+const categoryConfig: Record<string, { label: string; textColor: string; badgeBgColor: string; borderColor: string }> =
+    {
+        Sick: {
+            label: "Sakit",
+            textColor: "text-text-medical",
+            badgeBgColor: "bg-medical-bg",
+            borderColor: "border-l-medical",
+        },
+        Event: {
+            label: "Izin Acara",
+            textColor: "text-text-permit",
+            badgeBgColor: "bg-permit-bg",
+            borderColor: "border-l-permit",
+        },
+        Competition: {
+            label: "Lomba",
+            textColor: "text-text-achievement",
+            badgeBgColor: "bg-achievement-bg",
+            borderColor: "border-l-achievement",
+        },
+        Other: {
+            label: "Lainnya",
+            textColor: "text-text-info",
+            badgeBgColor: "bg-info-bg",
+            borderColor: "border-l-info",
+        },
+    };
 
 export const daysUntil = (dateStr: string): number => {
     const now = new Date();
@@ -160,28 +158,18 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
     const lr = leaveRequest ?? leave;
     if (!lr) return null;
 
-    const isPendingState = isPending ?? (lr.approval_status === "Pending");
+    const isPendingState = isPending ?? lr.approval_status === "Pending";
     const previewHandler = onPreviewImage ?? onImagePreview;
     const resolvedRejectionReason = rejectionReason ?? (lr as { rejection_reason?: string | null }).rejection_reason;
-    const resolvedVariant =
-        variant !== "auto"
-            ? variant
-            : onRevert || (leave && !leaveRequest)
-            ? "teacher"
-            : "admin";
+    const resolvedVariant = variant !== "auto" ? variant : onRevert || (leave && !leaveRequest) ? "teacher" : "admin";
 
     const borderClass = statusBorderClass[lr.approval_status] || "border-l-border";
     const cat = categoryConfig[lr.category] ?? categoryConfig.Other;
     const duration = calculateDuration(lr.start_date, lr.end_date);
     const docLabel = getDocumentTypeLabel(lr.document_url);
-    const urgency =
-        showUrgency !== false && (showUrgency || isPendingState)
-            ? getUrgencyInfo(lr.start_date)
-            : null;
+    const urgency = showUrgency !== false && (showUrgency || isPendingState) ? getUrgencyInfo(lr.start_date) : null;
 
-    const guardianName = lr.guardian?.name
-        ? `Ibu/Bapak ${lr.guardian.name}`
-        : "Ibu/Bapak Wali Murid";
+    const guardianName = lr.guardian?.name ? `Ibu/Bapak ${lr.guardian.name}` : "Ibu/Bapak Wali Murid";
     const guardianInfo = `${guardianName} (Wali Murid)`;
 
     // --- Teacher Layout (Avatar-based) ---
@@ -192,8 +180,8 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                     isPendingState
                         ? "border-border-default hover:border-brand-primary/40 hover:shadow-md"
                         : lr.approval_status === "Approved"
-                        ? "border-status-success/30 bg-status-success/5"
-                        : "border-status-danger/30 bg-status-danger/5"
+                          ? "border-status-success/30 bg-status-success/5"
+                          : "border-status-danger/30 bg-status-danger/5"
                 } ${className}`}
             >
                 {/* Card Header */}
@@ -211,9 +199,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                                     {lr.student?.name || "Tanpa Nama"}
                                 </span>
                                 {lr.student?.nis && (
-                                    <span className="text-[12px] text-text-muted">
-                                        NIS: {lr.student.nis}
-                                    </span>
+                                    <span className="text-[12px] text-text-muted">NIS: {lr.student.nis}</span>
                                 )}
                             </div>
 
@@ -324,11 +310,12 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                         <span>
                             <strong>{formatIndonesianDate(lr.start_date)}</strong>
                             {lr.start_date !== lr.end_date && (
-                                <> s.d. <strong>{formatIndonesianDate(lr.end_date)}</strong></>
+                                <>
+                                    {" "}
+                                    s.d. <strong>{formatIndonesianDate(lr.end_date)}</strong>
+                                </>
                             )}
-                            <span className="text-text-muted ml-1.5 font-normal">
-                                ({duration} Hari)
-                            </span>
+                            <span className="text-text-muted ml-1.5 font-normal">({duration} Hari)</span>
                         </span>
                     </div>
 
@@ -449,7 +436,8 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
 
                     {/* Subtitle Line: Diajukan oleh */}
                     <p className="text-[12px] text-text-muted mb-3 flex items-center gap-1.5 leading-none">
-                        <FiUser className="text-[12px]" /> Diajukan oleh: {guardianInfo} - {formatRelativeTime(lr.created_at || "")}
+                        <FiUser className="text-[12px]" /> Diajukan oleh: {guardianInfo} -{" "}
+                        {formatRelativeTime(lr.created_at || "")}
                     </p>
 
                     {/* Metadata Gray Box */}

@@ -14,7 +14,7 @@ export interface CompressionResult {
 export function compressCanvasToJpeg(
     canvasElement: HTMLCanvasElement,
     maxBytes: number = 20 * 1024,
-    initialQuality: number = 0.7
+    initialQuality: number = 0.7,
 ): CompressionResult {
     let quality = initialQuality;
     let dataUrl = canvasElement.toDataURL("image/jpeg", quality);
@@ -44,7 +44,7 @@ export function compressImageFromVideo(
     canvasElement: HTMLCanvasElement,
     maxBytes: number = 20 * 1024,
     maxWidth: number = 320,
-    maxHeight: number = 240
+    maxHeight: number = 240,
 ): CompressionResult {
     canvasElement.width = maxWidth;
     canvasElement.height = maxHeight;

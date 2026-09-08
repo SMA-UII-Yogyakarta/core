@@ -1,4 +1,4 @@
-import { FiMoreVertical, FiInstagram, FiMail } from "react-icons/fi";
+import { FiInstagram, FiMail, FiMoreVertical } from "react-icons/fi";
 import TruncatedText from "@/Components/ui/TruncatedText";
 
 interface StudentCardProps {

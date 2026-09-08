@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Label from "./Label";
 import FormError from "./FormError";
+import Label from "./Label";
 
 interface SelectOption {
     value: string | number;
@@ -149,18 +149,27 @@ export default function SelectInput({
                         {selectedOption?.label || placeholder}
                     </span>
                     <div className="flex items-center gap-1">
-                        {clearable && selectedOption && value !== "" && value !== null && value !== undefined && !disabled && (
-                            <button
-                                type="button"
-                                onClick={handleClear}
-                                aria-label="Hapus pilihan"
-                                className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded-full hover:bg-muted flex items-center justify-center cursor-pointer"
-                            >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        )}
+                        {clearable &&
+                            selectedOption &&
+                            value !== "" &&
+                            value !== null &&
+                            value !== undefined &&
+                            !disabled && (
+                                <button
+                                    type="button"
+                                    onClick={handleClear}
+                                    aria-label="Hapus pilihan"
+                                    className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded-full hover:bg-muted flex items-center justify-center cursor-pointer"
+                                >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
                         <svg
                             className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
                             fill="none"

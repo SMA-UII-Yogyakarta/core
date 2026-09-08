@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 interface FilterOption {
     value: string;
@@ -70,8 +70,7 @@ export default function FilterDropdown({
         setPositioned(true);
     }, [open, align, minWidth]);
 
-    const isSelected = (optValue: string) =>
-        Array.isArray(value) ? value.includes(optValue) : value === optValue;
+    const isSelected = (optValue: string) => (Array.isArray(value) ? value.includes(optValue) : value === optValue);
 
     return (
         <div ref={containerRef} className="relative">
@@ -102,7 +101,9 @@ export default function FilterDropdown({
                                             : "text-text-primary hover:bg-background"
                                     }`}
                                 >
-                                    <span className={`w-4 text-center ${selected ? "text-primary" : "text-transparent"}`}>
+                                    <span
+                                        className={`w-4 text-center ${selected ? "text-primary" : "text-transparent"}`}
+                                    >
                                         ✓
                                     </span>
                                     {opt.label}

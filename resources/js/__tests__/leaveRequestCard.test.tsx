@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
 import type { LeaveRequest } from "@/types";
@@ -66,7 +66,7 @@ describe("LeaveRequestCard - Admin Variant", () => {
                 onApprove={handleApprove}
                 onReject={handleReject}
                 checkboxSlot={<input type="checkbox" data-testid="test-checkbox" />}
-            />
+            />,
         );
 
         expect(screen.getByText("Ahmad Santoso")).toBeDefined();
@@ -91,13 +91,7 @@ describe("LeaveRequestCard - Admin Variant", () => {
     });
 
     it("renders lock notice when isHomeroom=false and pending", () => {
-        render(
-            <LeaveRequestCard
-                variant="admin"
-                leaveRequest={mockPendingRequest}
-                isHomeroom={false}
-            />
-        );
+        render(<LeaveRequestCard variant="admin" leaveRequest={mockPendingRequest} isHomeroom={false} />);
 
         expect(screen.getByText(/Hak akses persetujuan hanya untuk Wali Kelas/i)).toBeDefined();
     });
@@ -112,7 +106,7 @@ describe("LeaveRequestCard - Admin Variant", () => {
                 leaveRequest={mockApprovedRequest}
                 onRevert={handleRevert}
                 onDetailClick={handleDetail}
-            />
+            />,
         );
 
         const revertBtn = screen.getByText("Revert");
@@ -125,12 +119,7 @@ describe("LeaveRequestCard - Admin Variant", () => {
     });
 
     it("renders rejection reason when rejected", () => {
-        render(
-            <LeaveRequestCard
-                variant="admin"
-                leaveRequest={mockRejectedRequest}
-            />
-        );
+        render(<LeaveRequestCard variant="admin" leaveRequest={mockRejectedRequest} />);
 
         expect(screen.getByText(/Surat dokter tidak jelas/i)).toBeDefined();
     });
@@ -150,7 +139,7 @@ describe("LeaveRequestCard - Teacher Variant", () => {
                 onPreviewImage={handlePreview}
                 onApprove={handleApprove}
                 onReject={handleReject}
-            />
+            />,
         );
 
         expect(screen.getByText("Ahmad Santoso")).toBeDefined();
@@ -182,7 +171,7 @@ describe("LeaveRequestCard - Teacher Variant", () => {
                 leave={mockRejectedRequest}
                 isPending={false}
                 onRevert={handleRevert}
-            />
+            />,
         );
 
         expect(screen.getByText("Ditolak")).toBeDefined();
@@ -194,12 +183,7 @@ describe("LeaveRequestCard - Teacher Variant", () => {
     });
 
     it("automatically resolves to teacher variant when onRevert is passed without explicit variant", () => {
-        render(
-            <LeaveRequestCard
-                leave={mockApprovedRequest}
-                onRevert={vi.fn()}
-            />
-        );
+        render(<LeaveRequestCard leave={mockApprovedRequest} onRevert={vi.fn()} />);
 
         // Teacher variant renders "Disetujui" pill and Avatar
         expect(screen.getByText("Disetujui")).toBeDefined();

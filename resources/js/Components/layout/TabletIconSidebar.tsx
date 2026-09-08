@@ -71,4 +71,3 @@ export default function TabletIconSidebar({ navSections, activeItemKey, onLogout
         </aside>
     );
 }
-

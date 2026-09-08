@@ -1,7 +1,7 @@
+import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/Contexts/LanguageContext";
 
 interface BottomSheetProps {
@@ -12,13 +12,7 @@ interface BottomSheetProps {
     children: ReactNode;
 }
 
-export default function BottomSheet({
-    open,
-    onClose,
-    title,
-    subtitle,
-    children,
-}: BottomSheetProps) {
+export default function BottomSheet({ open, onClose, title, subtitle, children }: BottomSheetProps) {
     const { t } = useLanguage();
     useEffect(() => {
         if (open) {
@@ -70,9 +64,7 @@ export default function BottomSheet({
                             <div className="flex items-center justify-between px-5 pb-3 border-b border-border select-none shrink-0">
                                 <div>
                                     <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
-                                    {subtitle && (
-                                        <p className="text-[12px] text-text-muted mt-0.5">{subtitle}</p>
-                                    )}
+                                    {subtitle && <p className="text-[12px] text-text-muted mt-0.5">{subtitle}</p>}
                                 </div>
                                 <button
                                     onClick={onClose}

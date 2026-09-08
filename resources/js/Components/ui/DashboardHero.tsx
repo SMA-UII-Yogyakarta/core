@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 
 export interface DashboardHeroBadge {
     icon?: ReactNode;
@@ -51,9 +51,7 @@ export default function DashboardHero({
     "data-testid": dataTestId,
 }: DashboardHeroProps) {
     const [liveTime, setLiveTime] = useState<string>(time ?? getFormattedTime);
-    const [liveDate, setLiveDate] = useState<string>(
-        typeof subtitle === "string" ? subtitle : getFormattedDate,
-    );
+    const [liveDate, setLiveDate] = useState<string>(typeof subtitle === "string" ? subtitle : getFormattedDate);
 
     useEffect(() => {
         if (time !== undefined && subtitle !== undefined) return;
@@ -76,7 +74,7 @@ export default function DashboardHero({
 
     return (
         <div
-            className={`relative bg-primary text-white rounded-2xl p-5 sm:p-6 shadow-card overflow-hidden ${className}`}
+            className={`relative bg-primary text-white rounded-2xl p-4 sm:p-6 shadow-card overflow-hidden ${className}`}
             dusk={dusk}
             data-testid={dataTestId ?? dusk}
         >
@@ -85,19 +83,19 @@ export default function DashboardHero({
             <div className="absolute -left-6 -top-6 w-32 h-32 rounded-full bg-white/5 blur-xl pointer-events-none" />
 
             <div className="relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div className="min-w-0">
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="min-w-0 flex-1">
                         {displaySubtitle && (
                             <p className="text-white/70 text-[11px] sm:text-[12px] font-bold tracking-wider uppercase mb-1">
                                 {displaySubtitle}
                             </p>
                         )}
-                        <h2 className="text-white text-[20px] sm:text-[24px] font-bold leading-tight truncate">
+                        <h2 className="text-white text-[18px] sm:text-[24px] font-bold leading-tight truncate">
                             {title}
                         </h2>
                         {description && (
                             <p
-                                className={`text-[13px] mt-1 ${
+                                className={`text-[12px] sm:text-[13px] mt-1 ${
                                     descriptionClassName ?? "text-white/80 font-medium"
                                 }`}
                             >
@@ -107,11 +105,11 @@ export default function DashboardHero({
                     </div>
 
                     {showClock && (
-                        <div className="self-start sm:self-auto shrink-0 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3.5 py-2 sm:px-4 sm:py-2.5 text-right">
-                            <p className="text-[20px] sm:text-[22px] font-extrabold font-mono text-white leading-none">
+                        <div className="shrink-0 bg-white/10 backdrop-blur-md border border-white/15 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2.5 text-right">
+                            <p className="text-[18px] sm:text-[22px] font-extrabold font-mono text-white leading-none">
                                 {displayTime || "--:--"}
                             </p>
-                            <p className="text-[9px] font-bold text-accent uppercase tracking-widest mt-0.5 sm:mt-1">
+                            <p className="text-[8.5px] sm:text-[9px] font-bold text-accent uppercase tracking-widest mt-0.5 sm:mt-1">
                                 {timezone}
                             </p>
                         </div>

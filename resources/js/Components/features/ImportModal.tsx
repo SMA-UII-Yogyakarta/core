@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
 import { router } from "@inertiajs/react";
-import { FiUploadCloud, FiCheckCircle, FiAlertCircle, FiDownload, FiKey } from "react-icons/fi";
+import { useRef, useState } from "react";
+import { FiAlertCircle, FiCheckCircle, FiDownload, FiKey, FiUploadCloud } from "react-icons/fi";
 import Modal from "@/Components/common/Modal";
 import Button from "@/Components/ui/Button";
 import Input from "@/Components/ui/Input";
@@ -192,7 +192,8 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                                 className="h-9 text-[13px]"
                             />
                             <p className="text-[11px] text-text-muted">
-                                Kolom kata sandi pada file spreadsheet akan diprioritaskan. Jika kosong, kata sandi ini yang akan diterapkan.
+                                Kolom kata sandi pada file spreadsheet akan diprioritaskan. Jika kosong, kata sandi ini
+                                yang akan diterapkan.
                             </p>
                         </div>
                     )}
@@ -201,7 +202,9 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                         <p className="font-bold text-text-primary mb-1">Format kolom yang didukung:</p>
                         {entity === "students" && (
                             <p>
-                                <code>nis, nisn, name, class, birth_date, phone, address, enrollment_year, email, password</code>
+                                <code>
+                                    nis, nisn, name, class, birth_date, phone, address, enrollment_year, email, password
+                                </code>
                             </p>
                         )}
                         {entity === "teachers" && (

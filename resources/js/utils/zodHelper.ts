@@ -1,11 +1,9 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 export function validateForm<T extends z.ZodTypeAny>(
     schema: T,
     data: unknown,
-):
-    | { success: true; data: z.infer<T> }
-    | { success: false; errors: Partial<Record<keyof z.infer<T>, string>> } {
+): { success: true; data: z.infer<T> } | { success: false; errors: Partial<Record<keyof z.infer<T>, string>> } {
     const result = schema.safeParse(data);
     if (result.success) {
         return { success: true, data: result.data };

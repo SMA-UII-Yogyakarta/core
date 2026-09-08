@@ -1,19 +1,19 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import LiveBadge from '../Components/ui/LiveBadge';
+import type { Meta, StoryObj } from "@storybook/react";
+import LiveBadge from "../Components/ui/LiveBadge";
 
 const meta: Meta<typeof LiveBadge> = {
-    title: 'UI/LiveBadge',
+    title: "UI/LiveBadge",
     component: LiveBadge,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
     argTypes: {
         variant: {
-            control: 'select',
-            options: ['danger', 'success', 'warning', 'primary', 'dark'],
+            control: "select",
+            options: ["danger", "success", "warning", "primary", "dark"],
         },
-        pulse: { control: 'boolean' },
+        pulse: { control: "boolean" },
         size: {
-            control: 'select',
-            options: ['sm', 'md'],
+            control: "select",
+            options: ["sm", "md"],
         },
     },
 };
@@ -23,24 +23,24 @@ type Story = StoryObj<typeof LiveBadge>;
 
 export const DangerLive: Story = {
     args: {
-        label: 'LIVE WEBCAM',
-        variant: 'danger',
+        label: "LIVE WEBCAM",
+        variant: "danger",
         pulse: true,
     },
 };
 
 export const DarkOverlay: Story = {
     args: {
-        label: 'LIVE STREAM',
-        variant: 'dark',
+        label: "LIVE STREAM",
+        variant: "dark",
         pulse: true,
     },
 };
 
 export const SuccessGPS: Story = {
     args: {
-        label: 'GPS LOCKED',
-        variant: 'success',
+        label: "GPS LOCKED",
+        variant: "success",
         pulse: false,
     },
 };

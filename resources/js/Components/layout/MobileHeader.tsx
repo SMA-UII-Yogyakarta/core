@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { Link } from "@inertiajs/react";
-import { FiArrowLeft, FiMenu, FiSearch, FiX, FiBell } from "react-icons/fi";
+import type { ReactNode } from "react";
+import { FiArrowLeft, FiBell, FiMenu, FiSearch, FiX } from "react-icons/fi";
 import Avatar from "../ui/Avatar";
 
 interface MobileHeaderProps {
@@ -71,15 +71,14 @@ export default function MobileHeader({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                {headerActions && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        {headerActions}
-                    </div>
-                )}
+                {headerActions && <div className="flex items-center gap-1.5 shrink-0">{headerActions}</div>}
 
                 {/* Tablet Header Search Input (hidden sm:flex lg:hidden) placed right beside Notification Bell */}
                 {showSearch && onSearchChange && (
-                    <div className="hidden sm:flex items-center relative w-44 md:w-56 lg:hidden shrink-0" dusk="tablet-header-search-container">
+                    <div
+                        className="hidden sm:flex items-center relative w-44 md:w-56 lg:hidden shrink-0"
+                        dusk="tablet-header-search-container"
+                    >
                         <FiSearch className="absolute left-3 text-white/50 text-[13px] pointer-events-none" />
                         <input
                             type="text"
@@ -118,11 +117,7 @@ export default function MobileHeader({
                         )}
                     </Link>
                 )}
-                <Link
-                    href="/profile"
-                    className="shrink-0 hover:scale-105 transition-transform"
-                    aria-label="Profil"
-                >
+                <Link href="/profile" className="shrink-0 hover:scale-105 transition-transform" aria-label="Profil">
                     <Avatar name={userInitial} src={userAvatar} size="sm" variant="accent" />
                 </Link>
             </div>

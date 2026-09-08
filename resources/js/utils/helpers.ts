@@ -85,4 +85,3 @@ export function formatIndonesianDate(
         return String(dateInput);
     }
 }
-

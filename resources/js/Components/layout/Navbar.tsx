@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import type { ReactNode } from "react";
 import { Link } from "@inertiajs/react";
-import { FiChevronDown, FiUser, FiSliders, FiRefreshCw, FiLogOut } from "react-icons/fi";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FiChevronDown, FiLogOut, FiRefreshCw, FiSliders, FiUser } from "react-icons/fi";
 import Avatar from "../ui/Avatar";
-import NotificationPopover, { NotificationItem } from "./NotificationPopover";
+import NotificationPopover, { type NotificationItem } from "./NotificationPopover";
 
 interface NavbarProps {
     brand: string;
@@ -60,15 +60,11 @@ export default function Navbar({
                 >
                     UII
                 </Link>
-                <span className="text-white font-bold text-[16px] font-brand tracking-wide">
-                    {brand}
-                </span>
+                <span className="text-white font-bold text-[16px] font-brand tracking-wide">{brand}</span>
             </div>
-
 
             {/* Right — Icons + User Profile */}
             <div className="flex items-center gap-3 sm:gap-4">
-
                 {/* Facebook-style Desktop Notification Popover */}
                 {showNotificationBell && (
                     <>
@@ -83,11 +79,7 @@ export default function Navbar({
                 )}
 
                 {/* Mobile: Simple Link to Profile */}
-                <Link
-                    href="/profile"
-                    className="sm:hidden shrink-0"
-                    aria-label="Profil Pengguna"
-                >
+                <Link href="/profile" className="sm:hidden shrink-0" aria-label="Profil Pengguna">
                     <Avatar name={username || userInitial} src={userAvatar} size="sm" variant="accent" />
                 </Link>
 

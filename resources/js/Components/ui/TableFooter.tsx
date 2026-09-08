@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { FiInfo } from "react-icons/fi";
-import Pagination from "./Pagination";
 import { getPaginationRange } from "@/utils/helpers";
+import Pagination from "./Pagination";
 
 export interface TableFooterProps {
     info?: ReactNode;
@@ -37,8 +37,11 @@ export default function TableFooter({
             const { from, to } = getPaginationRange(currentPage, perPage, totalItems);
             resolvedInfo = (
                 <span>
-                    Menampilkan <strong className="text-text-primary font-bold">{from}–{to}</strong> dari total{" "}
-                    <strong className="text-text-primary font-bold">{totalItems}</strong> {itemLabel}.
+                    Menampilkan{" "}
+                    <strong className="text-text-primary font-bold">
+                        {from}–{to}
+                    </strong>{" "}
+                    dari total <strong className="text-text-primary font-bold">{totalItems}</strong> {itemLabel}.
                 </span>
             );
         } else if (totalItems > 0) {
@@ -77,7 +80,10 @@ export default function TableFooter({
             {resolvedInfo ? (
                 <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium min-w-0 flex-1">
                     <FiInfo className="text-primary text-[14px] shrink-0" />
-                    <span className="truncate block" title={typeof resolvedInfo === "string" ? resolvedInfo : undefined}>
+                    <span
+                        className="truncate block"
+                        title={typeof resolvedInfo === "string" ? resolvedInfo : undefined}
+                    >
                         {resolvedInfo}
                     </span>
                 </div>
@@ -89,4 +95,3 @@ export default function TableFooter({
         </div>
     );
 }
-

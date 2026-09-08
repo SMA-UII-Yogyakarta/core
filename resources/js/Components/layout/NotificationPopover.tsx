@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
 import { Link, router } from "@inertiajs/react";
-import { FiBell, FiBellOff, FiArrowRight } from "react-icons/fi";
+import { useEffect, useRef, useState } from "react";
+import { FiArrowRight, FiBell, FiBellOff } from "react-icons/fi";
 
 export interface NotificationItem {
     id: number;

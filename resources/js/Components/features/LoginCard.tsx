@@ -1,6 +1,6 @@
 import { Link } from "@inertiajs/react";
-import { useState, type FormEventHandler } from "react";
-import { FiUser, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { type FormEventHandler, useState } from "react";
+import { FiEye, FiEyeOff, FiLock, FiUser } from "react-icons/fi";
 import BrandLogo from "@/Components/layout/BrandLogo";
 import Button from "@/Components/ui/Button";
 import Input from "@/Components/ui/Input";
@@ -113,7 +113,11 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                                         onClick={() => setShowPassword((v) => !v)}
                                         className="text-text-muted hover:text-primary transition-colors cursor-pointer flex items-center justify-center"
                                     >
-                                        {showPassword ? <FiEyeOff className="text-[16px]" /> : <FiEye className="text-[16px]" />}
+                                        {showPassword ? (
+                                            <FiEyeOff className="text-[16px]" />
+                                        ) : (
+                                            <FiEye className="text-[16px]" />
+                                        )}
                                     </button>
                                 }
                             />

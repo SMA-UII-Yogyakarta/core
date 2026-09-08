@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { FiX, FiCalendar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface DatePickerProps {
@@ -29,11 +29,7 @@ function displayToIso(display: string): string | null {
     const [d, m, y] = parts;
     if (d.length !== 2 || m.length !== 2 || y.length !== 4) return null;
     const date = new Date(Number(y), Number(m) - 1, Number(d));
-    if (
-        date.getDate() !== Number(d) ||
-        date.getMonth() !== Number(m) - 1 ||
-        date.getFullYear() !== Number(y)
-    ) {
+    if (date.getDate() !== Number(d) || date.getMonth() !== Number(m) - 1 || date.getFullYear() !== Number(y)) {
         return null;
     }
     return `${y}-${m}-${d}`;
@@ -71,8 +67,14 @@ function incrementSegment(display: string, cursorPos: number, delta: number): st
         }
         case "month": {
             m += delta;
-            if (m < 1) { m = 12; y -= 1; }
-            if (m > 12) { m = 1; y += 1; }
+            if (m < 1) {
+                m = 12;
+                y -= 1;
+            }
+            if (m > 12) {
+                m = 1;
+                y += 1;
+            }
             const maxDaysM = new Date(y, m, 0).getDate();
             if (d > maxDaysM) d = maxDaysM;
             break;
@@ -135,8 +137,14 @@ export default function DatePicker({
             }
             const iso = displayToIso(display);
             if (iso) {
-                if (min && iso < min) { setIsInvalid(true); return; }
-                if (max && iso > max) { setIsInvalid(true); return; }
+                if (min && iso < min) {
+                    setIsInvalid(true);
+                    return;
+                }
+                if (max && iso > max) {
+                    setIsInvalid(true);
+                    return;
+                }
                 setIsInvalid(false);
                 onChange?.(iso);
             } else {
@@ -248,9 +256,7 @@ export default function DatePicker({
 
     return (
         <div className={`relative ${className}`} ref={containerRef}>
-            {label && (
-                <label className="block text-[13px] text-text-muted font-inter mb-1">{label}</label>
-            )}
+            {label && <label className="block text-[13px] text-text-muted font-inter mb-1">{label}</label>}
 
             <div className="relative flex items-center">
                 <input
@@ -293,20 +299,28 @@ export default function DatePicker({
                 </div>
             </div>
 
-            {isInvalid && displayValue && (
-                <p className="text-[11px] text-danger mt-1">Format: dd/mm/yyyy</p>
-            )}
+            {isInvalid && displayValue && <p className="text-[11px] text-danger mt-1">Format: dd/mm/yyyy</p>}
 
             {isOpen && !disabled && (
                 <div className="absolute z-50 mt-1 bg-surface border border-border rounded-xl shadow-dropdown p-3 w-[280px]">
                     <div className="flex items-center justify-between mb-3">
-                        <button type="button" onClick={prevMonth} className="p-1 hover:bg-muted rounded-lg transition-colors" aria-label="Bulan sebelumnya">
+                        <button
+                            type="button"
+                            onClick={prevMonth}
+                            className="p-1 hover:bg-muted rounded-lg transition-colors"
+                            aria-label="Bulan sebelumnya"
+                        >
                             <FiChevronLeft className="text-[14px] text-text-muted" />
                         </button>
                         <span className="text-[13px] font-bold text-text-primary">
                             {MONTH_NAMES[viewMonth.month - 1]} {viewMonth.year}
                         </span>
-                        <button type="button" onClick={nextMonth} className="p-1 hover:bg-muted rounded-lg transition-colors" aria-label="Bulan selanjutnya">
+                        <button
+                            type="button"
+                            onClick={nextMonth}
+                            className="p-1 hover:bg-muted rounded-lg transition-colors"
+                            aria-label="Bulan selanjutnya"
+                        >
                             <FiChevronRight className="text-[14px] text-text-muted" />
                         </button>
                     </div>
@@ -334,8 +348,7 @@ export default function DatePicker({
                                 viewMonth.month === today.getMonth() + 1 &&
                                 viewMonth.year === today.getFullYear();
                             const isSelected = selectedIso === iso;
-                            const isDisabled =
-                                (min && iso < min) || (max && iso > max);
+                            const isDisabled = (min && iso < min) || (max && iso > max);
 
                             return (
                                 <button

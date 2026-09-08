@@ -8,5 +8,3 @@ declare module "@inertiajs/react" {
         [key: string]: unknown;
     }
 }
-
-export {};

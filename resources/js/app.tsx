@@ -1,10 +1,10 @@
 import { createInertiaApp } from "@inertiajs/react";
-import { createRoot, hydrateRoot } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import { LanguageProvider } from "@/Contexts/LanguageContext";
 import { ThemeProvider } from "@/Contexts/ThemeContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import "./bootstrap";
 
 const appName = import.meta.env.VITE_APP_NAME || "SMAUII Core";

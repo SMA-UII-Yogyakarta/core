@@ -87,7 +87,8 @@ export function resolveStatusVariant(status: string): StatusVariant {
     if (s === "late" || s === "terlambat") return "late";
     if (s === "absent" || s === "alpa" || s === "alpha" || s === "tidak hadir") return "absent";
     if (s === "sick" || s === "sakit") return "sick";
-    if (s === "permission" || s === "izin" || s === "permit" || s === "leave" || s === "dispensasi") return "permission";
+    if (s === "permission" || s === "izin" || s === "permit" || s === "leave" || s === "dispensasi")
+        return "permission";
     if (s === "active" || s === "aktif") return "active";
     if (s === "inactive" || s === "non-aktif" || s === "nonaktif") return "inactive";
     if (s === "pending" || s === "menunggu" || s === "belum verifikasi" || s === "unverified") return "pending";
@@ -103,7 +104,9 @@ export default function StatusBadge({ variant, label, className = "" }: StatusBa
     const resolved = resolveStatusVariant(variant);
     const { bg, text, defaultLabel } = config[resolved] ?? config.pending;
     return (
-        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text} ${className}`}>
+        <span
+            className={`inline-block px-2.5 py-0.5 rounded-full text-[12px] font-semibold font-inter ${bg} ${text} ${className}`}
+        >
             {label ?? defaultLabel}
         </span>
     );

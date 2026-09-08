@@ -35,20 +35,12 @@ export default function Toggle({
             <div
                 className={`relative inline-flex items-center shrink-0 rounded-full transition-colors duration-200 ease-in-out cursor-pointer ${
                     isSm ? "w-9 h-5 p-0.5" : "w-11 h-6 p-0.5"
-                } ${
-                    isChecked
-                        ? "bg-emerald-500"
-                        : "bg-gray-300 dark:bg-gray-600"
-                }`}
+                } ${isChecked ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"}`}
             >
                 <span
                     className={`inline-block rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
                         isSm ? "w-4 h-4" : "w-5 h-5"
-                    } ${
-                        isChecked
-                            ? isSm ? "translate-x-4" : "translate-x-5"
-                            : "translate-x-0"
-                    }`}
+                    } ${isChecked ? (isSm ? "translate-x-4" : "translate-x-5") : "translate-x-0"}`}
                 />
             </div>
             {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}

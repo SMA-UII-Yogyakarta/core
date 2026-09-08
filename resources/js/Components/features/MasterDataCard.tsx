@@ -63,17 +63,11 @@ export default function MasterDataCard({
                         className="pt-0.5 cursor-pointer p-1 -m-1 rounded hover:bg-muted/50 transition-colors flex items-center justify-center shrink-0"
                         title={selectLabel}
                     >
-                        <Checkbox
-                            checked={isSelected}
-                            readOnly
-                            className="pointer-events-none"
-                        />
+                        <Checkbox checked={isSelected} readOnly className="pointer-events-none" />
                     </div>
 
                     {/* Optional Avatar */}
-                    {avatarName && (
-                        <Avatar name={avatarName} size="sm" className="shrink-0 mt-0.5" />
-                    )}
+                    {avatarName && <Avatar name={avatarName} size="sm" className="shrink-0 mt-0.5" />}
 
                     {/* Title & Subtitle */}
                     <div className="min-w-0 flex-1">
@@ -83,11 +77,7 @@ export default function MasterDataCard({
                 </div>
 
                 {/* Right Badges / Actions */}
-                {rightBadge && (
-                    <div className="shrink-0 pt-0.5 flex items-center gap-1.5">
-                        {rightBadge}
-                    </div>
-                )}
+                {rightBadge && <div className="shrink-0 pt-0.5 flex items-center gap-1.5">{rightBadge}</div>}
             </div>
 
             {/* Middle Content Row (Custom for each entity) */}
@@ -95,13 +85,8 @@ export default function MasterDataCard({
 
             {/* Bottom Action Row */}
             <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                <span className="text-[10px] text-text-muted">
-                    {footerHint}
-                </span>
-                <div
-                    className="flex items-center gap-1 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                >
+                <span className="text-[10px] text-text-muted">{footerHint}</span>
+                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                     <button
                         type="button"
                         onClick={onEdit}

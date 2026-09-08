@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ErrorBoundary, { ErrorDisplay } from "@/Components/common/ErrorBoundary";
 import ErrorLayout from "@/Layouts/ErrorLayout";
@@ -15,7 +15,7 @@ describe("ErrorBoundary & ErrorLayout", () => {
         render(
             <ErrorBoundary>
                 <BuggyComponent shouldThrow={false} />
-            </ErrorBoundary>
+            </ErrorBoundary>,
         );
         expect(screen.getByText("Normal Content Loaded")).toBeDefined();
     });
@@ -27,7 +27,7 @@ describe("ErrorBoundary & ErrorLayout", () => {
         render(
             <ErrorBoundary>
                 <BuggyComponent shouldThrow={true} />
-            </ErrorBoundary>
+            </ErrorBoundary>,
         );
 
         expect(screen.getByText("Simulated Test Crash")).toBeDefined();
@@ -48,7 +48,7 @@ describe("ErrorBoundary & ErrorLayout", () => {
             <ErrorLayout
                 error={testError}
                 errorInfo={{ componentStack: "\n    in BuggyComponent\n    in ErrorBoundary" }}
-            />
+            />,
         );
 
         // Initially on Stack Trace
@@ -68,12 +68,7 @@ describe("ErrorBoundary & ErrorLayout", () => {
 
     it("invokes onRetry callback when Coba Lagi is clicked", () => {
         const onRetryMock = vi.fn();
-        render(
-            <ErrorDisplay
-                error={new Error("Retry test")}
-                onRetry={onRetryMock}
-            />
-        );
+        render(<ErrorDisplay error={new Error("Retry test")} onRetry={onRetryMock} />);
 
         const retryButtons = screen.getAllByRole("button", { name: /Coba Lagi/i });
         fireEvent.click(retryButtons[0]);

@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import RecapTable from "../Pages/Teacher/Reports/RecapTable";
+import type { DailyBreakdown, MonthlyBreakdown, StudentRecap, Summary } from "@/types/Report";
 import MonthlyTable from "../Pages/Teacher/Reports/MonthlyTable";
+import RecapTable from "../Pages/Teacher/Reports/RecapTable";
 import SemesterTable from "../Pages/Teacher/Reports/SemesterTable";
-import type { StudentRecap, Summary, DailyBreakdown, MonthlyBreakdown } from "@/types/Report";
 
 vi.mock("@/Components/features/AttendanceChart", () => ({
     default: vi.fn((props) => (
@@ -102,7 +102,7 @@ describe("RecapTable Component", () => {
                 year={2026}
                 onExportPdf={handlePdf}
                 onExportExcel={handleExcel}
-            />
+            />,
         );
 
         // Title verification
@@ -141,7 +141,7 @@ describe("RecapTable Component", () => {
                 chartData={mockMonthlyBreakdown}
                 semester="1"
                 year={2026}
-            />
+            />,
         );
 
         // Title verification for semester 1 (Ganjil)
@@ -155,29 +155,14 @@ describe("RecapTable Component", () => {
     });
 
     it("renders even semester title correctly", () => {
-        render(
-            <RecapTable
-                mode="semester"
-                students={mockStudents}
-                summary={mockSummary}
-                semester="2"
-                year={2026}
-            />
-        );
+        render(<RecapTable mode="semester" students={mockStudents} summary={mockSummary} semester="2" year={2026} />);
 
         // Title verification for semester 2 (Genap)
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Semester Genap 2025\/2026\)/i)).toBeDefined();
     });
 
     it("displays empty state message when students list is empty", () => {
-        render(
-            <RecapTable
-                mode="monthly"
-                students={[]}
-                month={1}
-                year={2026}
-            />
-        );
+        render(<RecapTable mode="monthly" students={[]} month={1} year={2026} />);
 
         expect(screen.getAllByText("Belum ada data untuk periode ini.").length).toBeGreaterThan(0);
     });
@@ -185,14 +170,7 @@ describe("RecapTable Component", () => {
 
 describe("MonthlyTable wrapper component", () => {
     it("renders via MonthlyTable thin wrapper", () => {
-        render(
-            <MonthlyTable
-                students={mockStudents}
-                summary={mockSummary}
-                month={5}
-                year={2026}
-            />
-        );
+        render(<MonthlyTable students={mockStudents} summary={mockSummary} month={5} year={2026} />);
 
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Mei 2026\)/i)).toBeDefined();
         expect(screen.getAllByText("Ahmad Santoso").length).toBeGreaterThan(0);
@@ -201,14 +179,7 @@ describe("MonthlyTable wrapper component", () => {
 
 describe("SemesterTable wrapper component", () => {
     it("renders via SemesterTable thin wrapper", () => {
-        render(
-            <SemesterTable
-                students={mockStudents}
-                summary={mockSummary}
-                semester="1"
-                year={2026}
-            />
-        );
+        render(<SemesterTable students={mockStudents} summary={mockSummary} semester="1" year={2026} />);
 
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Semester Ganjil 2026\/2027\)/i)).toBeDefined();
         expect(screen.getAllByText("Ahmad Santoso").length).toBeGreaterThan(0);

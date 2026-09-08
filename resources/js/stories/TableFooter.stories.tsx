@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import TableFooter from '../Components/ui/TableFooter';
+import type { Meta, StoryObj } from "@storybook/react";
+import TableFooter from "../Components/ui/TableFooter";
 
 const meta: Meta<typeof TableFooter> = {
-    title: 'UI/TableFooter',
+    title: "UI/TableFooter",
     component: TableFooter,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
 };
 
 export default meta;
@@ -16,7 +16,7 @@ export const DeclarativePagination: Story = {
         totalPages: 5,
         totalItems: 48,
         perPage: 10,
-        itemLabel: 'siswa',
+        itemLabel: "siswa",
         onPageChange: () => {},
     },
 };
@@ -27,7 +27,7 @@ export const SinglePage: Story = {
         totalPages: 1,
         totalItems: 8,
         perPage: 10,
-        itemLabel: 'pengajuan izin',
+        itemLabel: "pengajuan izin",
         onPageChange: () => {},
     },
 };

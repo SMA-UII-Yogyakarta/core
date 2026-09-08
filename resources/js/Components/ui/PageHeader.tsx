@@ -10,7 +10,9 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, children, className = "" }: PageHeaderProps) {
     return (
-        <div className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0 ${className}`}>
+        <div
+            className={`flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0 ${className}`}
+        >
             <div className="min-w-0 flex-1">
                 {title && (
                     <TruncatedText

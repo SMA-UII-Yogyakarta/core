@@ -1,7 +1,7 @@
+import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
 import Button from "@/Components/ui/Button";
 import Tooltip from "@/Components/ui/Tooltip";
 import TruncatedText from "@/Components/ui/TruncatedText";
@@ -197,8 +197,8 @@ export default function Drawer({
                                     ) : (
                                         title
                                     )}
-                                    {description && (
-                                        typeof description === "string" ? (
+                                    {description &&
+                                        (typeof description === "string" ? (
                                             <TruncatedText
                                                 as="p"
                                                 text={description}
@@ -207,8 +207,7 @@ export default function Drawer({
                                             />
                                         ) : (
                                             description
-                                        )
-                                    )}
+                                        ))}
                                 </div>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -248,9 +247,7 @@ export default function Drawer({
                             {/* Sticky Footer (Only shown when showFooter is true) */}
                             {showFooter && (
                                 <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3 border-t border-border select-none shrink-0 bg-surface pb-safe min-w-0">
-                                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                                        {leftFooter}
-                                    </div>
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">{leftFooter}</div>
                                     <div className="flex items-center gap-2.5 shrink-0 ml-auto">
                                         {renderFooterContent()}
                                     </div>

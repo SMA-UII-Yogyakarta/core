@@ -32,13 +32,7 @@ const sizeClasses: Record<string, string> = {
     lg: "w-3 h-3",
 };
 
-export default function StatusDot({
-    status,
-    size = "sm",
-    pulse = false,
-    className = "",
-    title,
-}: StatusDotProps) {
+export default function StatusDot({ status, size = "sm", pulse = false, className = "", title }: StatusDotProps) {
     const resolved = resolveStatusVariant(status);
     const colorClass = dotColors[resolved] ?? "bg-text-muted";
     const sizeClass = sizeClasses[size] ?? sizeClasses.sm;

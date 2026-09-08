@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FiChevronLeft, FiChevronRight, FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import BottomSheet from "@/Components/common/BottomSheet";
 
 export interface MobileNativePaginationProps {
@@ -28,8 +28,11 @@ export default function MobileNativePagination({
     if (totalPages <= 1) {
         if (totalItems !== undefined && totalItems > 0) {
             return (
-                <div className={`w-full py-2 text-center text-[11.5px] text-text-muted font-inter select-none ${className}`}>
-                    Menampilkan seluruh <strong className="text-text-primary font-bold">{totalItems}</strong> {itemLabel}
+                <div
+                    className={`w-full py-2 text-center text-[11.5px] text-text-muted font-inter select-none ${className}`}
+                >
+                    Menampilkan seluruh <strong className="text-text-primary font-bold">{totalItems}</strong>{" "}
+                    {itemLabel}
                 </div>
             );
         }
@@ -50,8 +53,11 @@ export default function MobileNativePagination({
             {/* Range info summary */}
             {totalItems !== undefined && startItem !== null && endItem !== null && (
                 <div className="text-center text-[11.5px] text-text-muted pb-1.5 font-medium">
-                    Menampilkan <strong className="text-text-primary font-bold">{startItem}–{endItem}</strong> dari total{" "}
-                    <strong className="text-text-primary font-bold">{totalItems}</strong> {itemLabel}
+                    Menampilkan{" "}
+                    <strong className="text-text-primary font-bold">
+                        {startItem}–{endItem}
+                    </strong>{" "}
+                    dari total <strong className="text-text-primary font-bold">{totalItems}</strong> {itemLabel}
                 </div>
             )}
 

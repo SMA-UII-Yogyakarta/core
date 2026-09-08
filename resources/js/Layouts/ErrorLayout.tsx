@@ -1,24 +1,24 @@
-import { useState, useMemo, type ErrorInfo } from "react";
+import { type ErrorInfo, useMemo, useState } from "react";
 import {
+    FiActivity,
     FiAlertTriangle,
-    FiRefreshCw,
-    FiHome,
-    FiCopy,
+    FiArrowLeft,
     FiCheck,
-    FiMail,
-    FiTerminal,
-    FiLayers,
+    FiCopy,
     FiCpu,
     FiDownload,
+    FiHelpCircle,
+    FiHome,
+    FiLayers,
+    FiMail,
     FiMaximize2,
     FiMinimize2,
-    FiArrowLeft,
+    FiRefreshCw,
     FiRotateCw,
-    FiHelpCircle,
-    FiActivity,
+    FiTerminal,
 } from "react-icons/fi";
-import Button from "@/Components/ui/Button";
 import BrandLogo from "@/Components/layout/BrandLogo";
+import Button from "@/Components/ui/Button";
 import { copyToClipboard } from "@/utils/helpers";
 
 export interface ErrorLayoutProps {
@@ -143,9 +143,11 @@ export default function ErrorLayout({
     };
 
     const handleReportEmail = () => {
-        const subject = encodeURIComponent(`[Kendala Sistem SMA UII] ${error?.name || "Error"}: ${error?.message || "Laporan Masalah"}`);
+        const subject = encodeURIComponent(
+            `[Kendala Sistem SMA UII] ${error?.name || "Error"}: ${error?.message || "Laporan Masalah"}`,
+        );
         const body = encodeURIComponent(
-            `Halo Tim Teknis SMA UII,\n\nSaya mendapati kendala teknis saat menggunakan aplikasi:\n\n${fullReportText}\n`
+            `Halo Tim Teknis SMA UII,\n\nSaya mendapati kendala teknis saat menggunakan aplikasi:\n\n${fullReportText}\n`,
         );
         window.open(`mailto:support@smauii.sch.id?subject=${subject}&body=${body}`, "_blank");
     };
@@ -329,9 +331,7 @@ export default function ErrorLayout({
                                 <FiCpu className="w-3.5 h-3.5 text-primary" />
                                 Alat Diagnostik & Laporan
                             </span>
-                            <span className="text-[11px] text-text-muted font-medium">
-                                Untuk Tim IT / Pengembang
-                            </span>
+                            <span className="text-[11px] text-text-muted font-medium">Untuk Tim IT / Pengembang</span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -396,7 +396,8 @@ export default function ErrorLayout({
                                         1
                                     </span>
                                     <p>
-                                        <strong>Coba Lagi:</strong> Klik tombol &quot;Coba Lagi&quot; untuk mereset komponen dan mengeksekusi ulang fungsi terkait.
+                                        <strong>Coba Lagi:</strong> Klik tombol &quot;Coba Lagi&quot; untuk mereset
+                                        komponen dan mengeksekusi ulang fungsi terkait.
                                     </p>
                                 </div>
                                 <div className="flex items-start gap-2">
@@ -404,7 +405,8 @@ export default function ErrorLayout({
                                         2
                                     </span>
                                     <p>
-                                        <strong>Segarkan Cache:</strong> Jika aplikasi baru saja diperbarui, klik &quot;Muat Ulang Halaman&quot; atau tekan Ctrl+F5 (Cmd+Shift+R).
+                                        <strong>Segarkan Cache:</strong> Jika aplikasi baru saja diperbarui, klik
+                                        &quot;Muat Ulang Halaman&quot; atau tekan Ctrl+F5 (Cmd+Shift+R).
                                     </p>
                                 </div>
                                 <div className="flex items-start gap-2">
@@ -412,7 +414,8 @@ export default function ErrorLayout({
                                         3
                                     </span>
                                     <p>
-                                        <strong>Hubungi Tim Teknis:</strong> Salin laporan atau unduh log kendala, lalu lampirkan ke tim IT SMA UII untuk penanganan.
+                                        <strong>Hubungi Tim Teknis:</strong> Salin laporan atau unduh log kendala, lalu
+                                        lampirkan ke tim IT SMA UII untuk penanganan.
                                     </p>
                                 </div>
                             </div>
@@ -432,7 +435,7 @@ export default function ErrorLayout({
                                 <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
                             </div>
                             <span className="text-[11px] font-mono text-slate-400 font-semibold hidden sm:inline">
-                                smauii-inspector // v2.0
+                                {"smauii-inspector // v2.0"}
                             </span>
                         </div>
 
@@ -539,7 +542,8 @@ export default function ErrorLayout({
                                             <span>Component Stack Belum Tersedia</span>
                                         </div>
                                         <p className="text-[11.5px] leading-relaxed text-slate-300">
-                                            Informasi hierarki komponen React tidak tercatat untuk error ini, atau error terjadi pada runtime di luar siklus lifecycle render komponen React.
+                                            Informasi hierarki komponen React tidak tercatat untuk error ini, atau error
+                                            terjadi pada runtime di luar siklus lifecycle render komponen React.
                                         </p>
                                     </div>
                                 )}

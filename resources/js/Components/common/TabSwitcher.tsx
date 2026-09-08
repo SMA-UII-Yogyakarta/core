@@ -231,16 +231,16 @@ export default function TabSwitcher({
                     const buttonWidthClass = shrinkable
                         ? "flex-initial shrink min-w-0"
                         : fullWidth === true
+                          ? isManyTabs
+                              ? "flex-1 shrink-0 min-w-max"
+                              : "flex-1 min-w-0 shrink"
+                          : fullWidth === "mobile-only"
                             ? isManyTabs
-                                ? "flex-1 shrink-0 min-w-max"
-                                : "flex-1 min-w-0 shrink"
-                            : fullWidth === "mobile-only"
-                              ? isManyTabs
-                                  ? "flex-1 shrink-0 min-w-max sm:flex-initial sm:min-w-0"
-                                  : "flex-1 min-w-0 shrink sm:flex-initial"
-                              : isManyTabs
-                                ? "flex-initial shrink-0 min-w-max"
-                                : "flex-initial shrink min-w-0";
+                                ? "flex-1 shrink-0 min-w-max sm:flex-initial sm:min-w-0"
+                                : "flex-1 min-w-0 shrink sm:flex-initial"
+                            : isManyTabs
+                              ? "flex-initial shrink-0 min-w-max"
+                              : "flex-initial shrink min-w-0";
 
                     return (
                         <button
@@ -266,9 +266,7 @@ export default function TabSwitcher({
                             } ${tab.disabled ? "opacity-40 cursor-not-allowed" : ""} ${itemClassName}`}
                         >
                             {tab.icon && <span className="shrink-0 flex items-center">{tab.icon}</span>}
-                            <span className="truncate min-w-0">
-                                {tab.label}
-                            </span>
+                            <span className="truncate min-w-0">{tab.label}</span>
                             {tab.count !== undefined && (
                                 <span
                                     className={`inline-flex items-center justify-center shrink-0 ${sizeBadgeClasses[size]} rounded-full font-bold ${

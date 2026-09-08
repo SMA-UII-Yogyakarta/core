@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { Link } from "@inertiajs/react";
-import { FiX, FiUser, FiSliders, FiRefreshCw, FiChevronUp, FiLogOut } from "react-icons/fi";
+import { useState } from "react";
+import { FiChevronUp, FiLogOut, FiRefreshCw, FiSliders, FiUser, FiX } from "react-icons/fi";
 import type { NavSection } from "@/Layouts/AppShell";
 import Avatar from "../ui/Avatar";
 
@@ -75,7 +75,8 @@ export default function MobileSidebarDrawer({
                                 className="w-8 h-8 object-contain"
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
-                                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232E3391'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 14l9-5-9-5-9 5 9 5z'/%3E%3C/svg%3E";
+                                    e.currentTarget.src =
+                                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232E3391'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 14l9-5-9-5-9 5 9 5z'/%3E%3C/svg%3E";
                                 }}
                             />
                         </div>
@@ -199,8 +200,12 @@ export default function MobileSidebarDrawer({
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             <Avatar name={userName || userInitial} src={userAvatar} size="sm" variant="accent" />
                             <div className="min-w-0 flex-1">
-                                <h4 className="text-[13px] font-bold text-text-primary truncate leading-tight">{userName}</h4>
-                                <p className="text-[10px] text-text-muted capitalize leading-tight mt-0.5">{roleLabel}</p>
+                                <h4 className="text-[13px] font-bold text-text-primary truncate leading-tight">
+                                    {userName}
+                                </h4>
+                                <p className="text-[10px] text-text-muted capitalize leading-tight mt-0.5">
+                                    {roleLabel}
+                                </p>
                             </div>
                         </div>
 
@@ -210,7 +215,9 @@ export default function MobileSidebarDrawer({
                                 className="w-7 h-7 rounded-lg flex items-center justify-center text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                                 aria-label="Menu profil"
                             >
-                                <FiChevronUp className={`text-[12px] transition-transform duration-200 ${profileMenuOpen ? "rotate-180" : ""}`} />
+                                <FiChevronUp
+                                    className={`text-[12px] transition-transform duration-200 ${profileMenuOpen ? "rotate-180" : ""}`}
+                                />
                             </button>
                             <button
                                 onClick={(e) => {

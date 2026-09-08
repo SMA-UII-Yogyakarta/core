@@ -10,10 +10,7 @@ export interface LiveBadgeProps extends HTMLAttributes<HTMLDivElement> {
     dusk?: string;
 }
 
-const variantStyles: Record<
-    LiveBadgeVariant,
-    { badge: string; dot: string; text: string }
-> = {
+const variantStyles: Record<LiveBadgeVariant, { badge: string; dot: string; text: string }> = {
     danger: {
         badge: "bg-danger-bg border border-danger-light text-danger",
         dot: "bg-danger",

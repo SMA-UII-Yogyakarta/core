@@ -1,24 +1,11 @@
 import { describe, expect, it } from "vitest";
-import {
-    calculateDistance,
-    formatDistance,
-    isWithinSchoolGeofence,
-    SMA_UII_LOCATION,
-} from "../../utils/geoHelper";
+import { calculateDistance, formatDistance, isWithinSchoolGeofence, SMA_UII_LOCATION } from "../../utils/geoHelper";
 
 describe("Geo Helper Utility", () => {
     it("returns zero distance for exact school coordinates", () => {
-        const distance = calculateDistance(
-            SMA_UII_LOCATION.latitude,
-            SMA_UII_LOCATION.longitude,
-        );
+        const distance = calculateDistance(SMA_UII_LOCATION.latitude, SMA_UII_LOCATION.longitude);
         expect(distance).toBe(0);
-        expect(
-            isWithinSchoolGeofence(
-                SMA_UII_LOCATION.latitude,
-                SMA_UII_LOCATION.longitude,
-            ),
-        ).toBe(true);
+        expect(isWithinSchoolGeofence(SMA_UII_LOCATION.latitude, SMA_UII_LOCATION.longitude)).toBe(true);
     });
 
     it("identifies location within 100 meters geofence", () => {

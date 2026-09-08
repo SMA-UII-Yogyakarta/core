@@ -1,16 +1,16 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
+    AttendanceCalendar,
     Avatar,
     Button,
+    Drawer,
+    ExportButtonGroup,
     LiveBadge,
     MetricPill,
-    StatusBadge,
-    StatCard,
-    AttendanceCalendar,
-    ExportButtonGroup,
     SearchBar,
-    Drawer,
+    StatCard,
+    StatusBadge,
 } from "@/Components";
 
 describe("Design System Component Tests", () => {
@@ -51,26 +51,13 @@ describe("Design System Component Tests", () => {
     });
 
     it("renders AttendanceCalendar and navigates month", () => {
-        render(
-            <AttendanceCalendar
-                month={8}
-                year={2026}
-                attendances={[]}
-                holidays={[]}
-            />,
-        );
+        render(<AttendanceCalendar month={8} year={2026} attendances={[]} holidays={[]} />);
         expect(screen.getByText(/Agustus/i)).toBeDefined();
         expect(screen.getByText("14")).toBeDefined();
     });
 
     it("renders ExportButtonGroup with export options in modal", () => {
-        render(
-            <ExportButtonGroup
-                onExportExcel={() => {}}
-                onExportPdf={() => {}}
-                onPrint={() => {}}
-            />,
-        );
+        render(<ExportButtonGroup onExportExcel={() => {}} onExportPdf={() => {}} onPrint={() => {}} />);
         expect(screen.getByText("Unduh Laporan")).toBeDefined();
         fireEvent.click(screen.getByText("Unduh Laporan"));
         expect(screen.getByText("Pilih Format Unduhan")).toBeDefined();
@@ -105,13 +92,7 @@ describe("Design System Component Tests", () => {
 
     it("renders Drawer as div when asForm={false} and allows embedding SearchBar safely", () => {
         const { container } = render(
-            <Drawer
-                open={true}
-                onClose={() => {}}
-                title="Pilih Siswa"
-                onSubmit={() => {}}
-                asForm={false}
-            >
+            <Drawer open={true} onClose={() => {}} title="Pilih Siswa" onSubmit={() => {}} asForm={false}>
                 <SearchBar value="" onChange={() => {}} placeholder="Cari di modal..." />
             </Drawer>,
         );

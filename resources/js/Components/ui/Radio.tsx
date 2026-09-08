@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
-import Label from "./Label";
 import FormError from "./FormError";
+import Label from "./Label";
 
 interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
     label?: string;

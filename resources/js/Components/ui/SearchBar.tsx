@@ -83,12 +83,7 @@ export default function SearchBar({
                 />
             </div>
             {!autoSearch && (
-                <Button
-                    type="button"
-                    onClick={() => onSearchRef.current(localValue)}
-                    variant="ghost"
-                    size="sm"
-                >
+                <Button type="button" onClick={() => onSearchRef.current(localValue)} variant="ghost" size="sm">
                     Cari
                 </Button>
             )}

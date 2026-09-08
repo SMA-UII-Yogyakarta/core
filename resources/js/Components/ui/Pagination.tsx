@@ -106,10 +106,7 @@ export default function Pagination({
             )}
 
             {/* Navigation Controls — Tepi Kanan */}
-            <nav
-                className="flex items-center justify-end gap-1 shrink-0"
-                aria-label="Pagination"
-            >
+            <nav className="flex items-center justify-end gap-1 shrink-0" aria-label="Pagination">
                 {/* Previous Button */}
                 <button
                     type="button"

@@ -85,9 +85,7 @@ export default function MobileFilterSelectBar({
                     disabled={isPillDisabled}
                     className="pointer-events-none"
                 />
-                <span className="whitespace-nowrap font-semibold text-[11.5px] cursor-pointer">
-                    {label}
-                </span>
+                <span className="whitespace-nowrap font-semibold text-[11.5px] cursor-pointer">{label}</span>
             </button>
 
             {/* Search Bar */}

@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import MobileNativePagination from '../Components/ui/MobileNativePagination';
+import type { Meta, StoryObj } from "@storybook/react";
+import MobileNativePagination from "../Components/ui/MobileNativePagination";
 
 const meta: Meta<typeof MobileNativePagination> = {
-    title: 'UI/MobileNativePagination',
+    title: "UI/MobileNativePagination",
     component: MobileNativePagination,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
 };
 
 export default meta;
@@ -16,7 +16,7 @@ export const Default: Story = {
         totalPages: 8,
         totalItems: 75,
         perPage: 10,
-        itemLabel: 'siswa',
+        itemLabel: "siswa",
         onPageChange: () => {},
     },
 };
@@ -27,7 +27,7 @@ export const FirstPage: Story = {
         totalPages: 4,
         totalItems: 38,
         perPage: 10,
-        itemLabel: 'data presensi',
+        itemLabel: "data presensi",
         onPageChange: () => {},
     },
 };
@@ -39,7 +39,7 @@ export const StickyBottom: Story = {
         totalItems: 52,
         perPage: 10,
         sticky: true,
-        itemLabel: 'riwayat izin',
+        itemLabel: "riwayat izin",
         onPageChange: () => {},
     },
 };

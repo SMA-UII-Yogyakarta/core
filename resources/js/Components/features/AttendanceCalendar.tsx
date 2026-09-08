@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import StatusDot from "@/Components/ui/StatusDot";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 export interface AttendanceRecord {
     id?: number;
@@ -84,22 +84,22 @@ export default function AttendanceCalendar({
 
     return (
         <div
-            className={`bg-surface border border-border rounded-xl p-5 shadow-card font-inter ${className}`}
+            className={`w-full min-w-0 bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-card font-inter ${className}`}
             dusk={dusk}
             data-testid={dusk}
         >
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[15px] font-bold text-text-primary font-inter">
+                <h2 className="text-[15px] sm:text-[16px] font-bold text-text-primary font-inter">
                     Kalender {MONTH_NAMES[month - 1]} {year}
                 </h2>
             </div>
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 mb-2">
+            <div className="grid grid-cols-7 w-full gap-1 mb-2.5">
                 {DAY_LABELS.map((d, i) => (
                     <div
                         key={d}
-                        className={`flex items-center justify-center text-[11px] font-bold py-1 select-none ${
+                        className={`text-center text-[11px] sm:text-[12px] font-bold py-1 select-none truncate ${
                             i === 0 ? "text-danger" : "text-text-muted"
                         }`}
                     >
@@ -109,16 +109,14 @@ export default function AttendanceCalendar({
             </div>
 
             {/* Date cells */}
-            <div className="grid grid-cols-7 gap-y-1.5">
+            <div className="grid grid-cols-7 w-full gap-1 gap-y-2">
                 {cells.map((day, idx) => {
-                    if (!day) return <div key={`empty-${idx}`} className="h-9" />;
+                    if (!day) return <div key={`empty-${idx}`} className="h-10 w-full" />;
 
                     const att = attendanceMap.get(day);
                     const holiday = holidayMap.get(day);
                     const isToday =
-                        day === today.getDate() &&
-                        month === today.getMonth() + 1 &&
-                        year === today.getFullYear();
+                        day === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear();
                     const isSelected = selectedDay === day;
 
                     return (
@@ -126,19 +124,19 @@ export default function AttendanceCalendar({
                             key={day}
                             type="button"
                             onClick={() => onSelectDay?.(day, att, holiday)}
-                            className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg transition-all cursor-pointer hover:bg-muted focus:outline-none focus:ring-1 focus:ring-primary/40
-                                ${isSelected ? "ring-2 ring-primary bg-primary/5" : ""}
-                            `}
+                            className={`w-full flex flex-col items-center justify-center gap-1 py-1 rounded-xl transition-all cursor-pointer hover:bg-muted/70 focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                                isSelected ? "ring-2 ring-primary bg-primary/10 shadow-2xs" : ""
+                            }`}
                             aria-label={`Tanggal ${day} ${MONTH_NAMES[month - 1]} ${year}${
                                 att ? `, Status: ${att.status}` : ""
                             }${holiday ? `, Libur: ${holiday.description}` : ""}`}
                         >
                             <span
-                                className={`text-[12px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+                                className={`text-[12px] sm:text-[13px] font-semibold w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full transition-colors ${
                                     isToday
-                                        ? "bg-primary text-white font-bold shadow-sm"
+                                        ? "bg-primary text-white font-bold shadow-xs"
                                         : holiday
-                                          ? "text-danger font-bold"
+                                          ? "text-danger font-bold bg-danger/10"
                                           : "text-text-primary"
                                 }`}
                             >
@@ -157,22 +155,22 @@ export default function AttendanceCalendar({
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-3.5 mt-5 pt-4 border-t border-border flex-wrap">
+            <div className="flex items-center gap-3 sm:gap-4 mt-5 pt-4 border-t border-border flex-wrap">
                 <div className="flex items-center gap-1.5">
                     <StatusDot status="present" size="sm" />
-                    <span className="text-[11px] text-text-muted">Hadir</span>
+                    <span className="text-[11px] sm:text-[12px] text-text-muted font-medium">Hadir</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <StatusDot status="late" size="sm" />
-                    <span className="text-[11px] text-text-muted">Terlambat</span>
+                    <span className="text-[11px] sm:text-[12px] text-text-muted font-medium">Terlambat</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <StatusDot status="sick" size="sm" />
-                    <span className="text-[11px] text-text-muted">Sakit/Izin</span>
+                    <span className="text-[11px] sm:text-[12px] text-text-muted font-medium">Sakit/Izin</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <StatusDot status="absent" size="sm" />
-                    <span className="text-[11px] text-text-muted">Alpa / Libur</span>
+                    <span className="text-[11px] sm:text-[12px] text-text-muted font-medium">Alpa / Libur</span>
                 </div>
             </div>
         </div>

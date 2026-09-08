@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
 import { Toaster as SonnerToaster, toast } from "sonner";
 
-export type ToastPosition =
-    | "top-left"
-    | "top-right"
-    | "top-center"
-    | "bottom-left"
-    | "bottom-right"
-    | "bottom-center";
+export type ToastPosition = "top-left" | "top-right" | "top-center" | "bottom-left" | "bottom-right" | "bottom-center";
 
 export const TOAST_POSITION_KEY = "smauii_toast_position";
 
@@ -18,14 +12,7 @@ export function getSavedToastPosition(): ToastPosition {
         const saved = localStorage.getItem(TOAST_POSITION_KEY) as ToastPosition | null;
         if (
             saved &&
-            [
-                "top-left",
-                "top-right",
-                "top-center",
-                "bottom-left",
-                "bottom-right",
-                "bottom-center",
-            ].includes(saved)
+            ["top-left", "top-right", "top-center", "bottom-left", "bottom-right", "bottom-center"].includes(saved)
         ) {
             return saved;
         }
@@ -42,9 +29,7 @@ export function setSavedToastPosition(position: ToastPosition) {
         } catch {
             // Ignore error
         }
-        window.dispatchEvent(
-            new CustomEvent("toast-position-changed", { detail: position }),
-        );
+        window.dispatchEvent(new CustomEvent("toast-position-changed", { detail: position }));
     }
 }
 

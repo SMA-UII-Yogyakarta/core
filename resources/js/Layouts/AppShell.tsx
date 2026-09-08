@@ -1,18 +1,18 @@
-import { useState, useMemo, useEffect } from "react";
-import type { ReactNode } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
-import Navbar from "@/Components/layout/Navbar";
-import MobileHeader from "@/Components/layout/MobileHeader";
-import MobileSidebarDrawer from "@/Components/layout/MobileSidebarDrawer";
-import MobileBottomNav from "@/Components/layout/MobileBottomNav";
-import DesktopSidebar from "@/Components/layout/DesktopSidebar";
-import TabletIconSidebar from "@/Components/layout/TabletIconSidebar";
-import RoleSwitcherModal from "@/Components/layout/RoleSwitcherModal";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import Toast from "@/Components/common/Toast";
-import type { NavItem, NavSection } from "@/types/component";
-import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import DesktopSidebar from "@/Components/layout/DesktopSidebar";
+import MobileBottomNav from "@/Components/layout/MobileBottomNav";
+import MobileHeader from "@/Components/layout/MobileHeader";
+import MobileSidebarDrawer from "@/Components/layout/MobileSidebarDrawer";
+import Navbar from "@/Components/layout/Navbar";
+import RoleSwitcherModal from "@/Components/layout/RoleSwitcherModal";
+import TabletIconSidebar from "@/Components/layout/TabletIconSidebar";
 import { useBottomNavItems } from "@/hooks/useBottomNavItems";
+import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import type { NavItem, NavSection } from "@/types/component";
 
 export interface AppShellProps {
     title?: string;
@@ -25,8 +25,8 @@ export interface AppShellProps {
     noMobileTopPadding?: boolean;
     hasTopTabs?: boolean;
     hasTopCard?: boolean;
-    /** Unified spacing prop for mobile top padding ("none" = pt-0, "compact" = pt-2, "normal" = pt-4) */
-    mobileTopSpacing?: "none" | "compact" | "normal";
+    /** Unified spacing prop for mobile top padding ("none" = pt-0, "compact" = pt-2, "normal" = pt-4, "auto" = no pt injected — let mainClassName control all padding) */
+    mobileTopSpacing?: "none" | "compact" | "normal" | "auto";
     searchValue?: string;
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
@@ -96,7 +96,7 @@ export default function AppShell({
     useEffect(() => {
         const openRoleSwitcher = () => setRoleSwitcherOpen(true);
         window.addEventListener("open-role-switcher", openRoleSwitcher);
-        
+
         return () => {
             window.removeEventListener("open-role-switcher", openRoleSwitcher);
         };
@@ -184,7 +184,11 @@ export default function AppShell({
                 {/* Main Body Layout Below Desktop Header / Mobile Header Container */}
                 <div className="flex flex-1 min-h-0">
                     {/* Tablet Icon Sidebar (visible sm to lg) */}
-                    <TabletIconSidebar navSections={navSections} activeItemKey={activeItem?.key} onLogout={handleLogout} />
+                    <TabletIconSidebar
+                        navSections={navSections}
+                        activeItemKey={activeItem?.key}
+                        onLogout={handleLogout}
+                    />
 
                     {/* Desktop Sidebar (visible lg+) */}
                     <DesktopSidebar navSections={navSections} activeItemKey={activeItem?.key} />
@@ -214,11 +218,13 @@ export default function AppShell({
                         <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-2xl overflow-hidden">
                             <main
                                 className={`flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
-                                    noMobileTopPadding || mobileTopSpacing === "none"
-                                        ? "pt-0"
-                                        : (hasTopTabs || hasTopCard || mobileTopSpacing === "compact")
-                                          ? "pt-2"
-                                          : "pt-4"
+                                    mobileTopSpacing === "auto"
+                                        ? ""
+                                        : noMobileTopPadding || mobileTopSpacing === "none"
+                                          ? "pt-0"
+                                          : hasTopTabs || hasTopCard || mobileTopSpacing === "compact"
+                                            ? "pt-2"
+                                            : "pt-4"
                                 } ${showBottomNav ? "max-sm:pb-24" : ""} ${mainClassName ?? ""}`}
                             >
                                 <ErrorBoundary>{children}</ErrorBoundary>

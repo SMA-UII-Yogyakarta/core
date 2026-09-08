@@ -120,9 +120,7 @@ export default function Modal({
                 </div>
 
                 {/* Modal Body with Isolated Vertical Scroll */}
-                <div
-                    className={`p-4 sm:p-5 overflow-y-auto overscroll-contain flex-1 min-h-0 ${bodyClassName}`}
-                >
+                <div className={`p-4 sm:p-5 overflow-y-auto overscroll-contain flex-1 min-h-0 ${bodyClassName}`}>
                     {children}
                 </div>
 

@@ -90,6 +90,7 @@ export default function Avatar({
 
             {status && (
                 <span
+                    role="status"
                     className={`absolute bottom-0 right-0 rounded-full ${dot} ${statusMap[status]} ring-white dark:ring-neutral-900`}
                     aria-label={`Status: ${status}`}
                 />
