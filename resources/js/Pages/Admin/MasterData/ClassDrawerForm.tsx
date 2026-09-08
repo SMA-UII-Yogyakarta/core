@@ -71,11 +71,7 @@ export default function ClassDrawerForm({
           ]
         : [];
 
-    const title = isCreate
-        ? "Tambah Kelas / Rombel Baru"
-        : isUnlocked
-        ? "Edit Data Kelas"
-        : "Detail Data Kelas";
+    const title = isCreate ? "Tambah Kelas / Rombel Baru" : isUnlocked ? "Edit Data Kelas" : "Detail Data Kelas";
 
     const description = isCreate
         ? "Tambahkan rombel belajar baru yang selaras dengan tahun ajaran dan standar Moodle."

@@ -1,24 +1,24 @@
-import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useMemo, useState } from "react";
+import { FiCamera, FiFilter } from "react-icons/fi";
 import {
     AttendanceCalendar,
+    BottomSheet,
     Button,
-    StatusBadge,
-    Modal,
-    PageHeader,
-    Table,
-    TableFooter,
     EmptyState,
     FilterBar,
     MobileNativePagination,
-    BottomSheet,
+    Modal,
     NativeSelect,
+    PageHeader,
+    StatusBadge,
+    Table,
+    TableFooter,
 } from "@/Components";
-import { useClientPagination } from "@/hooks/useClientPagination";
-import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import type { Column } from "@/Components/ui/Table";
-import { FiCamera, FiFilter } from "react-icons/fi";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface Student {
     id: number;
@@ -74,10 +74,12 @@ export default function AttendanceHistory({ student, attendances, month, year }:
         return { total, present, late, rate };
     }, [attendances]);
 
-    const handleFilter = () => {
+    const applyFilter = (newMonth: string, newYear: string) => {
+        setMonthVal(newMonth);
+        setYearVal(newYear);
         router.get(
             "/student/history",
-            { month: monthVal, year: yearVal },
+            { month: newMonth, year: newYear },
             {
                 preserveState: true,
                 preserveScroll: true,
@@ -86,50 +88,91 @@ export default function AttendanceHistory({ student, attendances, month, year }:
         );
     };
 
-    // Find record for selected day
+    const formatCheckInTime = (time: string | null) => {
+        if (!time) return null;
+        if (time.includes("T")) {
+            try {
+                const date = new Date(time);
+                return date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+            } catch {
+                return time;
+            }
+        }
+        if (time.length >= 5) {
+            return time.substring(0, 5);
+        }
+        return time;
+    };
+
+    const formatDateIndo = (dateStr: string) => {
+        try {
+            const d = new Date(dateStr + "T00:00:00");
+            return d.toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    // Selected day record finder
     const selectedRecord = useMemo(() => {
         if (!selectedDay) return null;
-        return attendances.find((a) => {
-            const d = new Date(a.attendance_date);
-            return d.getDate() === selectedDay;
-        });
-    }, [attendances, selectedDay]);
+        const dayFormatted = selectedDay.toString().padStart(2, "0");
+        const monthFormatted = month.toString().padStart(2, "0");
+        const datePattern = `${year}-${monthFormatted}-${dayFormatted}`;
+        return attendances.find((a) => a.attendance_date.startsWith(datePattern)) || null;
+    }, [selectedDay, attendances, month, year]);
 
     const columns: Column<AttendanceRecord>[] = [
         {
             key: "attendance_date",
-            header: "Tanggal",
-            render: (att) => <span className="font-semibold text-text-primary">{att.attendance_date}</span>,
-        },
-        {
-            key: "check_in_time",
-            header: "Waktu Masuk",
-            render: (att) => (
-                <span className="font-mono text-text-secondary">
-                    {att.check_in_time ? `${att.check_in_time} WIB` : "—"}
+            header: "Hari & Tanggal",
+            className: "w-48",
+            render: (row: AttendanceRecord) => (
+                <span className="font-semibold text-text-primary text-[13px] block">
+                    {formatDateIndo(row.attendance_date)}
                 </span>
             ),
         },
         {
             key: "status",
             header: "Status",
-            render: (att) => <StatusBadge variant={att.status} />,
+            className: "w-32",
+            render: (row: AttendanceRecord) => <StatusBadge variant={row.status} />,
         },
         {
-            key: "photo",
-            header: "Foto Bukti",
-            render: (att) =>
-                att.photo_url ? (
+            key: "check_in_time",
+            header: "Waktu Masuk",
+            className: "w-32",
+            render: (row: AttendanceRecord) => {
+                const formatted = formatCheckInTime(row.check_in_time);
+                return (
+                    <span className="font-mono text-[13px] text-text-secondary font-medium">
+                        {formatted ? `${formatted} WIB` : "—"}
+                    </span>
+                );
+            },
+        },
+        {
+            key: "photo_url",
+            header: "Bukti Kamera",
+            className: "w-28 text-center",
+            render: (row: AttendanceRecord) =>
+                row.photo_url ? (
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() =>
                             setPhotoModal({
-                                url: att.photo_url!,
-                                date: att.attendance_date,
+                                url: row.photo_url!,
+                                date: formatDateIndo(row.attendance_date),
                             })
                         }
-                        className="text-[12px]"
+                        className="text-[12px] font-semibold text-primary"
                         icon={<FiCamera className="text-[12px]" />}
                     >
                         Cek Foto
@@ -149,9 +192,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Riwayat"
                 aria-label="Filter Riwayat"
@@ -163,59 +204,78 @@ export default function AttendanceHistory({ student, attendances, month, year }:
 
     return (
         <AppShell title="Riwayat Presensi Siswa" headerActions={mobileHeaderActions}>
+            {/* Desktop PageHeader with auto-updating Month & Year filter dropdowns */}
             <PageHeader
                 title="Riwayat Presensi Siswa"
                 description={`Daftar lengkap rekapitulasi kehadiran ${student.name} per bulan.`}
                 className="hidden lg:flex shrink-0 mb-4"
             >
-                <div className="flex items-center gap-2 bg-surface px-4 py-2 border border-border rounded-xl shadow-xs">
-                    <span className="text-[12px] font-bold text-text-muted uppercase">Tingkat Kehadiran:</span>
-                    <span className="text-[16px] font-bold text-primary font-mono">{stats.rate}%</span>
+                <div className="flex items-center gap-3">
+                    <FilterBar.Select
+                        options={MONTH_NAMES.map((name, i) => ({
+                            value: (i + 1).toString(),
+                            label: name,
+                        }))}
+                        value={monthVal}
+                        onChange={(e) => applyFilter(e.target.value, yearVal)}
+                        dusk="select-month"
+                        data-testid="select-month"
+                        className="w-36"
+                    />
+                    <FilterBar.Select
+                        options={["2024", "2025", "2026", "2027"].map((t) => ({
+                            value: t,
+                            label: t,
+                        }))}
+                        value={yearVal}
+                        onChange={(e) => applyFilter(monthVal, e.target.value)}
+                        dusk="select-year"
+                        data-testid="select-year"
+                        className="w-24"
+                    />
+                    <div className="flex items-center gap-2 bg-surface px-4 py-2 border border-border rounded-xl shadow-xs">
+                        <span className="text-[12px] font-bold text-text-muted uppercase">Tingkat Kehadiran:</span>
+                        <span className="text-[16px] font-bold text-primary font-mono">{stats.rate}%</span>
+                    </div>
                 </div>
             </PageHeader>
 
-            <div className="space-y-6 font-inter">
-                {/* Filter Controls (Desktop/Tablet only) */}
-                <div className="hidden sm:block">
-                    <FilterBar>
+            <div className="space-y-6 font-inter pb-12 sm:pb-6">
+                {/* Filter Controls for Tablet (hidden on mobile and desktop) */}
+                <div className="hidden sm:flex lg:hidden items-center justify-between gap-3 bg-surface p-3.5 rounded-2xl border border-border shadow-xs">
+                    <div className="flex items-center gap-2.5">
                         <FilterBar.Select
-                            label="Bulan"
                             options={MONTH_NAMES.map((name, i) => ({
                                 value: (i + 1).toString(),
                                 label: name,
                             }))}
                             value={monthVal}
-                            onChange={(e) => setMonthVal(e.target.value)}
-                            dusk="select-month"
-                            data-testid="select-month"
+                            onChange={(e) => applyFilter(e.target.value, yearVal)}
+                            dusk="select-month-tablet"
+                            data-testid="select-month-tablet"
+                            className="w-36"
                         />
                         <FilterBar.Select
-                            label="Tahun"
                             options={["2024", "2025", "2026", "2027"].map((t) => ({
                                 value: t,
                                 label: t,
                             }))}
                             value={yearVal}
-                            onChange={(e) => setYearVal(e.target.value)}
-                            dusk="select-year"
-                            data-testid="select-year"
+                            onChange={(e) => applyFilter(monthVal, e.target.value)}
+                            dusk="select-year-tablet"
+                            data-testid="select-year-tablet"
+                            className="w-24"
                         />
-                        <Button
-                            variant="accent"
-                            onClick={handleFilter}
-                            icon={<FiFilter className="w-4 h-4" />}
-                            dusk="btn-filter-history"
-                            data-testid="btn-filter-history"
-                        >
-                            Tampilkan
-                        </Button>
-                    </FilterBar>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[12px] font-bold font-mono">
+                        <span>Kehadiran: {stats.rate}%</span>
+                    </div>
                 </div>
 
-                {/* ══ DESKTOP: 2 kolom kalender + tabel ══════════════════════════ */}
-                <div className="hidden lg:grid lg:grid-cols-[1.1fr_1.4fr] gap-6">
-                    {/* Kiri — Kalender Visual Composable */}
-                    <div className="space-y-4">
+                {/* ══ DESKTOP: 2 kolom kalender + tabel (12-kolom grid seimbang di lg+) ══ */}
+                <div className="hidden lg:grid lg:grid-cols-12 gap-6 items-start">
+                    {/* Kiri — Kalender Visual (5 Kolom) */}
+                    <div className="lg:col-span-5 min-w-0 space-y-4">
                         <AttendanceCalendar
                             month={month}
                             year={year}
@@ -235,167 +295,170 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/60">
                                         <div className="flex items-center gap-2">
                                             <StatusBadge variant={selectedRecord.status} />
-                                            <span className="text-[12px] text-text-muted font-mono">
-                                                {selectedRecord.check_in_time ? `${selectedRecord.check_in_time} WIB` : "-"}
+                                            <span className="text-[12px] text-text-muted font-mono font-semibold">
+                                                {formatCheckInTime(selectedRecord.check_in_time)
+                                                    ? `${formatCheckInTime(selectedRecord.check_in_time)} WIB`
+                                                    : "—"}
                                             </span>
                                         </div>
                                         {selectedRecord.photo_url && (
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() =>
                                                     setPhotoModal({
                                                         url: selectedRecord.photo_url!,
-                                                        date: selectedRecord.attendance_date,
+                                                        date: formatDateIndo(selectedRecord.attendance_date),
                                                     })
                                                 }
-                                                className="text-[12px] text-primary"
+                                                className="text-[11px] font-bold"
                                             >
-                                                Lihat Foto Selfie
+                                                Foto Selfie
                                             </Button>
                                         )}
                                     </div>
                                 ) : (
                                     <p className="text-[12px] text-text-muted mt-1">
-                                        Tidak ada catatan presensi pada tanggal ini (Libur / Alpa).
+                                        Tidak ada catatan kehadiran pada tanggal ini.
                                     </p>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    {/* Kanan — Standalone Table */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between px-1">
-                            <span className="text-[14px] font-bold text-text-primary">
-                                Rekapitulasi {MONTH_NAMES[month - 1]} {year}
-                            </span>
-                            <span className="text-[12px] text-text-muted">
-                                Total {attendances.length} Hari Terdata
-                            </span>
+                    {/* Kanan — Tabel Riwayat Kehadiran (7 Kolom) */}
+                    <div className="lg:col-span-7 min-w-0 space-y-3">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border shadow-card">
+                            <h3 className="text-[15px] font-bold text-text-primary mb-3">
+                                Rincian Log Kehadiran — {MONTH_NAMES[month - 1]} {year}
+                            </h3>
+                            <Table<AttendanceRecord>
+                                columns={columns}
+                                data={paginatedAttendances}
+                                keyExtractor={(row) => row.id}
+                                emptyMessage="Belum ada data kehadiran untuk bulan yang dipilih."
+                            />
+                            {attendances.length > attPageSize && (
+                                <TableFooter
+                                    info={`Menampilkan ${paginatedAttendances.length} dari ${attendances.length} log kehadiran`}
+                                    currentPage={attSafePage}
+                                    totalPages={attTotalPages}
+                                    totalItems={attendances.length}
+                                    perPage={attPageSize}
+                                    onPageChange={setAttPage}
+                                />
+                            )}
                         </div>
-
-                        <Table
-                            columns={columns}
-                            data={paginatedAttendances}
-                            keyExtractor={(att) => att.id}
-                            emptyMessage="Belum ada data kehadiran untuk periode bulan dan tahun ini."
-                        />
-                        <TableFooter
-                            currentPage={attSafePage}
-                            totalPages={attTotalPages}
-                            totalItems={attendances.length}
-                            perPage={attPageSize}
-                            onPageChange={setAttPage}
-                            itemLabel="hari terdata"
-                        />
                     </div>
                 </div>
 
-                {/* ══ MOBILE: Kalender + List View ═══════════════════════════════ */}
-                <div className="lg:hidden flex flex-col gap-4 font-inter">
-                    <AttendanceCalendar
-                        month={month}
-                        year={year}
-                        attendances={attendances}
-                        selectedDay={selectedDay}
-                        onSelectDay={(day) => setSelectedDay(day)}
-                        dusk="mobile-attendance-calendar"
-                    />
+                {/* ══ MOBILE & TABLET: Card stack log kehadiran (< lg) ════════════════ */}
+                <div className="lg:hidden space-y-4">
+                    {/* Visual Calendar for Tablet/Mobile */}
+                    <div className="bg-surface rounded-2xl border border-border p-4 shadow-card">
+                        <AttendanceCalendar
+                            month={month}
+                            year={year}
+                            attendances={attendances}
+                            selectedDay={selectedDay}
+                            onSelectDay={(day) => setSelectedDay(day)}
+                            dusk="mobile-attendance-calendar"
+                        />
+                    </div>
 
-                    {attendances.length === 0 ? (
+                    {/* Log List Header */}
+                    <div className="flex items-center justify-between px-1">
+                        <h3 className="text-[14px] font-bold text-text-primary font-inter">
+                            Daftar Kehadiran Bulan {MONTH_NAMES[month - 1]} {year}
+                        </h3>
+                        <span className="text-[12px] font-bold text-primary font-mono bg-primary/10 px-2.5 py-1 rounded-lg">
+                            {attendances.length} Catatan
+                        </span>
+                    </div>
+
+                    {/* Mobile Card List */}
+                    {paginatedAttendances.length === 0 ? (
                         <EmptyState
-                            variant="no-history"
-                            title="Belum Ada Data Kehadiran"
-                            description={`Belum ada riwayat kehadiran untuk periode ${MONTH_NAMES[month - 1]} ${year}.`}
-                            className="bg-surface rounded-2xl border border-border"
+                            variant="no-data"
+                            title="Tidak Ada Data Presensi"
+                            description={`Belum ada catatan presensi untuk bulan ${MONTH_NAMES[month - 1]} ${year}.`}
                         />
                     ) : (
-                        <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-card">
-                            <div className="px-4 py-3 bg-muted border-b border-border flex items-center justify-between">
-                                <span className="text-[12px] font-bold text-text-primary">
-                                    Bulan {MONTH_NAMES[month - 1]} {year}
-                                </span>
-                                <span className="text-[11px] font-bold text-primary font-mono">{stats.rate}% Hadir</span>
-                            </div>
-
-                            {paginatedAttendances.map((att, idx) => {
-                                const isLast = idx === paginatedAttendances.length - 1;
-                                return (
-                                    <div
-                                        key={att.id}
-                                        className={`flex items-center px-4 py-3.5 gap-3 ${
-                                            !isLast ? "border-b border-border" : ""
-                                        }`}
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[13px] font-bold text-text-primary">
-                                                {att.attendance_date}
-                                            </p>
-                                            <p className="text-[11px] text-text-muted font-mono mt-0.5">
-                                                {att.check_in_time ? `${att.check_in_time} WIB` : "Tidak ada jam"}
-                                            </p>
-                                        </div>
-
-                                        <StatusBadge variant={att.status} />
-
-                                        {att.photo_url && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
+                        <div className="space-y-2.5">
+                            {paginatedAttendances.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="p-3.5 rounded-2xl bg-surface border border-border shadow-xs space-y-2"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[13px] font-bold text-text-primary">
+                                            {formatDateIndo(item.attendance_date)}
+                                        </span>
+                                        <StatusBadge variant={item.status} />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-1 border-t border-border/60 text-[12px] text-text-secondary">
+                                        <span className="font-mono">
+                                            Masuk:{" "}
+                                            <strong className="text-text-primary">
+                                                {formatCheckInTime(item.check_in_time)
+                                                    ? `${formatCheckInTime(item.check_in_time)} WIB`
+                                                    : "—"}
+                                            </strong>
+                                        </span>
+                                        {item.photo_url && (
+                                            <button
+                                                type="button"
                                                 onClick={() =>
                                                     setPhotoModal({
-                                                        url: att.photo_url!,
-                                                        date: att.attendance_date,
+                                                        url: item.photo_url!,
+                                                        date: formatDateIndo(item.attendance_date),
                                                     })
                                                 }
-                                                className="text-primary px-2"
-                                                aria-label="Lihat foto selfie"
+                                                className="text-primary font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                                             >
-                                                <FiCamera className="text-[14px]" />
-                                            </Button>
+                                                <FiCamera className="text-[12px]" />
+                                                <span>Foto</span>
+                                            </button>
                                         )}
                                     </div>
-                                );
-                            })}
-
-                            {attendances.length > attPageSize && (
-                                <div className="p-3 border-t border-border bg-surface">
-                                    <MobileNativePagination
-                                        currentPage={attSafePage}
-                                        totalPages={attTotalPages}
-                                        totalItems={attendances.length}
-                                        perPage={attPageSize}
-                                        onPageChange={setAttPage}
-                                    />
                                 </div>
-                            )}
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Pagination (< lg) */}
+                    {attendances.length > attPageSize && (
+                        <div className="pt-2">
+                            <MobileNativePagination
+                                currentPage={attSafePage}
+                                totalPages={attTotalPages}
+                                totalItems={attendances.length}
+                                perPage={attPageSize}
+                                onPageChange={setAttPage}
+                            />
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Modal Pratinjau Foto Bukti Selfie */}
+            {/* Photo Modal */}
             {photoModal && (
-                <Modal
-                    open={Boolean(photoModal)}
-                    onClose={() => setPhotoModal(null)}
-                    title={`Bukti Foto Presensi — ${photoModal.date}`}
-                    width="sm"
-                >
-                    <div className="flex flex-col items-center font-inter">
+                <Modal open={true} onClose={() => setPhotoModal(null)} title={`Bukti Presensi — ${photoModal.date}`}>
+                    <div className="flex flex-col items-center justify-center p-4">
                         <img
                             src={photoModal.url}
-                            alt="Foto Selfie Siswa"
-                            className="w-full rounded-xl object-cover max-h-[340px] shadow-sm border border-border"
+                            alt="Bukti Kehadiran"
+                            className="max-h-[360px] w-auto rounded-xl object-contain border border-border shadow-md"
                         />
-                        <div className="mt-3 text-center">
-                            <p className="text-[12px] font-semibold text-text-primary">{student.name}</p>
-                            <p className="text-[11px] text-text-muted">NIS: {student.nis}</p>
+                        <div className="mt-4 w-full flex justify-end">
+                            <Button variant="secondary" onClick={() => setPhotoModal(null)}>
+                                Tutup
+                            </Button>
                         </div>
                     </div>
                 </Modal>
             )}
+
             {/* 📱 MOBILE FILTER BOTTOM SHEET */}
             <BottomSheet
                 open={isMobileFilterOpen}
@@ -405,12 +468,14 @@ export default function AttendanceHistory({ student, attendances, month, year }:
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Bulan
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Bulan</label>
                         <NativeSelect
                             value={monthVal}
-                            onChange={(e) => setMonthVal(e.target.value)}
+                            onChange={(e) => {
+                                const newM = e.target.value;
+                                applyFilter(newM, yearVal);
+                                setIsMobileFilterOpen(false);
+                            }}
                             className="h-10 text-[13px] rounded-xl"
                         >
                             {MONTH_NAMES.map((name, i) => (
@@ -422,12 +487,14 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Tahun
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Tahun</label>
                         <NativeSelect
                             value={yearVal}
-                            onChange={(e) => setYearVal(e.target.value)}
+                            onChange={(e) => {
+                                const newY = e.target.value;
+                                applyFilter(monthVal, newY);
+                                setIsMobileFilterOpen(false);
+                            }}
                             className="h-10 text-[13px] rounded-xl"
                         >
                             {["2024", "2025", "2026", "2027"].map((t) => (
@@ -438,30 +505,22 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                         </NativeSelect>
                     </div>
 
-                    <div className="flex items-center gap-3 pt-2">
-                        {hasActiveFilters && (
+                    {hasActiveFilters && (
+                        <div className="pt-2">
                             <Button
                                 variant="secondary"
                                 onClick={() => {
-                                    setMonthVal(month.toString());
-                                    setYearVal(year.toString());
+                                    const currentM = new Date().getMonth() + 1;
+                                    const currentY = new Date().getFullYear();
+                                    applyFilter(currentM.toString(), currentY.toString());
+                                    setIsMobileFilterOpen(false);
                                 }}
-                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                                className="w-full h-10 text-[13px] font-bold rounded-xl"
                             >
                                 Reset Filter
                             </Button>
-                        )}
-                        <Button
-                            variant="primary"
-                            onClick={() => {
-                                handleFilter();
-                                setIsMobileFilterOpen(false);
-                            }}
-                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
-                        >
-                            Terapkan
-                        </Button>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </BottomSheet>
         </AppShell>

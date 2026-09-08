@@ -1,21 +1,21 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useState } from "react";
+import { FiCheck, FiCheckSquare, FiX, FiXCircle } from "react-icons/fi";
 import {
     Button,
-    TableFooter,
-    MobileNativePagination,
-    Drawer,
     Checkbox,
-    EmptyState,
     ConfirmDialog,
+    Drawer,
+    EmptyState,
     FilterBar,
-    TabSwitcher,
-    StickyContainer,
+    MobileNativePagination,
     PageHeader,
+    StickyContainer,
+    TableFooter,
+    TabSwitcher,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
+import AppShell from "@/Layouts/AppShell";
 import type { LeaveRequest, PaginatedData } from "@/types";
 import { formatIndonesianDate } from "@/utils/helpers";
 
@@ -82,13 +82,26 @@ export default function VerifikasiIzin({
     const handlePageChange = (page: number) => {
         router.get(
             "/leave-requests/verification",
-            { page, status: statusFilter || undefined, category: categoryFilter || undefined, class_id: selectedClassId || undefined },
+            {
+                page,
+                status: statusFilter || undefined,
+                category: categoryFilter || undefined,
+                class_id: selectedClassId || undefined,
+            },
             { preserveState: true },
         );
     };
 
-    const [approveConfirm, setApproveConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
-    const [rejectConfirm, setRejectConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
+    const [approveConfirm, setApproveConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({
+        open: false,
+        id: null,
+        isBulk: false,
+    });
+    const [rejectConfirm, setRejectConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({
+        open: false,
+        id: null,
+        isBulk: false,
+    });
 
     const handleApprove = (id: number) => {
         setApproveConfirm({ open: true, id, isBulk: false });
@@ -121,9 +134,13 @@ export default function VerifikasiIzin({
                 },
             );
         } else if (approveConfirm.id) {
-            router.patch(`/leave-requests/${approveConfirm.id}/approve`, {}, {
-                onSuccess: () => setApproveConfirm({ open: false, id: null, isBulk: false }),
-            });
+            router.patch(
+                `/leave-requests/${approveConfirm.id}/approve`,
+                {},
+                {
+                    onSuccess: () => setApproveConfirm({ open: false, id: null, isBulk: false }),
+                },
+            );
         }
     };
 
@@ -140,9 +157,13 @@ export default function VerifikasiIzin({
                 },
             );
         } else if (rejectConfirm.id) {
-            router.patch(`/leave-requests/${rejectConfirm.id}/reject`, {}, {
-                onSuccess: () => setRejectConfirm({ open: false, id: null, isBulk: false }),
-            });
+            router.patch(
+                `/leave-requests/${rejectConfirm.id}/reject`,
+                {},
+                {
+                    onSuccess: () => setRejectConfirm({ open: false, id: null, isBulk: false }),
+                },
+            );
         }
     };
 
@@ -155,9 +176,7 @@ export default function VerifikasiIzin({
     };
 
     const toggleSelect = (id: number) => {
-        setSelectedLeaveIds((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-        );
+        setSelectedLeaveIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
     };
 
     return (
@@ -239,58 +258,56 @@ export default function VerifikasiIzin({
                 />
             </FilterBar>
 
-
-
             {/* List */}
             <div className="flex flex-col gap-4">
-                    {leaveRequests.data.length > 0 ? (
-                        leaveRequests.data.map((lr) => (
-                            <LeaveRequestCard 
-                                key={lr.id} 
-                                leaveRequest={lr} 
-                                onDetailClick={setSelectedRequest}
-                                checkboxSlot={
-                                    lr.approval_status === "Pending" ? (
-                                        <Checkbox
-                                            checked={selectedLeaveIds.includes(lr.id)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setSelectedLeaveIds((prev) => [...prev, lr.id]);
-                                                } else {
-                                                    setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
-                                                }
-                                            }}
-                                        />
-                                    ) : undefined
-                                }
-                                actionSlot={
-                                    lr.approval_status === "Pending" ? (
-                                        <>
-                                            <Button
-                                                variant="success"
-                                                size="sm"
-                                                onClick={() => handleApprove(lr.id)}
-                                                className="flex-1 sm:flex-none"
-                                            >
-                                                <FiCheck className="mr-1.5" /> Setuju
-                                            </Button>
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                onClick={() => handleReject(lr.id)}
-                                                className="flex-1 sm:flex-none"
-                                            >
-                                                <FiX className="mr-1.5" /> Tolak
-                                            </Button>
-                                        </>
-                                    ) : undefined
-                                }
-                            />
-                        ))
-                    ) : (
-                        <EmptyState variant="no-leaves" />
-                    )}
-                </div>
+                {leaveRequests.data.length > 0 ? (
+                    leaveRequests.data.map((lr) => (
+                        <LeaveRequestCard
+                            key={lr.id}
+                            leaveRequest={lr}
+                            onDetailClick={setSelectedRequest}
+                            checkboxSlot={
+                                lr.approval_status === "Pending" ? (
+                                    <Checkbox
+                                        checked={selectedLeaveIds.includes(lr.id)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedLeaveIds((prev) => [...prev, lr.id]);
+                                            } else {
+                                                setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
+                                            }
+                                        }}
+                                    />
+                                ) : undefined
+                            }
+                            actionSlot={
+                                lr.approval_status === "Pending" ? (
+                                    <>
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            onClick={() => handleApprove(lr.id)}
+                                            className="flex-1 sm:flex-none"
+                                        >
+                                            <FiCheck className="mr-1.5" /> Setuju
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => handleReject(lr.id)}
+                                            className="flex-1 sm:flex-none"
+                                        >
+                                            <FiX className="mr-1.5" /> Tolak
+                                        </Button>
+                                    </>
+                                ) : undefined
+                            }
+                        />
+                    ))
+                ) : (
+                    <EmptyState variant="no-leaves" />
+                )}
+            </div>
 
             <div className="space-y-6 font-inter">
                 {/* Bulk Actions Bar */}
@@ -305,7 +322,10 @@ export default function VerifikasiIzin({
                                 }
                                 onChange={toggleSelectAll}
                             />
-                            <label htmlFor="select-all" className="text-[13px] font-bold text-text-primary cursor-pointer">
+                            <label
+                                htmlFor="select-all"
+                                className="text-[13px] font-bold text-text-primary cursor-pointer"
+                            >
                                 Pilih Semua ({selectedLeaveIds.length} dipilih)
                             </label>
                         </div>
@@ -383,7 +403,8 @@ export default function VerifikasiIzin({
                                     {selectedRequest.student?.name}
                                 </h3>
                                 <p className="text-[13px] text-text-muted mt-0.5">
-                                    NIS: {selectedRequest.student?.nis} • Kelas: {selectedRequest.student?.class?.name?.split(" (")[0] ?? "-"}
+                                    NIS: {selectedRequest.student?.nis} • Kelas:{" "}
+                                    {selectedRequest.student?.class?.name?.split(" (")[0] ?? "-"}
                                 </p>
                             </div>
                             <div className="shrink-0">
@@ -459,11 +480,7 @@ export default function VerifikasiIzin({
                                     </Button>
                                 </>
                             )}
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => setSelectedRequest(null)}
-                            >
+                            <Button variant="outline" className="w-full" onClick={() => setSelectedRequest(null)}>
                                 Tutup
                             </Button>
                         </div>

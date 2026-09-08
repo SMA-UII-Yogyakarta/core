@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Drawer, DrawerHeaderActions } from "@/Components";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import StudentForm from "./Forms/StudentForm";
-import type { Student, ClassOption } from "./types";
+import type { ClassOption, Student } from "./types";
 
 interface StudentDrawerFormProps {
     open: boolean;
@@ -60,17 +60,13 @@ export default function StudentDrawerForm({
         onClose();
     };
 
-    const title = isCreate
-        ? "Tambah Siswa Baru"
-        : isUnlocked
-        ? "Edit Data Siswa"
-        : "Detail Data Siswa";
+    const title = isCreate ? "Tambah Siswa Baru" : isUnlocked ? "Edit Data Siswa" : "Detail Data Siswa";
 
     const description = isCreate
         ? "Isi formulir berikut untuk mendaftarkan siswa baru."
         : isUnlocked
-        ? "Perbarui informasi dan data kredensial siswa."
-        : "Informasi lengkap direktori profil peserta didik.";
+          ? "Perbarui informasi dan data kredensial siswa."
+          : "Informasi lengkap direktori profil peserta didik.";
 
     const copyFields = student
         ? [
@@ -83,9 +79,7 @@ export default function StudentDrawerForm({
               { label: "No. HP/WA", value: student.phone },
               {
                   label: "Wali Murid",
-                  value:
-                      allGuardians.find((g) => g.id === student.guardian_id)?.name ||
-                      "Belum Ada",
+                  value: allGuardians.find((g) => g.id === student.guardian_id)?.name || "Belum Ada",
               },
               { label: "Alamat", value: student.address },
               { label: "Email", value: student.user?.email || "-" },

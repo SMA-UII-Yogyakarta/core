@@ -1,34 +1,34 @@
-import { useState, useMemo, useEffect } from "react";
 import { router } from "@inertiajs/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import {
+    FiArrowLeft,
+    FiCheck,
+    FiChevronRight,
+    FiSearch,
+    FiUserCheck,
+    FiUserPlus,
+    FiUsers,
+    FiUserX,
+} from "react-icons/fi";
+import {
+    Avatar,
     Button,
-    ConfirmDialog,
     Card,
+    ConfirmDialog,
+    Drawer,
+    EmptyState,
+    MobileNativePagination,
     PageHeader,
     SearchBar,
-    EmptyState,
-    Avatar,
-    MobileNativePagination,
-    Drawer,
     TabSwitcher,
 } from "@/Components";
-import AppShell from "@/Layouts/AppShell";
-import {
-    FiUserPlus,
-    FiUserX,
-    FiArrowLeft,
-    FiSearch,
-    FiUsers,
-    FiUserCheck,
-    FiChevronRight,
-    FiCheck,
-} from "react-icons/fi";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useClientPagination } from "@/hooks/useClientPagination";
-import type { Student, Guardian } from "./GuardianAssignment/types";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import AppShell from "@/Layouts/AppShell";
 import GuardianList from "./GuardianAssignment/components/GuardianList";
 import LinkedStudentsPanel from "./GuardianAssignment/components/LinkedStudentsPanel";
+import type { Guardian, Student } from "./GuardianAssignment/types";
 
 interface Props {
     guardians: Guardian[];
@@ -185,22 +185,14 @@ export default function GuardianAssignment({
             setGuardianId("");
             setLinkedPage(1);
             setPanelView("list");
-            router.get(
-                "/guardian-assignment",
-                {},
-                { preserveState: true, preserveScroll: true },
-            );
+            router.get("/guardian-assignment", {}, { preserveState: true, preserveScroll: true });
             return;
         }
 
         setGuardianId(id);
         setLinkedPage(1);
         setPanelView("list");
-        router.get(
-            "/guardian-assignment",
-            { guardian_id: id },
-            { preserveState: true, preserveScroll: true },
-        );
+        router.get("/guardian-assignment", { guardian_id: id }, { preserveState: true, preserveScroll: true });
     };
 
     const handleSelectGuardianTablet = (id: string) => {
@@ -213,22 +205,14 @@ export default function GuardianAssignment({
         setLinkedPage(1);
         setPanelView("list");
         setLinkedDrawerOpen(true);
-        router.get(
-            "/guardian-assignment",
-            { guardian_id: id },
-            { preserveState: true, preserveScroll: true },
-        );
+        router.get("/guardian-assignment", { guardian_id: id }, { preserveState: true, preserveScroll: true });
     };
 
     const handleCloseDrawerTablet = () => {
         setLinkedDrawerOpen(false);
         setGuardianId("");
         setPanelView("list");
-        router.get(
-            "/guardian-assignment",
-            {},
-            { preserveState: true, preserveScroll: true },
-        );
+        router.get("/guardian-assignment", {}, { preserveState: true, preserveScroll: true });
     };
 
     const handleSelectGuardianMobile = (id: string) => {
@@ -238,11 +222,7 @@ export default function GuardianAssignment({
         if (typeof window !== "undefined") {
             window.history.pushState({ guardian_id: id }, "", `/guardian-assignment?guardian_id=${id}`);
         }
-        router.get(
-            "/guardian-assignment",
-            { guardian_id: id },
-            { preserveState: true, preserveScroll: true },
-        );
+        router.get("/guardian-assignment", { guardian_id: id }, { preserveState: true, preserveScroll: true });
     };
 
     const handleMobileBackToHub = () => {
@@ -251,11 +231,7 @@ export default function GuardianAssignment({
         if (typeof window !== "undefined") {
             window.history.pushState({}, "", "/guardian-assignment");
         }
-        router.get(
-            "/guardian-assignment",
-            {},
-            { preserveState: true, preserveScroll: true },
-        );
+        router.get("/guardian-assignment", {}, { preserveState: true, preserveScroll: true });
     };
 
     const handleMobileBack = () => {
@@ -344,7 +320,7 @@ export default function GuardianAssignment({
         <AppShell
             title={getMobileHeaderTitle()}
             hasTopCard={true}
-            onBack={isMobile && Boolean(guardianId) ? handleMobileBack : undefined}
+            onBack={isMobile && guardianId ? handleMobileBack : undefined}
             headerActions={mobileHeaderActions}
             searchValue={guardianSearch}
             onSearchChange={setGuardianSearch}
@@ -579,7 +555,8 @@ export default function GuardianAssignment({
                                     </span>
                                 </div>
                                 <p className="text-[12px] text-text-secondary leading-relaxed pt-0.5">
-                                    Pilih salah satu wali murid di bawah ini untuk mengelola dan memantau siswa asuh yang terhubung.
+                                    Pilih salah satu wali murid di bawah ini untuk mengelola dan memantau siswa asuh
+                                    yang terhubung.
                                 </p>
                             </div>
 
@@ -633,7 +610,9 @@ export default function GuardianAssignment({
                                 ) : (
                                     <div className="py-12 text-center text-text-muted bg-surface border border-border rounded-2xl p-6">
                                         <FiSearch className="text-2xl mx-auto mb-2 opacity-50" />
-                                        <p className="text-[13px] font-medium">Tidak ada wali murid yang sesuai pencarian.</p>
+                                        <p className="text-[13px] font-medium">
+                                            Tidak ada wali murid yang sesuai pencarian.
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -687,7 +666,8 @@ export default function GuardianAssignment({
                                                         </span>
                                                     </div>
                                                     <p className="text-[12px] text-text-secondary mt-1 truncate">
-                                                        Kontak: {selectedGuardian.phone || "Tidak ada telepon"} · {selectedGuardian.user?.email || "-"}
+                                                        Kontak: {selectedGuardian.phone || "Tidak ada telepon"} ·{" "}
+                                                        {selectedGuardian.user?.email || "-"}
                                                     </p>
                                                     {selectedGuardian.address && (
                                                         <p className="text-[11.5px] text-text-muted mt-0.5 truncate">
@@ -717,7 +697,10 @@ export default function GuardianAssignment({
                                                         <div className="flex items-center gap-3 min-w-0 flex-1">
                                                             <Avatar name={s.name} size="sm" variant="accent" />
                                                             <div className="min-w-0 flex-1">
-                                                                <p className="text-[13.5px] font-bold text-text-primary truncate" title={s.name}>
+                                                                <p
+                                                                    className="text-[13.5px] font-bold text-text-primary truncate"
+                                                                    title={s.name}
+                                                                >
                                                                     {s.name}
                                                                 </p>
                                                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -782,8 +765,16 @@ export default function GuardianAssignment({
                                         <div className="mb-3 shrink-0">
                                             <TabSwitcher
                                                 tabs={[
-                                                    { key: "unassigned", label: `Belum Punya Wali (${unassignedStudents.length})`, icon: <FiUsers className="w-3.5 h-3.5" /> },
-                                                    { key: "all", label: `Semua Siswa (${allStudents.length})`, icon: <FiUserCheck className="w-3.5 h-3.5" /> },
+                                                    {
+                                                        key: "unassigned",
+                                                        label: `Belum Punya Wali (${unassignedStudents.length})`,
+                                                        icon: <FiUsers className="w-3.5 h-3.5" />,
+                                                    },
+                                                    {
+                                                        key: "all",
+                                                        label: `Semua Siswa (${allStudents.length})`,
+                                                        icon: <FiUserCheck className="w-3.5 h-3.5" />,
+                                                    },
                                                 ]}
                                                 activeKey={assignTab}
                                                 onChange={(key) => {
@@ -813,7 +804,9 @@ export default function GuardianAssignment({
                                             {paginatedAssignStudents.length > 0 ? (
                                                 paginatedAssignStudents.map((s) => {
                                                     const isAssigned = Boolean(s.guardian_id);
-                                                    const isAssignedToThis = Boolean(selectedGuardian && s.guardian_id === selectedGuardian.id);
+                                                    const isAssignedToThis = Boolean(
+                                                        selectedGuardian && s.guardian_id === selectedGuardian.id,
+                                                    );
 
                                                     return (
                                                         <div
@@ -823,14 +816,22 @@ export default function GuardianAssignment({
                                                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                                                 <Avatar name={s.name} size="sm" variant="accent" />
                                                                 <div className="min-w-0 flex-1">
-                                                                    <p className="text-[13px] font-bold text-text-primary truncate" title={s.name}>
+                                                                    <p
+                                                                        className="text-[13px] font-bold text-text-primary truncate"
+                                                                        title={s.name}
+                                                                    >
                                                                         {s.name}
                                                                     </p>
                                                                     <p className="text-[11px] text-text-secondary truncate">
                                                                         NIS: {s.nis} · {s.class?.name ?? "Tanpa Kelas"}
-                                                                        {isAssigned && !isAssignedToThis && s.guardian?.name && (
-                                                                            <span className="text-text-muted"> · Wali: {s.guardian.name}</span>
-                                                                        )}
+                                                                        {isAssigned &&
+                                                                            !isAssignedToThis &&
+                                                                            s.guardian?.name && (
+                                                                                <span className="text-text-muted">
+                                                                                    {" "}
+                                                                                    · Wali: {s.guardian.name}
+                                                                                </span>
+                                                                            )}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -843,7 +844,13 @@ export default function GuardianAssignment({
                                                                     }`}
                                                                 >
                                                                     <FiCheck className="text-[12px]" />
-                                                                    <span>{isAssignedToThis ? "Sudah Terhubung" : (s.guardian?.name ? `Wali: ${s.guardian.name}` : "Sudah Punya Wali")}</span>
+                                                                    <span>
+                                                                        {isAssignedToThis
+                                                                            ? "Sudah Terhubung"
+                                                                            : s.guardian?.name
+                                                                              ? `Wali: ${s.guardian.name}`
+                                                                              : "Sudah Punya Wali"}
+                                                                    </span>
                                                                 </span>
                                                             ) : (
                                                                 <Button
@@ -866,8 +873,8 @@ export default function GuardianAssignment({
                                                         {studentSearch
                                                             ? "Tidak ada siswa yang sesuai pencarian."
                                                             : assignTab === "unassigned"
-                                                            ? "Semua siswa sudah terhubung dengan wali murid."
-                                                            : "Tidak ada data siswa."}
+                                                              ? "Semua siswa sudah terhubung dengan wali murid."
+                                                              : "Tidak ada data siswa."}
                                                     </p>
                                                 </div>
                                             )}

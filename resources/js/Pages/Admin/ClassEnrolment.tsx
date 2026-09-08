@@ -1,40 +1,40 @@
-import { useState, useMemo, useEffect } from "react";
 import { router, usePage } from "@inertiajs/react";
-import { useClientPagination } from "@/hooks/useClientPagination";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useEffect, useMemo, useState } from "react";
 import {
-    Button,
-    Table,
-    TableFooter,
-    PageHeader,
-    Pagination,
-    MobileNativePagination,
-    SearchBar,
-    Checkbox,
-    Drawer,
-    NativeSelect,
-    ConfirmDialog,
-    EmptyState,
-    Card,
-    MobileFilterSelectBar,
-    BottomSheet,
-    FilterPopover,
-} from "@/Components";
-import {
-    FiUserPlus,
-    FiX,
-    FiUser,
-    FiUserMinus,
-    FiUsers,
-    FiMonitor,
-    FiPlus,
     FiChevronDown,
     FiChevronUp,
     FiFilter,
+    FiMonitor,
+    FiPlus,
+    FiUser,
+    FiUserMinus,
+    FiUserPlus,
+    FiUsers,
+    FiX,
 } from "react-icons/fi";
-import AppShell from "@/Layouts/AppShell";
+import {
+    BottomSheet,
+    Button,
+    Card,
+    Checkbox,
+    ConfirmDialog,
+    Drawer,
+    EmptyState,
+    FilterPopover,
+    MobileFilterSelectBar,
+    MobileNativePagination,
+    NativeSelect,
+    PageHeader,
+    Pagination,
+    SearchBar,
+    Table,
+    TableFooter,
+} from "@/Components";
 import MobileSelectionBar from "@/Components/common/MobileSelectionBar";
 import type { Column } from "@/Components/ui/Table";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import AppShell from "@/Layouts/AppShell";
 
 type SortOption = "name_asc" | "name_desc" | "nisn_asc" | "nis_asc";
 type EmailFilterOption = "all" | "with_email" | "without_email";
@@ -203,9 +203,7 @@ export default function EnrolmentKelas({
         const q = modalSearch.toLowerCase();
         return unassignedStudents.filter(
             (s) =>
-                s.name.toLowerCase().includes(q) ||
-                s.nis.toLowerCase().includes(q) ||
-                s.nisn.toLowerCase().includes(q),
+                s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q) || s.nisn.toLowerCase().includes(q),
         );
     }, [unassignedStudents, modalSearch]);
 
@@ -234,7 +232,9 @@ export default function EnrolmentKelas({
         if (typeof window !== "undefined") {
             const params = new URLSearchParams(window.location.search);
             params.delete("action");
-            const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+            const newUrl = params.toString()
+                ? `${window.location.pathname}?${params.toString()}`
+                : window.location.pathname;
             window.history.pushState({}, "", newUrl);
         }
     };
@@ -310,10 +310,8 @@ export default function EnrolmentKelas({
 
     // Table Selection Math
     const allSelected =
-        paginatedStudents.length > 0 &&
-        paginatedStudents.every((s) => selectedStudentIds.includes(s.id));
-    const someSelected =
-        paginatedStudents.some((s) => selectedStudentIds.includes(s.id)) && !allSelected;
+        paginatedStudents.length > 0 && paginatedStudents.every((s) => selectedStudentIds.includes(s.id));
+    const someSelected = paginatedStudents.some((s) => selectedStudentIds.includes(s.id)) && !allSelected;
 
     const selectedInPageCount = useMemo(
         () => paginatedStudents.filter((s) => selectedStudentIds.includes(s.id)).length,
@@ -331,11 +329,9 @@ export default function EnrolmentKelas({
     };
 
     const modalAllSelected =
-        paginatedUnassigned.length > 0 &&
-        paginatedUnassigned.every((s) => selectedModalStudentIds.includes(s.id));
+        paginatedUnassigned.length > 0 && paginatedUnassigned.every((s) => selectedModalStudentIds.includes(s.id));
     const modalSomeSelected =
-        paginatedUnassigned.some((s) => selectedModalStudentIds.includes(s.id)) &&
-        !modalAllSelected;
+        paginatedUnassigned.some((s) => selectedModalStudentIds.includes(s.id)) && !modalAllSelected;
 
     const modalSelectedInPageCount = useMemo(
         () => paginatedUnassigned.filter((s) => selectedModalStudentIds.includes(s.id)).length,
@@ -448,9 +444,7 @@ export default function EnrolmentKelas({
                         if (e.target.checked) {
                             setSelectedModalStudentIds((prev) => [...prev, s.id]);
                         } else {
-                            setSelectedModalStudentIds((prev) =>
-                                prev.filter((id) => id !== s.id),
-                            );
+                            setSelectedModalStudentIds((prev) => prev.filter((id) => id !== s.id));
                         }
                     }}
                 />
@@ -485,33 +479,32 @@ export default function EnrolmentKelas({
         },
     ];
 
-    const mobileHeaderActions = selectedClass && !isMobileAddView ? (
-        <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
-                onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter & Urutkan"
-                aria-label="Filter & Urutkan"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
-            <button
-                type="button"
-                onClick={handleOpenAddStudent}
-                disabled={unassignedStudents.length === 0}
-                className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                title="Tambah Siswa"
-                aria-label="Tambah Siswa"
-            >
-                <FiPlus className="text-[15px]" />
-            </button>
-        </div>
-    ) : undefined;
+    const mobileHeaderActions =
+        selectedClass && !isMobileAddView ? (
+            <div className="flex items-center gap-2 sm:hidden font-inter">
+                <button
+                    type="button"
+                    onClick={() => setIsMobileFilterOpen(true)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                        hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
+                    }`}
+                    title="Filter & Urutkan"
+                    aria-label="Filter & Urutkan"
+                >
+                    <FiFilter className="text-[14px]" />
+                </button>
+                <button
+                    type="button"
+                    onClick={handleOpenAddStudent}
+                    disabled={unassignedStudents.length === 0}
+                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    title="Tambah Siswa"
+                    aria-label="Tambah Siswa"
+                >
+                    <FiPlus className="text-[15px]" />
+                </button>
+            </div>
+        ) : undefined;
 
     const pageTitle = isMobileAddView
         ? `Tambah Siswa (${selectedClass?.name ?? "Kelas"})`
@@ -573,9 +566,7 @@ export default function EnrolmentKelas({
                                             if (e.target.checked) {
                                                 setSelectedModalStudentIds((prev) => [...prev, s.id]);
                                             } else {
-                                                setSelectedModalStudentIds((prev) =>
-                                                    prev.filter((id) => id !== s.id),
-                                                );
+                                                setSelectedModalStudentIds((prev) => prev.filter((id) => id !== s.id));
                                             }
                                         }}
                                     />
@@ -583,9 +574,7 @@ export default function EnrolmentKelas({
                                         {s.name.slice(0, 2).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
-                                        <h4 className="text-[14px] font-bold text-text-primary truncate">
-                                            {s.name}
-                                        </h4>
+                                        <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
                                         <p className="text-[11px] text-text-muted">
                                             NIS: {s.nis || "-"} • NISN: {s.nisn || "-"}
                                         </p>
@@ -668,20 +657,27 @@ export default function EnrolmentKelas({
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2 min-w-0">
                                         <h3 className="text-[14px] sm:text-[15px] font-bold text-text-primary truncate shrink min-w-0">
-                                            {selectedClass ? `Kelas ${selectedClass.name}` : "Konfigurasi Kelas & Rombel"}
+                                            {selectedClass
+                                                ? `Kelas ${selectedClass.name}`
+                                                : "Konfigurasi Kelas & Rombel"}
                                         </h3>
                                         {selectedClass && !isCardExpanded && (
                                             <div className="hidden sm:flex items-center gap-2 text-[12px] text-text-muted min-w-0 shrink overflow-hidden">
                                                 <span className="shrink-0">•</span>
-                                                <span className="truncate whitespace-nowrap min-w-0">Wali: {selectedClass.teacher?.name ?? "Belum ada"}</span>
+                                                <span className="truncate whitespace-nowrap min-w-0">
+                                                    Wali: {selectedClass.teacher?.name ?? "Belum ada"}
+                                                </span>
                                                 <span className="shrink-0">•</span>
-                                                <span className="font-bold text-primary whitespace-nowrap shrink-0">{students.length} Siswa</span>
+                                                <span className="font-bold text-primary whitespace-nowrap shrink-0">
+                                                    {students.length} Siswa
+                                                </span>
                                             </div>
                                         )}
                                     </div>
                                     {!isCardExpanded && (
                                         <p className="text-[11px] text-text-muted truncate sm:hidden">
-                                            Wali: {selectedClass?.teacher?.name ?? "Belum ada"} • {selectedClass ? `${students.length} Siswa` : "-"}
+                                            Wali: {selectedClass?.teacher?.name ?? "Belum ada"} •{" "}
+                                            {selectedClass ? `${students.length} Siswa` : "-"}
                                         </p>
                                     )}
                                 </div>
@@ -757,7 +753,9 @@ export default function EnrolmentKelas({
                                                     </label>
                                                     <NativeSelect
                                                         value={emailFilter}
-                                                        onChange={(e) => setEmailFilter(e.target.value as EmailFilterOption)}
+                                                        onChange={(e) =>
+                                                            setEmailFilter(e.target.value as EmailFilterOption)
+                                                        }
                                                         className="h-9 text-[12.5px] rounded-xl"
                                                     >
                                                         <option value="all">Semua Siswa</option>
@@ -834,7 +832,7 @@ export default function EnrolmentKelas({
                                         <span>Wali Kelas Terdaftar</span>
                                     </span>
                                     <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-border bg-muted/20 h-9">
-                                        {(selectedClass?.teacher?.user?.avatar || selectedClass?.teacher?.avatar) ? (
+                                        {selectedClass?.teacher?.user?.avatar || selectedClass?.teacher?.avatar ? (
                                             <img
                                                 src={selectedClass.teacher.user?.avatar || selectedClass.teacher.avatar}
                                                 alt={selectedClass.teacher.name}
@@ -844,18 +842,21 @@ export default function EnrolmentKelas({
                                             <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-extrabold text-[9px] shrink-0 uppercase tracking-tighter">
                                                 {selectedClass?.teacher?.name
                                                     ? selectedClass.teacher.name
-                                                        .replace(/^(Drs\.|Dr\.|H\.|Hj\.|Ir\.)\s+/i, "")
-                                                        .trim()
-                                                        .split(/\s+/)
-                                                        .slice(0, 2)
-                                                        .map((p) => p[0])
-                                                        .join("")
-                                                        .toUpperCase()
+                                                          .replace(/^(Drs\.|Dr\.|H\.|Hj\.|Ir\.)\s+/i, "")
+                                                          .trim()
+                                                          .split(/\s+/)
+                                                          .slice(0, 2)
+                                                          .map((p) => p[0])
+                                                          .join("")
+                                                          .toUpperCase()
                                                     : "?"}
                                             </div>
                                         )}
                                         <div className="min-w-0 flex-1 flex items-center justify-between gap-1.5">
-                                            <p className="font-bold text-text-primary text-[12.5px] truncate" title={selectedClass?.teacher?.name ?? "Belum ada wali kelas"}>
+                                            <p
+                                                className="font-bold text-text-primary text-[12.5px] truncate"
+                                                title={selectedClass?.teacher?.name ?? "Belum ada wali kelas"}
+                                            >
                                                 {selectedClass?.teacher?.name ?? "Belum ada"}
                                             </p>
                                             {selectedClass?.teacher && (
@@ -873,7 +874,9 @@ export default function EnrolmentKelas({
                                         <span>Total Siswa Terdaftar</span>
                                     </span>
                                     <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-border bg-muted/20 h-9">
-                                        <span className="text-[12px] font-semibold text-text-secondary font-inter whitespace-nowrap">Kapasitas Active</span>
+                                        <span className="text-[12px] font-semibold text-text-secondary font-inter whitespace-nowrap">
+                                            Kapasitas Active
+                                        </span>
                                         <span className="text-[13px] font-extrabold text-primary font-inter whitespace-nowrap">
                                             {selectedClass ? `${students.length} Siswa` : "-"}
                                         </span>
@@ -913,7 +916,11 @@ export default function EnrolmentKelas({
                                                         ? `Tidak ditemukan siswa yang cocok dengan pencarian "${search}".`
                                                         : "Belum ada siswa yang terdaftar di kelas ini."
                                                 }
-                                                actionLabel={!search && unassignedStudents.length > 0 ? "Tambah Siswa" : undefined}
+                                                actionLabel={
+                                                    !search && unassignedStudents.length > 0
+                                                        ? "Tambah Siswa"
+                                                        : undefined
+                                                }
                                                 actionOnClick={
                                                     !search && unassignedStudents.length > 0
                                                         ? handleOpenAddStudent
@@ -935,7 +942,9 @@ export default function EnrolmentKelas({
                                                                 if (e.target.checked) {
                                                                     setSelectedStudentIds((prev) => [...prev, s.id]);
                                                                 } else {
-                                                                    setSelectedStudentIds((prev) => prev.filter((id) => id !== s.id));
+                                                                    setSelectedStudentIds((prev) =>
+                                                                        prev.filter((id) => id !== s.id),
+                                                                    );
                                                                 }
                                                             }}
                                                         />
@@ -1139,9 +1148,7 @@ export default function EnrolmentKelas({
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Urutkan Berdasarkan
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Urutkan Berdasarkan</label>
                         <NativeSelect
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as SortOption)}
@@ -1155,9 +1162,7 @@ export default function EnrolmentKelas({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Status Email Akun
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Status Email Akun</label>
                         <NativeSelect
                             value={emailFilter}
                             onChange={(e) => setEmailFilter(e.target.value as EmailFilterOption)}
@@ -1192,4 +1197,3 @@ export default function EnrolmentKelas({
         </AppShell>
     );
 }
-

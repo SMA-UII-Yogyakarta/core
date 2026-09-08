@@ -1,17 +1,9 @@
-import { useState, useRef } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useRef, useState } from "react";
+import { FiAlertCircle, FiCheckCircle, FiDownload, FiFileText, FiKey, FiUploadCloud, FiX } from "react-icons/fi";
 import { Button, Input } from "@/Components";
-import {
-    FiUploadCloud,
-    FiCheckCircle,
-    FiAlertCircle,
-    FiDownload,
-    FiKey,
-    FiFileText,
-    FiX,
-} from "react-icons/fi";
 import type { ImportEntityType } from "@/Components/features/ImportModal";
+import AppShell from "@/Layouts/AppShell";
 
 interface MobileImportPageProps {
     tab: "students" | "teachers" | "class" | "guardians";
@@ -188,9 +180,7 @@ export default function MobileImportPage({ tab }: MobileImportPageProps) {
                                     <span className="block text-[10.5px] font-bold text-danger uppercase tracking-wide">
                                         Gagal
                                     </span>
-                                    <span className="text-[18px] font-extrabold text-danger">
-                                        {result.error_count}
-                                    </span>
+                                    <span className="text-[18px] font-extrabold text-danger">{result.error_count}</span>
                                 </div>
                             </div>
                         </div>
@@ -212,10 +202,18 @@ export default function MobileImportPage({ tab }: MobileImportPageProps) {
 
                         {/* Action buttons */}
                         <div className="flex flex-col gap-2 pt-2">
-                            <Button variant="primary" onClick={handleBack} className="w-full h-12 text-[14px] font-bold rounded-xl shadow-md">
+                            <Button
+                                variant="primary"
+                                onClick={handleBack}
+                                className="w-full h-12 text-[14px] font-bold rounded-xl shadow-md"
+                            >
                                 Selesai & Kembali ke Master Data
                             </Button>
-                            <Button variant="secondary" onClick={handleReset} className="w-full h-11 text-[13px] font-bold rounded-xl">
+                            <Button
+                                variant="secondary"
+                                onClick={handleReset}
+                                className="w-full h-11 text-[13px] font-bold rounded-xl"
+                            >
                                 Import File Lainnya
                             </Button>
                         </div>
@@ -233,7 +231,9 @@ export default function MobileImportPage({ tab }: MobileImportPageProps) {
                                     <h4 className="text-[13px] font-bold text-text-primary leading-snug">
                                         Template Spreadsheet
                                     </h4>
-                                    <p className="text-[11px] text-text-muted">Unduh format kolom {entityLabel.toLowerCase()}</p>
+                                    <p className="text-[11px] text-text-muted">
+                                        Unduh format kolom {entityLabel.toLowerCase()}
+                                    </p>
                                 </div>
                             </div>
                             <a
@@ -286,9 +286,7 @@ export default function MobileImportPage({ tab }: MobileImportPageProps) {
                                             <p className="text-[13px] font-bold text-text-primary truncate">
                                                 {file.name}
                                             </p>
-                                            <p className="text-[11px] text-text-muted">
-                                                {formatFileSize(file.size)}
-                                            </p>
+                                            <p className="text-[11px] text-text-muted">{formatFileSize(file.size)}</p>
                                         </div>
                                     </div>
                                     <button

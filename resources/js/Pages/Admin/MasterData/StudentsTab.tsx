@@ -1,33 +1,23 @@
 import { router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FiBookOpen, FiCheck, FiCopy, FiEdit2, FiEye, FiPlus, FiTrash2, FiUserCheck, FiUsers } from "react-icons/fi";
 import {
-    Table,
-    TableFooter,
-    MobileNativePagination,
     Avatar,
-    StatusBadge,
-    Checkbox,
-    Card,
     Button,
-    MobileFilterSelectBar,
+    Card,
+    Checkbox,
     MasterDataCard,
     MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
+    StatusBadge,
+    Table,
+    TableFooter,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import {
-    FiPlus,
-    FiTrash2,
-    FiEye,
-    FiEdit2,
-    FiBookOpen,
-    FiCopy,
-    FiCheck,
-    FiUserCheck,
-    FiUsers,
-} from "react-icons/fi";
 import { copyToClipboard } from "@/utils/helpers";
-import type { Student, ClassOption, PaginatedData } from "./types";
 import StudentDrawerForm from "./StudentDrawerForm";
+import type { ClassOption, PaginatedData, Student } from "./types";
 
 interface StudentsTabProps {
     students?: PaginatedData<Student>;
@@ -65,12 +55,8 @@ export default function StudentsTab({
     onSelectedIdsChange,
     onRequestDelete,
 }: StudentsTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
-        editMode ?? null
-    );
-    const [selectedStudent, setSelectedStudent] = useState<Student | null>(
-        editItem ?? null
-    );
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(editItem ?? null);
 
     useEffect(() => {
         if (editItem && editMode) {
@@ -103,18 +89,14 @@ export default function StudentsTab({
         onSelectedIdsChange?.(next);
     };
 
-    const isAllSelected =
-        studentList.length > 0 && selectedIds.length === studentList.length;
+    const isAllSelected = studentList.length > 0 && selectedIds.length === studentList.length;
 
     const columns: Column<Student>[] = [
         {
             key: "selection",
             header: (
                 <div className="flex items-center justify-center">
-                    <Checkbox
-                        checked={isAllSelected}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
                 </div>
             ),
             render: (s) => (
@@ -176,18 +158,12 @@ export default function StudentsTab({
             render: (s) => (
                 <div>
                     {s.class ? (
-                        <span className="font-medium text-text-primary text-[13px]">
-                            {s.class.name}
-                        </span>
+                        <span className="font-medium text-text-primary text-[13px]">{s.class.name}</span>
                     ) : (
-                        <span className="text-[12px] text-text-muted italic">
-                            Belum Ada Kelas
-                        </span>
+                        <span className="text-[12px] text-text-muted italic">Belum Ada Kelas</span>
                     )}
                     {s.enrollment_year && (
-                        <span className="text-[11px] text-text-muted ml-1.5 font-normal">
-                            ({s.enrollment_year})
-                        </span>
+                        <span className="text-[11px] text-text-muted ml-1.5 font-normal">({s.enrollment_year})</span>
                     )}
                 </div>
             ),
@@ -246,7 +222,7 @@ export default function StudentsTab({
                 class_id: filters?.class_id || undefined,
                 status: filters?.status || undefined,
             },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 

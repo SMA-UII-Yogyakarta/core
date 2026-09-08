@@ -1,21 +1,21 @@
-import { Head, Link, usePage, router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
-import { useLanguage } from "@/Contexts/LanguageContext";
-import PublicLayout from "@/Layouts/PublicLayout";
+import { Head, Link, router, usePage } from "@inertiajs/react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
-    FiUsers,
-    FiShield,
-    FiSettings,
-    FiMapPin,
-    FiCamera,
-    FiFileText,
     FiActivity,
+    FiCamera,
     FiChevronRight,
     FiCode,
-    FiSmartphone,
     FiCpu,
+    FiFileText,
+    FiMapPin,
+    FiSettings,
+    FiShield,
+    FiSmartphone,
+    FiUsers,
 } from "react-icons/fi";
+import { useLanguage } from "@/Contexts/LanguageContext";
+import PublicLayout from "@/Layouts/PublicLayout";
 
 export default function Welcome() {
     const { auth } = usePage().props as unknown as {
@@ -24,7 +24,8 @@ export default function Welcome() {
                 id?: number;
                 name?: string;
                 role?: string;
-                teacher?: { teacher_type?: string } | null;
+                active_teacher_role?: string;
+                teacher?: { teacher_type?: string[] | string } | null;
             } | null;
         };
     };
@@ -35,18 +36,34 @@ export default function Welcome() {
     useEffect(() => {
         if (auth.user) {
             const userRole = auth.user.role;
-            const homeHref =
-                userRole === "admin"
-                    ? "/dashboard"
-                    : userRole === "student"
-                      ? "/student/dashboard"
-                      : userRole === "guardian"
-                        ? "/guardian"
-                        : userRole === "teacher"
-                          ? auth.user.teacher?.teacher_type === "homeroom"
-                              ? "/teacher/homeroom"
-                              : "/teacher/duty"
-                          : "/overview";
+            let homeHref = "/overview";
+
+            if (userRole === "admin") {
+                homeHref = "/dashboard";
+            } else if (userRole === "student") {
+                homeHref = "/student/dashboard";
+            } else if (userRole === "guardian") {
+                homeHref = "/guardian";
+            } else if (userRole === "teacher") {
+                const activeRole = auth.user.active_teacher_role;
+                const teacherType = auth.user.teacher?.teacher_type;
+                const hasDuty = Array.isArray(teacherType) ? teacherType.includes("duty") : teacherType === "duty";
+                const hasHomeroom = Array.isArray(teacherType)
+                    ? teacherType.includes("homeroom")
+                    : teacherType === "homeroom";
+
+                if (activeRole === "duty" && hasDuty) {
+                    homeHref = "/teacher/duty";
+                } else if (activeRole === "homeroom" && hasHomeroom) {
+                    homeHref = "/teacher/homeroom";
+                } else if (hasHomeroom) {
+                    homeHref = "/teacher/homeroom";
+                } else if (hasDuty) {
+                    homeHref = "/teacher/duty";
+                } else {
+                    homeHref = "/teacher/homeroom";
+                }
+            }
 
             const timer = setTimeout(() => {
                 router.visit(homeHref);
@@ -181,11 +198,9 @@ export default function Welcome() {
     return (
         <PublicLayout title={t("welcome.documentTitle")}>
             <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
-
                 {/* --- HEADER --- */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-neutral-950/90 border-b border-slate-200/80 dark:border-neutral-900/80">
                     <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
-
                         {/* Logo + Brand */}
                         <div className="flex items-center gap-2.5 min-w-0 shrink">
                             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-accent font-bold text-base sm:text-xl shadow-md shadow-primary/20 shrink-0">

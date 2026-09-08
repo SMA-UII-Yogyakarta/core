@@ -1,9 +1,9 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect } from "react";
-import { Input, Button } from "@/Components";
+import { FiSave } from "react-icons/fi";
+import { Button, Input } from "@/Components";
 import { guardianSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiSave } from "react-icons/fi";
 import type { Guardian } from "../types";
 
 export interface GuardianFormProps {
@@ -29,17 +29,7 @@ export default function GuardianForm({
     const activeUnlocked = isUnlocked ?? isCreate;
     const isReadOnly = !activeUnlocked;
 
-    const {
-        data,
-        setData,
-        post,
-        patch,
-        processing,
-        reset,
-        errors,
-        clearErrors,
-        setError,
-    } = useForm({
+    const { data, setData, post, patch, processing, reset, errors, clearErrors, setError } = useForm({
         name: "",
         phone: "",
         address: "",
@@ -105,9 +95,7 @@ export default function GuardianForm({
                     onChange={(e) => setData("name", e.target.value)}
                     disabled={isReadOnly}
                 />
-                {errors.name && (
-                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-[12px] text-danger mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -123,24 +111,18 @@ export default function GuardianForm({
                 <p className="text-[11px] text-text-muted mt-1">
                     Nomor WhatsApp aktif digunakan sebagai username login akun wali murid.
                 </p>
-                {errors.phone && (
-                    <p className="text-[12px] text-danger mt-1">{errors.phone}</p>
-                )}
+                {errors.phone && <p className="text-[12px] text-danger mt-1">{errors.phone}</p>}
             </div>
 
             <div>
-                <label className="block text-[13px] font-medium text-text-primary mb-1">
-                    Alamat Domisili
-                </label>
+                <label className="block text-[13px] font-medium text-text-primary mb-1">Alamat Domisili</label>
                 <Input
                     placeholder="Contoh: Jl. Sorowajan Baru No. 8"
                     value={data.address}
                     onChange={(e) => setData("address", e.target.value)}
                     disabled={isReadOnly}
                 />
-                {errors.address && (
-                    <p className="text-[12px] text-danger mt-1">{errors.address}</p>
-                )}
+                {errors.address && <p className="text-[12px] text-danger mt-1">{errors.address}</p>}
             </div>
 
             <div>
@@ -154,27 +136,21 @@ export default function GuardianForm({
                     onChange={(e) => setData("email", e.target.value.trim())}
                     disabled={isReadOnly}
                 />
-                {errors.email && (
-                    <p className="text-[12px] text-danger mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-[12px] text-danger mt-1">{errors.email}</p>}
             </div>
 
             {/* Account Credentials (Only when unlocked) */}
             {activeUnlocked && (
                 <div className="p-3.5 bg-muted/30 border border-border rounded-xl space-y-2.5">
                     <div>
-                        <p className="text-[12px] font-bold text-text-primary">
-                            Kredensial Akun Wali Murid
-                        </p>
+                        <p className="text-[12px] font-bold text-text-primary">Kredensial Akun Wali Murid</p>
                         <p className="text-[11px] text-text-muted">
                             Username otomatis menggunakan Nomor WhatsApp ({data.phone || "nomor HP"}).
                         </p>
                     </div>
                     <div>
                         <label className="block text-[13px] font-medium text-text-primary mb-1">
-                            {isCreate
-                                ? "Password Akun"
-                                : "Password Baru (Kosongkan jika tidak diubah)"}
+                            {isCreate ? "Password Akun" : "Password Baru (Kosongkan jika tidak diubah)"}
                         </label>
                         <Input
                             type="password"
@@ -187,11 +163,7 @@ export default function GuardianForm({
                                 ? "Kosongkan untuk menggunakan kata sandi default: SmaUii@2026"
                                 : "Isi hanya jika ingin mereset password wali murid ini."}
                         </p>
-                        {errors.password && (
-                            <p className="text-[12px] text-danger mt-1">
-                                {errors.password}
-                            </p>
-                        )}
+                        {errors.password && <p className="text-[12px] text-danger mt-1">{errors.password}</p>}
                     </div>
                 </div>
             )}
@@ -199,21 +171,11 @@ export default function GuardianForm({
             {showSubmitButton && activeUnlocked && (
                 <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
                     {onCancel && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={processing}
-                        >
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                             Batal
                         </Button>
                     )}
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        loading={processing}
-                        icon={<FiSave />}
-                    >
+                    <Button type="submit" variant="primary" loading={processing} icon={<FiSave />}>
                         {isCreate ? "Simpan Wali" : "Perbarui Wali"}
                     </Button>
                 </div>

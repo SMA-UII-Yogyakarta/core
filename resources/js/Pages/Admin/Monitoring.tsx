@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
-import { PageHeader, StatCard, StatusBadge, Button, Table, Card, SelectInput, Input, BottomSheet } from "@/Components";
+import { useEffect, useRef, useState } from "react";
+import { FiBarChart2, FiFilter, FiSearch } from "react-icons/fi";
+import { BottomSheet, Button, Card, Input, PageHeader, SelectInput, StatCard, StatusBadge, Table } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
-import { FiSearch, FiBarChart2, FiFilter } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
+import AppShell from "@/Layouts/AppShell";
 
 // ─── Types ───
 
@@ -119,7 +119,8 @@ export default function Monitoring({
                         const normalizeStatusKey = (st: string): keyof Stats | null => {
                             const lower = st.toLowerCase();
                             if (lower === "permission" || lower === "sick") return "sick_permission";
-                            if (lower === "present" || lower === "late" || lower === "absent") return lower as keyof Stats;
+                            if (lower === "present" || lower === "late" || lower === "absent")
+                                return lower as keyof Stats;
                             return null;
                         };
 
@@ -180,9 +181,7 @@ export default function Monitoring({
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Monitoring Presensi"
                 aria-label="Filter Monitoring Presensi"
@@ -203,11 +202,15 @@ export default function Monitoring({
             />
             {/* Filter Section (Desktop & Tablet) */}
             <Card className="mb-6 hidden sm:block">
-                <Card.Body className="p-4 lg:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
+                <Card.Body className="p-4 lg:p-5 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
                     <SelectInput
                         label="Filter Kelas"
                         value={classId}
-                        onChange={(val) => setClassId(String(val))}
+                        onChange={(val) => {
+                            const newId = String(val);
+                            setClassId(newId);
+                            router.get("/monitoring", { class_id: newId || undefined }, { preserveState: true });
+                        }}
                         options={[
                             { label: "-- Pilih Kelas --", value: "" },
                             ...classes.map((c) => ({
@@ -215,13 +218,8 @@ export default function Monitoring({
                                 value: c.id.toString(),
                             })),
                         ]}
-                        className="w-full sm:w-[240px]"
+                        className="w-full sm:w-[280px]"
                     />
-                    <Input type="date" label="Tanggal" defaultValue={today} className="w-full sm:w-[200px]" />
-                    <Button variant="accent" size="md" onClick={handleFilter}>
-                        <FiSearch className="mr-2" />
-                        Tampilkan
-                    </Button>
                 </Card.Body>
             </Card>
 
@@ -270,9 +268,7 @@ export default function Monitoring({
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Filter Kelas
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Filter Kelas</label>
                         <SelectInput
                             value={classId}
                             onChange={(val) => setClassId(String(val))}
@@ -288,14 +284,8 @@ export default function Monitoring({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Tanggal
-                        </label>
-                        <Input
-                            type="date"
-                            defaultValue={today}
-                            className="h-10 text-[13px]"
-                        />
+                        <label className="text-[12px] font-bold text-text-secondary">Tanggal</label>
+                        <Input type="date" defaultValue={today} className="h-10 text-[13px]" />
                     </div>
 
                     <div className="flex items-center gap-3 pt-2">

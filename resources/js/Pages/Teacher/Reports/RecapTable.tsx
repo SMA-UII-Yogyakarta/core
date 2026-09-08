@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
-import { useLanguage } from "@/Contexts/LanguageContext";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid, FiInfo } from "react-icons/fi";
-import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
+import AttendanceChart from "@/Components/features/AttendanceChart";
+import { useLanguage } from "@/Contexts/LanguageContext";
 
-import type { StudentRecap, Summary, DailyBreakdown, MonthlyBreakdown } from "@/types/Report";
+import type { DailyBreakdown, MonthlyBreakdown, StudentRecap, Summary } from "@/types/Report";
 
 interface BaseRecapTableProps {
     students: StudentRecap[];
@@ -30,8 +30,18 @@ export interface SemesterRecapTableProps extends BaseRecapTableProps {
 export type RecapTableProps = MonthlyRecapTableProps | SemesterRecapTableProps;
 
 const MONTH_KEYS = [
-    "january", "february", "march", "april", "may", "june",
-    "july", "august", "september", "october", "november", "december",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
 ];
 
 function getMonthKey(month: number): string {
@@ -189,12 +199,12 @@ export default function RecapTable(props: RecapTableProps) {
                                 key={card.label}
                                 className="relative group bg-background border border-border rounded-xl p-4 text-center"
                             >
-                                <p className={`font-bold text-[32px] ${ratiosZero ? "text-text-muted" : card.color}`}>{card.value}</p>
+                                <p className={`font-bold text-[32px] ${ratiosZero ? "text-text-muted" : card.color}`}>
+                                    {card.value}
+                                </p>
                                 <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1">
                                     {card.label}
-                                    {card.info && (
-                                        <FiInfo className="text-text-muted ml-1 inline text-[13px]" />
-                                    )}
+                                    {card.info && <FiInfo className="text-text-muted ml-1 inline text-[13px]" />}
                                 </p>
                                 {card.info && (
                                     <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-1 w-80 -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-left shadow-lg opacity-0 transition-opacity group-hover:opacity-100">
@@ -208,12 +218,14 @@ export default function RecapTable(props: RecapTableProps) {
                         {desktopStatCards.map((card) => (
                             <div
                                 key={card.label}
-                                className={`relative group rounded-xl p-3 text-center ${isZero(card.value) ? "bg-background" : statCardBg[card.color] ?? "bg-background"}`}
+                                className={`relative group rounded-xl p-3 text-center ${isZero(card.value) ? "bg-background" : (statCardBg[card.color] ?? "bg-background")}`}
                             >
-                                <p className={`font-bold text-[22px] ${isZero(card.value) ? "text-text-muted" : card.color}`}>{card.value}</p>
-                                <p className="text-[10px] text-text-muted uppercase tracking-wide mt-1">
-                                    {card.label}
+                                <p
+                                    className={`font-bold text-[22px] ${isZero(card.value) ? "text-text-muted" : card.color}`}
+                                >
+                                    {card.value}
                                 </p>
+                                <p className="text-[10px] text-text-muted uppercase tracking-wide mt-1">{card.label}</p>
                             </div>
                         ))}
                     </div>
@@ -239,18 +251,36 @@ export default function RecapTable(props: RecapTableProps) {
                     {/* Two ratios side by side */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-background border border-border rounded-xl p-3">
-                            <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioAttendance")}</p>
-                            <p className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}>{summary.attendance_rate}%</p>
+                            <p className="text-[11px] text-text-muted uppercase tracking-wide">
+                                {t("reports.ratioAttendance")}
+                            </p>
+                            <p
+                                className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}
+                            >
+                                {summary.attendance_rate}%
+                            </p>
                         </div>
                         <div className="bg-background border border-border rounded-xl p-3">
-                            <p className="text-[11px] text-text-muted uppercase tracking-wide">{t("reports.ratioDiscipline")}</p>
-                            <p className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}>{summary.discipline_rate ?? 0}%</p>
+                            <p className="text-[11px] text-text-muted uppercase tracking-wide">
+                                {t("reports.ratioDiscipline")}
+                            </p>
+                            <p
+                                className={`text-[22px] font-bold mt-1 ${ratiosZero ? "text-text-muted" : "text-text-primary"}`}
+                            >
+                                {summary.discipline_rate ?? 0}%
+                            </p>
                         </div>
                     </div>
 
                     {/* Progress bar 6 segments */}
                     {(() => {
-                        const total = summary.on_time + summary.late + summary.permission + summary.sick + summary.pending + summary.absent;
+                        const total =
+                            summary.on_time +
+                            summary.late +
+                            summary.permission +
+                            summary.sick +
+                            summary.pending +
+                            summary.absent;
                         if (total === 0) return null;
                         const segments = [
                             { value: summary.on_time, color: "var(--color-success)" },
@@ -275,19 +305,35 @@ export default function RecapTable(props: RecapTableProps) {
                     {/* 6 stat cards — horizontal scroll */}
                     <div className="relative -mx-4 px-4">
                         {hasOverflow.right && (
-                            <div className="absolute right-4 top-0 bottom-2 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" style={{ marginBottom: -4 }} />
+                            <div
+                                className="absolute right-4 top-0 bottom-2 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"
+                                style={{ marginBottom: -4 }}
+                            />
                         )}
                         {hasOverflow.left && (
-                            <div className="absolute left-4 top-0 bottom-2 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" style={{ marginBottom: -4 }} />
+                            <div
+                                className="absolute left-4 top-0 bottom-2 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"
+                                style={{ marginBottom: -4 }}
+                            />
                         )}
-                        <div ref={scrollRef} onScroll={checkOverflow} className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                        <div
+                            ref={scrollRef}
+                            onScroll={checkOverflow}
+                            className="flex gap-2 overflow-x-auto no-scrollbar pb-1"
+                        >
                             {statCards.map((card) => (
                                 <div
                                     key={card.label}
-                                    className={`shrink-0 rounded-xl p-3 pl-4 min-w-[110px] ${isZero(card.value) ? "bg-background" : statCardBg[card.color] ?? "bg-background"}`}
+                                    className={`shrink-0 rounded-xl p-3 pl-4 min-w-[110px] ${isZero(card.value) ? "bg-background" : (statCardBg[card.color] ?? "bg-background")}`}
                                 >
-                                    <p className={`font-bold text-[18px] ${isZero(card.value) ? "text-text-muted" : card.color}`}>{card.value}</p>
-                                    <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">{card.label}</p>
+                                    <p
+                                        className={`font-bold text-[18px] ${isZero(card.value) ? "text-text-muted" : card.color}`}
+                                    >
+                                        {card.value}
+                                    </p>
+                                    <p className="text-[9px] text-text-muted uppercase tracking-wide mt-0.5">
+                                        {card.label}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -298,14 +344,20 @@ export default function RecapTable(props: RecapTableProps) {
             {/* Table (Desktop only) */}
             <div className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-4">
-                    <h3 className="text-[14px] font-semibold text-text-primary">
-                        {title}
-                    </h3>
+                    <h3 className="text-[14px] font-semibold text-text-primary">{title}</h3>
                     <div className="flex items-center gap-3 shrink-0">
-                        <button type="button" onClick={onExportPdf} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors">
+                        <button
+                            type="button"
+                            onClick={onExportPdf}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors"
+                        >
                             <FiFileText className="text-[12px]" /> PDF
                         </button>
-                        <button type="button" onClick={onExportExcel} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors">
+                        <button
+                            type="button"
+                            onClick={onExportExcel}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors"
+                        >
                             <FiGrid className="text-[12px]" /> Excel
                         </button>
                     </div>
@@ -318,7 +370,9 @@ export default function RecapTable(props: RecapTableProps) {
                                     <th
                                         key={h.label}
                                         className={`px-4 py-3 text-${h.align} text-[12px] font-semibold text-text-muted uppercase tracking-wide ${
-                                            h.sticky ? "max-xl:sticky max-xl:left-0 max-xl:z-10 max-xl:bg-background" : ""
+                                            h.sticky
+                                                ? "max-xl:sticky max-xl:left-0 max-xl:z-10 max-xl:bg-background"
+                                                : ""
                                         }`}
                                     >
                                         {h.label}
@@ -344,10 +398,24 @@ export default function RecapTable(props: RecapTableProps) {
                                             {s.name}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-semibold" style={{ color: s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)" }}>
+                                        <td
+                                            className="px-4 py-3 text-[13px] text-center font-semibold"
+                                            style={{
+                                                color:
+                                                    s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)",
+                                            }}
+                                        >
                                             {s.on_time}
                                         </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-semibold" style={{ color: (s.present - s.on_time) > 0 ? "var(--color-warning)" : "var(--color-text-muted)" }}>
+                                        <td
+                                            className="px-4 py-3 text-[13px] text-center font-semibold"
+                                            style={{
+                                                color:
+                                                    s.present - s.on_time > 0
+                                                        ? "var(--color-warning)"
+                                                        : "var(--color-text-muted)",
+                                            }}
+                                        >
                                             {s.present - s.on_time}
                                         </td>
                                         <td
@@ -375,15 +443,37 @@ export default function RecapTable(props: RecapTableProps) {
                                             {s.absent}
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span className={s.attendance_rate === 0 && s.discipline_rate === 0 ? "text-text-muted" : s.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                            <span
+                                                className={
+                                                    s.attendance_rate === 0 && s.discipline_rate === 0
+                                                        ? "text-text-muted"
+                                                        : s.attendance_rate <= 75
+                                                          ? "text-warning"
+                                                          : "text-text-primary"
+                                                }
+                                            >
                                                 {s.attendance_rate}%
-                                                {s.attendance_rate <= 75 && !(s.attendance_rate === 0 && s.discipline_rate === 0) && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                                {s.attendance_rate <= 75 &&
+                                                    !(s.attendance_rate === 0 && s.discipline_rate === 0) && (
+                                                        <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
+                                                    )}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span className={s.discipline_rate === 0 && s.attendance_rate === 0 ? "text-text-muted" : s.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                                            <span
+                                                className={
+                                                    s.discipline_rate === 0 && s.attendance_rate === 0
+                                                        ? "text-text-muted"
+                                                        : s.discipline_rate <= 75
+                                                          ? "text-warning"
+                                                          : "text-text-primary"
+                                                }
+                                            >
                                                 {s.discipline_rate}%
-                                                {s.discipline_rate <= 75 && !(s.discipline_rate === 0 && s.attendance_rate === 0) && <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />}
+                                                {s.discipline_rate <= 75 &&
+                                                    !(s.discipline_rate === 0 && s.attendance_rate === 0) && (
+                                                        <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
+                                                    )}
                                             </span>
                                         </td>
                                     </tr>
@@ -397,21 +487,34 @@ export default function RecapTable(props: RecapTableProps) {
             {/* Mobile Student Cards */}
             <div className="lg:hidden space-y-2">
                 {students.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">
-                        {t("reports.emptyMonthly")}
-                    </div>
+                    <div className="py-12 text-center text-text-muted text-[13px]">{t("reports.emptyMonthly")}</div>
                 ) : (
                     students.map((s) => (
                         <div
                             key={s.id}
                             className="bg-surface border border-border rounded-xl p-3"
                             style={{
-                                borderLeftColor: s.absent > 0 ? "var(--color-danger)" : s.pending > 0 ? "var(--color-info)" : s.sick > 0 ? "var(--color-medical)" : s.permission > 0 ? "var(--color-primary)" : s.late > 0 ? "var(--color-warning)" : s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)",
+                                borderLeftColor:
+                                    s.absent > 0
+                                        ? "var(--color-danger)"
+                                        : s.pending > 0
+                                          ? "var(--color-info)"
+                                          : s.sick > 0
+                                            ? "var(--color-medical)"
+                                            : s.permission > 0
+                                              ? "var(--color-primary)"
+                                              : s.late > 0
+                                                ? "var(--color-warning)"
+                                                : s.on_time > 0
+                                                  ? "var(--color-success)"
+                                                  : "var(--color-text-muted)",
                                 borderLeftWidth: "3px",
                             }}
                         >
                             <div className="min-w-0 mb-1 flex items-center gap-2">
-                                <p className="text-[14px] font-bold text-text-primary truncate flex-1 min-w-0">{s.name}</p>
+                                <p className="text-[14px] font-bold text-text-primary truncate flex-1 min-w-0">
+                                    {s.name}
+                                </p>
                                 {s.pending > 0 && (
                                     <span className="shrink-0 inline-flex items-center gap-1 bg-info-light text-info text-[10px] font-bold px-2 py-0.5 rounded-full">
                                         {s.pending} {t("reports.statusPending")}
@@ -422,40 +525,100 @@ export default function RecapTable(props: RecapTableProps) {
                             <div className="bg-background rounded-lg p-2 mt-1 space-y-1">
                                 <div className="flex items-center justify-center rounded-lg">
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
-                                        <span className={`font-bold text-[13px] ${s.on_time > 0 ? "text-success" : "text-text-muted"}`}>{s.on_time}</span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.headerOnTime")}</span>
+                                        <span
+                                            className={`font-bold text-[13px] ${s.on_time > 0 ? "text-success" : "text-text-muted"}`}
+                                        >
+                                            {s.on_time}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.headerOnTime")}
+                                        </span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className={`font-bold text-[13px] ${s.late > 0 ? "text-warning" : "text-text-muted"}`}>{s.late}</span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.statusLate")}</span>
+                                        <span
+                                            className={`font-bold text-[13px] ${s.late > 0 ? "text-warning" : "text-text-muted"}`}
+                                        >
+                                            {s.late}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.statusLate")}
+                                        </span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className="font-semibold text-[13px]" style={{ color: s.permission > 0 ? "var(--color-primary)" : "var(--color-text-muted)" }}>{s.permission}</span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.permission")}</span>
+                                        <span
+                                            className="font-semibold text-[13px]"
+                                            style={{
+                                                color:
+                                                    s.permission > 0
+                                                        ? "var(--color-primary)"
+                                                        : "var(--color-text-muted)",
+                                            }}
+                                        >
+                                            {s.permission}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.permission")}
+                                        </span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className="font-semibold text-[13px]" style={{ color: s.sick > 0 ? "var(--color-medical)" : "var(--color-text-muted)" }}>{s.sick}</span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.statusSick")}</span>
+                                        <span
+                                            className="font-semibold text-[13px]"
+                                            style={{
+                                                color: s.sick > 0 ? "var(--color-medical)" : "var(--color-text-muted)",
+                                            }}
+                                        >
+                                            {s.sick}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.statusSick")}
+                                        </span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className="font-semibold text-[13px]" style={{ color: s.absent > 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}>{s.absent}</span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.statusAbsent")}</span>
+                                        <span
+                                            className="font-semibold text-[13px]"
+                                            style={{
+                                                color: s.absent > 0 ? "var(--color-danger)" : "var(--color-text-muted)",
+                                            }}
+                                        >
+                                            {s.absent}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.statusAbsent")}
+                                        </span>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center rounded-lg">
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50 first:border-l-0">
-                                        <span className={`font-bold text-[13px] ${s.attendance_rate === 0 && s.discipline_rate === 0 ? 'text-text-muted' : s.attendance_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                        <span
+                                            className={`font-bold text-[13px] ${s.attendance_rate === 0 && s.discipline_rate === 0 ? "text-text-muted" : s.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}`}
+                                        >
                                             {s.attendance_rate}%
-                                            {s.attendance_rate <= 75 && !(s.attendance_rate === 0 && s.discipline_rate === 0) && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                            {s.attendance_rate <= 75 &&
+                                                !(s.attendance_rate === 0 && s.discipline_rate === 0) && (
+                                                    <span className="inline-flex items-center ml-0.5">
+                                                        <FiAlertTriangle className="text-[11px] relative -top-px" />
+                                                    </span>
+                                                )}
                                         </span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.headerAttendance")}</span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.headerAttendance")}
+                                        </span>
                                     </div>
                                     <div className="flex-1 text-center px-1 border-l-[4px] border-white/50">
-                                        <span className={`font-bold text-[13px] ${s.discipline_rate === 0 && s.attendance_rate === 0 ? 'text-text-muted' : s.discipline_rate <= 75 ? 'text-warning' : 'text-text-primary'}`}>
+                                        <span
+                                            className={`font-bold text-[13px] ${s.discipline_rate === 0 && s.attendance_rate === 0 ? "text-text-muted" : s.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}`}
+                                        >
                                             {s.discipline_rate}%
-                                            {s.discipline_rate <= 75 && !(s.discipline_rate === 0 && s.attendance_rate === 0) && <span className="inline-flex items-center ml-0.5"><FiAlertTriangle className="text-[11px] relative -top-px" /></span>}
+                                            {s.discipline_rate <= 75 &&
+                                                !(s.discipline_rate === 0 && s.attendance_rate === 0) && (
+                                                    <span className="inline-flex items-center ml-0.5">
+                                                        <FiAlertTriangle className="text-[11px] relative -top-px" />
+                                                    </span>
+                                                )}
                                         </span>
-                                        <span className="text-[10px] text-text-muted block">{t("reports.headerDiscipline")}</span>
+                                        <span className="text-[10px] text-text-muted block">
+                                            {t("reports.headerDiscipline")}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

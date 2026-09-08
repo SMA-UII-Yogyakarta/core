@@ -1,40 +1,40 @@
 import { router, usePage } from "@inertiajs/react";
-import { useState, useEffect } from "react";
-import {
-    PageHeader,
-    ImportModal,
-    ConfirmDialog,
-    Button,
-    NativeSelect,
-    SelectInput,
-    TabSwitcher,
-    Modal,
-    MobileSelectionBar,
-    BottomSheet,
-    FilterPopover,
-} from "@/Components";
-import AppShell from "@/Layouts/AppShell";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
     FiAlertCircle,
-    FiUpload,
-    FiPlus,
-    FiTrash2,
-    FiFilter,
-    FiUsers,
-    FiUserCheck,
     FiBookOpen,
-    FiShield,
     FiChevronRight,
+    FiFilter,
     FiLayers,
+    FiPlus,
+    FiShield,
+    FiTrash2,
+    FiUpload,
+    FiUserCheck,
+    FiUsers,
     FiZap,
 } from "react-icons/fi";
+import {
+    BottomSheet,
+    Button,
+    ConfirmDialog,
+    FilterPopover,
+    ImportModal,
+    MobileSelectionBar,
+    Modal,
+    NativeSelect,
+    PageHeader,
+    SelectInput,
+    TabSwitcher,
+} from "@/Components";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import type { MasterDataProps, Student, Teacher, SchoolClass, Guardian } from "./MasterData/types";
-import StudentsTab from "./MasterData/StudentsTab";
-import TeachersTab from "./MasterData/TeachersTab";
+import AppShell from "@/Layouts/AppShell";
 import ClassesTab from "./MasterData/ClassesTab";
 import GuardiansTab from "./MasterData/GuardiansTab";
+import StudentsTab from "./MasterData/StudentsTab";
+import TeachersTab from "./MasterData/TeachersTab";
+import type { Guardian, MasterDataProps, SchoolClass, Student, Teacher } from "./MasterData/types";
 
 const activeTabMap: Record<string, string> = {
     siswa: "students",
@@ -92,9 +92,9 @@ export default function MasterData({
         return null;
     };
 
-    const [mobileSubPage, setMobileSubPage] = useState<
-        "students" | "teachers" | "class" | "guardians" | null
-    >(getInitialMobileSubPage);
+    const [mobileSubPage, setMobileSubPage] = useState<"students" | "teachers" | "class" | "guardians" | null>(
+        getInitialMobileSubPage,
+    );
 
     const [currentTab, setCurrentTab] = useState<string>(() => {
         if (activeTab && activeTabMap[activeTab]) return activeTabMap[activeTab];
@@ -127,15 +127,13 @@ export default function MasterData({
     }, []);
 
     // Modal & Drawer Trigger States
-    const [createTab, setCreateTab] = useState<
-        "students" | "teachers" | "class" | "guardians" | null
-    >(initialCreateTab ?? null);
-    const [editItem, setEditItem] = useState<
-        Student | Teacher | SchoolClass | Guardian | null
-    >(initialEditItem ?? null);
-    const [editMode, setEditMode] = useState<"edit" | "detail" | null>(
-        initialEditMode ?? null
+    const [createTab, setCreateTab] = useState<"students" | "teachers" | "class" | "guardians" | null>(
+        initialCreateTab ?? null,
     );
+    const [editItem, setEditItem] = useState<Student | Teacher | SchoolClass | Guardian | null>(
+        initialEditItem ?? null,
+    );
+    const [editMode, setEditMode] = useState<"edit" | "detail" | null>(initialEditMode ?? null);
 
     useEffect(() => {
         if (initialEditItem) {
@@ -155,11 +153,7 @@ export default function MasterData({
         setEditMode(null);
         if (typeof window !== "undefined") {
             const path = window.location.pathname;
-            if (
-                path.includes("/detail") ||
-                path.includes("/edit") ||
-                path.includes("/create")
-            ) {
+            if (path.includes("/detail") || path.includes("/edit") || path.includes("/create")) {
                 const currentParam = currentTab ? `?tab=${currentTab}` : "";
                 window.history.replaceState({}, "", `/master-data${currentParam}`);
             }
@@ -168,9 +162,7 @@ export default function MasterData({
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [importModalOpen, setImportModalOpen] = useState(false);
-    const [importEntity, setImportEntity] = useState<
-        "students" | "teachers" | "classes" | "guardians"
-    >("students");
+    const [importEntity, setImportEntity] = useState<"students" | "teachers" | "classes" | "guardians">("students");
 
     const [actionModalOpen, setActionModalOpen] = useState(false);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -228,7 +220,7 @@ export default function MasterData({
             {
                 preserveState: true,
                 preserveScroll: true,
-            }
+            },
         );
     };
 
@@ -261,7 +253,7 @@ export default function MasterData({
                 level: currentTab === "class" ? selectedLevel || undefined : undefined,
                 has_student: currentTab === "guardians" ? selectedHasStudent || undefined : undefined,
             },
-            { preserveState: true, replace: true }
+            { preserveState: true, replace: true },
         );
     };
 
@@ -283,7 +275,7 @@ export default function MasterData({
                 level: key === "level" ? val || undefined : selectedLevel || undefined,
                 has_student: key === "has_student" ? val || undefined : selectedHasStudent || undefined,
             },
-            { preserveState: true, replace: true }
+            { preserveState: true, replace: true },
         );
     };
 
@@ -294,18 +286,10 @@ export default function MasterData({
         setSelectedTeacherType("");
         setSelectedLevel("");
         setSelectedHasStudent("");
-        router.get(
-            "/master-data",
-            { tab: currentTab },
-            { preserveState: true, replace: true }
-        );
+        router.get("/master-data", { tab: currentTab }, { preserveState: true, replace: true });
     };
 
-    const requestDelete = (
-        entity: string,
-        ids: number | number[],
-        label: string
-    ) => {
+    const requestDelete = (entity: string, ids: number | number[], label: string) => {
         setDeleteConfirm({
             open: true,
             entity,
@@ -327,28 +311,25 @@ export default function MasterData({
                         setDeleteConfirm({ open: false, entity: null, ids: null, label: "" });
                         setSelectedIds([]);
                     },
-                }
+                },
             );
         } else {
             router.delete(`/master-data/${deleteConfirm.entity}/${deleteConfirm.ids}`, {
                 preserveScroll: true,
-                onSuccess: () =>
-                    setDeleteConfirm({ open: false, entity: null, ids: null, label: "" }),
+                onSuccess: () => setDeleteConfirm({ open: false, entity: null, ids: null, label: "" }),
             });
         }
     };
 
     const hasActiveFilters = Boolean(
         search ||
-        (currentTab === "students" && (selectedClassId || selectedStatus)) ||
-        (currentTab === "teachers" && selectedTeacherType) ||
-        (currentTab === "class" && selectedLevel) ||
-        (currentTab === "guardians" && selectedHasStudent)
+            (currentTab === "students" && (selectedClassId || selectedStatus)) ||
+            (currentTab === "teachers" && selectedTeacherType) ||
+            (currentTab === "class" && selectedLevel) ||
+            (currentTab === "guardians" && selectedHasStudent),
     );
     const currentImportEntity =
-        currentTab === "class"
-            ? "classes"
-            : (currentTab as "students" | "teachers" | "guardians");
+        currentTab === "class" ? "classes" : (currentTab as "students" | "teachers" | "guardians");
 
     const getAddLabel = () => {
         switch (currentTab) {
@@ -395,8 +376,6 @@ export default function MasterData({
                 return "Data";
         }
     };
-
-
 
     const mobileHeaderActions = (
         <>
@@ -555,9 +534,7 @@ export default function MasterData({
                             if (!isDesktop) {
                                 router.visit(`/master-data/create?tab=${currentTab}`);
                             } else {
-                                setCreateTab(
-                                    currentTab as "students" | "teachers" | "guardians" | "class"
-                                );
+                                setCreateTab(currentTab as "students" | "teachers" | "guardians" | "class");
                             }
                         }}
                         className="h-9 px-3.5 text-[13px] font-bold shadow-xs"
@@ -566,10 +543,10 @@ export default function MasterData({
                             currentTab === "teachers"
                                 ? "Guru"
                                 : currentTab === "students"
-                                ? "Siswa"
-                                : currentTab === "class"
-                                ? "Kelas"
-                                : "Wali"
+                                  ? "Siswa"
+                                  : currentTab === "class"
+                                    ? "Kelas"
+                                    : "Wali"
                         }`}
                     </Button>
                 </PageHeader>
@@ -630,7 +607,7 @@ export default function MasterData({
                                             requestDelete(
                                                 currentImportEntity,
                                                 selectedIds,
-                                                `${selectedIds.length} ${getEntityLabel()} Terpilih`
+                                                `${selectedIds.length} ${getEntityLabel()} Terpilih`,
                                             )
                                         }
                                         className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-danger text-white text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
@@ -652,14 +629,27 @@ export default function MasterData({
                                             icon={<FiFilter className="text-[13px]" />}
                                             className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
                                         >
-                                            Filter{selectedClassId || selectedStatus || selectedTeacherType || selectedLevel || selectedHasStudent ? " (Aktif)" : ""}
+                                            Filter
+                                            {selectedClassId ||
+                                            selectedStatus ||
+                                            selectedTeacherType ||
+                                            selectedLevel ||
+                                            selectedHasStudent
+                                                ? " (Aktif)"
+                                                : ""}
                                         </Button>
                                     }
                                 >
                                     <div className="flex flex-col gap-3 font-inter min-w-[220px]">
                                         <div className="flex items-center justify-between border-b border-border pb-2">
                                             <h4 className="text-[13.5px] font-bold text-text-primary">Filter Data</h4>
-                                            {Boolean(selectedClassId || selectedStatus || selectedTeacherType || selectedLevel || selectedHasStudent) && (
+                                            {Boolean(
+                                                selectedClassId ||
+                                                    selectedStatus ||
+                                                    selectedTeacherType ||
+                                                    selectedLevel ||
+                                                    selectedHasStudent,
+                                            ) && (
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -717,7 +707,9 @@ export default function MasterData({
                                                     </label>
                                                     <NativeSelect
                                                         value={selectedTeacherType}
-                                                        onChange={(e) => handleFilterChange("teacher_type", e.target.value)}
+                                                        onChange={(e) =>
+                                                            handleFilterChange("teacher_type", e.target.value)
+                                                        }
                                                         className="h-9 text-[12.5px] rounded-xl w-full"
                                                     >
                                                         <option value="">Semua Penugasan</option>
@@ -803,7 +795,7 @@ export default function MasterData({
                                                 router.visit(`/master-data/create?tab=${currentTab}`);
                                             } else {
                                                 setCreateTab(
-                                                    currentTab as "students" | "teachers" | "guardians" | "class"
+                                                    currentTab as "students" | "teachers" | "guardians" | "class",
                                                 );
                                             }
                                         }}
@@ -843,9 +835,7 @@ export default function MasterData({
                                         if (!isDesktop) {
                                             router.visit(`/master-data/create?tab=${currentTab}`);
                                         } else {
-                                            setCreateTab(
-                                                currentTab as "students" | "teachers" | "guardians" | "class"
-                                            );
+                                            setCreateTab(currentTab as "students" | "teachers" | "guardians" | "class");
                                         }
                                     }}
                                     className="h-10 px-3.5 text-[13px] font-bold rounded-xl shadow-xs whitespace-nowrap"
@@ -854,93 +844,93 @@ export default function MasterData({
                                 </Button>
                             </div>
                         </div>
-                    {currentTab === "students" && (
-                        <StudentsTab
-                            students={students}
-                            classOptions={classOptions}
-                            allGuardians={allGuardians}
-                            filters={{
-                                ...filters,
-                                search,
-                                class_id: selectedClassId,
-                                status: selectedStatus,
-                            }}
-                            onFilterChange={handleFilterChange}
-                            createOpen={createTab === "students"}
-                            onCloseCreate={handleCloseDrawer}
-                            editItem={currentTab === "students" ? (editItem as Student | null) : null}
-                            editMode={currentTab === "students" ? editMode : null}
-                            onCloseDrawer={handleCloseDrawer}
-                            selectedIds={selectedIds}
-                            onSelectedIdsChange={setSelectedIds}
-                            onRequestDelete={requestDelete}
-                        />
-                    )}
+                        {currentTab === "students" && (
+                            <StudentsTab
+                                students={students}
+                                classOptions={classOptions}
+                                allGuardians={allGuardians}
+                                filters={{
+                                    ...filters,
+                                    search,
+                                    class_id: selectedClassId,
+                                    status: selectedStatus,
+                                }}
+                                onFilterChange={handleFilterChange}
+                                createOpen={createTab === "students"}
+                                onCloseCreate={handleCloseDrawer}
+                                editItem={currentTab === "students" ? (editItem as Student | null) : null}
+                                editMode={currentTab === "students" ? editMode : null}
+                                onCloseDrawer={handleCloseDrawer}
+                                selectedIds={selectedIds}
+                                onSelectedIdsChange={setSelectedIds}
+                                onRequestDelete={requestDelete}
+                            />
+                        )}
 
-                    {currentTab === "teachers" && (
-                        <TeachersTab
-                            teachers={teachers}
-                            filters={{
-                                ...filters,
-                                search,
-                                teacher_type: selectedTeacherType,
-                            }}
-                            onFilterChange={handleFilterChange}
-                            createOpen={createTab === "teachers"}
-                            onCloseCreate={handleCloseDrawer}
-                            editItem={currentTab === "teachers" ? (editItem as Teacher | null) : null}
-                            editMode={currentTab === "teachers" ? editMode : null}
-                            onCloseDrawer={handleCloseDrawer}
-                            selectedIds={selectedIds}
-                            onSelectedIdsChange={setSelectedIds}
-                            onRequestDelete={requestDelete}
-                        />
-                    )}
+                        {currentTab === "teachers" && (
+                            <TeachersTab
+                                teachers={teachers}
+                                filters={{
+                                    ...filters,
+                                    search,
+                                    teacher_type: selectedTeacherType,
+                                }}
+                                onFilterChange={handleFilterChange}
+                                createOpen={createTab === "teachers"}
+                                onCloseCreate={handleCloseDrawer}
+                                editItem={currentTab === "teachers" ? (editItem as Teacher | null) : null}
+                                editMode={currentTab === "teachers" ? editMode : null}
+                                onCloseDrawer={handleCloseDrawer}
+                                selectedIds={selectedIds}
+                                onSelectedIdsChange={setSelectedIds}
+                                onRequestDelete={requestDelete}
+                            />
+                        )}
 
-                    {currentTab === "class" && (
-                        <ClassesTab
-                            schoolClasses={schoolClasses}
-                            allTeachers={allTeachers}
-                            searchConfig={searchConfig}
-                            filters={{
-                                ...filters,
-                                search,
-                                level: selectedLevel,
-                            }}
-                            onFilterChange={handleFilterChange}
-                            createOpen={createTab === "class"}
-                            onCloseCreate={handleCloseDrawer}
-                            editItem={currentTab === "class" ? (editItem as SchoolClass | null) : null}
-                            editMode={currentTab === "class" ? editMode : null}
-                            onCloseDrawer={handleCloseDrawer}
-                            selectedIds={selectedIds}
-                            onSelectedIdsChange={setSelectedIds}
-                            onRequestDelete={requestDelete}
-                        />
-                    )}
+                        {currentTab === "class" && (
+                            <ClassesTab
+                                schoolClasses={schoolClasses}
+                                allTeachers={allTeachers}
+                                searchConfig={searchConfig}
+                                filters={{
+                                    ...filters,
+                                    search,
+                                    level: selectedLevel,
+                                }}
+                                onFilterChange={handleFilterChange}
+                                createOpen={createTab === "class"}
+                                onCloseCreate={handleCloseDrawer}
+                                editItem={currentTab === "class" ? (editItem as SchoolClass | null) : null}
+                                editMode={currentTab === "class" ? editMode : null}
+                                onCloseDrawer={handleCloseDrawer}
+                                selectedIds={selectedIds}
+                                onSelectedIdsChange={setSelectedIds}
+                                onRequestDelete={requestDelete}
+                            />
+                        )}
 
-                    {currentTab === "guardians" && (
-                        <GuardiansTab
-                            guardians={guardians}
-                            filters={{
-                                ...filters,
-                                search,
-                                has_student: selectedHasStudent,
-                            }}
-                            onFilterChange={handleFilterChange}
-                            createOpen={createTab === "guardians"}
-                            onCloseCreate={handleCloseDrawer}
-                            editItem={currentTab === "guardians" ? (editItem as Guardian | null) : null}
-                            editMode={currentTab === "guardians" ? editMode : null}
-                            onCloseDrawer={handleCloseDrawer}
-                            selectedIds={selectedIds}
-                            onSelectedIdsChange={setSelectedIds}
-                            onRequestDelete={requestDelete}
-                        />
-                    )}
+                        {currentTab === "guardians" && (
+                            <GuardiansTab
+                                guardians={guardians}
+                                filters={{
+                                    ...filters,
+                                    search,
+                                    has_student: selectedHasStudent,
+                                }}
+                                onFilterChange={handleFilterChange}
+                                createOpen={createTab === "guardians"}
+                                onCloseCreate={handleCloseDrawer}
+                                editItem={currentTab === "guardians" ? (editItem as Guardian | null) : null}
+                                editMode={currentTab === "guardians" ? editMode : null}
+                                onCloseDrawer={handleCloseDrawer}
+                                selectedIds={selectedIds}
+                                onSelectedIdsChange={setSelectedIds}
+                                onRequestDelete={requestDelete}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
 
             {/* ───────────────────────────────────────────────────────────── */}
             {/* MOBILE-NATIVE APP ARCHITECTURE (< sm) */}
@@ -969,7 +959,8 @@ export default function MasterData({
                                     </span>
                                 </div>
                                 <p className="text-[12px] text-text-secondary leading-relaxed pt-0.5">
-                                    Pusat pengelolaan basis data seluruh civitas akademika SMA UII Yogyakarta. Pilih modul di bawah ini untuk mengelola data.
+                                    Pusat pengelolaan basis data seluruh civitas akademika SMA UII Yogyakarta. Pilih
+                                    modul di bawah ini untuk mengelola data.
                                 </p>
                             </div>
 
@@ -1028,18 +1019,25 @@ export default function MasterData({
                                             <strong>
                                                 {[
                                                     search && `"${search}"`,
-                                                    currentTab === "students" && selectedClassId &&
+                                                    currentTab === "students" &&
+                                                        selectedClassId &&
                                                         classOptions.find(
-                                                            (c) => String(c.id) === String(selectedClassId)
+                                                            (c) => String(c.id) === String(selectedClassId),
                                                         )?.name,
-                                                    currentTab === "students" && selectedStatus &&
+                                                    currentTab === "students" &&
+                                                        selectedStatus &&
                                                         (selectedStatus === "Active" ? "Aktif" : "Non-Aktif"),
-                                                    currentTab === "teachers" && selectedTeacherType &&
+                                                    currentTab === "teachers" &&
+                                                        selectedTeacherType &&
                                                         (selectedTeacherType === "duty" ? "Guru Piket" : "Wali Kelas"),
-                                                    currentTab === "class" && selectedLevel &&
+                                                    currentTab === "class" &&
+                                                        selectedLevel &&
                                                         `Tingkat ${selectedLevel}`,
-                                                    currentTab === "guardians" && selectedHasStudent &&
-                                                        (selectedHasStudent === "linked" ? "Terhubung Siswa" : "Belum Terhubung"),
+                                                    currentTab === "guardians" &&
+                                                        selectedHasStudent &&
+                                                        (selectedHasStudent === "linked"
+                                                            ? "Terhubung Siswa"
+                                                            : "Belum Terhubung"),
                                                 ]
                                                     .filter(Boolean)
                                                     .join(", ")}
@@ -1165,7 +1163,7 @@ export default function MasterData({
                                     requestDelete(
                                         currentImportEntity,
                                         selectedIds,
-                                        `${selectedIds.length} ${getEntityLabel()} Terpilih`
+                                        `${selectedIds.length} ${getEntityLabel()} Terpilih`,
                                     ),
                                 variant: "danger",
                                 icon: <FiTrash2 className="text-[12px]" />,
@@ -1190,33 +1188,25 @@ export default function MasterData({
                 </div>
             )}
 
-
-
             <ConfirmDialog
                 open={deleteConfirm.open}
                 title="Konfirmasi Hapus Data"
                 message={
                     <span>
                         Apakah Anda yakin ingin menghapus data{" "}
-                        <strong className="text-text-primary font-extrabold">{deleteConfirm.label}</strong>?
-                        Tindakan ini bersifat permanen dan tidak dapat dibatalkan.
+                        <strong className="text-text-primary font-extrabold">{deleteConfirm.label}</strong>? Tindakan
+                        ini bersifat permanen dan tidak dapat dibatalkan.
                     </span>
                 }
                 confirmLabel="Hapus Sekarang"
                 cancelLabel="Batal"
                 variant="danger"
                 onConfirm={handleConfirmDelete}
-                onClose={() =>
-                    setDeleteConfirm({ open: false, entity: null, ids: null, label: "" })
-                }
+                onClose={() => setDeleteConfirm({ open: false, entity: null, ids: null, label: "" })}
             />
 
             {/* Import CSV Modal */}
-            <ImportModal
-                open={importModalOpen}
-                onClose={() => setImportModalOpen(false)}
-                entity={importEntity}
-            />
+            <ImportModal open={importModalOpen} onClose={() => setImportModalOpen(false)} entity={importEntity} />
 
             {/* Action Trigger Modal for Tablet View */}
             <Modal
@@ -1299,9 +1289,7 @@ export default function MasterData({
                     {mobileSubPage === "students" && (
                         <>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Pilih Kelas
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                                 <SelectInput
                                     value={selectedClassId}
                                     onChange={(val) => handleFilterChange("class_id", val as string)}
@@ -1317,9 +1305,7 @@ export default function MasterData({
                             </div>
 
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Status Siswa
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Status Siswa</label>
                                 <SelectInput
                                     value={selectedStatus}
                                     onChange={(val) => handleFilterChange("status", val as string)}
@@ -1336,9 +1322,7 @@ export default function MasterData({
 
                     {mobileSubPage === "teachers" && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[12px] font-bold text-text-secondary">
-                                Tipe Penugasan
-                            </label>
+                            <label className="text-[12px] font-bold text-text-secondary">Tipe Penugasan</label>
                             <SelectInput
                                 value={selectedTeacherType}
                                 onChange={(val) => handleFilterChange("teacher_type", val as string)}
@@ -1354,9 +1338,7 @@ export default function MasterData({
 
                     {mobileSubPage === "class" && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[12px] font-bold text-text-secondary">
-                                Tingkat Kelas
-                            </label>
+                            <label className="text-[12px] font-bold text-text-secondary">Tingkat Kelas</label>
                             <SelectInput
                                 value={selectedLevel}
                                 onChange={(val) => handleFilterChange("level", val as string)}
@@ -1373,9 +1355,7 @@ export default function MasterData({
 
                     {mobileSubPage === "guardians" && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[12px] font-bold text-text-secondary">
-                                Status Wali Murid
-                            </label>
+                            <label className="text-[12px] font-bold text-text-secondary">Status Wali Murid</label>
                             <SelectInput
                                 value={selectedHasStudent}
                                 onChange={(val) => handleFilterChange("has_student", val as string)}

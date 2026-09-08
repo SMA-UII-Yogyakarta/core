@@ -1,9 +1,9 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useMemo } from "react";
-import { FiUserX, FiUserPlus, FiArrowLeft, FiSearch, FiUsers, FiUserCheck, FiCheck } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button, Table, Avatar, Pagination, EmptyState, Card, TabSwitcher, SearchBar } from "@/Components";
+import { FiArrowLeft, FiCheck, FiSearch, FiUserCheck, FiUserPlus, FiUsers, FiUserX } from "react-icons/fi";
+import { Avatar, Button, Card, EmptyState, Pagination, SearchBar, Table, TabSwitcher } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import type { Student, Guardian } from "../types";
+import type { Guardian, Student } from "../types";
 
 const stackVariants = {
     initial: (direction: number) => ({
@@ -89,8 +89,12 @@ export default function LinkedStudentsPanel({
                 className: "w-full min-w-0",
                 render: (s: Student) => (
                     <div className="min-w-0 max-w-[200px] sm:max-w-none">
-                        <p className="font-semibold text-primary truncate" title={s.name}>{s.name}</p>
-                        <p className="text-[12px] text-text-secondary truncate">NIS: {s.nis} &middot; NISN: {s.nisn}</p>
+                        <p className="font-semibold text-primary truncate" title={s.name}>
+                            {s.name}
+                        </p>
+                        <p className="text-[12px] text-text-secondary truncate">
+                            NIS: {s.nis} &middot; NISN: {s.nisn}
+                        </p>
                     </div>
                 ),
             },
@@ -123,7 +127,7 @@ export default function LinkedStudentsPanel({
                 ),
             },
         ],
-        [onRemoveStudent]
+        [onRemoveStudent],
     );
 
     const linkedTotalPages = Math.max(1, Math.ceil(linkedStudents.length / linkedPageSize));
@@ -135,10 +139,14 @@ export default function LinkedStudentsPanel({
 
     const assignTabs = useMemo(
         () => [
-            { key: "unassigned", label: `Belum Punya Wali (${unassignedStudentsCount})`, icon: <FiUsers className="w-3.5 h-3.5" /> },
+            {
+                key: "unassigned",
+                label: `Belum Punya Wali (${unassignedStudentsCount})`,
+                icon: <FiUsers className="w-3.5 h-3.5" />,
+            },
             { key: "all", label: `Semua Siswa (${allStudentsCount})`, icon: <FiUserCheck className="w-3.5 h-3.5" /> },
         ],
-        [unassignedStudentsCount, allStudentsCount]
+        [unassignedStudentsCount, allStudentsCount],
     );
 
     if (!selectedGuardian) {
@@ -186,7 +194,8 @@ export default function LinkedStudentsPanel({
                                             </span>
                                         </div>
                                         <p className="text-[12px] text-text-secondary mt-0.5 truncate">
-                                            Kontak: {selectedGuardian.phone || "-"} · Alamat: {selectedGuardian.address || "-"}
+                                            Kontak: {selectedGuardian.phone || "-"} · Alamat:{" "}
+                                            {selectedGuardian.address || "-"}
                                         </p>
                                     </div>
                                     {linkedStudents.length > 0 && (
@@ -317,7 +326,9 @@ export default function LinkedStudentsPanel({
                             {paginatedAssignStudents.length > 0 ? (
                                 paginatedAssignStudents.map((s) => {
                                     const isAssigned = Boolean(s.guardian_id);
-                                    const isAssignedToThis = Boolean(selectedGuardian && s.guardian_id === selectedGuardian.id);
+                                    const isAssignedToThis = Boolean(
+                                        selectedGuardian && s.guardian_id === selectedGuardian.id,
+                                    );
 
                                     return (
                                         <div
@@ -327,13 +338,19 @@ export default function LinkedStudentsPanel({
                                             <div className="flex items-center gap-3 min-w-0 flex-1">
                                                 <Avatar name={s.name} size="sm" variant="accent" className="shrink-0" />
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-[13.5px] font-bold text-text-primary truncate" title={s.name}>
+                                                    <p
+                                                        className="text-[13.5px] font-bold text-text-primary truncate"
+                                                        title={s.name}
+                                                    >
                                                         {s.name}
                                                     </p>
                                                     <p className="text-[12px] text-text-secondary mt-0.5 truncate">
                                                         NIS: {s.nis} · {s.class?.name ?? "Tanpa Kelas"}
                                                         {isAssigned && !isAssignedToThis && s.guardian?.name && (
-                                                            <span className="text-text-muted"> · Wali: {s.guardian.name}</span>
+                                                            <span className="text-text-muted">
+                                                                {" "}
+                                                                · Wali: {s.guardian.name}
+                                                            </span>
                                                         )}
                                                     </p>
                                                 </div>
@@ -347,7 +364,13 @@ export default function LinkedStudentsPanel({
                                                     }`}
                                                 >
                                                     <FiCheck className="w-3.5 h-3.5" />
-                                                    <span>{isAssignedToThis ? "Sudah Terhubung" : (s.guardian?.name ? `Wali: ${s.guardian.name}` : "Sudah Punya Wali")}</span>
+                                                    <span>
+                                                        {isAssignedToThis
+                                                            ? "Sudah Terhubung"
+                                                            : s.guardian?.name
+                                                              ? `Wali: ${s.guardian.name}`
+                                                              : "Sudah Punya Wali"}
+                                                    </span>
                                                 </span>
                                             ) : (
                                                 <Button
@@ -370,8 +393,8 @@ export default function LinkedStudentsPanel({
                                         {studentSearch
                                             ? "Tidak ada siswa yang sesuai pencarian."
                                             : assignTab === "unassigned"
-                                            ? "Semua siswa sudah terhubung dengan wali murid."
-                                            : "Tidak ada data siswa."}
+                                              ? "Semua siswa sudah terhubung dengan wali murid."
+                                              : "Tidak ada data siswa."}
                                     </p>
                                 </div>
                             )}

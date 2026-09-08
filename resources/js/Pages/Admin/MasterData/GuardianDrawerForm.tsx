@@ -63,9 +63,8 @@ export default function GuardianDrawerForm({
               {
                   label: "Siswa Terhubung",
                   value:
-                      guardian.students
-                          ?.map((s) => `${s.name} (${s.class?.name || "No Class"})`)
-                          .join(", ") || "Belum Ada Siswa",
+                      guardian.students?.map((s) => `${s.name} (${s.class?.name || "No Class"})`).join(", ") ||
+                      "Belum Ada Siswa",
               },
           ]
         : [];
@@ -73,8 +72,8 @@ export default function GuardianDrawerForm({
     const title = isCreate
         ? "Tambah Orang Tua / Wali Baru"
         : isUnlocked
-        ? "Edit Data Orang Tua / Wali"
-        : "Detail Data Orang Tua / Wali";
+          ? "Edit Data Orang Tua / Wali"
+          : "Detail Data Orang Tua / Wali";
 
     const description = isCreate
         ? "Daftarkan orang tua / wali murid untuk pemantauan presensi dan izin siswa."

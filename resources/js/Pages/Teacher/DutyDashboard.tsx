@@ -1,31 +1,24 @@
-import { useState, useMemo } from "react";
-import { router, Link } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { Link, router } from "@inertiajs/react";
+import { useMemo, useState } from "react";
+import { FiCalendar, FiEdit3, FiFileText, FiInfo, FiRefreshCw, FiUser } from "react-icons/fi";
 import {
+    Button,
+    Drawer,
+    FilterBar,
+    Input,
+    MobileNativePagination,
+    NativeSelect,
     PageHeader,
+    StatCard,
+    StatusBadge,
     Table,
     TableFooter,
-    MobileNativePagination,
-    Drawer,
-    NativeSelect,
-    Button,
-    Input,
-    FilterBar,
-    StatCard,
     TabSwitcher,
-    StatusBadge,
 } from "@/Components";
-import {
-    FiRefreshCw,
-    FiUser,
-    FiEdit3,
-    FiCalendar,
-    FiFileText,
-    FiInfo,
-} from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
-import { useInertiaPolling } from "@/hooks/useInertiaPolling";
 import { useClientPagination } from "@/hooks/useClientPagination";
+import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import AppShell from "@/Layouts/AppShell";
 
 interface Teacher {
     id: number;
@@ -75,7 +68,8 @@ type MobileTab = "anomali" | "izin";
 
 function rowNote(s: AttentionStudent): string {
     if (s.status === "alpa" || s.status === "absent") return "Belum ada kabar";
-    if (s.status === "terlambat" || s.status === "late") return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
+    if (s.status === "terlambat" || s.status === "late")
+        return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
     if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? "Sakit"}`;
     return "Pengajuan Izin Diterima";
 }
@@ -181,7 +175,10 @@ export default function DutyDashboard({
             header: "Nama Siswa",
             className: "min-w-[180px]",
             render: (s: AttentionStudent) => (
-                <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
+                <span
+                    className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]"
+                    title={s.name}
+                >
                     {s.name}
                 </span>
             ),
@@ -195,8 +192,8 @@ export default function DutyDashboard({
                     s.status === "pending"
                         ? "PENDING IZIN"
                         : s.status === "diizinkan"
-                        ? "DIIZINKAN"
-                        : s.status.toUpperCase();
+                          ? "DIIZINKAN"
+                          : s.status.toUpperCase();
                 return <StatusBadge variant={s.status} label={label} />;
             },
         },
@@ -269,9 +266,7 @@ export default function DutyDashboard({
                         size="sm"
                         onClick={triggerRefresh}
                         loading={isRefreshing}
-                        title={`Terakhir diperbarui: ${
-                            lastUpdated ? lastUpdated.toLocaleTimeString("id-ID") : "—"
-                        }`}
+                        title={`Terakhir diperbarui: ${lastUpdated ? lastUpdated.toLocaleTimeString("id-ID") : "—"}`}
                     >
                         <FiRefreshCw className={`text-[12px] ${isRefreshing ? "animate-spin" : ""}`} />
                     </Button>
@@ -288,11 +283,7 @@ export default function DutyDashboard({
                         onChange={(e) => handleClassChange(e.target.value)}
                         options={classOptions}
                     />
-                    <FilterBar.Date
-                        label="Tanggal"
-                        value={dateVal}
-                        onChange={handleDateChange}
-                    />
+                    <FilterBar.Date label="Tanggal" value={dateVal} onChange={handleDateChange} />
                     <div className="w-full sm:w-64 sm:ml-auto">
                         <FilterBar.Search
                             value={search}
@@ -320,9 +311,7 @@ export default function DutyDashboard({
 
                 {/* Standalone Table Section (No outer Card container) */}
                 <div className="space-y-4">
-                    <h3 className="text-[16px] font-bold text-text-primary font-inter">
-                        Perhatian Khusus Hari Ini
-                    </h3>
+                    <h3 className="text-[16px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h3>
 
                     <Table<AttentionStudent>
                         columns={columns}
@@ -436,9 +425,7 @@ export default function DutyDashboard({
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
                                     Pantauan Izin
                                 </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Izin & dispensasi
-                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">Izin & dispensasi</span>
                             </div>
                         </Link>
 
@@ -453,9 +440,7 @@ export default function DutyDashboard({
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
                                     Rekap Harian
                                 </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Laporan per kelas
-                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">Laporan per kelas</span>
                             </div>
                         </Link>
 
@@ -470,9 +455,7 @@ export default function DutyDashboard({
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
                                     Ekspor Laporan
                                 </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    PDF & Excel
-                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">PDF & Excel</span>
                             </div>
                         </Link>
 
@@ -489,9 +472,7 @@ export default function DutyDashboard({
                                 <span className="text-[14px] font-bold text-text-primary block leading-tight">
                                     Refresh Data
                                 </span>
-                                <span className="text-[11px] text-text-muted mt-0.5 block">
-                                    Sinkronkan manual
-                                </span>
+                                <span className="text-[11px] text-text-muted mt-0.5 block">Sinkronkan manual</span>
                             </div>
                         </button>
                     </div>
@@ -523,9 +504,7 @@ export default function DutyDashboard({
                                             {s.class ? s.class.split(" (")[0] : "-"}
                                         </span>
                                     </div>
-                                    <p className="text-[12px] text-text-secondary truncate">
-                                        {rowNote(s)}
-                                    </p>
+                                    <p className="text-[12px] text-text-secondary truncate">{rowNote(s)}</p>
                                 </div>
 
                                 <div className="shrink-0">
@@ -535,8 +514,8 @@ export default function DutyDashboard({
                                             s.status === "pending"
                                                 ? "PENDING"
                                                 : s.status === "diizinkan"
-                                                ? "DIIZINKAN"
-                                                : s.status.toUpperCase()
+                                                  ? "DIIZINKAN"
+                                                  : s.status.toUpperCase()
                                         }
                                     />
                                 </div>
@@ -571,11 +550,10 @@ export default function DutyDashboard({
                                 <FiUser />
                             </div>
                             <div>
-                                <h4 className="font-bold text-text-primary text-[16px]">
-                                    {selectedStudent.name}
-                                </h4>
+                                <h4 className="font-bold text-text-primary text-[16px]">{selectedStudent.name}</h4>
                                 <p className="text-[13px] text-text-muted">
-                                    NIS: {selectedStudent.nis} • Kelas {selectedStudent.class ? selectedStudent.class.split(" (")[0] : "-"}
+                                    NIS: {selectedStudent.nis} • Kelas{" "}
+                                    {selectedStudent.class ? selectedStudent.class.split(" (")[0] : "-"}
                                 </p>
                             </div>
                         </div>
@@ -589,8 +567,8 @@ export default function DutyDashboard({
                                         selectedStudent.status === "pending"
                                             ? "PENDING IZIN"
                                             : selectedStudent.status === "diizinkan"
-                                            ? "DIIZINKAN"
-                                            : selectedStudent.status.toUpperCase()
+                                              ? "DIIZINKAN"
+                                              : selectedStudent.status.toUpperCase()
                                     }
                                 />
                             </div>
@@ -611,11 +589,7 @@ export default function DutyDashboard({
                                     Proses Verifikasi Izin
                                 </Link>
                             )}
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => setSelectedStudent(null)}
-                            >
+                            <Button variant="outline" className="w-full" onClick={() => setSelectedStudent(null)}>
                                 Tutup
                             </Button>
                         </div>

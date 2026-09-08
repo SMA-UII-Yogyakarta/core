@@ -1,30 +1,21 @@
 import { router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FiEdit2, FiEye, FiMapPin, FiPhone, FiPlus, FiShield, FiTrash2, FiUsers } from "react-icons/fi";
 import {
-    Table,
-    TableFooter,
-    MobileNativePagination,
     Avatar,
-    Card,
     Button,
+    Card,
     Checkbox,
-    MobileFilterSelectBar,
     MasterDataCard,
     MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
+    Table,
+    TableFooter,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import {
-    FiPlus,
-    FiEye,
-    FiEdit2,
-    FiTrash2,
-    FiPhone,
-    FiMapPin,
-    FiUsers,
-    FiShield,
-} from "react-icons/fi";
-import type { Guardian, PaginatedData } from "./types";
 import GuardianDrawerForm from "./GuardianDrawerForm";
+import type { Guardian, PaginatedData } from "./types";
 
 interface GuardiansTabProps {
     guardians?: PaginatedData<Guardian>;
@@ -54,12 +45,8 @@ export default function GuardiansTab({
     onSelectedIdsChange,
     onRequestDelete,
 }: GuardiansTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
-        editMode ?? null
-    );
-    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(
-        editItem ?? null
-    );
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(editItem ?? null);
 
     useEffect(() => {
         if (editItem && editMode) {
@@ -91,10 +78,7 @@ export default function GuardiansTab({
             key: "selection",
             header: (
                 <div className="flex items-center justify-center">
-                    <Checkbox
-                        checked={isAllSelected}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
                 </div>
             ),
             render: (g) => (
@@ -134,11 +118,7 @@ export default function GuardiansTab({
         {
             key: "address",
             header: "Alamat Domisili",
-            render: (g) => (
-                <span className="text-[13px] text-text-secondary">
-                    {g.address || "—"}
-                </span>
-            ),
+            render: (g) => <span className="text-[13px] text-text-secondary">{g.address || "—"}</span>,
         },
         {
             key: "students",
@@ -208,7 +188,7 @@ export default function GuardiansTab({
                 page: p,
                 search: filters?.search || undefined,
             },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 

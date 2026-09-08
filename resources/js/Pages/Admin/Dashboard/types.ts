@@ -1,5 +1,5 @@
-import type { StatusVariant } from "@/types/component";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
+import type { StatusVariant } from "@/types/component";
 
 export interface Stats {
     total_students: number;

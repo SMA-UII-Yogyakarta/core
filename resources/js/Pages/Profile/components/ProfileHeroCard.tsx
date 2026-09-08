@@ -1,5 +1,5 @@
+import { FiCamera, FiEye, FiMail, FiRefreshCw } from "react-icons/fi";
 import { Avatar } from "@/Components";
-import { FiCamera, FiRefreshCw, FiMail } from "react-icons/fi";
 import type { ProfileUser } from "../types";
 
 export interface ProfileHeroCardProps {
@@ -10,6 +10,7 @@ export interface ProfileHeroCardProps {
     isDualRoleTeacher: boolean;
     getRoleLabel: (role: string) => string;
     onSelectPhoto: () => void;
+    onViewPhoto: () => void;
 }
 
 export default function ProfileHeroCard({
@@ -20,6 +21,7 @@ export default function ProfileHeroCard({
     isDualRoleTeacher,
     getRoleLabel,
     onSelectPhoto,
+    onViewPhoto,
 }: ProfileHeroCardProps) {
     return (
         <div className="bg-surface border border-border rounded-2xl p-5 shadow-card flex flex-col items-center text-center relative overflow-hidden font-inter">
@@ -33,19 +35,33 @@ export default function ProfileHeroCard({
             </div>
 
             <div className="relative mb-3 mt-1">
-                <Avatar
-                    name={user.name}
-                    src={avatarPreview}
-                    size="2xl"
-                    className="ring-4 ring-surface shadow-md"
-                />
                 <button
                     type="button"
-                    onClick={onSelectPhoto}
+                    onClick={onViewPhoto}
+                    className="relative rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all cursor-pointer group/avatar block"
+                    title="Klik untuk melihat foto profil"
+                    aria-label="Lihat Foto Profil"
+                >
+                    <Avatar
+                        name={user.name}
+                        src={avatarPreview}
+                        size="2xl"
+                        className="ring-4 ring-surface shadow-md group-hover/avatar:ring-primary/50 transition-all"
+                    />
+                    <span className="absolute inset-0 rounded-full bg-black/30 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity text-white">
+                        <FiEye className="text-[20px] drop-shadow-md" />
+                    </span>
+                </button>
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectPhoto();
+                    }}
                     disabled={uploadingAvatar}
-                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-90 transition-all border-2 border-surface cursor-pointer"
-                    title="Ganti Foto Profil"
-                    aria-label="Ganti Foto Profil"
+                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 active:scale-90 transition-all border-2 border-surface cursor-pointer z-10"
+                    title="Unggah / Ganti Foto Profil"
+                    aria-label="Unggah / Ganti Foto Profil"
                 >
                     {uploadingAvatar ? (
                         <FiRefreshCw className="animate-spin text-[12px]" />
@@ -70,7 +86,12 @@ export default function ProfileHeroCard({
                     )}
                     {user.teacher && (
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-muted text-text-secondary">
-                            Kode: {user.teacher.teacher_code} • {isDualRoleTeacher ? "Wali & Piket" : user.teacher.teacher_type?.includes("homeroom") ? "Wali Kelas" : "Guru Piket"}
+                            Kode: {user.teacher.teacher_code} •{" "}
+                            {isDualRoleTeacher
+                                ? "Wali & Piket"
+                                : user.teacher.teacher_type?.includes("homeroom")
+                                  ? "Wali Kelas"
+                                  : "Guru Piket"}
                         </span>
                     )}
                     {user.guardian && (

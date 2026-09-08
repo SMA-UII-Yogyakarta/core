@@ -1,8 +1,18 @@
-import { useState, useMemo } from "react";
 import { Head, router } from "@inertiajs/react";
-import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, SelectInput, StatCard, AttendanceChart, Table, ExportButtonGroup, BottomSheet, Button } from "@/Components";
+import { useMemo, useState } from "react";
 import { FiFilter } from "react-icons/fi";
+import {
+    AttendanceChart,
+    BottomSheet,
+    Button,
+    Card,
+    ExportButtonGroup,
+    PageHeader,
+    SelectInput,
+    StatCard,
+    Table,
+} from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
 import { getRecapColumns } from "./reportColumns";
@@ -43,9 +53,7 @@ export default function SemesterReport({
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Rekap Semester"
                 aria-label="Filter Rekap Semester"
@@ -62,15 +70,16 @@ export default function SemesterReport({
             </Head>
 
             <div className="space-y-6 font-inter">
-                <PageHeader
-                    title={t("reports.semesterTitle")}
-                    className="hidden lg:flex shrink-0 mb-4"
-                >
+                <PageHeader title={t("reports.semesterTitle")} className="hidden lg:flex shrink-0 mb-4">
                     <div className="flex items-center gap-3">
                         <SelectInput
                             value={selectedYear.toString()}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: value, semester: selectedSemester, class_id: selectedClassId || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: value, semester: selectedSemester, class_id: selectedClassId || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
                                 value: y.toString(),
@@ -81,7 +90,11 @@ export default function SemesterReport({
                         <SelectInput
                             value={selectedSemester.toString()}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: selectedYear, semester: value, class_id: selectedClassId || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={[
                                 { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
@@ -92,7 +105,11 @@ export default function SemesterReport({
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: selectedYear, semester: selectedSemester, class_id: value || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: selectedYear, semester: selectedSemester, class_id: value || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
@@ -101,7 +118,12 @@ export default function SemesterReport({
                             className="w-48"
                         />
                         <ExportButtonGroup
-                            onExportExcel={() => window.open(`/export/monthly-recap?year=${selectedYear}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                            onExportExcel={() =>
+                                window.open(
+                                    `/export/monthly-recap?year=${selectedYear}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`,
+                                    "_blank",
+                                )
+                            }
                         />
                     </div>
                 </PageHeader>
@@ -115,12 +137,22 @@ export default function SemesterReport({
                                 <SelectInput
                                     value={selectedYear.toString()}
                                     onChange={(value: string | number | null) =>
-                                        router.get("/reports/semester", { year: value, semester: selectedSemester, class_id: selectedClassId || undefined }, { preserveState: true })
+                                        router.get(
+                                            "/reports/semester",
+                                            {
+                                                year: value,
+                                                semester: selectedSemester,
+                                                class_id: selectedClassId || undefined,
+                                            },
+                                            { preserveState: true },
+                                        )
                                     }
-                                    options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
-                                        value: y.toString(),
-                                        label: `TA ${y}/${y + 1}`,
-                                    }))}
+                                    options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(
+                                        (y) => ({
+                                            value: y.toString(),
+                                            label: `TA ${y}/${y + 1}`,
+                                        }),
+                                    )}
                                     className="w-full h-10 text-[13px]"
                                 />
                             </div>
@@ -128,7 +160,15 @@ export default function SemesterReport({
                                 <SelectInput
                                     value={selectedSemester.toString()}
                                     onChange={(value: string | number | null) =>
-                                        router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
+                                        router.get(
+                                            "/reports/semester",
+                                            {
+                                                year: selectedYear,
+                                                semester: value,
+                                                class_id: selectedClassId || undefined,
+                                            },
+                                            { preserveState: true },
+                                        )
                                     }
                                     options={[
                                         { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
@@ -141,7 +181,15 @@ export default function SemesterReport({
                                 <SelectInput
                                     value={selectedClassId?.toString() ?? ""}
                                     onChange={(value: string | number | null) =>
-                                        router.get("/reports/semester", { year: selectedYear, semester: selectedSemester, class_id: value || undefined }, { preserveState: true })
+                                        router.get(
+                                            "/reports/semester",
+                                            {
+                                                year: selectedYear,
+                                                semester: selectedSemester,
+                                                class_id: value || undefined,
+                                            },
+                                            { preserveState: true },
+                                        )
                                     }
                                     options={[
                                         { value: "", label: t("reports.allClasses") },
@@ -155,7 +203,12 @@ export default function SemesterReport({
                         {/* Right: Export button */}
                         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 sm:ml-auto justify-end">
                             <ExportButtonGroup
-                                onExportExcel={() => window.open(`/export/monthly-recap?year=${selectedYear}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`, "_blank")}
+                                onExportExcel={() =>
+                                    window.open(
+                                        `/export/monthly-recap?year=${selectedYear}&semester=${selectedSemester}${selectedClassId ? `&class_id=${selectedClassId}` : ""}`,
+                                        "_blank",
+                                    )
+                                }
                             />
                         </div>
                     </div>
@@ -192,7 +245,12 @@ export default function SemesterReport({
                 <Card>
                     <div className="p-6">
                         <h3 className="text-lg font-semibold text-text mb-4">{t("reports.semesterBreakdown")}</h3>
-                        <Table columns={columns} data={filteredMonths} keyExtractor={(m) => m.label} emptyMessage="Tidak ada data." />
+                        <Table
+                            columns={columns}
+                            data={filteredMonths}
+                            keyExtractor={(m) => m.label}
+                            emptyMessage="Tidak ada data."
+                        />
                     </div>
                 </Card>
             </div>
@@ -206,13 +264,15 @@ export default function SemesterReport({
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Tahun Ajaran
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Tahun Ajaran</label>
                         <SelectInput
                             value={selectedYear.toString()}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: value, semester: selectedSemester, class_id: selectedClassId || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: value, semester: selectedSemester, class_id: selectedClassId || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => ({
                                 value: y.toString(),
@@ -223,13 +283,15 @@ export default function SemesterReport({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Semester
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Semester</label>
                         <SelectInput
                             value={selectedSemester.toString()}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: selectedYear, semester: value, class_id: selectedClassId || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: selectedYear, semester: value, class_id: selectedClassId || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={[
                                 { value: "1", label: `${t("reports.semester1")} (Jul-Des)` },
@@ -240,13 +302,15 @@ export default function SemesterReport({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Kelas
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                         <SelectInput
                             value={selectedClassId?.toString() ?? ""}
                             onChange={(value: string | number | null) =>
-                                router.get("/reports/semester", { year: selectedYear, semester: selectedSemester, class_id: value || undefined }, { preserveState: true })
+                                router.get(
+                                    "/reports/semester",
+                                    { year: selectedYear, semester: selectedSemester, class_id: value || undefined },
+                                    { preserveState: true },
+                                )
                             }
                             options={[
                                 { value: "", label: t("reports.allClasses") },
@@ -261,7 +325,11 @@ export default function SemesterReport({
                             <Button
                                 variant="secondary"
                                 onClick={() =>
-                                    router.get("/reports/semester", { year: selectedYear, semester: selectedSemester }, { preserveState: true })
+                                    router.get(
+                                        "/reports/semester",
+                                        { year: selectedYear, semester: selectedSemester },
+                                        { preserveState: true },
+                                    )
                                 }
                                 className="flex-1 h-10 text-[13px] font-bold rounded-xl"
                             >

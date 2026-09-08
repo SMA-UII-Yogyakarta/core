@@ -1,9 +1,9 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect, useMemo } from "react";
-import { Input, SelectInput, Button } from "@/Components";
+import { FiCalendar, FiSave, FiTag } from "react-icons/fi";
+import { Button, Input, SelectInput } from "@/Components";
 import { schoolClassSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiTag, FiCalendar, FiSave } from "react-icons/fi";
 import type { SchoolClass, Teacher } from "../types";
 
 export interface ClassFormProps {
@@ -47,17 +47,7 @@ export default function ClassForm({
 
     const currentYear = defaultAcademicYear();
 
-    const {
-        data,
-        setData,
-        post,
-        patch,
-        processing,
-        reset,
-        errors,
-        clearErrors,
-        setError,
-    } = useForm({
+    const { data, setData, post, patch, processing, reset, errors, clearErrors, setError } = useForm({
         name: "",
         level: "X",
         academic_year: currentYear,
@@ -172,9 +162,7 @@ export default function ClassForm({
                         onChange={(e) => setData("academic_year", e.target.value)}
                         disabled={isReadOnly}
                     />
-                    {errors.academic_year && (
-                        <p className="text-[12px] text-danger mt-1">{errors.academic_year}</p>
-                    )}
+                    {errors.academic_year && <p className="text-[12px] text-danger mt-1">{errors.academic_year}</p>}
                 </div>
             </div>
 
@@ -183,9 +171,13 @@ export default function ClassForm({
                 <label className="block text-[13px] font-medium text-text-primary mb-1">
                     Rombongan Belajar (Rombel) <span className="text-danger">*</span>
                 </label>
-                <div className={`flex rounded-xl border bg-surface overflow-hidden transition-all ${
-                    errors.name ? "border-danger ring-1 ring-danger/40" : "border-border focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary"
-                } ${isReadOnly ? "opacity-60 pointer-events-none bg-muted/30" : ""}`}>
+                <div
+                    className={`flex rounded-xl border bg-surface overflow-hidden transition-all ${
+                        errors.name
+                            ? "border-danger ring-1 ring-danger/40"
+                            : "border-border focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary"
+                    } ${isReadOnly ? "opacity-60 pointer-events-none bg-muted/30" : ""}`}
+                >
                     <div className="px-3.5 py-2.5 bg-muted/40 border-r border-border text-[13px] font-bold text-primary select-none flex items-center shrink-0">
                         Kelas {data.level} -
                     </div>
@@ -202,9 +194,7 @@ export default function ClassForm({
                         className="w-full px-3 py-2.5 bg-transparent text-[13px] text-text-primary placeholder:text-text-inactive focus:outline-none font-medium font-inter"
                     />
                 </div>
-                {errors.name && (
-                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-[12px] text-danger mt-1">{errors.name}</p>}
 
                 {/* Live Concatenation Preview */}
                 <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 text-[11px] text-text-muted px-0.5">
@@ -216,7 +206,8 @@ export default function ClassForm({
                     </span>
                     {data.academic_year && data.name.trim() && (
                         <span className="font-mono text-[10.5px] text-primary/80 bg-primary/5 px-2 py-0.5 rounded-md border border-primary/15">
-                            Moodle Cohort: {`${data.level.toLowerCase()}-${data.name.trim().toLowerCase()}-${data.academic_year.replace(/\//g, "").slice(2)}`}
+                            Moodle Cohort:{" "}
+                            {`${data.level.toLowerCase()}-${data.name.trim().toLowerCase()}-${data.academic_year.replace(/\//g, "").slice(2)}`}
                         </span>
                     )}
                 </div>
@@ -293,14 +284,10 @@ export default function ClassForm({
                         onChange={(e) => setData("capacity", e.target.value)}
                         disabled={isReadOnly}
                     />
-                    {errors.capacity && (
-                        <p className="text-[12px] text-danger mt-1">{errors.capacity}</p>
-                    )}
+                    {errors.capacity && <p className="text-[12px] text-danger mt-1">{errors.capacity}</p>}
                 </div>
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Wali Kelas Terpilih
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">Wali Kelas Terpilih</label>
                     <SelectInput
                         value={data.teacher_id ? String(data.teacher_id) : ""}
                         onChange={(val) => setData("teacher_id", val ? String(val) : "")}
@@ -319,21 +306,11 @@ export default function ClassForm({
             {showSubmitButton && activeUnlocked && (
                 <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
                     {onCancel && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={processing}
-                        >
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                             Batal
                         </Button>
                     )}
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        loading={processing}
-                        icon={<FiSave />}
-                    >
+                    <Button type="submit" variant="primary" loading={processing} icon={<FiSave />}>
                         {isCreate ? "Simpan Kelas" : "Perbarui Kelas"}
                     </Button>
                 </div>

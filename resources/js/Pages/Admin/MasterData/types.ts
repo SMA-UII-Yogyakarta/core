@@ -46,6 +46,7 @@ export interface Guardian {
 }
 
 import type { PaginatedData } from "@/types";
+
 export type { PaginatedData };
 
 export interface SearchConfig {

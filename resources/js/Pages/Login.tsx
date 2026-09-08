@@ -1,6 +1,6 @@
 import { useForm } from "@inertiajs/react";
-import AuthLayout from "@/Layouts/AuthLayout";
 import { LoginCard } from "@/Components";
+import AuthLayout from "@/Layouts/AuthLayout";
 
 interface LoginProps {
     errors?: Record<string, string>;

@@ -1,19 +1,19 @@
-import { useState, useMemo } from "react";
 import { Link } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useMemo, useState } from "react";
+import { FiInfo, FiUserX } from "react-icons/fi";
 import {
+    Button,
+    EmptyState,
+    MobileNativePagination,
     PageHeader,
+    SearchBar,
+    StatusBadge,
     Table,
     TableFooter,
-    MobileNativePagination,
-    SearchBar,
-    EmptyState,
-    Button,
-    StatusBadge,
 } from "@/Components";
-import { useClientPagination } from "@/hooks/useClientPagination";
-import { FiUserX, FiInfo } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
 
 interface Teacher {
     id: number;
@@ -67,7 +67,16 @@ interface PageProps {
     pendingLeaveCount?: number;
 }
 
-type RowStatus = "alpa" | "absent" | "terlambat" | "late" | "pending" | "diizinkan" | "approved_leave" | "hadir" | "present";
+type RowStatus =
+    | "alpa"
+    | "absent"
+    | "terlambat"
+    | "late"
+    | "pending"
+    | "diizinkan"
+    | "approved_leave"
+    | "hadir"
+    | "present";
 
 function getRowStatus(s: Student): RowStatus {
     const att = s.attendances[0];
@@ -82,12 +91,12 @@ function rowNote(s: Student): string {
     const att = s.attendances[0];
     const status = getRowStatus(s);
     if (status === "alpa" || status === "absent") return "Belum ada kabar";
-    if (status === "terlambat" || status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
+    if (status === "terlambat" || status === "late")
+        return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
     if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "Sakit");
     if (status === "diizinkan" || status === "approved_leave") return "Pengajuan Izin Diterima";
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }
-
 
 export default function HomeroomDashboard({
     teacher: _teacher,
@@ -141,7 +150,10 @@ export default function HomeroomDashboard({
             header: "Nama Siswa",
             className: "min-w-[180px]",
             render: (s: Student) => (
-                <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
+                <span
+                    className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]"
+                    title={s.name}
+                >
                     {s.name}
                 </span>
             ),
@@ -187,11 +199,7 @@ export default function HomeroomDashboard({
                     );
                 }
                 return (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="mx-auto text-[12px]"
-                    >
+                    <Button variant="outline" size="sm" className="mx-auto text-[12px]">
                         Lihat Detail
                     </Button>
                 );
@@ -203,7 +211,8 @@ export default function HomeroomDashboard({
         total: students.length,
         present: Math.max(0, students.length - attentionStudents.length),
         late: students.filter((s) => getRowStatus(s) === "terlambat").length,
-        sick_permission: students.filter((s) => getRowStatus(s) === "pending" || getRowStatus(s) === "diizinkan").length,
+        sick_permission: students.filter((s) => getRowStatus(s) === "pending" || getRowStatus(s) === "diizinkan")
+            .length,
         absent: students.filter((s) => getRowStatus(s) === "alpa").length,
     };
 
@@ -229,18 +238,14 @@ export default function HomeroomDashboard({
                     </div>
 
                     <div className="bg-surface rounded-xl border-2 border-success/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-success leading-none">
-                            {summary.present}
-                        </span>
+                        <span className="text-[28px] font-extrabold text-success leading-none">{summary.present}</span>
                         <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
                             HADIR TERDATA
                         </span>
                     </div>
 
                     <div className="bg-surface rounded-xl border-2 border-warning/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-warning leading-none">
-                            {summary.late}
-                        </span>
+                        <span className="text-[28px] font-extrabold text-warning leading-none">{summary.late}</span>
                         <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
                             TERLAMBAT
                         </span>
@@ -256,9 +261,7 @@ export default function HomeroomDashboard({
                     </div>
 
                     <div className="bg-surface rounded-xl border-2 border-danger/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-danger leading-none">
-                            {summary.absent}
-                        </span>
+                        <span className="text-[28px] font-extrabold text-danger leading-none">{summary.absent}</span>
                         <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
                             ALPA (KOSONG)
                         </span>
@@ -300,7 +303,9 @@ export default function HomeroomDashboard({
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0">
-                                                <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
+                                                <h4 className="text-[14px] font-bold text-text-primary truncate">
+                                                    {s.name}
+                                                </h4>
                                                 <p className="text-[11px] text-text-muted">NISN: {s.nis}</p>
                                             </div>
                                             <StatusBadge variant={st} label={st.toUpperCase()} />

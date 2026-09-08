@@ -1,5 +1,5 @@
-import { FiShield, FiLock, FiAlertCircle } from "react-icons/fi";
-import { Button, Input, Card, MobileSectionHeader } from "@/Components";
+import { FiAlertCircle, FiLock, FiShield } from "react-icons/fi";
+import { Button, Card, Input, MobileSectionHeader, SectionHeader } from "@/Components";
 import { useLanguage } from "@/Contexts/LanguageContext";
 
 export interface SecuritySectionProps {
@@ -87,26 +87,23 @@ export default function SecuritySection({
     return (
         <Card className="p-6 font-inter shadow-card rounded-2xl">
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
-                <div className="flex flex-row items-center justify-between gap-3 pb-4 border-b border-border">
-                    <div>
-                        <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                            <FiShield className="text-primary text-[16px]" />
-                            Preferensi Keamanan & Kata Sandi
-                        </h2>
-                        <p className="text-[12px] text-text-muted mt-0.5">
-                            Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan akses.
-                        </p>
-                    </div>
-                    <Button
-                        type="submit"
-                        loading={processing}
-                        variant="primary"
-                        className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
-                        icon={<FiLock className="text-[14px]" />}
-                    >
-                        {t("profile.updatePassword")}
-                    </Button>
-                </div>
+                <SectionHeader
+                    icon={<FiShield />}
+                    title="Preferensi Keamanan & Kata Sandi"
+                    description="Perbarui kata sandi akun Anda secara berkala untuk menjaga keamanan akses."
+                    divider
+                    action={
+                        <Button
+                            type="submit"
+                            loading={processing}
+                            variant="primary"
+                            className="shrink-0 h-10 font-bold px-4 rounded-xl shadow-xs"
+                            icon={<FiLock className="text-[14px]" />}
+                        >
+                            {t("profile.updatePassword")}
+                        </Button>
+                    }
+                />
 
                 <div className="flex flex-col gap-5 max-w-2xl">
                     <div>
@@ -155,7 +152,8 @@ export default function SecuritySection({
                     <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-2.5 text-[12px] text-text-secondary">
                         <FiAlertCircle className="text-primary text-[15px] shrink-0 mt-0.5" />
                         <span>
-                            Kata sandi minimal harus terdiri dari 8 karakter, mengombinasikan huruf besar, huruf kecil, angka, dan simbol unik.
+                            Kata sandi minimal harus terdiri dari 8 karakter, mengombinasikan huruf besar, huruf kecil,
+                            angka, dan simbol unik.
                         </span>
                     </div>
                 </div>

@@ -1,34 +1,34 @@
-import { useState, useEffect } from "react";
+import { router, useForm, usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
-import { useForm, router, usePage } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
-import PageHeader from "@/Components/ui/PageHeader";
-import Input from "@/Components/ui/Input";
+import { useEffect, useState } from "react";
+import {
+    FiBell,
+    FiBookOpen,
+    FiCheck,
+    FiChevronRight,
+    FiCpu,
+    FiCrosshair,
+    FiLock,
+    FiMapPin,
+    FiMessageCircle,
+    FiPlay,
+    FiSave,
+    FiServer,
+    FiShield,
+} from "react-icons/fi";
+import { MapPreview } from "@/Components/common/MapPreview";
+import MobileSectionHeader from "@/Components/common/MobileSectionHeader";
+import TabSwitcher from "@/Components/common/TabSwitcher";
+import { getSavedToastPosition, setSavedToastPosition, type ToastPosition, toast } from "@/Components/common/Toast";
 import Button from "@/Components/ui/Button";
 import Card from "@/Components/ui/Card";
+import Input from "@/Components/ui/Input";
 import NativeSelect from "@/Components/ui/NativeSelect";
+import PageHeader from "@/Components/ui/PageHeader";
 import Toggle from "@/Components/ui/Toggle";
-import TabSwitcher from "@/Components/common/TabSwitcher";
-import MobileSectionHeader from "@/Components/common/MobileSectionHeader";
-import { MapPreview } from "@/Components/common/MapPreview";
-import { validateForm } from "@/utils/zodHelper";
+import AppShell from "@/Layouts/AppShell";
 import { locationSettingSchema } from "@/schemas/locationSetting.schema";
-import { toast, getSavedToastPosition, setSavedToastPosition, type ToastPosition } from "@/Components/common/Toast";
-import {
-    FiChevronRight,
-    FiBookOpen,
-    FiMapPin,
-    FiCpu,
-    FiShield,
-    FiSave,
-    FiCheck,
-    FiCrosshair,
-    FiServer,
-    FiMessageCircle,
-    FiBell,
-    FiPlay,
-    FiLock,
-} from "react-icons/fi";
+import { validateForm } from "@/utils/zodHelper";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,15 +116,7 @@ function SettingToggleRow({
     );
 }
 
-function CardSectionHeader({
-    icon,
-    title,
-    description,
-}: {
-    icon: ReactNode;
-    title: string;
-    description: string;
-}) {
+function CardSectionHeader({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
     return (
         <div className="pb-4 border-b border-border font-inter hidden sm:block">
             <h2 className="text-[16px] font-bold text-primary flex items-center gap-2">
@@ -462,7 +454,9 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                                 className={textareaClass}
                                 placeholder="Alamat fisik lokasi presensi"
                             />
-                            {locationErrors.address && <p className="text-[12px] text-danger mt-1">{locationErrors.address}</p>}
+                            {locationErrors.address && (
+                                <p className="text-[12px] text-danger mt-1">{locationErrors.address}</p>
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <Input
@@ -479,7 +473,9 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                                 type="number"
                                 step="any"
                                 value={String(locationForm.longitude)}
-                                onChange={(e) => setLocationForm({ ...locationForm, longitude: Number(e.target.value) })}
+                                onChange={(e) =>
+                                    setLocationForm({ ...locationForm, longitude: Number(e.target.value) })
+                                }
                                 placeholder="110.375944"
                                 error={locationErrors.longitude}
                             />
@@ -488,7 +484,9 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                             label="Radius Toleransi Geofence (Meter)"
                             type="number"
                             value={String(locationForm.radius_meters)}
-                            onChange={(e) => setLocationForm({ ...locationForm, radius_meters: Number(e.target.value) })}
+                            onChange={(e) =>
+                                setLocationForm({ ...locationForm, radius_meters: Number(e.target.value) })
+                            }
                             placeholder="100"
                             error={locationErrors.radius_meters}
                         />
@@ -515,9 +513,13 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                         <div className="flex items-center justify-between text-[12px] text-text-muted bg-muted/20 px-4 py-2.5 rounded-lg border border-border">
                             <span className="flex items-center gap-2 font-medium">
                                 <FiCrosshair className="text-primary text-[14px]" />
-                                <span>GPS: {locationForm.latitude}, {locationForm.longitude}</span>
+                                <span>
+                                    GPS: {locationForm.latitude}, {locationForm.longitude}
+                                </span>
                             </span>
-                            <span className="font-bold text-primary font-mono">Radius: {locationForm.radius_meters}m</span>
+                            <span className="font-bold text-primary font-mono">
+                                Radius: {locationForm.radius_meters}m
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -558,9 +560,16 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                     { label: "Environment", value: systemInfo.environment, color: "text-emerald-600" },
                     { label: "Storage Driver", value: systemInfo.storageDriver, color: "text-primary" },
                 ].map((item) => (
-                    <div key={item.label} className="border border-border rounded-2xl p-3.5 bg-surface sm:bg-muted/20 shadow-xs sm:shadow-none flex flex-col gap-1">
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">{item.label}</span>
-                        <span className={`text-[14px] font-extrabold mt-0.5 uppercase font-mono ${item.color}`}>{item.value}</span>
+                    <div
+                        key={item.label}
+                        className="border border-border rounded-2xl p-3.5 bg-surface sm:bg-muted/20 shadow-xs sm:shadow-none flex flex-col gap-1"
+                    >
+                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider">
+                            {item.label}
+                        </span>
+                        <span className={`text-[14px] font-extrabold mt-0.5 uppercase font-mono ${item.color}`}>
+                            {item.value}
+                        </span>
                     </div>
                 ))}
             </div>
@@ -572,7 +581,9 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                 </h3>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-2xl bg-surface shadow-card sm:shadow-xs gap-3">
                     <div>
-                        <div className="text-[14px] font-bold text-text-primary">Status Gateway Notifikasi Real-time</div>
+                        <div className="text-[14px] font-bold text-text-primary">
+                            Status Gateway Notifikasi Real-time
+                        </div>
                         <div className="text-[12px] text-text-muted mt-0.5">
                             Mengirimkan notifikasi presensi otomatis langsung ke WhatsApp orang tua/wali siswa.
                         </div>
@@ -674,7 +685,11 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => toast.success("Ini adalah pratinjau pesan notifikasi berhasil di posisi yang Anda pilih!")}
+                                onClick={() =>
+                                    toast.success(
+                                        "Ini adalah pratinjau pesan notifikasi berhasil di posisi yang Anda pilih!",
+                                    )
+                                }
                                 className="w-full sm:w-auto h-10 font-bold"
                             >
                                 <FiPlay className="text-[12px] mr-1.5" />
@@ -720,7 +735,8 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
             {!mobileSubPage && (
                 <div className="sm:hidden flex flex-col font-inter">
                     <p className="text-[13px] text-text-muted mb-4 leading-relaxed">
-                        Kelola konfigurasi identitas sekolah, titik lokasi presensi GPS, status integrasi engine, serta preferensi keamanan sistem SMA UII Core.
+                        Kelola konfigurasi identitas sekolah, titik lokasi presensi GPS, status integrasi engine, serta
+                        preferensi keamanan sistem SMA UII Core.
                     </p>
                     <div className="flex flex-col rounded-2xl border border-border bg-surface overflow-hidden shadow-xs divide-y divide-border">
                         {SETTING_MENU.map((item) => (
@@ -730,12 +746,16 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                                 onClick={() => handleOpenMobileSubPage(item.key)}
                                 className="flex items-center gap-4 px-4 py-4 text-left hover:bg-muted/30 active:bg-muted/50 transition-colors cursor-pointer w-full group"
                             >
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg} transition-transform group-active:scale-95`}>
+                                <div
+                                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.iconBg} transition-transform group-active:scale-95`}
+                                >
                                     {item.icon(`${item.iconColor} text-[18px]`)}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="text-[14px] font-bold text-text-primary">{item.label}</div>
-                                    <div className="text-[12px] text-text-muted mt-0.5 truncate">{item.description}</div>
+                                    <div className="text-[12px] text-text-muted mt-0.5 truncate">
+                                        {item.description}
+                                    </div>
                                 </div>
                                 <FiChevronRight className="text-text-muted text-[18px] shrink-0 group-hover:text-primary transition-colors" />
                             </button>

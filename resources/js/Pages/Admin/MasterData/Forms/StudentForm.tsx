@@ -1,10 +1,10 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect } from "react";
-import { Input, SelectInput, Button } from "@/Components";
+import { FiSave } from "react-icons/fi";
+import { Button, Input, SelectInput } from "@/Components";
 import { studentSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiSave } from "react-icons/fi";
-import type { Student, ClassOption } from "../types";
+import type { ClassOption, Student } from "../types";
 
 export interface StudentFormProps {
     student?: Student | null;
@@ -35,17 +35,7 @@ export default function StudentForm({
     const activeUnlocked = isUnlocked ?? isCreate;
     const isReadOnly = !activeUnlocked;
 
-    const {
-        data,
-        setData,
-        post,
-        patch,
-        processing,
-        reset,
-        errors,
-        clearErrors,
-        setError,
-    } = useForm({
+    const { data, setData, post, patch, processing, reset, errors, clearErrors, setError } = useForm({
         nis: "",
         nisn: "",
         name: "",
@@ -139,9 +129,7 @@ export default function StudentForm({
                         onChange={(e) => setData("nis", e.target.value.trim())}
                         disabled={isReadOnly}
                     />
-                    {errors.nis && (
-                        <p className="text-[12px] text-danger mt-1">{errors.nis}</p>
-                    )}
+                    {errors.nis && <p className="text-[12px] text-danger mt-1">{errors.nis}</p>}
                 </div>
                 <div>
                     <label className="block text-[13px] font-medium text-text-primary mb-1">
@@ -153,9 +141,7 @@ export default function StudentForm({
                         onChange={(e) => setData("nisn", e.target.value.trim())}
                         disabled={isReadOnly}
                     />
-                    {errors.nisn && (
-                        <p className="text-[12px] text-danger mt-1">{errors.nisn}</p>
-                    )}
+                    {errors.nisn && <p className="text-[12px] text-danger mt-1">{errors.nisn}</p>}
                 </div>
             </div>
 
@@ -169,9 +155,7 @@ export default function StudentForm({
                     onChange={(e) => setData("name", e.target.value)}
                     disabled={isReadOnly}
                 />
-                {errors.name && (
-                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-[12px] text-danger mt-1">{errors.name}</p>}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -191,9 +175,7 @@ export default function StudentForm({
                         ]}
                         disabled={isReadOnly}
                     />
-                    {errors.class_id && (
-                        <p className="text-[12px] text-danger mt-1">{errors.class_id}</p>
-                    )}
+                    {errors.class_id && <p className="text-[12px] text-danger mt-1">{errors.class_id}</p>}
                 </div>
                 <div>
                     <label className="block text-[13px] font-medium text-text-primary mb-1">
@@ -206,28 +188,20 @@ export default function StudentForm({
                         onChange={(e) => setData("enrollment_year", Number(e.target.value))}
                         disabled={isReadOnly}
                     />
-                    {errors.enrollment_year && (
-                        <p className="text-[12px] text-danger mt-1">
-                            {errors.enrollment_year}
-                        </p>
-                    )}
+                    {errors.enrollment_year && <p className="text-[12px] text-danger mt-1">{errors.enrollment_year}</p>}
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Tanggal Lahir
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">Tanggal Lahir</label>
                     <Input
                         type="date"
                         value={data.birth_date}
                         onChange={(e) => setData("birth_date", e.target.value)}
                         disabled={isReadOnly}
                     />
-                    {errors.birth_date && (
-                        <p className="text-[12px] text-danger mt-1">{errors.birth_date}</p>
-                    )}
+                    {errors.birth_date && <p className="text-[12px] text-danger mt-1">{errors.birth_date}</p>}
                 </div>
                 <div>
                     <label className="block text-[13px] font-medium text-text-primary mb-1">
@@ -267,32 +241,24 @@ export default function StudentForm({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Nomor HP / WhatsApp
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">Nomor HP / WhatsApp</label>
                     <Input
                         placeholder="Contoh: 08123456789"
                         value={data.phone}
                         onChange={(e) => setData("phone", e.target.value)}
                         disabled={isReadOnly}
                     />
-                    {errors.phone && (
-                        <p className="text-[12px] text-danger mt-1">{errors.phone}</p>
-                    )}
+                    {errors.phone && <p className="text-[12px] text-danger mt-1">{errors.phone}</p>}
                 </div>
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1">
-                        Alamat Domisili
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1">Alamat Domisili</label>
                     <Input
                         placeholder="Contoh: Jl. Kaliurang KM 9"
                         value={data.address}
                         onChange={(e) => setData("address", e.target.value)}
                         disabled={isReadOnly}
                     />
-                    {errors.address && (
-                        <p className="text-[12px] text-danger mt-1">{errors.address}</p>
-                    )}
+                    {errors.address && <p className="text-[12px] text-danger mt-1">{errors.address}</p>}
                 </div>
             </div>
 
@@ -300,9 +266,7 @@ export default function StudentForm({
             {activeUnlocked && (
                 <div className="p-3.5 bg-muted/30 border border-border rounded-xl space-y-3.5">
                     <div>
-                        <p className="text-[12px] font-bold text-text-primary">
-                            Kredensial Akun SSO Siswa
-                        </p>
+                        <p className="text-[12px] font-bold text-text-primary">Kredensial Akun SSO Siswa</p>
                         <p className="text-[11px] text-text-muted">
                             Username akun otomatis menggunakan NIS ({data.nis || "4 digit"}).
                         </p>
@@ -322,13 +286,14 @@ export default function StudentForm({
                             Kosongkan jika ingin dibuatkan otomatis:{" "}
                             <span className="font-mono text-primary font-medium">
                                 {data.name
-                                    ? `${data.name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}${data.nis || "nis"}@smauiiyk.sch.id`
+                                    ? `${data.name
+                                          .split(" ")[0]
+                                          .toLowerCase()
+                                          .replace(/[^a-z0-9]/g, "")}${data.nis || "nis"}@smauiiyk.sch.id`
                                     : "[namadepan][nis]@smauiiyk.sch.id"}
                             </span>
                         </p>
-                        {errors.email && (
-                            <p className="text-[12px] text-danger mt-1">{errors.email}</p>
-                        )}
+                        {errors.email && <p className="text-[12px] text-danger mt-1">{errors.email}</p>}
                     </div>
 
                     <div>
@@ -346,9 +311,7 @@ export default function StudentForm({
                                 ? "Kosongkan untuk menggunakan kata sandi default: SmaUii@2026"
                                 : "Isi hanya jika ingin mereset password siswa ini."}
                         </p>
-                        {errors.password && (
-                            <p className="text-[12px] text-danger mt-1">{errors.password}</p>
-                        )}
+                        {errors.password && <p className="text-[12px] text-danger mt-1">{errors.password}</p>}
                     </div>
                 </div>
             )}
@@ -356,21 +319,11 @@ export default function StudentForm({
             {showSubmitButton && activeUnlocked && (
                 <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
                     {onCancel && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={processing}
-                        >
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                             Batal
                         </Button>
                     )}
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        loading={processing}
-                        icon={<FiSave />}
-                    >
+                    <Button type="submit" variant="primary" loading={processing} icon={<FiSave />}>
                         {isCreate ? "Simpan Siswa" : "Perbarui Data"}
                     </Button>
                 </div>

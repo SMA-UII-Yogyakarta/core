@@ -1,5 +1,5 @@
+import type { MonthlyBreakdown, StudentRecap, Summary } from "@/types/Report";
 import RecapTable from "./RecapTable";
-import type { StudentRecap, Summary, MonthlyBreakdown } from "@/types/Report";
 
 export interface SemesterTableProps {
     students: StudentRecap[];

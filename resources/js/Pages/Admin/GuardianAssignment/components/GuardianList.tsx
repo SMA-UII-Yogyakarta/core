@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { FiCheckCircle, FiSearch } from "react-icons/fi";
-import { Avatar, SearchBar, Pagination } from "@/Components";
+import { Avatar, Pagination, SearchBar } from "@/Components";
 import type { Guardian } from "../types";
 
 export interface GuardianListProps {
@@ -48,12 +48,12 @@ export default function GuardianList({
     }, [filteredGuardians, guardianSafePage, guardianPageSize]);
 
     return (
-        <div className={`bg-surface border border-border rounded-2xl shadow-card h-full min-h-0 flex flex-col overflow-hidden font-inter ${className}`}>
+        <div
+            className={`bg-surface border border-border rounded-2xl shadow-card h-full min-h-0 flex flex-col overflow-hidden font-inter ${className}`}
+        >
             {/* Card Header */}
             <div className="flex items-center justify-between px-4 py-3.5 sm:px-5 sm:py-4 border-b border-border shrink-0">
-                <h2 className="text-[15px] font-bold text-primary">
-                    Pilih Wali Murid ({guardians.length})
-                </h2>
+                <h2 className="text-[15px] font-bold text-primary">Pilih Wali Murid ({guardians.length})</h2>
                 {selectedGuardianName && (
                     <span className="text-[12.5px] font-semibold text-text-muted truncate max-w-[200px]">
                         Wali: <strong className="text-text-primary font-bold">{selectedGuardianName}</strong>
@@ -93,10 +93,17 @@ export default function GuardianList({
                                 }`}
                             >
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <Avatar name={g.name} size="sm" variant={isSelected ? "primary" : "muted"} className="shrink-0" />
+                                    <Avatar
+                                        name={g.name}
+                                        size="sm"
+                                        variant={isSelected ? "primary" : "muted"}
+                                        className="shrink-0"
+                                    />
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2">
-                                            <p className={`text-[13.5px] truncate ${isSelected ? "font-extrabold text-primary" : "font-bold text-text-primary"}`}>
+                                            <p
+                                                className={`text-[13.5px] truncate ${isSelected ? "font-extrabold text-primary" : "font-bold text-text-primary"}`}
+                                            >
                                                 {g.name}
                                             </p>
                                             <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
@@ -104,12 +111,11 @@ export default function GuardianList({
                                             </span>
                                         </div>
                                         <p className="text-[12px] text-text-secondary mt-0.5 truncate">
-                                            {g.phone || "Tidak ada telepon"}{g.user?.email ? ` · ${g.user.email}` : ""}
+                                            {g.phone || "Tidak ada telepon"}
+                                            {g.user?.email ? ` · ${g.user.email}` : ""}
                                         </p>
                                         {g.address && (
-                                            <p className="text-[11px] text-text-muted mt-0.5 truncate">
-                                                {g.address}
-                                            </p>
+                                            <p className="text-[11px] text-text-muted mt-0.5 truncate">{g.address}</p>
                                         )}
                                     </div>
                                 </div>

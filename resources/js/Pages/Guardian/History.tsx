@@ -1,32 +1,26 @@
-import { useState, useMemo } from "react";
 import { router } from "@inertiajs/react";
+import { useMemo, useState } from "react";
+import { FiCalendar, FiClock, FiFileText, FiFilter, FiUser } from "react-icons/fi";
 import {
-    FiUser,
-    FiCalendar,
-    FiFilter,
-    FiClock,
-    FiFileText,
-} from "react-icons/fi";
-import AttendanceChart from "@/Components/features/AttendanceChart";
-import {
-    StatCard,
-    StatusBadge,
-    FilterBar,
+    Avatar,
+    BottomSheet,
     Button,
-    Table,
-    TableFooter,
-    PageHeader,
     Card,
     EmptyState,
-    Avatar,
+    FilterBar,
     MobileNativePagination,
-    BottomSheet,
     NativeSelect,
+    PageHeader,
+    StatCard,
+    StatusBadge,
+    Table,
+    TableFooter,
 } from "@/Components";
-import { useClientPagination } from "@/hooks/useClientPagination";
-import { INDONESIAN_MONTHS } from "@/utils/helpers";
+import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { Column } from "@/Components/ui/Table";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import AppShell from "@/Layouts/AppShell";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface Student {
     id: number;
@@ -111,18 +105,16 @@ export default function History({
     } = useClientPagination(leaveRequests, 1, 10);
 
     const handleSelectStudent = (id: number) => {
-        router.get(
-            "/guardian/history",
-            { student_id: id, month: monthVal, year: yearVal },
-            { preserveState: true }
-        );
+        router.get("/guardian/history", { student_id: id, month: monthVal, year: yearVal }, { preserveState: true });
     };
 
-    const handleFilter = () => {
+    const applyFilter = (newMonth: string, newYear: string) => {
+        setMonthVal(newMonth);
+        setYearVal(newYear);
         router.get(
             "/guardian/history",
-            { student_id: selectedStudentId, month: monthVal, year: yearVal },
-            { preserveState: true }
+            { student_id: selectedStudentId, month: newMonth, year: newYear },
+            { preserveState: true },
         );
     };
 
@@ -192,9 +184,7 @@ export default function History({
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Riwayat Anak"
                 aria-label="Filter Riwayat Anak"
@@ -234,9 +224,11 @@ export default function History({
                                     <Avatar name={s.name} size="xs" />
                                     <span>{s.name}</span>
                                     {s.class?.name && (
-                                        <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-normal ${
-                                            isSelected ? "bg-white/20 text-white" : "bg-muted text-text-muted"
-                                        }`}>
+                                        <span
+                                            className={`text-[11px] px-1.5 py-0.5 rounded-md font-normal ${
+                                                isSelected ? "bg-white/20 text-white" : "bg-muted text-text-muted"
+                                            }`}
+                                        >
                                             {s.class.name}
                                         </span>
                                     )}
@@ -257,9 +249,15 @@ export default function History({
                                         {selectedStudent.name}
                                     </h2>
                                     <p className="text-[13px] text-text-muted mt-0.5">
-                                        Kelas: <strong className="text-text-primary font-semibold">{selectedStudent.class?.name ?? "-"}</strong>
+                                        Kelas:{" "}
+                                        <strong className="text-text-primary font-semibold">
+                                            {selectedStudent.class?.name ?? "-"}
+                                        </strong>
                                         <span className="mx-2">•</span>
-                                        NIS: <strong className="text-text-primary font-mono font-semibold">{selectedStudent.nis}</strong>
+                                        NIS:{" "}
+                                        <strong className="text-text-primary font-mono font-semibold">
+                                            {selectedStudent.nis}
+                                        </strong>
                                     </p>
                                 </div>
                             </div>
@@ -276,48 +274,55 @@ export default function History({
                         {/* Monthly Attendance Trend Chart */}
                         {monthlyTrend && monthlyTrend.length > 0 && (
                             <Card className="p-5 border-border">
-                                <h3 className="text-[14px] font-bold text-text-primary mb-3">
-                                    Tren Kehadiran Bulanan
-                                </h3>
+                                <h3 className="text-[14px] font-bold text-text-primary mb-3">Tren Kehadiran Bulanan</h3>
                                 <AttendanceChart data={monthlyTrend} />
                             </Card>
                         )}
 
                         {/* Filter Bar (Desktop/Tablet only) */}
                         <div className="hidden sm:block">
-                            <FilterBar>
-                                <FilterBar.Select
-                                    label="Bulan"
-                                    options={MONTH_NAMES.map((name, i) => ({
-                                        value: (i + 1).toString(),
-                                        label: name,
-                                    }))}
-                                    value={monthVal}
-                                    onChange={(e) => setMonthVal(e.target.value)}
-                                />
-                                <FilterBar.Select
-                                    label="Tahun"
-                                    options={["2024", "2025", "2026", "2027"].map((t) => ({
-                                        value: t,
-                                        label: t,
-                                    }))}
-                                    value={yearVal}
-                                    onChange={(e) => setYearVal(e.target.value)}
-                                />
-                                <Button variant="accent" onClick={handleFilter} icon={<FiFilter className="w-4 h-4" />}>
-                                    Tampilkan Filter
-                                </Button>
+                            <FilterBar className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5">
+                                    <FilterBar.Select
+                                        label="Bulan"
+                                        options={MONTH_NAMES.map((name, i) => ({
+                                            value: (i + 1).toString(),
+                                            label: name,
+                                        }))}
+                                        value={monthVal}
+                                        onChange={(e) => applyFilter(e.target.value, yearVal)}
+                                    />
+                                    <FilterBar.Select
+                                        label="Tahun"
+                                        options={["2024", "2025", "2026", "2027"].map((t) => ({
+                                            value: t,
+                                            label: t,
+                                        }))}
+                                        value={yearVal}
+                                        onChange={(e) => applyFilter(monthVal, e.target.value)}
+                                    />
+                                </div>
                             </FilterBar>
                         </div>
 
                         {/* Mobile Filter BottomSheet */}
-                        <BottomSheet open={isMobileFilterOpen} onClose={() => setIsMobileFilterOpen(false)} title="Filter Riwayat">
+                        <BottomSheet
+                            open={isMobileFilterOpen}
+                            onClose={() => setIsMobileFilterOpen(false)}
+                            title="Filter Riwayat"
+                        >
                             <div className="p-4 space-y-4">
                                 <div>
-                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">Bulan</label>
+                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">
+                                        Pilih Bulan
+                                    </label>
                                     <NativeSelect
                                         value={monthVal}
-                                        onChange={(e) => setMonthVal(e.target.value)}
+                                        onChange={(e) => {
+                                            const newM = e.target.value;
+                                            applyFilter(newM, yearVal);
+                                            setIsMobileFilterOpen(false);
+                                        }}
                                     >
                                         {MONTH_NAMES.map((name, i) => (
                                             <option key={i + 1} value={(i + 1).toString()}>
@@ -327,10 +332,16 @@ export default function History({
                                     </NativeSelect>
                                 </div>
                                 <div>
-                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">Tahun</label>
+                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">
+                                        Pilih Tahun
+                                    </label>
                                     <NativeSelect
                                         value={yearVal}
-                                        onChange={(e) => setYearVal(e.target.value)}
+                                        onChange={(e) => {
+                                            const newY = e.target.value;
+                                            applyFilter(monthVal, newY);
+                                            setIsMobileFilterOpen(false);
+                                        }}
                                     >
                                         {["2024", "2025", "2026", "2027"].map((t) => (
                                             <option key={t} value={t}>
@@ -339,9 +350,6 @@ export default function History({
                                         ))}
                                     </NativeSelect>
                                 </div>
-                                <Button className="w-full mt-2" variant="primary" onClick={() => { handleFilter(); setIsMobileFilterOpen(false); }}>
-                                    Terapkan Filter
-                                </Button>
                             </div>
                         </BottomSheet>
 
@@ -377,14 +385,14 @@ export default function History({
                                                     </div>
                                                     <StatusBadge variant={item.status} />
                                                 </div>
-                                                    <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
-                                                        <span>Jam Masuk</span>
-                                                        <span className="font-mono font-medium text-text-primary">
-                                                            {item.check_in_time ? `${item.check_in_time} WIB` : "—"}
-                                                        </span>
-                                                    </div>
+                                                <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
+                                                    <span>Jam Masuk</span>
+                                                    <span className="font-mono font-medium text-text-primary">
+                                                        {item.check_in_time ? `${item.check_in_time} WIB` : "—"}
+                                                    </span>
                                                 </div>
-                                            ))}
+                                            </div>
+                                        ))}
 
                                         {attendances.length > attPageSize && (
                                             <div className="pt-2 font-inter">
@@ -451,14 +459,17 @@ export default function History({
                                                     </div>
                                                     <StatusBadge variant={item.approval_status} />
                                                 </div>
-                                                    <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
-                                                        <span>Periode</span>
-                                                        <span className="font-medium text-text-primary">
-                                                            {item.start_date} {item.end_date && item.end_date !== item.start_date ? `s/d ${item.end_date}` : ""}
-                                                        </span>
-                                                    </div>
+                                                <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
+                                                    <span>Periode</span>
+                                                    <span className="font-medium text-text-primary">
+                                                        {item.start_date}{" "}
+                                                        {item.end_date && item.end_date !== item.start_date
+                                                            ? `s/d ${item.end_date}`
+                                                            : ""}
+                                                    </span>
                                                 </div>
-                                            ))}
+                                            </div>
+                                        ))}
 
                                         {leaveRequests.length > leavePageSize && (
                                             <div className="pt-2 font-inter">

@@ -13,13 +13,7 @@ interface TeacherDrawerFormProps {
     onRequestDelete?: (entity: string, ids: number | number[], label: string) => void;
 }
 
-export default function TeacherDrawerForm({
-    open,
-    mode,
-    teacher,
-    onClose,
-    onRequestDelete,
-}: TeacherDrawerFormProps) {
+export default function TeacherDrawerForm({ open, mode, teacher, onClose, onRequestDelete }: TeacherDrawerFormProps) {
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
@@ -60,7 +54,8 @@ export default function TeacherDrawerForm({
 
     const isHomeroom = Array.isArray(teacher?.teacher_type)
         ? teacher.teacher_type.some((t) => String(t).includes("homeroom") || String(t).includes("wali"))
-        : String(teacher?.teacher_type || "").includes("homeroom") || String(teacher?.teacher_type || "").includes("wali");
+        : String(teacher?.teacher_type || "").includes("homeroom") ||
+          String(teacher?.teacher_type || "").includes("wali");
 
     const copyFields = teacher
         ? [
@@ -68,12 +63,7 @@ export default function TeacherDrawerForm({
               { label: "Nama Lengkap", value: teacher.name },
               {
                   label: "Tipe Penugasan",
-                  value:
-                      isDuty && isHomeroom
-                          ? "Guru Piket & Wali Kelas"
-                          : isHomeroom
-                          ? "Wali Kelas"
-                          : "Guru Piket",
+                  value: isDuty && isHomeroom ? "Guru Piket & Wali Kelas" : isHomeroom ? "Wali Kelas" : "Guru Piket",
               },
               { label: "Email", value: teacher.user?.email || "-" },
               {
@@ -83,11 +73,7 @@ export default function TeacherDrawerForm({
           ]
         : [];
 
-    const title = isCreate
-        ? "Tambah Guru Baru"
-        : isUnlocked
-        ? "Edit Data Guru"
-        : "Detail Data Guru";
+    const title = isCreate ? "Tambah Guru Baru" : isUnlocked ? "Edit Data Guru" : "Detail Data Guru";
 
     const description = isCreate
         ? "Daftarkan data guru dan tentukan perannya (Wali Kelas / Guru Piket). Akun otomatis terintegrasi SSO."

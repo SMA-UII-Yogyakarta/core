@@ -90,8 +90,7 @@ export const calculateDuration = (start: string, end: string): number => {
 export const getDocumentTypeLabel = (url: string | null): string => {
     if (!url) return "Dokumen";
     if (url.includes("doctor") || url.includes("surat")) return "Surat Dokter";
-    if (url.includes("invitation") || url.includes("undangan"))
-        return "Undangan";
+    if (url.includes("invitation") || url.includes("undangan")) return "Undangan";
     return "Dokumen";
 };
 

@@ -1,19 +1,19 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useState } from "react";
+import { FiExternalLink } from "react-icons/fi";
 import {
-    TableFooter,
-    MobileNativePagination,
     Drawer,
     EmptyState,
     FilterBar,
-    TabSwitcher,
-    StickyContainer,
+    MobileNativePagination,
     PageHeader,
     StatusBadge,
+    StickyContainer,
+    TableFooter,
+    TabSwitcher,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiExternalLink } from "react-icons/fi";
+import AppShell from "@/Layouts/AppShell";
 import type { LeaveRequest, PaginatedData } from "@/types";
 
 interface Filters {
@@ -41,10 +41,7 @@ const categoryLabels: Record<string, string> = {
     Other: "Lainnya",
 };
 
-export default function LeaveRequestsIndex({
-    leaveRequests,
-    filters,
-}: LeaveRequestsIndexProps) {
+export default function LeaveRequestsIndex({ leaveRequests, filters }: LeaveRequestsIndexProps) {
     const [statusTab, setStatusTab] = useState(filters.status ?? "");
     const [categoryFilter, setCategoryFilter] = useState(filters.category ?? "");
     const [search, setSearch] = useState(filters.search ?? "");
@@ -66,7 +63,6 @@ export default function LeaveRequestsIndex({
     const handlePageChange = (page: number) => {
         handleFilter({ page: String(page) });
     };
-
 
     return (
         <AppShell title="Pengajuan Izin" hasTopTabs={true}>
@@ -120,11 +116,7 @@ export default function LeaveRequestsIndex({
                 <div className="space-y-4">
                     {leaveRequests.data.length > 0 ? (
                         leaveRequests.data.map((lr) => (
-                            <LeaveRequestCard
-                                key={lr.id}
-                                leaveRequest={lr}
-                                onDetailClick={setSelectedRequest}
-                            />
+                            <LeaveRequestCard key={lr.id} leaveRequest={lr} onDetailClick={setSelectedRequest} />
                         ))
                     ) : (
                         <EmptyState variant="no-leaves" />
@@ -226,10 +218,14 @@ export default function LeaveRequestsIndex({
                                     <span className="text-text-muted">Durasi</span>
                                     <span className="font-semibold text-text-primary">
                                         {(() => {
-                                            if (!selectedRequest.start_date || !selectedRequest.end_date) return "1 Hari";
+                                            if (!selectedRequest.start_date || !selectedRequest.end_date)
+                                                return "1 Hari";
                                             const start = new Date(selectedRequest.start_date);
                                             const end = new Date(selectedRequest.end_date);
-                                            const diff = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1);
+                                            const diff = Math.max(
+                                                1,
+                                                Math.round((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1,
+                                            );
                                             return `${diff} Hari`;
                                         })()}
                                     </span>
@@ -254,8 +250,11 @@ export default function LeaveRequestsIndex({
                                     Berkas Pendukung
                                 </h3>
                                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
-                                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[200px]" title={selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}>
-                                        {selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}
+                                    <span
+                                        className="text-[13px] font-medium text-text-primary truncate max-w-[200px]"
+                                        title={selectedRequest.document_url.split("/").pop() || "Dokumen Lampiran Izin"}
+                                    >
+                                        {selectedRequest.document_url.split("/").pop() || "Dokumen Lampiran Izin"}
                                     </span>
                                     <a
                                         href={selectedRequest.document_url}

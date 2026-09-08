@@ -1,27 +1,23 @@
 import { router } from "@inertiajs/react";
-import { useState, useMemo } from "react";
-import AppShell from "@/Layouts/AppShell";
-import { SearchBar, Button, EmptyState, Pagination, MobileNativePagination } from "@/Components";
-import { useClientPagination } from "@/hooks/useClientPagination";
+import { useMemo, useState } from "react";
+import { FiCheckSquare, FiFilter } from "react-icons/fi";
+import { Button, EmptyState, MobileNativePagination, Pagination, SearchBar } from "@/Components";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { toast } from "@/Components/common/Toast";
-import { FiFilter, FiCheckSquare } from "react-icons/fi";
-import type { PageProps, LeaveRequest } from "./LeaveVerification/types";
-import { daysUntil } from "./LeaveVerification/types";
-import LeaveVerificationHeader from "./LeaveVerification/LeaveVerificationHeader";
-import LeaveVerificationTabs, { type LeaveTabKey } from "./LeaveVerification/LeaveVerificationTabs";
-import LeaveRequestCard from "./LeaveVerification/LeaveRequestCard";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
 import LeaveDecisionModal from "./LeaveVerification/LeaveDecisionModal";
+import LeaveRequestCard from "./LeaveVerification/LeaveRequestCard";
 import LeaveVerificationFilterModal, {
     type DateMode,
     type SortMode,
 } from "./LeaveVerification/LeaveVerificationFilterModal";
+import LeaveVerificationHeader from "./LeaveVerification/LeaveVerificationHeader";
+import LeaveVerificationTabs, { type LeaveTabKey } from "./LeaveVerification/LeaveVerificationTabs";
+import type { LeaveRequest, PageProps } from "./LeaveVerification/types";
+import { daysUntil } from "./LeaveVerification/types";
 
-export default function LeaveVerification({
-    teacher: _teacher,
-    class: schoolClass,
-    leaveRequests = [],
-}: PageProps) {
+export default function LeaveVerification({ teacher: _teacher, class: schoolClass, leaveRequests = [] }: PageProps) {
     const [activeTab, setActiveTab] = useState<LeaveTabKey>("pending");
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
@@ -45,15 +41,15 @@ export default function LeaveVerification({
     // Counts
     const pendingCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Pending").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const approvedCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Approved").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const rejectedCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Rejected").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const totalHistoryCount = approvedCount + rejectedCount;
 
@@ -128,15 +124,7 @@ export default function LeaveVerification({
             }
             return 0;
         });
-    }, [
-        leaveRequests,
-        activeTab,
-        searchQuery,
-        categoryFilter,
-        startBound,
-        endBound,
-        sortMode,
-    ]);
+    }, [leaveRequests, activeTab, searchQuery, categoryFilter, startBound, endBound, sortMode]);
 
     // Client-side pagination (10 items per page)
     const {
@@ -170,15 +158,11 @@ export default function LeaveVerification({
                 onSuccess: () => {
                     toast.warning("Status izin dikembalikan ke Menunggu Verifikasi.");
                 },
-            }
+            },
         );
     };
 
-    const handleConfirmDecision = (
-        leaveId: number,
-        type: "approve" | "reject" | "revert",
-        reason?: string
-    ) => {
+    const handleConfirmDecision = (leaveId: number, type: "approve" | "reject" | "revert", reason?: string) => {
         setIsSubmitting(true);
         const targetLeave = leaveRequests.find((r) => r.id === leaveId);
 
@@ -200,7 +184,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         } else if (type === "reject") {
             router.patch(
@@ -220,7 +204,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         } else if (type === "revert") {
             router.patch(
@@ -235,7 +219,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         }
     };
@@ -289,11 +273,7 @@ export default function LeaveVerification({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="accent"
-                            onClick={() => setFilterModalOpen(true)}
-                            icon={<FiFilter size={16} />}
-                        >
+                        <Button variant="accent" onClick={() => setFilterModalOpen(true)} icon={<FiFilter size={16} />}>
                             Filter & Urutkan {hasActiveFilters && "(Aktif)"}
                         </Button>
                     </div>
@@ -374,11 +354,26 @@ export default function LeaveVerification({
                 sortMode={sortMode}
                 startDate={startDateFilter}
                 endDate={endDateFilter}
-                onCategoryChange={(c) => { setCategoryFilter(c); setCurrentPage(1); }}
-                onDateModeChange={(m) => { setDateMode(m); setCurrentPage(1); }}
-                onSortModeChange={(s) => { setSortMode(s); setCurrentPage(1); }}
-                onStartDateChange={(d) => { setStartDateFilter(d); setCurrentPage(1); }}
-                onEndDateChange={(d) => { setEndDateFilter(d); setCurrentPage(1); }}
+                onCategoryChange={(c) => {
+                    setCategoryFilter(c);
+                    setCurrentPage(1);
+                }}
+                onDateModeChange={(m) => {
+                    setDateMode(m);
+                    setCurrentPage(1);
+                }}
+                onSortModeChange={(s) => {
+                    setSortMode(s);
+                    setCurrentPage(1);
+                }}
+                onStartDateChange={(d) => {
+                    setStartDateFilter(d);
+                    setCurrentPage(1);
+                }}
+                onEndDateChange={(d) => {
+                    setEndDateFilter(d);
+                    setCurrentPage(1);
+                }}
                 onReset={() => {
                     setCategoryFilter("all");
                     setDateMode("all");
@@ -391,10 +386,7 @@ export default function LeaveVerification({
             />
 
             {/* Preview Image Modal */}
-            <PreviewImageModal
-                url={previewImageUrl}
-                onClose={() => setPreviewImageUrl(null)}
-            />
+            <PreviewImageModal url={previewImageUrl} onClose={() => setPreviewImageUrl(null)} />
         </AppShell>
     );
 }

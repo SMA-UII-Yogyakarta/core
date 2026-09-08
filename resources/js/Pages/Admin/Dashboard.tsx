@@ -1,51 +1,44 @@
+import { Link, router } from "@inertiajs/react";
 import { useMemo, useState } from "react";
-import { router, Link } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
 import {
-    Avatar,
-    StatCard,
-    StatusBadge,
-    Button,
-    AttendanceChart,
-    Table,
-    Card,
-    PageHeader,
-    Drawer,
-    SearchBar,
-    FilterPopover,
-} from "@/Components";
-import TabSwitcher, { type TabItem } from "@/Components/common/TabSwitcher";
-import EmptyState from "@/Components/common/EmptyState";
-import Input from "@/Components/ui/Input";
-import NativeSelect from "@/Components/ui/NativeSelect";
-import {
-    FiDatabase,
+    FiActivity,
+    FiAlertCircle,
+    FiCheckCircle,
+    FiCheckSquare,
+    FiChevronRight,
     FiClock,
-    FiUsers,
+    FiDatabase,
     FiFileText,
     FiFilter,
-    FiCheckCircle,
-    FiPieChart,
-    FiAlertCircle,
-    FiChevronRight,
-    FiActivity,
     FiLayers,
-    FiCheckSquare,
+    FiPieChart,
+    FiUsers,
 } from "react-icons/fi";
+import {
+    AttendanceChart,
+    Avatar,
+    Button,
+    Card,
+    Drawer,
+    FilterPopover,
+    PageHeader,
+    SearchBar,
+    StatCard,
+    StatusBadge,
+    Table,
+} from "@/Components";
+import EmptyState from "@/Components/common/EmptyState";
+import TabSwitcher, { type TabItem } from "@/Components/common/TabSwitcher";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
+import Input from "@/Components/ui/Input";
+import NativeSelect from "@/Components/ui/NativeSelect";
 import type { Column } from "@/Components/ui/Table";
 import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import AppShell from "@/Layouts/AppShell";
 import { formatIndonesianDate } from "@/utils/helpers";
-import type {
-    Stats,
-    SchoolClass,
-    AttentionStudent,
-    MonthlyTrend,
-    WeeklyTrendPoint,
-    Period,
-} from "./Dashboard/types";
-import { STATUS_CONFIG as statusConfig } from "./Dashboard/types";
 import AttentionStudentsTab from "./Dashboard/components/AttentionStudentsTab";
+import type { AttentionStudent, MonthlyTrend, Period, SchoolClass, Stats, WeeklyTrendPoint } from "./Dashboard/types";
+import { STATUS_CONFIG as statusConfig } from "./Dashboard/types";
 
 interface DashboardProps {
     stats: Stats;
@@ -96,7 +89,14 @@ function chartTitle(period: Period, date: string): string {
 }
 
 function toRatePoints(
-    points: Array<{ label: string; present: number; late: number; total?: number; absent?: number; rate?: number | null }>,
+    points: Array<{
+        label: string;
+        present: number;
+        late: number;
+        total?: number;
+        absent?: number;
+        rate?: number | null;
+    }>,
 ): ChartDataPoint[] {
     return points.map((p) => {
         let rate: number | undefined;
@@ -156,7 +156,11 @@ export default function Dashboard({
     const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
     const [prevMobileFilterOpen, setPrevMobileFilterOpen] = useState(mobileFilterOpen);
 
-    if (selectedClassId !== prevSelectedClassId || selectedDate !== prevSelectedDate || mobileFilterOpen !== prevMobileFilterOpen) {
+    if (
+        selectedClassId !== prevSelectedClassId ||
+        selectedDate !== prevSelectedDate ||
+        mobileFilterOpen !== prevMobileFilterOpen
+    ) {
         setPrevSelectedClassId(selectedClassId);
         setPrevSelectedDate(selectedDate);
         setPrevMobileFilterOpen(mobileFilterOpen);
@@ -223,9 +227,7 @@ export default function Dashboard({
         >
             <div className="flex flex-col gap-4 font-inter p-1">
                 <div className="flex items-center justify-between border-b border-border pb-2.5">
-                    <h4 className="text-[14px] font-bold text-text-primary">
-                        Filter Presensi
-                    </h4>
+                    <h4 className="text-[14px] font-bold text-text-primary">Filter Presensi</h4>
                     {(selectedClassId || selectedDate !== today) && (
                         <button
                             type="button"
@@ -241,9 +243,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                    <label className="text-[12px] font-bold text-text-secondary">
-                        Pilih Rombongan Belajar (Kelas)
-                    </label>
+                    <label className="text-[12px] font-bold text-text-secondary">Pilih Rombongan Belajar (Kelas)</label>
                     <NativeSelect
                         value={selectedClassId ? String(selectedClassId) : ""}
                         onChange={(e) => {
@@ -262,9 +262,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                    <label className="text-[12px] font-bold text-text-secondary">
-                        Pilih Tanggal Presensi
-                    </label>
+                    <label className="text-[12px] font-bold text-text-secondary">Pilih Tanggal Presensi</label>
                     <Input
                         type="date"
                         value={selectedDate}
@@ -294,7 +292,7 @@ export default function Dashboard({
                 class_id: selectedClassId || undefined,
                 date: selectedDate,
             },
-            { preserveState: true, replace: true }
+            { preserveState: true, replace: true },
         );
     };
 
@@ -306,7 +304,7 @@ export default function Dashboard({
             (s) =>
                 (s.name && s.name.toLowerCase().includes(q)) ||
                 (s.nis && s.nis.toLowerCase().includes(q)) ||
-                (s.nisn && s.nisn.toLowerCase().includes(q))
+                (s.nisn && s.nisn.toLowerCase().includes(q)),
         );
     }, [classDetail, attentionSearch]);
 
@@ -342,7 +340,9 @@ export default function Dashboard({
     const sickPct = stats.total_students > 0 ? Math.round((stats.sick_permit / stats.total_students) * 100) : 0;
     const absentPct = stats.total_students > 0 ? Math.round((stats.absent / stats.total_students) * 100) : 0;
 
-    const isFilterActive = Boolean(selectedClassId || (selectedDate && selectedDate !== new Date().toISOString().split("T")[0]));
+    const isFilterActive = Boolean(
+        selectedClassId || (selectedDate && selectedDate !== new Date().toISOString().split("T")[0]),
+    );
 
     const verificationButtonNode = useMemo(() => {
         if (pendingLeaveCount <= 0) return null;
@@ -359,22 +359,23 @@ export default function Dashboard({
     }, [pendingLeaveCount]);
 
     // Mobile header action: optional filter button (only < sm on attention tab)
-    const mobileHeaderAction = activeTab === "attention" ? (
-        <div className="sm:hidden flex items-center gap-2 select-none font-inter">
-            <button
-                type="button"
-                onClick={() => setMobileFilterOpen(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative cursor-pointer"
-                title="Filter Data Presensi"
-                aria-label="Filter Data Presensi"
-            >
-                <FiFilter className="text-[15px]" />
-                {isFilterActive && (
-                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-primary" />
-                )}
-            </button>
-        </div>
-    ) : undefined;
+    const mobileHeaderAction =
+        activeTab === "attention" ? (
+            <div className="sm:hidden flex items-center gap-2 select-none font-inter">
+                <button
+                    type="button"
+                    onClick={() => setMobileFilterOpen(true)}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative cursor-pointer"
+                    title="Filter Data Presensi"
+                    aria-label="Filter Data Presensi"
+                >
+                    <FiFilter className="text-[15px]" />
+                    {isFilterActive && (
+                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-primary" />
+                    )}
+                </button>
+            </div>
+        ) : undefined;
 
     const attentionColumns: Column<AttentionStudent>[] = [
         {
@@ -472,11 +473,7 @@ export default function Dashboard({
     );
 
     return (
-        <AppShell
-            title="Dashboard Admin"
-            hasTopTabs={true}
-            headerActions={mobileHeaderAction}
-        >
+        <AppShell title="Dashboard Admin" hasTopTabs={true} headerActions={mobileHeaderAction}>
             {/* Desktop PageHeader (hidden on mobile & tablet) */}
             <div className="hidden lg:block">
                 <PageHeader
@@ -517,9 +514,7 @@ export default function Dashboard({
 
                 {/* Verification Action for Overview Tab (Tablet & Desktop sm+) */}
                 {activeTab === "overview" && verificationButtonNode && (
-                    <div className="flex items-center gap-2 shrink-0 ml-auto font-inter">
-                        {verificationButtonNode}
-                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-auto font-inter">{verificationButtonNode}</div>
                 )}
 
                 {/* Search Bar & Filter Button in Attention Tab for Tablet & Desktop */}
@@ -602,9 +597,7 @@ export default function Dashboard({
                                         <span className="text-[22px] font-extrabold text-text-primary leading-tight">
                                             {stats.verified_present}
                                         </span>
-                                        <span className="text-[11px] font-bold text-success">
-                                            ({presentPct}%)
-                                        </span>
+                                        <span className="text-[11px] font-bold text-success">({presentPct}%)</span>
                                     </div>
                                     <span className="text-[10px] text-text-muted block mt-0.5">
                                         dari {stats.total_students} siswa
@@ -625,13 +618,9 @@ export default function Dashboard({
                                         <span className="text-[22px] font-extrabold text-warning leading-tight">
                                             {stats.late}
                                         </span>
-                                        <span className="text-[11px] font-bold text-warning">
-                                            ({latePct}%)
-                                        </span>
+                                        <span className="text-[11px] font-bold text-warning">({latePct}%)</span>
                                     </div>
-                                    <span className="text-[10px] text-text-muted block mt-0.5">
-                                        lewat batas jam
-                                    </span>
+                                    <span className="text-[10px] text-text-muted block mt-0.5">lewat batas jam</span>
                                 </div>
                             </div>
 
@@ -648,13 +637,9 @@ export default function Dashboard({
                                         <span className="text-[22px] font-extrabold text-primary leading-tight">
                                             {stats.sick_permit}
                                         </span>
-                                        <span className="text-[11px] font-bold text-primary">
-                                            ({sickPct}%)
-                                        </span>
+                                        <span className="text-[11px] font-bold text-primary">({sickPct}%)</span>
                                     </div>
-                                    <span className="text-[10px] text-text-muted block mt-0.5">
-                                        surat keterangan
-                                    </span>
+                                    <span className="text-[10px] text-text-muted block mt-0.5">surat keterangan</span>
                                 </div>
                             </div>
 
@@ -671,13 +656,9 @@ export default function Dashboard({
                                         <span className="text-[22px] font-extrabold text-danger leading-tight">
                                             {stats.absent}
                                         </span>
-                                        <span className="text-[11px] font-bold text-danger">
-                                            ({absentPct}%)
-                                        </span>
+                                        <span className="text-[11px] font-bold text-danger">({absentPct}%)</span>
                                     </div>
-                                    <span className="text-[10px] text-text-muted block mt-0.5">
-                                        tanpa keterangan
-                                    </span>
+                                    <span className="text-[10px] text-text-muted block mt-0.5">tanpa keterangan</span>
                                 </div>
                             </div>
                         </div>
@@ -902,9 +883,7 @@ export default function Dashboard({
                     </div>
 
                     <div>
-                        <label className="block text-[13px] font-bold text-text-primary mb-1.5">
-                            Tanggal Presensi
-                        </label>
+                        <label className="block text-[13px] font-bold text-text-primary mb-1.5">Tanggal Presensi</label>
                         <Input
                             type="date"
                             value={drawerDate}

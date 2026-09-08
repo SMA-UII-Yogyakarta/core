@@ -1,28 +1,28 @@
-import { useState, useMemo } from "react";
 import { router, useForm } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useMemo, useState } from "react";
+import { FiEdit2, FiFilter, FiRotateCcw } from "react-icons/fi";
 import {
-    PageHeader,
+    ActionButton,
+    BottomSheet,
+    Button,
     Card,
+    ConfirmDialog,
+    Drawer,
+    EmptyState,
+    Input,
+    MobileNativePagination,
+    PageHeader,
+    SearchBar,
+    SelectInput,
+    StatusBadge,
     Table,
     TableFooter,
-    StatusBadge,
-    ActionButton,
-    Drawer,
-    SelectInput,
-    Input,
-    Button,
-    MobileNativePagination,
-    SearchBar,
-    ConfirmDialog,
-    EmptyState,
-    BottomSheet,
 } from "@/Components";
-import { useClientPagination } from "@/hooks/useClientPagination";
 import type { Column } from "@/Components/ui/Table";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
 import { attendanceCorrectionSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiFilter, FiEdit2, FiRotateCcw } from "react-icons/fi";
 
 interface Student {
     id: number;
@@ -234,9 +234,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Koreksi Absensi"
                 aria-label="Filter Koreksi Absensi"
@@ -308,7 +306,11 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                             <EmptyState
                                 variant="no-data"
                                 title="Tidak Ada Data"
-                                description={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
+                                description={
+                                    search
+                                        ? "Tidak ditemukan siswa yang cocok dengan pencarian."
+                                        : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."
+                                }
                             />
                         </div>
                     ) : (
@@ -320,7 +322,9 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0">
                                         <h4 className="text-[14px] font-bold text-text-primary truncate">{s.name}</h4>
-                                        <p className="text-[11px] text-text-muted">NIS: {s.nis} • Kelas {s.class}</p>
+                                        <p className="text-[11px] text-text-muted">
+                                            NIS: {s.nis} • Kelas {s.class}
+                                        </p>
                                     </div>
                                     <div className="shrink-0 flex items-center gap-1.5">
                                         <StatusBadge variant={s.current_status} />
@@ -332,7 +336,12 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between text-[12px] text-text-secondary pt-2 border-t border-border">
-                                    <span>Jam: <span className="font-semibold text-text-primary">{s.check_in_time ?? "—"}</span></span>
+                                    <span>
+                                        Jam:{" "}
+                                        <span className="font-semibold text-text-primary">
+                                            {s.check_in_time ?? "—"}
+                                        </span>
+                                    </span>
                                     <div className="flex items-center gap-2">
                                         <ActionButton
                                             variant="edit"
@@ -372,7 +381,11 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                         columns={columns}
                         data={paginatedStudents}
                         keyExtractor={(s) => s.id}
-                        emptyMessage={search ? "Tidak ditemukan siswa yang cocok dengan pencarian." : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."}
+                        emptyMessage={
+                            search
+                                ? "Tidak ditemukan siswa yang cocok dengan pencarian."
+                                : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."
+                        }
                     />
                     <TableFooter
                         currentPage={safePage}
@@ -452,9 +465,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Tanggal Absensi
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Tanggal Absensi</label>
                         <Input
                             type="date"
                             value={selectedDate}
@@ -464,9 +475,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Kelas
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                         <SelectInput
                             value={selectedClass}
                             onChange={(val) => setSelectedClass(val as string)}
@@ -485,7 +494,11 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                 onClick={() => {
                                     setSelectedDate(filters.date);
                                     setSelectedClass("");
-                                    router.get("/attendance-correction", { date: filters.date }, { preserveState: true });
+                                    router.get(
+                                        "/attendance-correction",
+                                        { date: filters.date },
+                                        { preserveState: true },
+                                    );
                                     setIsMobileFilterOpen(false);
                                 }}
                                 className="flex-1 h-10 text-[13px] font-bold rounded-xl"

@@ -39,7 +39,11 @@ class StudentPortalController extends Controller
             'todayAttendance' => $todayAttendance ? [
                 'id' => $todayAttendance->id,
                 'status' => $todayAttendance->status,
-                'check_in_time' => $todayAttendance->check_in_time,
+                'check_in_time' => $todayAttendance->check_in_time
+                    ? ($todayAttendance->check_in_time instanceof \Carbon\Carbon
+                        ? $todayAttendance->check_in_time->format('H:i')
+                        : (strlen((string) $todayAttendance->check_in_time) >= 5 ? substr((string) $todayAttendance->check_in_time, 0, 5) : (string) $todayAttendance->check_in_time))
+                    : null,
                 'attendance_date' => $todayAttendance->attendance_date->toDateString(),
             ] : null,
             'recentHistory' => $recentHistory->items(),
@@ -67,7 +71,11 @@ class StudentPortalController extends Controller
             'todayAttendance' => $todayAttendance ? [
                 'id' => $todayAttendance->id,
                 'status' => $todayAttendance->status,
-                'check_in_time' => $todayAttendance->check_in_time,
+                'check_in_time' => $todayAttendance->check_in_time
+                    ? ($todayAttendance->check_in_time instanceof \Carbon\Carbon
+                        ? $todayAttendance->check_in_time->format('H:i')
+                        : (strlen((string) $todayAttendance->check_in_time) >= 5 ? substr((string) $todayAttendance->check_in_time, 0, 5) : (string) $todayAttendance->check_in_time))
+                    : null,
                 'attendance_date' => $todayAttendance->attendance_date->toDateString(),
             ] : null,
         ]);
@@ -114,7 +122,11 @@ class StudentPortalController extends Controller
             'attendances' => collect($attendances->items())->map(fn ($att) => [
                 'id' => $att->id,
                 'status' => $att->status,
-                'check_in_time' => $att->check_in_time,
+                'check_in_time' => $att->check_in_time
+                    ? ($att->check_in_time instanceof \Carbon\Carbon
+                        ? $att->check_in_time->format('H:i')
+                        : (strlen((string) $att->check_in_time) >= 5 ? substr((string) $att->check_in_time, 0, 5) : (string) $att->check_in_time))
+                    : null,
                 'attendance_date' => $att->attendance_date instanceof \Carbon\Carbon
                     ? $att->attendance_date->toDateString()
                     : $att->attendance_date,

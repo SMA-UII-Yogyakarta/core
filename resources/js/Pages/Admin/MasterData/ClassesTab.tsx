@@ -1,28 +1,20 @@
 import { router } from "@inertiajs/react";
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { FiBookOpen, FiCalendar, FiEdit2, FiEye, FiPlus, FiTrash2, FiUserCheck } from "react-icons/fi";
 import {
-    Table,
-    TableFooter,
-    MobileNativePagination,
-    Card,
     Button,
+    Card,
     Checkbox,
-    MobileFilterSelectBar,
     MasterDataCard,
     MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
+    Table,
+    TableFooter,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import {
-    FiPlus,
-    FiEye,
-    FiEdit2,
-    FiTrash2,
-    FiBookOpen,
-    FiUserCheck,
-    FiCalendar,
-} from "react-icons/fi";
-import type { SchoolClass, Teacher, PaginatedData, SearchConfig } from "./types";
 import ClassDrawerForm from "./ClassDrawerForm";
+import type { PaginatedData, SchoolClass, SearchConfig, Teacher } from "./types";
 
 interface ClassesTabProps {
     schoolClasses?: PaginatedData<SchoolClass>;
@@ -56,12 +48,8 @@ export default function ClassesTab({
     onSelectedIdsChange,
     onRequestDelete,
 }: ClassesTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
-        editMode ?? null
-    );
-    const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(
-        editItem ?? null
-    );
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(editItem ?? null);
 
     useEffect(() => {
         if (editItem && editMode) {
@@ -114,10 +102,7 @@ export default function ClassesTab({
             key: "selection",
             header: (
                 <div className="flex items-center justify-center">
-                    <Checkbox
-                        checked={isAllSelected}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
                 </div>
             ),
             render: (c) => (
@@ -158,9 +143,7 @@ export default function ClassesTab({
             render: (c) => (
                 <div>
                     {c.teacher ? (
-                        <span className="font-medium text-text-primary text-[13px]">
-                            {c.teacher.name}
-                        </span>
+                        <span className="font-medium text-text-primary text-[13px]">{c.teacher.name}</span>
                     ) : (
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-warning-light text-text-primary border border-warning/30">
                             Belum Ada Wali
@@ -232,7 +215,7 @@ export default function ClassesTab({
                 page: p,
                 search: filters?.search || undefined,
             },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 
@@ -254,9 +237,12 @@ export default function ClassesTab({
                     info={
                         displayClasses && displayClasses.length > 0 ? (
                             <span>
-                                Menampilkan total <strong className="text-text-primary">{displayClasses.length}</strong> rombongan belajar terdaftar.
+                                Menampilkan total <strong className="text-text-primary">{displayClasses.length}</strong>{" "}
+                                rombongan belajar terdaftar.
                             </span>
-                        ) : "Menampilkan rombongan belajar (rombel) SMA UII Yogyakarta."
+                        ) : (
+                            "Menampilkan rombongan belajar (rombel) SMA UII Yogyakarta."
+                        )
                     }
                     currentPage={!isClientMode ? schoolClasses?.current_page : undefined}
                     totalPages={!isClientMode ? schoolClasses?.last_page : undefined}
@@ -334,7 +320,8 @@ export default function ClassesTab({
                                     title={
                                         <div className="flex items-center gap-2">
                                             <span className="truncate">
-                                                {c.full_name || (c.name.startsWith(c.level) ? c.name : `${c.level}-${c.name}`)}
+                                                {c.full_name ||
+                                                    (c.name.startsWith(c.level) ? c.name : `${c.level}-${c.name}`)}
                                             </span>
                                             {c.level && (
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-500/10 text-purple-700 border border-purple-500/20 shrink-0">
@@ -350,11 +337,13 @@ export default function ClassesTab({
                                         </div>
                                     }
                                     rightBadge={
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                            isFull
-                                                ? "bg-danger text-white border-danger"
-                                                : "bg-muted text-text-secondary border-border"
-                                        }`}>
+                                        <span
+                                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                                isFull
+                                                    ? "bg-danger text-white border-danger"
+                                                    : "bg-muted text-text-secondary border-border"
+                                            }`}
+                                        >
                                             {count}/{cap} Siswa
                                         </span>
                                     }

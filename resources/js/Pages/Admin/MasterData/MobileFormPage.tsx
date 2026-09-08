@@ -1,19 +1,17 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
-import AppShell from "@/Layouts/AppShell";
-import { Button, DrawerHeaderActions } from "@/Components";
-import type { Student, Teacher, SchoolClass, Guardian, ClassOption, PaginatedData } from "./types";
-import { FiSave } from "react-icons/fi";
 import { motion } from "framer-motion";
-
+import { useState } from "react";
+import { FiSave } from "react-icons/fi";
+import { Button, DrawerHeaderActions } from "@/Components";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import AppShell from "@/Layouts/AppShell";
 import MasterData from "../MasterData";
-
-import StudentForm from "./Forms/StudentForm";
-import TeacherForm from "./Forms/TeacherForm";
 import ClassForm from "./Forms/ClassForm";
 import GuardianForm from "./Forms/GuardianForm";
 import MobileImportPage from "./Forms/MobileImportPage";
+import StudentForm from "./Forms/StudentForm";
+import TeacherForm from "./Forms/TeacherForm";
+import type { ClassOption, Guardian, PaginatedData, SchoolClass, Student, Teacher } from "./types";
 
 interface MobileFormPageProps {
     mode: "create" | "edit" | "detail" | "import";
@@ -87,13 +85,7 @@ export default function MobileFormPage(props: MobileFormPageProps) {
 
     const getPageTitle = () => {
         const entityLabel =
-            tab === "students"
-                ? "Siswa"
-                : tab === "teachers"
-                ? "Guru"
-                : tab === "class"
-                ? "Kelas"
-                : "Wali Murid";
+            tab === "students" ? "Siswa" : tab === "teachers" ? "Guru" : tab === "class" ? "Kelas" : "Wali Murid";
 
         if (isCreate) return `Tambah ${entityLabel} Baru`;
         if (isUnlocked) return `Edit Data ${entityLabel}`;

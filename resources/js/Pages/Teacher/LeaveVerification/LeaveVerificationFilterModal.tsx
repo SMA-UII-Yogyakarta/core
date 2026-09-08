@@ -1,5 +1,5 @@
-import Modal from "@/Components/common/Modal";
 import { Button, Input, SelectInput } from "@/Components";
+import Modal from "@/Components/common/Modal";
 
 export type DateMode = "all" | "today" | "week" | "month" | "custom";
 export type SortMode = "urgency" | "dateDesc" | "dateAsc";
@@ -44,17 +44,11 @@ export default function LeaveVerificationFilterModal({
     ];
 
     return (
-        <Modal
-            open={open}
-            onClose={onClose}
-            title="Filter & Urutkan Permohonan"
-        >
+        <Modal open={open} onClose={onClose} title="Filter & Urutkan Permohonan">
             <div className="space-y-4">
                 {/* Category */}
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                        Kategori Izin
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">Kategori Izin</label>
                     <SelectInput
                         value={category}
                         onChange={(val) => onCategoryChange(val ? String(val) : "all")}
@@ -86,9 +80,7 @@ export default function LeaveVerificationFilterModal({
 
                 {/* Date Presets */}
                 <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                        Periode Waktu
-                    </label>
+                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">Periode Waktu</label>
                     <div className="flex flex-wrap gap-1.5">
                         {datePresets.map((p) => (
                             <button
@@ -111,24 +103,14 @@ export default function LeaveVerificationFilterModal({
                 {dateMode === "custom" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-muted rounded-xl border border-border">
                         <div>
-                            <label className="block text-[12px] font-medium text-text-primary mb-1">
-                                Dari Tanggal
-                            </label>
-                            <Input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => onStartDateChange(e.target.value)}
-                            />
+                            <label className="block text-[12px] font-medium text-text-primary mb-1">Dari Tanggal</label>
+                            <Input type="date" value={startDate} onChange={(e) => onStartDateChange(e.target.value)} />
                         </div>
                         <div>
                             <label className="block text-[12px] font-medium text-text-primary mb-1">
                                 Sampai Tanggal
                             </label>
-                            <Input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => onEndDateChange(e.target.value)}
-                            />
+                            <Input type="date" value={endDate} onChange={(e) => onEndDateChange(e.target.value)} />
                         </div>
                     </div>
                 )}

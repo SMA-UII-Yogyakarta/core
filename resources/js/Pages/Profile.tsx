@@ -1,37 +1,29 @@
 import { Head, Link, router, useForm } from "@inertiajs/react";
-import { useState, useMemo, useRef, useEffect } from "react";
-import { useLanguage } from "@/Contexts/LanguageContext";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    PageHeader,
-    Button,
-    ConfirmDialog,
-    TabSwitcher,
-} from "@/Components";
-import AppShell from "@/Layouts/AppShell";
-import {
-    FiUser,
     FiBell,
-    FiShield,
-    FiSave,
+    FiChevronRight,
     FiLock,
+    FiLogOut,
+    FiRefreshCw,
+    FiSave,
+    FiShield,
     FiSliders,
     FiSmartphone,
-    FiRefreshCw,
-    FiChevronRight,
-    FiLogOut,
+    FiUser,
 } from "react-icons/fi";
-import { profileInfoSchema, passwordSecuritySchema } from "@/schemas";
+import { Button, ConfirmDialog, PageHeader, TabSwitcher } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
+import AppShell from "@/Layouts/AppShell";
+import { passwordSecuritySchema, profileInfoSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import type {
-    ProfileUser,
-    ProfileSession,
-    ProfileSubPage,
-} from "./Profile/types";
+import InstagramAvatarPeek from "./Profile/components/InstagramAvatarPeek";
+import NotificationSection from "./Profile/components/NotificationSection";
 import ProfileHeroCard from "./Profile/components/ProfileHeroCard";
 import ProfileInfoSection from "./Profile/components/ProfileInfoSection";
 import SecuritySection from "./Profile/components/SecuritySection";
-import NotificationSection from "./Profile/components/NotificationSection";
 import SessionsSection from "./Profile/components/SessionsSection";
+import type { ProfileSession, ProfileSubPage, ProfileUser } from "./Profile/types";
 
 interface ProfileProps {
     user: ProfileUser;
@@ -103,6 +95,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [avatarError, setAvatarError] = useState<string | null>(null);
     const [showDeleteAvatarModal, setShowDeleteAvatarModal] = useState(false);
+    const [showViewAvatarModal, setShowViewAvatarModal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [showRevokeModal, setShowRevokeModal] = useState(false);
@@ -161,7 +154,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                     setUploadingAvatar(false);
                     setAvatarError(err.avatar || "Gagal mengunggah foto profil.");
                 },
-            }
+            },
         );
     };
 
@@ -263,9 +256,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
     };
 
     const isDualRoleTeacher =
-        user.teacher &&
-        user.teacher.teacher_type?.includes("homeroom") &&
-        user.teacher.teacher_type?.includes("duty");
+        user.teacher && user.teacher.teacher_type?.includes("homeroom") && user.teacher.teacher_type?.includes("duty");
 
     const mobileHeaderTitle = useMemo(() => {
         switch (mobileSubPage) {
@@ -311,6 +302,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                             isDualRoleTeacher={Boolean(isDualRoleTeacher)}
                             getRoleLabel={getRoleLabel}
                             onSelectPhoto={() => fileInputRef.current?.click()}
+                            onViewPhoto={() => setShowViewAvatarModal(true)}
                         />
 
                         {/* 2. Grouped Settings Stack Menu List (iOS / Android Native Style) */}
@@ -358,8 +350,12 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                                 <FiSliders size={18} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-[14px] text-text-primary">Pengaturan Sistem</div>
-                                                <div className="text-[11px] text-text-muted mt-0.5">Konfigurasi core backend & operasional</div>
+                                                <div className="font-bold text-[14px] text-text-primary">
+                                                    Pengaturan Sistem
+                                                </div>
+                                                <div className="text-[11px] text-text-muted mt-0.5">
+                                                    Konfigurasi core backend & operasional
+                                                </div>
                                             </div>
                                         </div>
                                         <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
@@ -370,73 +366,89 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleOpenMobileSubPage("profile")}
-                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
-                                 >
-                                     <div className="flex items-center gap-3.5">
-                                         <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                             <FiUser size={18} />
-                                         </div>
-                                         <div>
-                                             <div className="font-bold text-[14px] text-text-primary">Data Akun & Profil</div>
-                                             <div className="text-[11px] text-text-muted mt-0.5">Ubah foto profil, nama & email resmi</div>
-                                         </div>
-                                     </div>
-                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                 </button>
+                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                            <FiUser size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[14px] text-text-primary">
+                                                Data Akun & Profil
+                                            </div>
+                                            <div className="text-[11px] text-text-muted mt-0.5">
+                                                Ubah foto profil, nama & email resmi
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
 
-                                 {/* Stack Item 2: Security */}
-                                 <button
-                                     type="button"
-                                     onClick={() => handleOpenMobileSubPage("security")}
-                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
-                                 >
-                                     <div className="flex items-center gap-3.5">
-                                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                             <FiShield size={18} />
-                                         </div>
-                                         <div>
-                                             <div className="font-bold text-[14px] text-text-primary">Keamanan & Kata Sandi</div>
-                                             <div className="text-[11px] text-text-muted mt-0.5">Ganti kata sandi akun</div>
-                                         </div>
-                                     </div>
-                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                 </button>
+                                {/* Stack Item 2: Security */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenMobileSubPage("security")}
+                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                            <FiShield size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[14px] text-text-primary">
+                                                Keamanan & Kata Sandi
+                                            </div>
+                                            <div className="text-[11px] text-text-muted mt-0.5">
+                                                Ganti kata sandi akun
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
 
-                                 {/* Stack Item 3: Notifications */}
-                                 <button
-                                     type="button"
-                                     onClick={() => handleOpenMobileSubPage("notifications")}
-                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
-                                 >
-                                     <div className="flex items-center gap-3.5">
-                                         <div className="w-10 h-10 rounded-xl bg-accent/20 text-accent-dark flex items-center justify-center shrink-0">
-                                             <FiBell size={18} />
-                                         </div>
-                                         <div>
-                                             <div className="font-bold text-[14px] text-text-primary">Preferensi Notifikasi</div>
-                                             <div className="text-[11px] text-text-muted mt-0.5">Atur saluran pesan & push alerts</div>
-                                         </div>
-                                     </div>
-                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                 </button>
+                                {/* Stack Item 3: Notifications */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenMobileSubPage("notifications")}
+                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-accent/20 text-accent-dark flex items-center justify-center shrink-0">
+                                            <FiBell size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[14px] text-text-primary">
+                                                Preferensi Notifikasi
+                                            </div>
+                                            <div className="text-[11px] text-text-muted mt-0.5">
+                                                Atur saluran pesan & push alerts
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
 
-                                 {/* Stack Item 4: Sessions */}
-                                 <button
-                                     type="button"
-                                     onClick={() => handleOpenMobileSubPage("sessions")}
-                                     className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
-                                 >
-                                     <div className="flex items-center gap-3.5">
-                                         <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                                             <FiSmartphone size={18} />
-                                         </div>
-                                         <div>
-                                             <div className="font-bold text-[14px] text-text-primary">Perangkat & Sesi Aktif</div>
-                                             <div className="text-[11px] text-text-muted mt-0.5">{sessions.length} perangkat terhubung</div>
-                                         </div>
-                                     </div>
-                                     <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                                 </button>
+                                {/* Stack Item 4: Sessions */}
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenMobileSubPage("sessions")}
+                                    className="group w-full flex items-center justify-between p-4 hover:bg-muted/30 active:scale-[0.99] active:bg-muted/60 transition-all text-left cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3.5">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                                            <FiSmartphone size={18} />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-[14px] text-text-primary">
+                                                Perangkat & Sesi Aktif
+                                            </div>
+                                            <div className="text-[11px] text-text-muted mt-0.5">
+                                                {sessions.length} perangkat terhubung
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <FiChevronRight className="text-text-inactive text-[18px] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                </button>
                             </div>
                         </div>
 
@@ -475,6 +487,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                                 getRoleLabel={getRoleLabel}
                                 onSelectPhoto={() => fileInputRef.current?.click()}
                                 onDeletePhoto={() => setShowDeleteAvatarModal(true)}
+                                onViewPhoto={() => setShowViewAvatarModal(true)}
                                 onSubmit={handleProfileSubmit}
                                 isMobile
                             />
@@ -494,21 +507,12 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                         {/* Sub-page 3: Preferensi Notifikasi */}
                         {mobileSubPage === "notifications" && (
-                            <NotificationSection
-                                notifPrefs={notifPrefs}
-                                setNotifPrefs={setNotifPrefs}
-                                isMobile
-                            />
+                            <NotificationSection notifPrefs={notifPrefs} setNotifPrefs={setNotifPrefs} isMobile />
                         )}
 
                         {/* Sub-page 4: Perangkat & Sesi Aktif */}
                         {mobileSubPage === "sessions" && (
-                            <SessionsSection
-                                sessions={sessions}
-                                onRevoke={handleRevoke}
-                                revoking={revoking}
-                                isMobile
-                            />
+                            <SessionsSection sessions={sessions} onRevoke={handleRevoke} revoking={revoking} isMobile />
                         )}
                     </div>
                 )}
@@ -609,6 +613,7 @@ export default function Profile({ user, sessions }: ProfileProps) {
                         getRoleLabel={getRoleLabel}
                         onSelectPhoto={() => fileInputRef.current?.click()}
                         onDeletePhoto={() => setShowDeleteAvatarModal(true)}
+                        onViewPhoto={() => setShowViewAvatarModal(true)}
                         onSubmit={handleProfileSubmit}
                     />
                 </div>
@@ -626,19 +631,12 @@ export default function Profile({ user, sessions }: ProfileProps) {
 
                 {/* 5. Desktop Tab 3: Notifikasi */}
                 <div className={`w-full ${desktopTab === "notifications" ? "block" : "hidden"}`}>
-                    <NotificationSection
-                        notifPrefs={notifPrefs}
-                        setNotifPrefs={setNotifPrefs}
-                    />
+                    <NotificationSection notifPrefs={notifPrefs} setNotifPrefs={setNotifPrefs} />
                 </div>
 
                 {/* 6. Desktop Tab 4: Sesi Aktif */}
                 <div className={`w-full ${desktopTab === "sessions" ? "block" : "hidden"}`}>
-                    <SessionsSection
-                        sessions={sessions}
-                        onRevoke={handleRevoke}
-                        revoking={revoking}
-                    />
+                    <SessionsSection sessions={sessions} onRevoke={handleRevoke} revoking={revoking} />
                 </div>
             </div>
 
@@ -649,6 +647,17 @@ export default function Profile({ user, sessions }: ProfileProps) {
                 accept="image/jpeg,image/png,image/webp,image/jpg"
                 className="hidden"
                 onChange={handleAvatarSelect}
+            />
+
+            {/* Instagram Style Profile Picture Peek */}
+            <InstagramAvatarPeek
+                open={showViewAvatarModal}
+                onClose={() => setShowViewAvatarModal(false)}
+                user={user}
+                avatarPreview={avatarPreview}
+                getRoleLabel={getRoleLabel}
+                onSelectPhoto={() => fileInputRef.current?.click()}
+                onDeletePhoto={() => setShowDeleteAvatarModal(true)}
             />
 
             {/* Delete Avatar Confirm Modal */}

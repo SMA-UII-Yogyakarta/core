@@ -1,32 +1,24 @@
 import { router, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
+import { FiBell, FiCheckSquare, FiClock, FiInbox, FiSend, FiTrash2, FiUsers } from "react-icons/fi";
 import {
-    PageHeader,
-    Card,
     Button,
+    Card,
+    ConfirmDialog,
+    EmptyState,
+    Input,
+    MobileNativePagination,
     Modal,
     NativeSelect,
-    MobileNativePagination,
-    Input,
+    PageHeader,
     Table,
     TableFooter,
-    ConfirmDialog,
     TabSwitcher,
-    EmptyState,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
-import {
-    FiBell,
-    FiTrash2,
-    FiSend,
-    FiCheckSquare,
-    FiUsers,
-    FiClock,
-    FiInbox,
-} from "react-icons/fi";
 import { notificationSchema } from "@/schemas";
-import { validateForm } from "@/utils/zodHelper";
 import type { PaginatedData } from "@/types";
+import { validateForm } from "@/utils/zodHelper";
 
 interface NotificationSender {
     id: number;
@@ -97,11 +89,7 @@ const getGroupBadgeColor = (group: string | null) => {
     }
 };
 
-export default function Notifications({
-    notifications,
-    sentNotifications,
-    unreadCount,
-}: NotificationsProps) {
+export default function Notifications({ notifications, sentNotifications, unreadCount }: NotificationsProps) {
     const { auth } = usePage().props as unknown as {
         auth: { user: { role?: string } | null };
     };
@@ -117,16 +105,7 @@ export default function Notifications({
         id: null,
     });
 
-    const {
-        data,
-        setData,
-        post,
-        processing,
-        errors,
-        reset,
-        setError,
-        clearErrors,
-    } = useForm({
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         title: "",
         content: "",
         target_group: "all" as "all" | "student" | "teacher" | "guardian",
@@ -182,10 +161,7 @@ export default function Notifications({
     };
 
     // Helper for rendering paginators cleanly with TableFooter
-    const renderPagination = (
-        paginated: PaginatedData<NotificationItem>,
-        paramName?: string
-    ) => {
+    const renderPagination = (paginated: PaginatedData<NotificationItem>, paramName?: string) => {
         if (paginated.total === 0) return null;
         const onPageChange = (page: number) => {
             const params = paramName ? { [paramName]: page } : { page };
@@ -454,7 +430,7 @@ export default function Notifications({
                                                 render: (n) => (
                                                     <span
                                                         className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${getGroupBadgeColor(
-                                                            n.target_group
+                                                            n.target_group,
                                                         )}`}
                                                     >
                                                         {getGroupLabel(n.target_group)}
@@ -530,7 +506,7 @@ export default function Notifications({
                                             <div className="flex items-center justify-between gap-2">
                                                 <span
                                                     className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border flex items-center gap-1 shrink-0 ${getGroupBadgeColor(
-                                                        n.target_group
+                                                        n.target_group,
                                                     )}`}
                                                 >
                                                     <FiUsers className="text-[10px]" />
@@ -573,11 +549,7 @@ export default function Notifications({
 
             {/* Send Notification Modal */}
             {isCreateOpen && (
-                <Modal
-                    open={isCreateOpen}
-                    onClose={() => setIsCreateOpen(false)}
-                    title="Buat Notifikasi Baru"
-                >
+                <Modal open={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Buat Notifikasi Baru">
                     <form onSubmit={handleCreateNotification} className="space-y-4 font-inter">
                         <Input
                             label="Judul Notifikasi"
@@ -597,7 +569,7 @@ export default function Notifications({
                                 onChange={(e) =>
                                     setData(
                                         "target_group",
-                                        e.target.value as "all" | "student" | "teacher" | "guardian"
+                                        e.target.value as "all" | "student" | "teacher" | "guardian",
                                     )
                                 }
                                 className="w-full"
@@ -610,9 +582,7 @@ export default function Notifications({
                         </div>
 
                         <div>
-                            <label className="block text-[13px] font-bold text-text-primary mb-1">
-                                Isi Pengumuman
-                            </label>
+                            <label className="block text-[13px] font-bold text-text-primary mb-1">Isi Pengumuman</label>
                             <textarea
                                 required
                                 rows={4}
@@ -621,17 +591,11 @@ export default function Notifications({
                                 placeholder="Tuliskan isi pengumuman secara detail..."
                                 className="w-full border border-border rounded-lg p-3 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 font-inter"
                             />
-                            {errors.content && (
-                                <p className="mt-1 text-[11px] text-danger">{errors.content}</p>
-                            )}
+                            {errors.content && <p className="mt-1 text-[11px] text-danger">{errors.content}</p>}
                         </div>
 
                         <div className="flex justify-end gap-2 pt-2">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setIsCreateOpen(false)}
-                                type="button"
-                            >
+                            <Button variant="secondary" onClick={() => setIsCreateOpen(false)} type="button">
                                 Batal
                             </Button>
                             <Button variant="primary" loading={processing} type="submit">

@@ -1,15 +1,15 @@
-import { router, Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import {
+    FiActivity,
+    FiCalendar,
     FiCheckCircle,
+    FiChevronRight,
     FiClock,
     FiFileText,
-    FiUsers,
-    FiCalendar,
     FiUserCheck,
-    FiChevronRight,
-    FiActivity,
+    FiUsers,
 } from "react-icons/fi";
-import { Card, StatCard, NativeSelect, Button, StatusBadge, PageHeader, DashboardHero } from "@/Components";
+import { Button, Card, DashboardHero, NativeSelect, PageHeader, StatCard, StatusBadge } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
 
 interface Student {
@@ -107,9 +107,7 @@ export default function GuardianDashboard({
                 {/* 3. Status Kehadiran Hari Ini Card */}
                 <Card
                     className={`p-6 text-center border-2 flex flex-col items-center justify-center transition-all ${
-                        todayAttendance
-                            ? "border-success/30 bg-success-bg"
-                            : "border-warning/30 bg-warning-bg"
+                        todayAttendance ? "border-success/30 bg-success-bg" : "border-warning/30 bg-warning-bg"
                     }`}
                 >
                     <div className="flex items-center justify-between w-full max-w-md mb-4">
@@ -124,11 +122,7 @@ export default function GuardianDashboard({
                             todayAttendance ? "bg-success" : "bg-warning"
                         }`}
                     >
-                        {todayAttendance ? (
-                            <FiCheckCircle className="w-8 h-8" />
-                        ) : (
-                            <FiClock className="w-8 h-8" />
-                        )}
+                        {todayAttendance ? <FiCheckCircle className="w-8 h-8" /> : <FiClock className="w-8 h-8" />}
                     </div>
 
                     <h3 className="text-[18px] sm:text-[20px] font-bold text-text-primary mb-1">
@@ -138,7 +132,10 @@ export default function GuardianDashboard({
                     <p className="text-[13px] text-text-muted max-w-md">
                         {todayAttendance?.check_in_time ? (
                             <>
-                                Presensi tercatat pada pukul <strong className="text-text-primary font-mono font-bold">{todayAttendance.check_in_time} WIB</strong>
+                                Presensi tercatat pada pukul{" "}
+                                <strong className="text-text-primary font-mono font-bold">
+                                    {todayAttendance.check_in_time} WIB
+                                </strong>
                             </>
                         ) : (
                             "Jam sekolah aktif 07:00 – 15:30 WIB. Pastikan siswa melakukan scan QR saat tiba di sekolah."
@@ -154,11 +151,10 @@ export default function GuardianDashboard({
                                 <FiActivity className="w-6 h-6" />
                             </div>
                             <div>
-                                <h4 className="text-[15px] font-bold text-text-primary">
-                                    Riwayat Kehadiran
-                                </h4>
+                                <h4 className="text-[15px] font-bold text-text-primary">Riwayat Kehadiran</h4>
                                 <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
-                                    Lihat laporan lengkap kehadiran bulanan, rekapan keterlambatan, dan riwayat presensi harian anak Anda.
+                                    Lihat laporan lengkap kehadiran bulanan, rekapan keterlambatan, dan riwayat presensi
+                                    harian anak Anda.
                                 </p>
                             </div>
                         </div>
@@ -177,11 +173,10 @@ export default function GuardianDashboard({
                                 <FiFileText className="w-6 h-6" />
                             </div>
                             <div>
-                                <h4 className="text-[15px] font-bold text-text-primary">
-                                    Pengajuan Izin / Sakit
-                                </h4>
+                                <h4 className="text-[15px] font-bold text-text-primary">Pengajuan Izin / Sakit</h4>
                                 <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
-                                    Kirim surat izin ketidakhadiran secara online langsung ke Wali Kelas lengkap dengan bukti foto/dokumen.
+                                    Kirim surat izin ketidakhadiran secara online langsung ke Wali Kelas lengkap dengan
+                                    bukti foto/dokumen.
                                 </p>
                             </div>
                         </div>
@@ -202,18 +197,9 @@ export default function GuardianDashboard({
                         <span>Ringkasan Semester Ini</span>
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <StatCard
-                            label="Hadir Tepat Waktu"
-                            value={semesterStats?.present ?? 0}
-                        />
-                        <StatCard
-                            label="Sakit / Izin"
-                            value={semesterStats?.sick_permit ?? 0}
-                        />
-                        <StatCard
-                            label="Alpa / Tanpa Keterangan"
-                            value={semesterStats?.absent ?? 0}
-                        />
+                        <StatCard label="Hadir Tepat Waktu" value={semesterStats?.present ?? 0} />
+                        <StatCard label="Sakit / Izin" value={semesterStats?.sick_permit ?? 0} />
+                        <StatCard label="Alpa / Tanpa Keterangan" value={semesterStats?.absent ?? 0} />
                     </div>
                 </div>
             </div>

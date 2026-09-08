@@ -1,35 +1,35 @@
-import { useState, useMemo, useEffect, useRef } from "react";
 import { router } from "@inertiajs/react";
-import { motion, AnimatePresence } from "framer-motion";
-import AppShell from "@/Layouts/AppShell";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    PageHeader,
-    MobileNativePagination,
-    NativeSelect,
-    Table,
-    TableFooter,
-    Input,
-    Button,
-    Modal,
-    TabSwitcher,
-    BottomSheet,
-    FilterPopover,
-    StatusBadge,
-} from "@/Components";
-import Drawer from "@/Components/common/Drawer";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useClientPagination } from "@/hooks/useClientPagination";
-import { INDONESIAN_MONTHS } from "@/utils/helpers";
-import {
-    FiFileText,
-    FiGrid,
-    FiDownload,
+    FiCamera,
     FiChevronDown,
     FiClock,
-    FiCamera,
-    FiPaperclip,
+    FiDownload,
+    FiFileText,
     FiFilter,
+    FiGrid,
+    FiPaperclip,
 } from "react-icons/fi";
+import {
+    BottomSheet,
+    Button,
+    FilterPopover,
+    Input,
+    MobileNativePagination,
+    Modal,
+    NativeSelect,
+    PageHeader,
+    StatusBadge,
+    Table,
+    TableFooter,
+    TabSwitcher,
+} from "@/Components";
+import Drawer from "@/Components/common/Drawer";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import AppShell from "@/Layouts/AppShell";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface ExportRow {
     no: number;
@@ -135,10 +135,7 @@ export default function ExportPage({
         };
     }, [desktopDropdownOpen]);
 
-    const months = useMemo(
-        () => INDONESIAN_MONTHS.map((label, idx) => ({ value: idx + 1, label })),
-        []
-    );
+    const months = useMemo(() => INDONESIAN_MONTHS.map((label, idx) => ({ value: idx + 1, label })), []);
 
     const buildQuery = (period: Period) => {
         const q: Record<string, string | number | null | undefined> = {
@@ -211,9 +208,7 @@ export default function ExportPage({
                 type="button"
                 onClick={() => setIsMobileFilterOpen(true)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
+                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
                 title="Filter Laporan"
                 aria-label="Filter Laporan"
@@ -236,12 +231,7 @@ export default function ExportPage({
     const getStatusBadge = (status?: string) => {
         const st = status ?? "ALPHA";
         const isUnverified = st.toUpperCase() === "BELUM VERIFIKASI";
-        return (
-            <StatusBadge
-                variant={st}
-                label={isUnverified ? "Belum Verifikasi" : undefined}
-            />
-        );
+        return <StatusBadge variant={st} label={isUnverified ? "Belum Verifikasi" : undefined} />;
     };
 
     return (
@@ -496,19 +486,25 @@ export default function ExportPage({
                                             {r.status === "TERLAMBAT" ? (
                                                 <span className="flex items-center gap-1.5 font-bold text-amber-600">
                                                     <FiClock className="text-[13px] shrink-0" />
-                                                    <span className="truncate">{r.waktu_keterangan || "Terlambat"}</span>
+                                                    <span className="truncate">
+                                                        {r.waktu_keterangan || "Terlambat"}
+                                                    </span>
                                                 </span>
                                             ) : r.status === "HADIR" ? (
                                                 <span className="flex items-center gap-1.5 font-semibold text-text-primary">
                                                     <FiClock className="text-[13px] text-emerald-600 shrink-0" />
-                                                    <span className="truncate">{r.waktu_keterangan || "Tepat Waktu"}</span>
+                                                    <span className="truncate">
+                                                        {r.waktu_keterangan || "Tepat Waktu"}
+                                                    </span>
                                                 </span>
                                             ) : r.status === "SAKIT" || r.status === "IZIN" ? (
                                                 <span className="text-text-secondary truncate italic">
                                                     {r.waktu_keterangan || "Surat keterangan izin"}
                                                 </span>
                                             ) : (
-                                                <span className="text-text-muted italic truncate">Tidak ada presensi</span>
+                                                <span className="text-text-muted italic truncate">
+                                                    Tidak ada presensi
+                                                </span>
                                             )}
                                         </div>
 
@@ -588,14 +584,19 @@ export default function ExportPage({
                                 key: "no",
                                 header: "No",
                                 className: "w-12 text-center",
-                                render: (r: ExportRow) => <span className="font-bold text-text-secondary text-[13px]">{r.no}</span>,
+                                render: (r: ExportRow) => (
+                                    <span className="font-bold text-text-secondary text-[13px]">{r.no}</span>
+                                ),
                             },
                             {
                                 key: "name",
                                 header: "Nama Lengkap",
                                 className: "font-bold text-text-primary text-[14px] min-w-[180px]",
                                 render: (r: ExportRow) => (
-                                    <span className="font-bold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px] sm:max-w-[320px]" title={r.name}>
+                                    <span
+                                        className="font-bold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px] sm:max-w-[320px]"
+                                        title={r.name}
+                                    >
                                         {r.name}
                                     </span>
                                 ),
@@ -605,7 +606,10 @@ export default function ExportPage({
                                 header: "Kelas",
                                 className: "font-semibold text-text-primary text-[13px] min-w-[90px]",
                                 render: (r: ExportRow) => (
-                                    <span className="font-semibold text-text-primary text-[13px] whitespace-nowrap truncate block max-w-[140px]" title={r.class}>
+                                    <span
+                                        className="font-semibold text-text-primary text-[13px] whitespace-nowrap truncate block max-w-[140px]"
+                                        title={r.class}
+                                    >
                                         {r.class}
                                     </span>
                                 ),
@@ -626,7 +630,9 @@ export default function ExportPage({
                                         return <span className="font-bold text-amber-600">{r.waktu_keterangan}</span>;
                                     }
                                     if (st === "HADIR") {
-                                        return <span className="font-bold text-text-primary">{r.waktu_keterangan}</span>;
+                                        return (
+                                            <span className="font-bold text-text-primary">{r.waktu_keterangan}</span>
+                                        );
                                     }
                                     if (st === "SAKIT" || st === "IZIN") {
                                         return (
@@ -652,11 +658,19 @@ export default function ExportPage({
                                                 onClick={() =>
                                                     setPreviewPhoto({
                                                         url: r.photo_url!,
-                                                        title: isSelfie ? `Foto Selfie - ${r.name}` : `Bukti Surat - ${r.name}`,
+                                                        title: isSelfie
+                                                            ? `Foto Selfie - ${r.name}`
+                                                            : `Bukti Surat - ${r.name}`,
                                                     })
                                                 }
                                                 className="text-[12px] font-bold text-primary hover:bg-primary-light h-8 px-3 rounded-lg inline-flex items-center gap-1.5"
-                                                icon={isSelfie ? <FiCamera className="text-[12px]" /> : <FiPaperclip className="text-[12px]" />}
+                                                icon={
+                                                    isSelfie ? (
+                                                        <FiCamera className="text-[12px]" />
+                                                    ) : (
+                                                        <FiPaperclip className="text-[12px]" />
+                                                    )
+                                                }
                                             >
                                                 {isSelfie ? "Foto Selfie" : "Foto Bukti"}
                                             </Button>
@@ -677,14 +691,19 @@ export default function ExportPage({
                                 key: "no",
                                 header: "No",
                                 className: "w-12 text-center",
-                                render: (r: ExportRow) => <span className="font-bold text-text-secondary text-[13px]">{r.no}</span>,
+                                render: (r: ExportRow) => (
+                                    <span className="font-bold text-text-secondary text-[13px]">{r.no}</span>
+                                ),
                             },
                             {
                                 key: "name",
                                 header: "Nama Lengkap",
                                 className: "font-bold text-text-primary text-[14px] min-w-[180px]",
                                 render: (r: ExportRow) => (
-                                    <span className="font-bold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px] sm:max-w-[320px]" title={r.name}>
+                                    <span
+                                        className="font-bold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px] sm:max-w-[320px]"
+                                        title={r.name}
+                                    >
                                         {r.name}
                                     </span>
                                 ),
@@ -694,7 +713,10 @@ export default function ExportPage({
                                 header: "Kelas",
                                 className: "font-semibold text-text-primary text-[13px] min-w-[90px]",
                                 render: (r: ExportRow) => (
-                                    <span className="font-semibold text-text-primary text-[13px] whitespace-nowrap truncate block max-w-[140px]" title={r.class}>
+                                    <span
+                                        className="font-semibold text-text-primary text-[13px] whitespace-nowrap truncate block max-w-[140px]"
+                                        title={r.class}
+                                    >
                                         {r.class}
                                     </span>
                                 ),
@@ -710,7 +732,13 @@ export default function ExportPage({
                                 header: "Izin",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.permission > 0 ? "font-extrabold text-primary" : "text-text-muted font-normal"}>
+                                    <span
+                                        className={
+                                            r.permission > 0
+                                                ? "font-extrabold text-primary"
+                                                : "text-text-muted font-normal"
+                                        }
+                                    >
                                         {r.permission}
                                     </span>
                                 ),
@@ -720,7 +748,11 @@ export default function ExportPage({
                                 header: "Sakit",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.sick > 0 ? "font-extrabold text-warning" : "text-text-muted font-normal"}>
+                                    <span
+                                        className={
+                                            r.sick > 0 ? "font-extrabold text-warning" : "text-text-muted font-normal"
+                                        }
+                                    >
                                         {r.sick}
                                     </span>
                                 ),
@@ -730,7 +762,11 @@ export default function ExportPage({
                                 header: "Alpha",
                                 className: "w-24 text-center text-[14px]",
                                 render: (r: ExportRow) => (
-                                    <span className={r.absent > 0 ? "font-extrabold text-danger" : "text-text-muted font-normal"}>
+                                    <span
+                                        className={
+                                            r.absent > 0 ? "font-extrabold text-danger" : "text-text-muted font-normal"
+                                        }
+                                    >
                                         {r.absent}
                                     </span>
                                 ),
@@ -830,7 +866,8 @@ export default function ExportPage({
                                     Berkas Belum Tersedia di Storage
                                 </p>
                                 <p className="text-[12px] text-text-muted mt-1 max-w-sm">
-                                    File foto atau dokumen lampiran belum diunggah atau tidak ditemukan di penyimpanan objek.
+                                    File foto atau dokumen lampiran belum diunggah atau tidak ditemukan di penyimpanan
+                                    objek.
                                 </p>
                             </div>
                         ) : (
@@ -864,13 +901,10 @@ export default function ExportPage({
                 subtitle="Atur tanggal dan kelas rekapitulasi"
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
-
                     {selectedPeriod === "harian" && (
                         <>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Tanggal Absensi
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Tanggal Absensi</label>
                                 <Input
                                     type="date"
                                     value={selectedDate}
@@ -879,9 +913,7 @@ export default function ExportPage({
                                 />
                             </div>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Pilih Kelas
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                                 <NativeSelect
                                     value={selectedClassId ?? ""}
                                     onChange={(e) => navigate("harian", { class_id: e.target.value || null })}
@@ -901,9 +933,7 @@ export default function ExportPage({
                     {selectedPeriod === "bulanan" && (
                         <>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Pilih Bulan
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Pilih Bulan</label>
                                 <NativeSelect
                                     value={String(selectedMonth)}
                                     onChange={(e) => navigate("bulanan", { month: Number(e.target.value) })}
@@ -917,9 +947,7 @@ export default function ExportPage({
                                 </NativeSelect>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Pilih Kelas
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                                 <NativeSelect
                                     value={selectedClassId ?? ""}
                                     onChange={(e) => navigate("bulanan", { class_id: e.target.value || null })}
@@ -939,9 +967,7 @@ export default function ExportPage({
                     {selectedPeriod === "semester" && (
                         <>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Semester
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Semester</label>
                                 <NativeSelect
                                     value={String(selectedSemester)}
                                     onChange={(e) => navigate("semester", { semester: Number(e.target.value) })}
@@ -952,9 +978,7 @@ export default function ExportPage({
                                 </NativeSelect>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[12px] font-bold text-text-secondary">
-                                    Pilih Kelas
-                                </label>
+                                <label className="text-[12px] font-bold text-text-secondary">Pilih Kelas</label>
                                 <NativeSelect
                                     value={selectedClassId ?? ""}
                                     onChange={(e) => navigate("semester", { class_id: e.target.value || null })}

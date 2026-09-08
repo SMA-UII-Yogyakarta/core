@@ -1,9 +1,9 @@
 import { router } from "@inertiajs/react";
-import { FiFilter, FiAlertCircle, FiCheckCircle, FiClock } from "react-icons/fi";
-import { Avatar, StatusBadge, Button, Table, Card, SearchBar } from "@/Components";
+import { FiAlertCircle, FiCheckCircle, FiClock, FiFilter } from "react-icons/fi";
+import { Avatar, Button, Card, SearchBar, StatusBadge, Table } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
 import type { Column } from "@/Components/ui/Table";
-import type { SchoolClass, AttentionStudent } from "../types";
+import type { AttentionStudent, SchoolClass } from "../types";
 import { STATUS_CONFIG } from "../types";
 
 export interface AttentionStudentsTabProps {
@@ -38,7 +38,7 @@ export default function AttentionStudentsTab({
                         <FiFilter className="text-[13px] shrink-0" />
                         <span className="truncate">
                             {selectedClassId
-                                ? classes.find((c) => c.id === selectedClassId)?.name ?? "Filter Kelas"
+                                ? (classes.find((c) => c.id === selectedClassId)?.name ?? "Filter Kelas")
                                 : "Semua Kelas"}{" "}
                             • {selectedDate}
                         </span>
@@ -119,9 +119,7 @@ export default function AttentionStudentsTab({
                                                 <h4 className="text-[14px] font-bold text-text-primary truncate">
                                                     {s.name}
                                                 </h4>
-                                                <p className="text-[11px] text-text-muted">
-                                                    NISN: {s.nisn || s.nis}
-                                                </p>
+                                                <p className="text-[11px] text-text-muted">NISN: {s.nisn || s.nis}</p>
                                             </div>
                                         </div>
                                         <StatusBadge variant={cfg.variant} label={cfg.label} />
@@ -134,8 +132,10 @@ export default function AttentionStudentsTab({
                                                 {isAbsent
                                                     ? "Belum ada kabar"
                                                     : isLate || s.status === "Present"
-                                                    ? (s.check_in_time ? `${s.check_in_time} WIB` : "—")
-                                                    : (s.keterangan ?? "—")}
+                                                      ? s.check_in_time
+                                                          ? `${s.check_in_time} WIB`
+                                                          : "—"
+                                                      : (s.keterangan ?? "—")}
                                             </span>
                                         </span>
 
@@ -166,11 +166,7 @@ export default function AttentionStudentsTab({
 
                     {/* Tablet & Desktop Table (>= sm) */}
                     <div className="hidden sm:block">
-                        <Table
-                            columns={attentionColumns}
-                            data={filteredAttentionStudents}
-                            keyExtractor={(s) => s.id}
-                        />
+                        <Table columns={attentionColumns} data={filteredAttentionStudents} keyExtractor={(s) => s.id} />
                     </div>
                 </>
             )}

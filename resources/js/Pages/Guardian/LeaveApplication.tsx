@@ -1,33 +1,33 @@
-import { useState, useRef } from "react";
-import { useForm, Link, router } from "@inertiajs/react";
+import { Link, router, useForm } from "@inertiajs/react";
+import { useRef, useState } from "react";
 import {
+    FiArrowLeft,
+    FiCalendar,
+    FiCheck,
+    FiCheckCircle,
+    FiClock,
     FiFileText,
     FiSend,
     FiUploadCloud,
-    FiCheckCircle,
-    FiCalendar,
     FiUser,
-    FiClock,
-    FiCheck,
-    FiArrowLeft,
 } from "react-icons/fi";
-import AppShell from "@/Layouts/AppShell";
 import {
-    PageHeader,
-    Card,
-    NativeSelect,
-    Input,
     Button,
+    Card,
+    EmptyState,
+    FormError,
+    Input,
+    MobileNativePagination,
+    NativeSelect,
+    PageHeader,
     StatusBadge,
     Table,
     TableFooter,
-    EmptyState,
-    FormError,
-    MobileNativePagination,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import type { PaginatedData } from "@/types";
+import AppShell from "@/Layouts/AppShell";
 import { leaveApplicationSchema } from "@/schemas";
+import type { PaginatedData } from "@/types";
 import { validateForm } from "@/utils/zodHelper";
 
 interface Student {
@@ -119,11 +119,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
             header: "Kategori Izin",
             render: (row: LeaveRequestRecord) => {
                 const opt = CATEGORY_OPTIONS.find((c) => c.value === row.category);
-                return (
-                    <span className="font-medium text-text-primary">
-                        {opt?.label ?? row.category}
-                    </span>
-                );
+                return <span className="font-medium text-text-primary">{opt?.label ?? row.category}</span>;
             },
         },
         {
@@ -201,10 +197,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                             <label className="block text-[12px] font-bold text-text-primary uppercase tracking-wide mb-1.5 font-inter">
                                 Kategori Izin <span className="text-danger">*</span>
                             </label>
-                            <NativeSelect
-                                value={data.category}
-                                onChange={(e) => setData("category", e.target.value)}
-                            >
+                            <NativeSelect value={data.category} onChange={(e) => setData("category", e.target.value)}>
                                 {CATEGORY_OPTIONS.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
                                         {opt.label}
@@ -265,18 +258,16 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                 {data.document ? (
                                     <>
                                         <FiCheck className="w-8 h-8 text-success" />
-                                        <span className="text-[13px] font-bold">
-                                            {data.document.name}
-                                        </span>
+                                        <span className="text-[13px] font-bold">{data.document.name}</span>
                                         <span className="text-[11px] text-text-muted">Klik untuk mengganti file</span>
                                     </>
                                 ) : (
                                     <>
                                         <FiUploadCloud className="w-8 h-8 text-primary" />
-                                        <span className="text-[13px] font-bold">
-                                            Ambil Foto Surat / Lampirkan PDF
+                                        <span className="text-[13px] font-bold">Ambil Foto Surat / Lampirkan PDF</span>
+                                        <span className="text-[11px] text-text-muted">
+                                            Maksimal ukuran file 2MB (JPG, PNG, PDF)
                                         </span>
-                                        <span className="text-[11px] text-text-muted">Maksimal ukuran file 2MB (JPG, PNG, PDF)</span>
                                     </>
                                 )}
                             </button>
@@ -350,7 +341,9 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                                 <span>Periode</span>
                                                 <span>
                                                     {item.start_date}
-                                                    {item.end_date && item.end_date !== item.start_date ? ` s/d ${item.end_date}` : ""}
+                                                    {item.end_date && item.end_date !== item.start_date
+                                                        ? ` s/d ${item.end_date}`
+                                                        : ""}
                                                 </span>
                                             </div>
                                         </div>
@@ -367,7 +360,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                                 router.get(
                                                     "/guardian/leave-application",
                                                     { page },
-                                                    { preserveState: true }
+                                                    { preserveState: true },
                                                 )
                                             }
                                         />
@@ -389,11 +382,7 @@ export default function LeaveApplication({ students, leaveRequests }: PageProps)
                                     perPage={leaveRequests.per_page ?? 10}
                                     itemLabel="pengajuan izin"
                                     onPageChange={(page) =>
-                                        router.get(
-                                            "/guardian/leave-application",
-                                            { page },
-                                            { preserveState: true }
-                                        )
+                                        router.get("/guardian/leave-application", { page }, { preserveState: true })
                                     }
                                 />
                             </div>

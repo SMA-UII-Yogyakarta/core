@@ -1,9 +1,9 @@
 import { useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { Input, Button } from "@/Components";
+import { FiCheck, FiSave, FiShield, FiUserCheck } from "react-icons/fi";
+import { Button, Input } from "@/Components";
 import { teacherSchema } from "@/schemas";
 import { validateForm } from "@/utils/zodHelper";
-import { FiCheck, FiUserCheck, FiShield, FiSave } from "react-icons/fi";
 import type { Teacher } from "../types";
 
 export interface TeacherFormProps {
@@ -33,17 +33,7 @@ export default function TeacherForm({
     const [isDuty, setIsDuty] = useState(true);
     const [roleError, setRoleError] = useState<string | null>(null);
 
-    const {
-        data,
-        setData,
-        post,
-        patch,
-        processing,
-        reset,
-        errors,
-        clearErrors,
-        setError,
-    } = useForm({
+    const { data, setData, post, patch, processing, reset, errors, clearErrors, setError } = useForm({
         teacher_code: "",
         name: "",
         teacher_type: "duty" as string,
@@ -66,7 +56,9 @@ export default function TeacherForm({
 
             if (Array.isArray(teacher.teacher_type)) {
                 hasDuty = teacher.teacher_type.some((t) => String(t).includes("duty") || String(t).includes("piket"));
-                hasHome = teacher.teacher_type.some((t) => String(t).includes("homeroom") || String(t).includes("wali"));
+                hasHome = teacher.teacher_type.some(
+                    (t) => String(t).includes("homeroom") || String(t).includes("wali"),
+                );
             } else if (teacher.teacher_type) {
                 const str = String(teacher.teacher_type).toLowerCase();
                 hasDuty = str.includes("duty") || str.includes("piket") || str === "both";
@@ -97,7 +89,9 @@ export default function TeacherForm({
 
             if (Array.isArray(teacher.teacher_type)) {
                 hasDuty = teacher.teacher_type.some((t) => String(t).includes("duty") || String(t).includes("piket"));
-                hasHome = teacher.teacher_type.some((t) => String(t).includes("homeroom") || String(t).includes("wali"));
+                hasHome = teacher.teacher_type.some(
+                    (t) => String(t).includes("homeroom") || String(t).includes("wali"),
+                );
             } else if (teacher.teacher_type) {
                 const str = String(teacher.teacher_type).toLowerCase();
                 hasDuty = str.includes("duty") || str.includes("piket") || str === "both";
@@ -185,11 +179,7 @@ export default function TeacherForm({
                     onChange={(e) => setData("teacher_code", e.target.value.trim())}
                     disabled={isReadOnly}
                 />
-                {errors.teacher_code && (
-                    <p className="text-[12px] text-danger mt-1">
-                        {errors.teacher_code}
-                    </p>
-                )}
+                {errors.teacher_code && <p className="text-[12px] text-danger mt-1">{errors.teacher_code}</p>}
             </div>
 
             <div>
@@ -202,9 +192,7 @@ export default function TeacherForm({
                     onChange={(e) => setData("name", e.target.value)}
                     disabled={isReadOnly}
                 />
-                {errors.name && (
-                    <p className="text-[12px] text-danger mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-[12px] text-danger mt-1">{errors.name}</p>}
             </div>
 
             <div>
@@ -234,8 +222,12 @@ export default function TeacherForm({
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1 sm:gap-1.5">
-                                <FiUserCheck className={`text-[12px] sm:text-[13px] shrink-0 ${isHomeroom ? "text-primary" : "text-text-muted"}`} />
-                                <span className="text-[12px] sm:text-[13px] font-bold text-text-primary truncate">Wali Kelas</span>
+                                <FiUserCheck
+                                    className={`text-[12px] sm:text-[13px] shrink-0 ${isHomeroom ? "text-primary" : "text-text-muted"}`}
+                                />
+                                <span className="text-[12px] sm:text-[13px] font-bold text-text-primary truncate">
+                                    Wali Kelas
+                                </span>
                             </div>
                             <p className="text-[10px] sm:text-[11px] text-text-secondary mt-0.5 leading-tight">
                                 Mendampingi kelas binaan & rekap siswa
@@ -265,8 +257,12 @@ export default function TeacherForm({
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1 sm:gap-1.5">
-                                <FiShield className={`text-[12px] sm:text-[13px] shrink-0 ${isDuty ? "text-primary" : "text-text-muted"}`} />
-                                <span className="text-[12px] sm:text-[13px] font-bold text-text-primary truncate">Guru Piket</span>
+                                <FiShield
+                                    className={`text-[12px] sm:text-[13px] shrink-0 ${isDuty ? "text-primary" : "text-text-muted"}`}
+                                />
+                                <span className="text-[12px] sm:text-[13px] font-bold text-text-primary truncate">
+                                    Guru Piket
+                                </span>
                             </div>
                             <p className="text-[10px] sm:text-[11px] text-text-secondary mt-0.5 leading-tight">
                                 Kelola presensi harian & verifikasi izin
@@ -274,9 +270,7 @@ export default function TeacherForm({
                         </div>
                     </div>
                 </div>
-                {roleError && (
-                    <p className="text-[12px] text-danger mt-1.5 font-medium">{roleError}</p>
-                )}
+                {roleError && <p className="text-[12px] text-danger mt-1.5 font-medium">{roleError}</p>}
             </div>
 
             <div>
@@ -294,31 +288,28 @@ export default function TeacherForm({
                     Kosongkan jika ingin dibuatkan otomatis:{" "}
                     <span className="font-mono text-primary font-medium">
                         {data.name
-                            ? `${data.name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}@smauiiyk.sch.id`
+                            ? `${data.name
+                                  .split(" ")[0]
+                                  .toLowerCase()
+                                  .replace(/[^a-z0-9]/g, "")}@smauiiyk.sch.id`
                             : "[nama]@smauiiyk.sch.id"}
                     </span>
                 </p>
-                {errors.email && (
-                    <p className="text-[12px] text-danger mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-[12px] text-danger mt-1">{errors.email}</p>}
             </div>
 
             {/* Account Credentials (Only when unlocked) */}
             {activeUnlocked && (
                 <div className="p-3.5 bg-muted/30 border border-border rounded-xl space-y-2.5">
                     <div>
-                        <p className="text-[12px] font-bold text-text-primary">
-                            Kredensial Akun SSO Guru
-                        </p>
+                        <p className="text-[12px] font-bold text-text-primary">Kredensial Akun SSO Guru</p>
                         <p className="text-[11px] text-text-muted">
                             Username akun otomatis menggunakan Kode Guru ({data.teacher_code || "kode"}).
                         </p>
                     </div>
                     <div>
                         <label className="block text-[13px] font-medium text-text-primary mb-1">
-                            {isCreate
-                                ? "Password Akun"
-                                : "Password Baru (Kosongkan jika tetap)"}
+                            {isCreate ? "Password Akun" : "Password Baru (Kosongkan jika tetap)"}
                         </label>
                         <Input
                             type="password"
@@ -331,11 +322,7 @@ export default function TeacherForm({
                                 ? "Kosongkan untuk menggunakan kata sandi default: SmaUii@2026"
                                 : "Isi hanya jika ingin mengubah kata sandi guru ini."}
                         </p>
-                        {errors.password && (
-                            <p className="text-[12px] text-danger mt-1">
-                                {errors.password}
-                            </p>
-                        )}
+                        {errors.password && <p className="text-[12px] text-danger mt-1">{errors.password}</p>}
                     </div>
                 </div>
             )}
@@ -343,21 +330,11 @@ export default function TeacherForm({
             {showSubmitButton && activeUnlocked && (
                 <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
                     {onCancel && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={processing}
-                        >
+                        <Button type="button" variant="ghost" onClick={onCancel} disabled={processing}>
                             Batal
                         </Button>
                     )}
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        loading={processing}
-                        icon={<FiSave />}
-                    >
+                    <Button type="submit" variant="primary" loading={processing} icon={<FiSave />}>
                         {isCreate ? "Simpan Guru" : "Perbarui Guru"}
                     </Button>
                 </div>

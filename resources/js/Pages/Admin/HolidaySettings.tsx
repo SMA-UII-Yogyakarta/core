@@ -1,36 +1,29 @@
-import { useState, useEffect, useRef, useMemo } from "react";
 import { router, useForm } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FiCalendar, FiCheck, FiClock, FiFilter, FiPlus, FiTrash2 } from "react-icons/fi";
 import {
+    BottomSheet,
+    Button,
+    Card,
+    ConfirmDialog,
+    Drawer,
+    EmptyState,
+    FilterPopover,
+    Input,
     MobileNativePagination,
+    NativeSelect,
+    PageHeader,
     Table,
     TableFooter,
-    PageHeader,
-    NativeSelect,
-    Toggle,
-    Input,
-    ConfirmDialog,
-    EmptyState,
-    Card,
-    Button,
     TabSwitcher,
-    Drawer,
-    BottomSheet,
-    FilterPopover,
+    Toggle,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import type { PaginatedData } from "@/types";
+import AppShell from "@/Layouts/AppShell";
 import { holidaySchema } from "@/schemas";
-import { validateForm } from "@/utils/zodHelper";
+import type { PaginatedData } from "@/types";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
-import {
-    FiClock,
-    FiCalendar,
-    FiCheck,
-    FiPlus,
-    FiTrash2,
-    FiFilter,
-} from "react-icons/fi";
+import { validateForm } from "@/utils/zodHelper";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -174,7 +167,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                 check_in_open: normalizeTime(existing?.check_in_open, isSaturday ? "07:00" : "06:30"),
                 late_threshold: normalizeTime(existing?.late_threshold, isSaturday ? "07:30" : "07:00"),
                 check_in_close: normalizeTime(existing?.check_in_close, isSaturday ? "08:00" : "07:30"),
-                is_active: existing?.is_active !== undefined ? Boolean(existing.is_active) : (isSaturday ? false : true),
+                is_active: existing?.is_active !== undefined ? Boolean(existing.is_active) : isSaturday ? false : true,
             };
         }
         return initial;
@@ -197,7 +190,11 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
         is_holiday: true,
     });
 
-    const [deleteHolidayConfirm, setDeleteHolidayConfirm] = useState<{ open: boolean; id: number | null; name: string }>({
+    const [deleteHolidayConfirm, setDeleteHolidayConfirm] = useState<{
+        open: boolean;
+        id: number | null;
+        name: string;
+    }>({
         open: false,
         id: null,
         name: "",
@@ -280,7 +277,11 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
         });
     };
 
-    const handleTimeChange = (day: string, field: "check_in_open" | "late_threshold" | "check_in_close", value: string) => {
+    const handleTimeChange = (
+        day: string,
+        field: "check_in_open" | "late_threshold" | "check_in_close",
+        value: string,
+    ) => {
         setForm((prev) => ({
             ...prev,
             [day]: { ...prev[day], [field]: value },
@@ -301,10 +302,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
     };
 
     const currentYear = new Date().getFullYear();
-    const months = useMemo(
-        () => INDONESIAN_MONTHS.map((label, idx) => ({ value: (idx + 1).toString(), label })),
-        [],
-    );
+    const months = useMemo(() => INDONESIAN_MONTHS.map((label, idx) => ({ value: (idx + 1).toString(), label })), []);
 
     const timeColumns: Column<string>[] = [
         {
@@ -313,7 +311,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
             className: "whitespace-nowrap font-inter font-bold text-text-primary w-36",
             render: (day) => (
                 <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${form[day].is_active ? "bg-primary" : "bg-text-muted/40"}`} />
+                    <span
+                        className={`w-2 h-2 rounded-full ${form[day].is_active ? "bg-primary" : "bg-text-muted/40"}`}
+                    />
                     <span className="text-[13px]">{dayNames[day] ?? day}</span>
                 </div>
             ),
@@ -360,7 +360,15 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
                         onBlur={handleTimeBlur}
                         inputClassName="!h-8 !text-[12px] !font-bold !text-amber-700 !border-amber-300 !bg-amber-50/60 text-center !px-1.5 font-inter rounded-lg"
-                        style={form[day].is_active ? { color: "#d97706", borderColor: "#fcd34d", backgroundColor: "rgba(254, 243, 199, 0.5)" } : undefined}
+                        style={
+                            form[day].is_active
+                                ? {
+                                      color: "#d97706",
+                                      borderColor: "#fcd34d",
+                                      backgroundColor: "rgba(254, 243, 199, 0.5)",
+                                  }
+                                : undefined
+                        }
                     />
                 </div>
             ),
@@ -378,7 +386,15 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
                         onBlur={handleTimeBlur}
                         inputClassName="!h-8 !text-[12px] !font-bold !text-red-700 !border-red-300 !bg-red-50/60 text-center !px-1.5 font-inter rounded-lg"
-                        style={form[day].is_active ? { color: "#dc2626", borderColor: "#fca5a5", backgroundColor: "rgba(254, 226, 226, 0.5)" } : undefined}
+                        style={
+                            form[day].is_active
+                                ? {
+                                      color: "#dc2626",
+                                      borderColor: "#fca5a5",
+                                      backgroundColor: "rgba(254, 226, 226, 0.5)",
+                                  }
+                                : undefined
+                        }
                     />
                 </div>
             ),
@@ -388,32 +404,31 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
     // ── Header Actions (Only shown on Libur Akademik Tab on Mobile) ───────────
     const hasActiveFilters = Boolean(filters.month) || Boolean(filters.year && filters.year !== String(currentYear));
 
-    const mobileHeaderActions = activeSettingTab === "holiday" ? (
-        <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
-                onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters
-                        ? "bg-primary text-white"
-                        : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Libur Akademik"
-                aria-label="Filter Libur Akademik"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
-            <button
-                type="button"
-                onClick={handleOpenAddDrawer}
-                className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                title="Tambah Libur"
-                aria-label="Tambah Libur"
-            >
-                <FiPlus className="text-[15px]" />
-            </button>
-        </div>
-    ) : undefined;
+    const mobileHeaderActions =
+        activeSettingTab === "holiday" ? (
+            <div className="flex items-center gap-2 sm:hidden font-inter">
+                <button
+                    type="button"
+                    onClick={() => setIsMobileFilterOpen(true)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+                        hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
+                    }`}
+                    title="Filter Libur Akademik"
+                    aria-label="Filter Libur Akademik"
+                >
+                    <FiFilter className="text-[14px]" />
+                </button>
+                <button
+                    type="button"
+                    onClick={handleOpenAddDrawer}
+                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
+                    title="Tambah Libur"
+                    aria-label="Tambah Libur"
+                >
+                    <FiPlus className="text-[15px]" />
+                </button>
+            </div>
+        ) : undefined;
 
     // ── Tab Definition ───────────────────────────────────────────────────────
     const holidaySettingTabs = useMemo(
@@ -464,7 +479,6 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                             variant="segmented"
                         />
                     </div>
-
                 </div>
 
                 {/* Right Side (Pojok Kanan): Yellow Filter Popover + Action Button */}
@@ -482,14 +496,18 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                     icon={<FiFilter className="text-[13px]" />}
                                     className="h-10 px-4 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
                                 >
-                                    Filter{Boolean(filters.month) || Boolean(filters.year && filters.year !== String(currentYear)) ? " (Aktif)" : ""}
+                                    Filter
+                                    {filters.month || (filters.year && filters.year !== String(currentYear))
+                                        ? " (Aktif)"
+                                        : ""}
                                 </Button>
                             }
                         >
                             <div className="flex flex-col gap-3 font-inter min-w-[220px]">
                                 <div className="flex items-center justify-between border-b border-border pb-2">
                                     <h4 className="text-[13.5px] font-bold text-text-primary">Filter Libur Akademik</h4>
-                                    {(Boolean(filters.month) || Boolean(filters.year && filters.year !== String(currentYear))) && (
+                                    {(Boolean(filters.month) ||
+                                        Boolean(filters.year && filters.year !== String(currentYear))) && (
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -611,12 +629,16 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                                     isActive ? "bg-primary" : "bg-slate-300"
                                                 }`}
                                             />
-                                            <span className={`text-[14.5px] ${isActive ? "font-bold text-text-primary" : "font-semibold text-text-primary/70"}`}>
+                                            <span
+                                                className={`text-[14.5px] ${isActive ? "font-bold text-text-primary" : "font-semibold text-text-primary/70"}`}
+                                            >
                                                 {dayNames[day] ?? day}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className={`text-[11px] ${isActive ? "font-bold text-emerald-600" : "font-semibold text-text-muted"}`}>
+                                            <span
+                                                className={`text-[11px] ${isActive ? "font-bold text-emerald-600" : "font-semibold text-text-muted"}`}
+                                            >
                                                 {isActive ? "Buka" : "Tutup"}
                                             </span>
                                             <Toggle
@@ -637,7 +659,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                                 <Input
                                                     type="time"
                                                     value={form[day].check_in_open}
-                                                    onChange={(e) => handleTimeChange(day, "check_in_open", e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleTimeChange(day, "check_in_open", e.target.value)
+                                                    }
                                                     onBlur={handleTimeBlur}
                                                     inputClassName="!h-10 text-[12.5px] font-bold text-center !px-1.5 !py-0 bg-surface border-border/80 rounded-xl font-inter flex items-center justify-center tracking-tight"
                                                 />
@@ -649,7 +673,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                                 <Input
                                                     type="time"
                                                     value={form[day].late_threshold}
-                                                    onChange={(e) => handleTimeChange(day, "late_threshold", e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleTimeChange(day, "late_threshold", e.target.value)
+                                                    }
                                                     onBlur={handleTimeBlur}
                                                     inputClassName="!h-10 text-[12.5px] font-bold text-center !px-1.5 !py-0 !text-amber-700 !border-amber-300/80 !bg-amber-50/60 rounded-xl font-inter flex items-center justify-center tracking-tight"
                                                 />
@@ -661,7 +687,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                                 <Input
                                                     type="time"
                                                     value={form[day].check_in_close}
-                                                    onChange={(e) => handleTimeChange(day, "check_in_close", e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleTimeChange(day, "check_in_close", e.target.value)
+                                                    }
                                                     onBlur={handleTimeBlur}
                                                     inputClassName="!h-10 text-[12.5px] font-bold text-center !px-1.5 !py-0 !text-red-700 !border-red-300/80 !bg-red-50/60 rounded-xl font-inter flex items-center justify-center tracking-tight"
                                                 />
@@ -742,7 +770,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
             </div>
 
             {/* ── TABLET & DESKTOP TAB 1: JAM OPERASIONAL (>= sm) ──────────── */}
-            <div className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "time" ? "sm:flex" : "sm:hidden"} flex-col`}>
+            <div
+                className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "time" ? "sm:flex" : "sm:hidden"} flex-col`}
+            >
                 <Table
                     dense
                     columns={timeColumns}
@@ -774,11 +804,16 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
             </div>
 
             {/* ── TABLET & DESKTOP TAB 2: LIBUR AKADEMIK (>= sm) ──────────── */}
-            <div className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "holiday" ? "sm:flex" : "sm:hidden"} flex-col gap-3`}>
+            <div
+                className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "holiday" ? "sm:flex" : "sm:hidden"} flex-col gap-3`}
+            >
                 <div className="flex-1 min-h-0 flex flex-col justify-between gap-3">
                     {holidays.data.length === 0 ? (
                         <Card className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 text-center bg-surface border border-border shadow-card rounded-2xl">
-                            <EmptyState variant="no-data" description="Belum ada hari libur yang ditambahkan pada periode ini." />
+                            <EmptyState
+                                variant="no-data"
+                                description="Belum ada hari libur yang ditambahkan pada periode ini."
+                            />
                         </Card>
                     ) : (
                         <Table
@@ -896,9 +931,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Bulan
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Bulan</label>
                         <NativeSelect
                             value={filters.month ?? ""}
                             onChange={(e) =>
@@ -920,9 +953,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">
-                            Pilih Tahun
-                        </label>
+                        <label className="text-[12px] font-bold text-text-secondary">Pilih Tahun</label>
                         <NativeSelect
                             value={filters.year ?? String(currentYear)}
                             onChange={(e) =>
@@ -945,11 +976,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                             <Button
                                 variant="secondary"
                                 onClick={() =>
-                                    router.get(
-                                        "/operational-settings",
-                                        { tab: "holiday" },
-                                        { preserveState: true },
-                                    )
+                                    router.get("/operational-settings", { tab: "holiday" }, { preserveState: true })
                                 }
                                 className="flex-1 h-10 text-[13px] font-bold rounded-xl"
                             >

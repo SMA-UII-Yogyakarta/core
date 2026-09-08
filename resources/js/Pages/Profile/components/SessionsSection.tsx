@@ -1,5 +1,5 @@
-import { FiSmartphone, FiMonitor } from "react-icons/fi";
-import { Card, Button, Table, MobileSectionHeader } from "@/Components";
+import { FiMonitor, FiSmartphone } from "react-icons/fi";
+import { Button, Card, MobileSectionHeader, SectionHeader, Table } from "@/Components";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import type { ProfileSession } from "../types";
 
@@ -10,12 +10,7 @@ export interface SessionsSectionProps {
     isMobile?: boolean;
 }
 
-export default function SessionsSection({
-    sessions,
-    onRevoke,
-    revoking,
-    isMobile = false,
-}: SessionsSectionProps) {
+export default function SessionsSection({ sessions, onRevoke, revoking, isMobile = false }: SessionsSectionProps) {
     const { t } = useLanguage();
 
     if (isMobile) {
@@ -69,7 +64,9 @@ export default function SessionsSection({
 
                             <div className="pt-2 border-t border-border/60 text-[11px] text-text-secondary flex items-center justify-between">
                                 <span>Terakhir Aktif:</span>
-                                <strong className="text-text-primary font-medium">{s.last_used_at ?? "Baru saja"}</strong>
+                                <strong className="text-text-primary font-medium">
+                                    {s.last_used_at ?? "Baru saja"}
+                                </strong>
                             </div>
                         </div>
                     ))}
@@ -79,19 +76,23 @@ export default function SessionsSection({
     }
 
     return (
-        <Card className="p-6 font-inter shadow-card rounded-2xl flex flex-col gap-5">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-                <div>
-                    <h2 className="text-[16px] font-bold text-text-primary flex items-center gap-2">
-                        <FiSmartphone className="text-primary text-[16px]" />
-                        Perangkat & Sesi Aktif Akun
-                    </h2>
-                    <p className="text-[12px] text-text-muted mt-0.5">
-                        Daftar perangkat yang saat ini terhubung dan memiliki akses autentikasi aktif ke akun Anda.
-                    </p>
-                </div>
-            </div>
+        <div className="flex flex-col gap-4 font-inter">
+            {/* Bagian header informasi diletakkan di dalam Card (p-6, shadow-card, rounded-2xl konsisten 100%) */}
+            <Card className="p-6 font-inter shadow-card rounded-2xl">
+                <SectionHeader
+                    icon={<FiSmartphone />}
+                    title="Perangkat & Sesi Aktif Akun"
+                    description="Daftar perangkat yang saat ini terhubung dan memiliki akses autentikasi aktif ke akun Anda."
+                    action={
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold bg-primary/10 text-primary border border-primary/20 shadow-2xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            {sessions.length} Sesi Terhubung
+                        </span>
+                    }
+                />
+            </Card>
 
+            {/* Table berdiri mandiri di luar Card */}
             <Table
                 columns={[
                     {
@@ -149,6 +150,6 @@ export default function SessionsSection({
                 keyExtractor={(s: ProfileSession) => s.id}
                 dense
             />
-        </Card>
+        </div>
     );
 }

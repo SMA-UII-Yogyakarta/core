@@ -1,10 +1,21 @@
+import { Head, router, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import { Head, usePage, router } from "@inertiajs/react";
-import { useLanguage } from "@/Contexts/LanguageContext";
-import { PageHeader, Card, StatCard, AttendanceChart, Input, Table, BottomSheet, Button } from "@/Components";
+import {
+    FiBookOpen,
+    FiCalendar,
+    FiCamera,
+    FiCheckCircle,
+    FiClock,
+    FiFile,
+    FiHome,
+    FiList,
+    FiSend,
+    FiVideo,
+} from "react-icons/fi";
+import { AttendanceChart, BottomSheet, Button, Card, Input, PageHeader, StatCard, Table } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
-import { FiVideo, FiCheckCircle, FiFile, FiClock, FiHome, FiList, FiBookOpen, FiSend, FiCamera, FiCalendar } from "react-icons/fi";
 
 interface OverviewProps {
     overview: {
@@ -39,8 +50,12 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
     const isStudent = user?.role === "student";
 
     const teacherType = user?.teacher?.teacher_type;
-    const isPiket = teacherType === "duty" || teacherType === "both";
-    const isWali = teacherType === "homeroom" || teacherType === "both";
+    const isPiket = Array.isArray(teacherType)
+        ? teacherType.includes("duty")
+        : teacherType === "duty" || teacherType === "both";
+    const isWali = Array.isArray(teacherType)
+        ? teacherType.includes("homeroom")
+        : teacherType === "homeroom" || teacherType === "both";
 
     type ClassItem = OverviewProps["overview"]["classes"][number];
 
@@ -72,21 +87,14 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
             key: "absent",
             header: t("overview.absent"),
             className: "text-center",
-            render: (cls) => (
-                <span className="text-danger font-semibold">
-                    {cls.total - cls.present - cls.late}
-                </span>
-            ),
+            render: (cls) => <span className="text-danger font-semibold">{cls.total - cls.present - cls.late}</span>,
         },
         {
             key: "rate",
             header: t("overview.rate"),
             className: "text-center",
             render: (cls) => {
-                const rate =
-                    cls.total > 0
-                        ? (((cls.present + cls.late) / cls.total) * 100).toFixed(1)
-                        : "0.0";
+                const rate = cls.total > 0 ? (((cls.present + cls.late) / cls.total) * 100).toFixed(1) : "0.0";
                 return <span className="font-medium">{rate}%</span>;
             },
         },
@@ -120,17 +128,12 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
 
             <div className="space-y-6">
                 {/* Header with Date Selector */}
-                <PageHeader
-                    title={t("overview.title")}
-                    className="hidden lg:flex shrink-0 mb-4"
-                >
+                <PageHeader title={t("overview.title")} className="hidden lg:flex shrink-0 mb-4">
                     <div className="relative">
                         <Input
                             type="date"
                             value={selectedDate}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                handleDateChange(e.target.value)
-                            }
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleDateChange(e.target.value)}
                             inputClassName="h-10 text-[13px]"
                         />
                     </div>
@@ -428,17 +431,15 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
 
                     {/* Class Breakdown - Admin only */}
                     {isAdmin && (
-                        <Card>
-                            <div className="p-6">
-                                <h3 className="text-lg font-semibold text-text mb-4">{t("overview.classBreakdown")}</h3>
-                                <Table
-                                    columns={classColumns}
-                                    data={overview.classes}
-                                    keyExtractor={(cls) => cls.id}
-                                    emptyMessage="Tidak ada data kelas."
-                                />
-                            </div>
-                        </Card>
+                        <div className="space-y-3">
+                            <h3 className="text-lg font-semibold text-text">{t("overview.classBreakdown")}</h3>
+                            <Table
+                                columns={classColumns}
+                                data={overview.classes}
+                                keyExtractor={(cls) => cls.id}
+                                emptyMessage="Tidak ada data kelas."
+                            />
+                        </div>
                     )}
                 </div>
             </div>
@@ -451,9 +452,7 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
             >
                 <div className="p-4 space-y-4 font-inter">
                     <div>
-                        <label className="block text-[12px] font-bold text-text-secondary mb-1.5">
-                            Tanggal
-                        </label>
+                        <label className="block text-[12px] font-bold text-text-secondary mb-1.5">Tanggal</label>
                         <Input
                             type="date"
                             value={selectedDate}

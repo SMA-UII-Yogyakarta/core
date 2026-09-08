@@ -1,29 +1,21 @@
 import { router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { FiBookOpen, FiEdit2, FiEye, FiMail, FiPlus, FiTrash2, FiUserCheck } from "react-icons/fi";
 import {
-    Table,
-    TableFooter,
-    MobileNativePagination,
     Avatar,
-    Card,
     Button,
+    Card,
     Checkbox,
-    MobileFilterSelectBar,
     MasterDataCard,
     MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
+    Table,
+    TableFooter,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import {
-    FiPlus,
-    FiEye,
-    FiEdit2,
-    FiTrash2,
-    FiUserCheck,
-    FiBookOpen,
-    FiMail,
-} from "react-icons/fi";
-import type { Teacher, PaginatedData } from "./types";
 import TeacherDrawerForm from "./TeacherDrawerForm";
+import type { PaginatedData, Teacher } from "./types";
 
 interface TeachersTabProps {
     teachers?: PaginatedData<Teacher>;
@@ -53,12 +45,8 @@ export default function TeachersTab({
     onSelectedIdsChange,
     onRequestDelete,
 }: TeachersTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(
-        editMode ?? null
-    );
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(
-        editItem ?? null
-    );
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(editItem ?? null);
 
     useEffect(() => {
         if (editItem && editMode) {
@@ -121,10 +109,7 @@ export default function TeachersTab({
             key: "selection",
             header: (
                 <div className="flex items-center justify-center">
-                    <Checkbox
-                        checked={isAllSelected}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
                 </div>
             ),
             render: (t) => (
@@ -230,7 +215,7 @@ export default function TeachersTab({
                 page: p,
                 search: filters?.search || undefined,
             },
-            { preserveState: true }
+            { preserveState: true },
         );
     };
 
@@ -329,9 +314,7 @@ export default function TeachersTab({
                                     title={t.name}
                                     subtitle={
                                         <div className="flex items-center gap-1.5 text-[10.5px] text-text-muted">
-                                            <span className="font-mono font-medium">
-                                                Kode: {t.teacher_code}
-                                            </span>
+                                            <span className="font-mono font-medium">Kode: {t.teacher_code}</span>
                                             {t.user?.email && (
                                                 <>
                                                     <span>•</span>

@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
-import { useLanguage } from "@/Contexts/LanguageContext";
+import { useMemo, useState } from "react";
 import { FiCamera, FiFileText } from "react-icons/fi";
-import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { MobileNativePagination, StatusBadge } from "@/Components";
+import PreviewImageModal from "@/Components/common/PreviewImageModal";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useClientPagination } from "@/hooks/useClientPagination";
 
 interface Student {
@@ -21,7 +21,16 @@ interface DailyTableProps {
     students: Student[];
 }
 
-type RowStatus = "present" | "late" | "sick" | "permission" | "absent" | "pending" | "no_update" | "no_check_in" | "not_open";
+type RowStatus =
+    | "present"
+    | "late"
+    | "sick"
+    | "permission"
+    | "absent"
+    | "pending"
+    | "no_update"
+    | "no_check_in"
+    | "not_open";
 
 function normalizeStatus(status: string): RowStatus {
     const s = status.toLowerCase();
@@ -59,7 +68,12 @@ function getBadgeLabel(status: RowStatus, t: (key: string) => string): string {
     }
 }
 
-function getButtonConfig(status: RowStatus, photoUrl?: string | null, docUrl?: string | null, t?: (key: string) => string) {
+function getButtonConfig(
+    status: RowStatus,
+    photoUrl?: string | null,
+    docUrl?: string | null,
+    t?: (key: string) => string,
+) {
     if ((status === "present" || status === "late") && photoUrl) {
         return { label: t?.("reports.btnViewSelfie") ?? "Lihat Swafoto", icon: "camera" as const, url: photoUrl };
     }
@@ -74,8 +88,8 @@ function TimeDisplay({ time, t }: { time: string; t: (key: string) => string }) 
     const parts = t("reports.noteCheckIn").split("{time}");
     return (
         <>
-            {parts[0]}{h}:{m}:
-            <span className="text-[10px] font-normal">{s}</span>
+            {parts[0]}
+            {h}:{m}:<span className="text-[10px] font-normal">{s}</span>
             {parts[1]}
         </>
     );
@@ -93,7 +107,13 @@ function LeaveNote({ text }: { text: string }) {
     );
 }
 
-function rowNote(status: RowStatus, checkInTime: string | null, t: (key: string) => string, message?: string | null, leaveReason?: string | null): React.ReactNode {
+function rowNote(
+    status: RowStatus,
+    checkInTime: string | null,
+    t: (key: string) => string,
+    message?: string | null,
+    leaveReason?: string | null,
+): React.ReactNode {
     if (status === "absent") return t("reports.noteNoUpdate");
     if (status === "sick" || status === "permission") {
         const reason = leaveReason?.trim();
@@ -189,7 +209,12 @@ export default function DailyTable({ students }: DailyTableProps) {
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center"
-                                            style={{ color: status === "late" ? "var(--color-warning)" : "var(--color-text-muted)" }}
+                                            style={{
+                                                color:
+                                                    status === "late"
+                                                        ? "var(--color-warning)"
+                                                        : "var(--color-text-muted)",
+                                            }}
                                         >
                                             {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
                                         </td>
@@ -222,9 +247,7 @@ export default function DailyTable({ students }: DailyTableProps) {
             {/* Mobile */}
             <div className="lg:hidden">
                 {students.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">
-                        {t("reports.emptyDaily")}
-                    </div>
+                    <div className="py-12 text-center text-text-muted text-[13px]">{t("reports.emptyDaily")}</div>
                 ) : (
                     <div className="space-y-2">
                         {paginatedMobileStudents.map((s) => {
