@@ -5,8 +5,7 @@ import TabSwitcher from "@/Components/common/TabSwitcher";
 import DatePicker from "@/Components/common/DatePicker";
 import Drawer from "@/Components/common/Drawer";
 import DailyTable from "./DailyTable";
-import MonthlyTable from "./MonthlyTable";
-import SemesterTable from "./SemesterTable";
+import RecapTable from "./RecapTable";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import { FiAlertCircle, FiFileText, FiGrid, FiDownload, FiCalendar, FiUsers, FiChevronRight, FiLoader } from "react-icons/fi";
 import { formatIndonesianDate } from "@/utils/helpers";
@@ -331,7 +330,8 @@ export default function HomeroomReportIndex({
                 )}
 
                 {tab === "monthly" && (
-                    <MonthlyTable
+                    <RecapTable
+                        mode="monthly"
                         students={students as RecapStudent[]}
                         summary={summary}
                         chartData={dailyBreakdown}
@@ -343,7 +343,8 @@ export default function HomeroomReportIndex({
                 )}
 
                 {tab === "semester" && (
-                    <SemesterTable
+                    <RecapTable
+                        mode="semester"
                         students={students as RecapStudent[]}
                         summary={summary}
                         chartData={monthlyBreakdown}
