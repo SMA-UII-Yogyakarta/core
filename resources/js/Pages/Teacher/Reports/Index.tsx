@@ -197,7 +197,7 @@ export default function HomeroomReportIndex({
     );
 
     return (
-        <AppShell title={t("reports.title")} hasTopTabs={true} headerActions={exportHeaderAction} showSearch={false}>
+        <AppShell title={t("reports.title")} hasTopTabs={true} hasTopCard={true} headerActions={exportHeaderAction} showSearch={false}>
             <div className="space-y-3 lg:space-y-6">
                 {/* Page Header */}
                 <div>

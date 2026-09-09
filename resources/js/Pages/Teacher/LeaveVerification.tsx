@@ -231,8 +231,24 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
         Boolean(startDateFilter) ||
         Boolean(endDateFilter);
 
+    const mobileFilterAction = (
+        <button
+            type="button"
+            onClick={() => setFilterModalOpen(true)}
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all cursor-pointer active:scale-90 ${
+                hasActiveFilters
+                    ? "text-white bg-white/20 hover:bg-white/30"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
+            }`}
+            title="Filter & Urutkan"
+            aria-label="Filter & Urutkan"
+        >
+            <FiFilter className="text-[15px]" />
+        </button>
+    );
+
     return (
-        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true}>
+        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true} hasTopCard={true} mobileHeaderActions={mobileFilterAction}>
             <div className="space-y-6">
                 {/* Header */}
                 <LeaveVerificationHeader
@@ -255,8 +271,8 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
                     }}
                 />
 
-                {/* Filter Toolbar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                {/* Filter Toolbar — hidden on mobile (handled via mobileHeaderActions filter icon) */}
+                <div className="hidden sm:flex items-center justify-between gap-3">
                     <div className="max-w-md w-full">
                         <SearchBar
                             value={searchQuery}

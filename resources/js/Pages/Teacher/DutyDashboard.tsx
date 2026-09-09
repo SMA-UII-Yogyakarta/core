@@ -240,8 +240,22 @@ export default function DutyDashboard({
         },
     ];
 
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <button
+                type="button"
+                onClick={triggerRefresh}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs bg-white/15 border border-white/20 text-white hover:bg-white/25 active:bg-white/30"
+                title="Perbarui Data"
+                aria-label="Perbarui Data"
+            >
+                <FiRefreshCw className={`text-[13px] ${isRefreshing ? "animate-spin" : ""}`} />
+            </button>
+        </div>
+    );
+
     return (
-        <AppShell title="Overview Guru Piket">
+        <AppShell title="Overview Guru Piket" hasTopCard={true} headerActions={mobileHeaderActions}>
             <PageHeader
                 title="Overview Monitoring Guru Piket"
                 description="Pantau kehadiran siswa secara real-time dan kelola siswa yang memerlukan perhatian khusus."
@@ -273,8 +287,8 @@ export default function DutyDashboard({
                 </div>
             </PageHeader>
 
-            {/* ── DESKTOP Layout (Standalone without Card outer wrapper) ──────── */}
-            <div className="hidden lg:block space-y-6 font-inter">
+            {/* ── TABLET & DESKTOP Layout (>= sm) ──────── */}
+            <div className="hidden sm:block space-y-6 font-inter">
                 {/* Filter Controls Bar */}
                 <FilterBar className="mb-6">
                     <FilterBar.Select
@@ -301,7 +315,7 @@ export default function DutyDashboard({
                 </FilterBar>
 
                 {/* 5 Stat Cards Grid (Pure Design Tokens) */}
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <StatCard label="TOTAL SISWA" value={summary.total} />
                     <StatCard label="HADIR TERDATA" value={summary.present} variant="success" />
                     <StatCard label="TERLAMBAT" value={summary.late} variant="warning" />
@@ -311,7 +325,12 @@ export default function DutyDashboard({
 
                 {/* Standalone Table Section (No outer Card container) */}
                 <div className="space-y-4">
-                    <h3 className="text-[16px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h3>
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-[16px] font-bold text-text-primary font-inter">Perhatian Khusus Hari Ini</h3>
+                        <span className="text-[12px] font-medium text-text-muted font-mono bg-surface border border-border px-2.5 py-1 rounded-xl shadow-2xs">
+                            Total: {filteredAttention.length} Siswa
+                        </span>
+                    </div>
 
                     <Table<AttentionStudent>
                         columns={columns}
@@ -331,8 +350,8 @@ export default function DutyDashboard({
                 </div>
             </div>
 
-            {/* ── MOBILE (lg:hidden) ──────────────────────────────────────── */}
-            <div className="block lg:hidden flex flex-col gap-4 font-inter">
+            {/* ── MOBILE (< sm) ──────────────────────────────────────── */}
+            <div className="sm:hidden flex flex-col gap-4 font-inter">
                 {/* Filter & Action Controls */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
                     <div className="grid grid-cols-2 sm:flex sm:items-center gap-3">

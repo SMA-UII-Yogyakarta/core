@@ -7,6 +7,7 @@ import {
     MobileNativePagination,
     PageHeader,
     SearchBar,
+    StatCard,
     StatusBadge,
     Table,
     TableFooter,
@@ -217,7 +218,7 @@ export default function HomeroomDashboard({
     };
 
     return (
-        <AppShell title="Overview Wali Kelas">
+        <AppShell title="Overview Wali Kelas" hasTopCard={true}>
             <PageHeader
                 title={`Overview Wali Kelas — ${shortClassName}`}
                 description="Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda."
@@ -226,46 +227,13 @@ export default function HomeroomDashboard({
 
             {/* Desktop Layout without outer Card wrapper */}
             <div className="space-y-6 font-inter">
-                {/* 5 Color-Bordered Stat Cards Grid using Semantic Tokens */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="bg-surface rounded-xl border border-border p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-text-primary leading-none">
-                            {summary.total}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            TOTAL SISWA
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-success/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-success leading-none">{summary.present}</span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            HADIR TERDATA
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-warning/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-warning leading-none">{summary.late}</span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            TERLAMBAT
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-primary/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-primary leading-none">
-                            {summary.sick_permission ?? 0}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            SAKIT / IZIN
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-danger/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-danger leading-none">{summary.absent}</span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            ALPA (KOSONG)
-                        </span>
-                    </div>
+                {/* 5 Stat Cards Grid using Standard StatCard Component */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 font-inter">
+                    <StatCard label="TOTAL SISWA" value={summary.total} />
+                    <StatCard label="HADIR TERDATA" value={summary.present} variant="success" />
+                    <StatCard label="TERLAMBAT" value={summary.late} variant="warning" />
+                    <StatCard label="SAKIT / IZIN" value={summary.sick_permission ?? 0} variant="info" />
+                    <StatCard label="ALPA (KOSONG)" value={summary.absent} variant="danger" />
                 </div>
 
                 {/* Standalone Table Section */}
