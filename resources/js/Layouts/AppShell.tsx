@@ -225,7 +225,7 @@ export default function AppShell({
                                           : hasTopTabs || hasTopCard || mobileTopSpacing === "compact"
                                             ? "pt-2"
                                             : "pt-4"
-                                } ${showBottomNav ? "max-sm:pb-24" : ""} ${mainClassName ?? ""}`}
+                                } ${showBottomNav ? "max-sm:pb-28" : ""} ${mainClassName ?? ""}`}
                             >
                                 <ErrorBoundary>{children}</ErrorBoundary>
                             </main>

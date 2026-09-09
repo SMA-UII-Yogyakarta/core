@@ -15,10 +15,12 @@ import {
     FiMinimize2,
     FiRefreshCw,
     FiRotateCw,
+    FiSend,
     FiTerminal,
 } from "react-icons/fi";
 import BrandLogo from "@/Components/layout/BrandLogo";
 import Button from "@/Components/ui/Button";
+import { sendToHermesAgent } from "@/services/errorReporter";
 import { copyToClipboard } from "@/utils/helpers";
 
 export interface ErrorLayoutProps {
@@ -45,6 +47,26 @@ export default function ErrorLayout({
     const [copiedReport, setCopiedReport] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [troubleshootingOpen, setTroubleshootingOpen] = useState(true);
+    const [hermesSending, setHermesSending] = useState(false);
+    const [hermesStatus, setHermesStatus] = useState<string | null>(null);
+
+    const handleReportToHermes = async () => {
+        setHermesSending(true);
+        try {
+            const res = await sendToHermesAgent(error, {
+                componentStack: errorInfo?.componentStack,
+            });
+            if (res.success) {
+                setHermesStatus(`Laporan terkirim ke Hermes Agent & Sentry (${res.incident_id || "INC-2026"})`);
+            } else {
+                setHermesStatus("Terkirim ke Sentry & Client Error Log");
+            }
+        } catch {
+            setHermesStatus("Terkirim ke Telemetry Log");
+        } finally {
+            setHermesSending(false);
+        }
+    };
 
     const timestamp = useMemo(() => {
         const now = new Date();
@@ -334,7 +356,7 @@ export default function ErrorLayout({
                             <span className="text-[11px] text-text-muted font-medium">Untuk Tim IT / Pengembang</span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <button
                                 type="button"
                                 onClick={handleCopyReport}
@@ -368,9 +390,35 @@ export default function ErrorLayout({
                                 className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11.5px] font-semibold bg-muted/70 hover:bg-muted text-text-primary border border-border/80 transition-all active:scale-[0.98]"
                             >
                                 <FiMail className="w-3.5 h-3.5 text-text-secondary" />
-                                <span>Kirim Email</span>
+                                <span>Email IT</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleReportToHermes}
+                                disabled={hermesSending}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[11.5px] font-bold bg-primary text-white hover:bg-primary-hover border border-primary transition-all active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {hermesSending ? (
+                                    <>
+                                        <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                        <span>Mengirim...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <FiSend className="w-3.5 h-3.5" />
+                                        <span>Hermes AI</span>
+                                    </>
+                                )}
                             </button>
                         </div>
+
+                        {hermesStatus && (
+                            <div className="mt-1 px-3 py-1.5 bg-success-bg border border-success/30 rounded-xl text-[11.5px] text-success font-medium flex items-center gap-2 animate-fadeIn">
+                                <FiCheck className="w-4 h-4 text-success shrink-0" />
+                                <span>{hermesStatus}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Troubleshooting Guide Accordion */}

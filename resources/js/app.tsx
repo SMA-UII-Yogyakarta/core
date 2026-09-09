@@ -5,7 +5,10 @@ import { createRoot, hydrateRoot } from "react-dom/client";
 import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import { LanguageProvider } from "@/Contexts/LanguageContext";
 import { ThemeProvider } from "@/Contexts/ThemeContext";
+import { initSentry } from "@/services/errorReporter";
 import "./bootstrap";
+
+initSentry();
 
 const appName = import.meta.env.VITE_APP_NAME || "SMAUII Core";
 

@@ -29,6 +29,7 @@ import Toggle from "@/Components/ui/Toggle";
 import AppShell from "@/Layouts/AppShell";
 import { locationSettingSchema } from "@/schemas/locationSetting.schema";
 import { validateForm } from "@/utils/zodHelper";
+import AgentIntegrationSection from "./Sections/AgentIntegrationSection";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -593,6 +594,9 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
                     </span>
                 </div>
             </div>
+
+            {/* Universal AI Agent Integration & Onboarding (Hermes Agent / OpenClaw) */}
+            <AgentIntegrationSection />
         </Card>
     );
 

@@ -15,6 +15,8 @@ export { default as MobileFilterSelectBar } from "@/Components/common/MobileFilt
 export { default as MobileSectionHeader } from "@/Components/common/MobileSectionHeader";
 export { default as MobileSelectionBar } from "@/Components/common/MobileSelectionBar";
 export { default as Modal } from "@/Components/common/Modal";
+export { default as PhotoPeekButton } from "@/Components/common/PhotoPeekButton";
+export { default as PhotoPeekModal } from "@/Components/common/PhotoPeekModal";
 export { default as TabSwitcher } from "@/Components/common/TabSwitcher";
 export { default as Toast, toast } from "@/Components/common/Toast";
 export { default as AttendanceCalendar } from "@/Components/features/AttendanceCalendar";

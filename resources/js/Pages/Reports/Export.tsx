@@ -20,6 +20,7 @@ import {
     Modal,
     NativeSelect,
     PageHeader,
+    PhotoPeekModal,
     StatusBadge,
     Table,
     TableFooter,
@@ -97,7 +98,6 @@ export default function ExportPage({
         pageSize,
     } = useClientPagination(preview, 1, 10);
     const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string } | null>(null);
-    const [imgLoadError, setImgLoadError] = useState(false);
     const [exportDrawerOpen, setExportDrawerOpen] = useState(false);
     const desktopDropdownRef = useRef<HTMLDivElement>(null);
     const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
@@ -848,50 +848,13 @@ export default function ExportPage({
                 </Drawer>
             )}
 
-            {/* Photo Preview Modal */}
-            <Modal
+            {/* Photo Preview Peek (Instagram Peek Style) */}
+            <PhotoPeekModal
                 open={Boolean(previewPhoto)}
-                onClose={() => {
-                    setPreviewPhoto(null);
-                    setImgLoadError(false);
-                }}
-                title={previewPhoto?.title || "Lampiran Presensi"}
-            >
-                {previewPhoto && (
-                    <div className="flex flex-col items-center">
-                        {imgLoadError ? (
-                            <div className="w-full py-12 px-6 flex flex-col items-center justify-center text-center bg-muted/50 rounded-xl border border-dashed border-border">
-                                <FiFileText className="w-12 h-12 text-text-muted mb-3 opacity-60" />
-                                <p className="font-semibold text-text-primary text-[14px]">
-                                    Berkas Belum Tersedia di Storage
-                                </p>
-                                <p className="text-[12px] text-text-muted mt-1 max-w-sm">
-                                    File foto atau dokumen lampiran belum diunggah atau tidak ditemukan di penyimpanan
-                                    objek.
-                                </p>
-                            </div>
-                        ) : (
-                            <img
-                                src={previewPhoto.url}
-                                alt={previewPhoto.title}
-                                onError={() => setImgLoadError(true)}
-                                className="max-h-[70vh] w-auto object-contain rounded-xl shadow-md border border-border"
-                            />
-                        )}
-                        <div className="mt-4 flex justify-end w-full">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setPreviewPhoto(null);
-                                    setImgLoadError(false);
-                                }}
-                            >
-                                Tutup
-                            </Button>
-                        </div>
-                    </div>
-                )}
-            </Modal>
+                onClose={() => setPreviewPhoto(null)}
+                url={previewPhoto?.url ?? null}
+                title={previewPhoto?.title || "Bukti Presensi"}
+            />
 
             {/* 📱 MOBILE FILTER BOTTOM SHEET */}
             <BottomSheet

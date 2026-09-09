@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import ErrorLayout from "@/Layouts/ErrorLayout";
+import { sendToHermesAgent } from "@/services/errorReporter";
 
 interface Props {
     children: ReactNode;
@@ -61,6 +62,8 @@ export default class ErrorBoundary extends Component<Props, State> {
         console.error("ErrorBoundary caught:", error, info.componentStack);
         this.setState({ errorInfo: info });
         this.props.onError?.(error, info);
+        // Otomatis kirim laporan error ke Sentry & Hermes Agent / OpenClaw sekolah
+        sendToHermesAgent(error, { componentStack: info.componentStack });
     }
 
     handleRetry = (): void => {

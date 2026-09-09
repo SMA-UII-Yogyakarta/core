@@ -84,8 +84,8 @@ export const FaceLivenessOverlay: React.FC<FaceLivenessOverlayProps> = ({
 
     return (
         <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-4 select-none z-10">
-            {/* Top Bar: Live Liveness Status Badge */}
-            <div className="flex items-center justify-end w-full">
+            {/* Top Bar: Live Status Badge & Step 2 Kedip Mata Badge */}
+            <div className="flex flex-col items-end justify-start gap-1.5 w-full">
                 <div
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold backdrop-blur-md transition-colors shadow-sm ${badge.bg}`}
                     dusk="liveness-status-badge"
@@ -93,6 +93,28 @@ export const FaceLivenessOverlay: React.FC<FaceLivenessOverlayProps> = ({
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${badge.dot}`} />
                     <span className="tracking-wide uppercase font-mono text-[10px] sm:text-[11px]">{badge.label}</span>
                 </div>
+
+                {cameraReady && !isLivenessVerified && (
+                    <div
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] sm:text-[11px] font-medium backdrop-blur-md transition-all shadow-sm ${
+                            hasBlinked
+                                ? "bg-emerald-950/80 border-emerald-600/50 text-emerald-300"
+                                : isHeadAligned
+                                  ? "bg-sky-950/80 border-sky-600/50 text-sky-300 animate-pulse"
+                                  : "bg-black/60 border-white/10 text-white/60"
+                        }`}
+                        dusk="liveness-step-blink"
+                    >
+                        <span
+                            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
+                                hasBlinked ? "bg-emerald-500 text-white font-bold" : "bg-white/20 text-white/50"
+                            }`}
+                        >
+                            {hasBlinked ? "✓" : "2"}
+                        </span>
+                        <span>Kedip Mata</span>
+                    </div>
+                )}
             </div>
 
             {/* Center Guide Viewfinder Circle */}
@@ -128,11 +150,13 @@ export const FaceLivenessOverlay: React.FC<FaceLivenessOverlayProps> = ({
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* Glass Feedback Pill below Circle */}
-                {cameraReady && (
+            {/* Bottom Section: Feedback Message Toast (Moved to very bottom edge) */}
+            {cameraReady && (
+                <div className="flex items-center justify-center w-full pb-0.5 sm:pb-1" dusk="liveness-checklist">
                     <div
-                        className="mt-3 px-3 py-1.5 bg-black/70 backdrop-blur-md rounded-full border border-white/15 text-white shadow-lg flex items-center gap-2 max-w-[90%] transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
+                        className="px-3 py-1.5 bg-black/80 backdrop-blur-md rounded-full border border-white/15 text-white shadow-xl flex items-center gap-2 max-w-[95%] transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
                         dusk="liveness-feedback-message"
                     >
                         {isLivenessVerified ? (
@@ -147,49 +171,6 @@ export const FaceLivenessOverlay: React.FC<FaceLivenessOverlayProps> = ({
                         <span className="text-[11px] sm:text-[12px] font-medium text-white/90 truncate">
                             {feedbackMessage}
                         </span>
-                    </div>
-                )}
-            </div>
-
-            {/* Bottom Checklist Indicators */}
-            {cameraReady && (
-                <div className="flex items-center justify-center gap-2 sm:gap-3 w-full" dusk="liveness-checklist">
-                    {/* Step 1: Head Alignment */}
-                    <div
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] sm:text-[11px] font-medium backdrop-blur-md transition-colors ${
-                            isHeadAligned
-                                ? "bg-emerald-950/80 border-emerald-600/50 text-emerald-300"
-                                : "bg-black/60 border-white/10 text-white/60"
-                        }`}
-                    >
-                        <span
-                            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                                isHeadAligned ? "bg-emerald-500 text-white font-bold" : "bg-white/20 text-white/50"
-                            }`}
-                        >
-                            {isHeadAligned ? "✓" : "1"}
-                        </span>
-                        <span>Posisi Wajah</span>
-                    </div>
-
-                    {/* Step 2: Eye Blink */}
-                    <div
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[10px] sm:text-[11px] font-medium backdrop-blur-md transition-colors ${
-                            hasBlinked
-                                ? "bg-emerald-950/80 border-emerald-600/50 text-emerald-300"
-                                : isHeadAligned
-                                  ? "bg-sky-950/80 border-sky-600/50 text-sky-300 animate-pulse"
-                                  : "bg-black/60 border-white/10 text-white/60"
-                        }`}
-                    >
-                        <span
-                            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] ${
-                                hasBlinked ? "bg-emerald-500 text-white font-bold" : "bg-white/20 text-white/50"
-                            }`}
-                        >
-                            {hasBlinked ? "✓" : "2"}
-                        </span>
-                        <span>Kedip Mata</span>
                     </div>
                 </div>
             )}

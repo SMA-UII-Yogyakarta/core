@@ -16,6 +16,7 @@ export interface TableProps<T> {
     bare?: boolean;
     stickyHeader?: boolean;
     containerClassName?: string;
+    tableClassName?: string;
     dense?: boolean;
 }
 
@@ -35,13 +36,14 @@ export default function Table<T>({
     bare = false,
     stickyHeader = true,
     containerClassName = "",
+    tableClassName = "",
     dense = false,
 }: TableProps<T>) {
     return (
         <div
-            className={`w-full overflow-auto table-scroll-container ${bare ? "" : "border border-border rounded-xl shadow-xs"} ${containerClassName}`}
+            className={`w-full overflow-x-auto table-scroll-container ${bare ? "" : "border border-border rounded-xl shadow-xs"} ${containerClassName}`}
         >
-            <table className="w-full border-collapse font-inter min-w-[600px] md:min-w-0">
+            <table className={`w-full border-collapse font-inter min-w-[600px] ${tableClassName}`}>
                 <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted" : ""}>
                     <tr className="bg-muted border-b border-border">
                         {columns.map((col) => {

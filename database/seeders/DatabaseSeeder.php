@@ -709,9 +709,9 @@ class DatabaseSeeder extends Seeder
             ->flip()
             ->toArray();
 
-        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga HARI INI (agar rekap harian wali kelas langsung terisi)
+        // Loop dari awal tahun berjalan (mis. 5 Januari) hingga akhir bulan berjalan (agar data rekap & pagination terisi penuh)
         $startDate = Carbon::create(now()->year, 1, 5);
-        $endDate = now();
+        $endDate = Carbon::now()->endOfMonth();
         $assignedStudents = $students->filter(fn ($s) => $s->class_id !== null)->values();
 
         $attendanceBatch = [];

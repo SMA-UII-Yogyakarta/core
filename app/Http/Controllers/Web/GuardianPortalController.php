@@ -100,7 +100,7 @@ class GuardianPortalController extends Controller
         ]);
     }
 
-    public function leaveApplication()
+    public function leaveApplication(Request $request)
     {
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
@@ -113,7 +113,10 @@ class GuardianPortalController extends Controller
             'name' => $s->name,
         ]);
 
-        $leaveRequests = $this->leaveRequestService->paginate(['guardian_id' => $guardian->id]);
+        $filters = $request->only(['status', 'category', 'student_id']);
+        $queryFilters = array_merge(['guardian_id' => $guardian->id], array_filter($filters));
+
+        $leaveRequests = $this->leaveRequestService->paginate($queryFilters);
 
         return Inertia::render('Guardian/LeaveApplication', [
             'guardian' => [
@@ -123,6 +126,7 @@ class GuardianPortalController extends Controller
             ],
             'students' => $students,
             'leaveRequests' => $leaveRequests->toArray(),
+            'filters' => $filters,
         ]);
     }
 
@@ -168,7 +172,7 @@ class GuardianPortalController extends Controller
         ]);
 
         return redirect()->route('guardian.leave-application')
-            ->with('success', 'Leave application submitted successfully.');
+            ->with('success', 'Pengajuan izin berhasil dikirim ke Wali Kelas.');
     }
 
     public function history(Request $request)
