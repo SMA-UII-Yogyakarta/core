@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ClassEnrolmentController;
 use App\Http\Controllers\Web\DailyReportController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\ErrorSimulatorController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianPortalController;
@@ -34,6 +35,12 @@ Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')
     ->middleware('throttle:web-login');
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
+
+// ─── DEV ERROR SIMULATOR (staging-aware) ───
+Route::get('/dev/errors', [ErrorSimulatorController::class, 'index'])->name('dev.errors');
+Route::get('/dev/errors/{code}', ErrorSimulatorController::class)
+    ->where('code', '401|402|403|404|419|429|500|503')
+    ->name('dev.errors.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
