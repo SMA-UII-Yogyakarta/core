@@ -99,7 +99,13 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/pail",
+                "laravel/sail",
+                "laravel/pao",
+                "barryvdh/laravel-ide-helper",
+                "spatie/laravel-typescript-transformer"
+            ]
         }
     },
     "config": {

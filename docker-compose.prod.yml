@@ -1,27 +1,62 @@
 name: core-prod
 
-# Production overlay — di belakang nginx-proxy via network nginx-net (external).
-# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Production overlay — pakai Dockerfile.prod (multi-stage: Bun build + PHP runtime)
+# TIDAK ada Vite dev server, TIDAK ada hot reload, TIDAK ada source mount.
+# Semua assets sudah di-build di dalam image saat `docker compose ... up -d --build`
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#   atau: make prod-up
+#
+# Build args VITE_* bisa di-override via:
+#   VITE_APP_NAME="Nama Sekolah" make prod-up
+#   atau definisikan di shell environment sebelum menjalankan make prod-up
+
 services:
   app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.prod
+      target: production
+      args:
+        # ── SHOULD BE SET — branding ─────────────────────────
+        # Nama yang muncul di browser tab title
+        VITE_APP_NAME: ${VITE_APP_NAME:-SMAUII Core}
+
+        # ── OPTIONAL — error monitoring ──────────────────────
+        # Kosong = Sentry tidak aktif. Isi untuk production error tracking.
+        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
+
+        # ── OPTIONAL — real-time WebSocket ───────────────────
+        # Kosong = window.Echo tidak connect → fitur Live Monitoring (Admin)
+        # tidak berfungsi real-time. Isi jika fitur ini dipakai.
+        VITE_PUSHER_APP_KEY: ${VITE_PUSHER_APP_KEY:-}
+        VITE_PUSHER_APP_CLUSTER: ${VITE_PUSHER_APP_CLUSTER:-ap1}
+        VITE_PUSHER_HOST: ${VITE_PUSHER_HOST:-}
+        VITE_PUSHER_PORT: ${VITE_PUSHER_PORT:-443}
+        VITE_PUSHER_SCHEME: ${VITE_PUSHER_SCHEME:-https}
+
+    image: core-app-prod
+    # Override volumes — production TIDAK mount source code host
+    # Assets sudah di-bake ke dalam image di stage frontend (Bun build)
+    volumes:
+      - ./env/.env.production:/var/www/html/.env:ro
+      - app_storage:/var/www/html/storage
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
       APP_URL: https://preview.smauiiyk.sch.id
-      LOG_LEVEL: debug
-      MAIL_MAILER: log
-    volumes:
-      - .:/var/www/html
-      - ./env/.env.production:/var/www/html/.env:ro
+      LOG_LEVEL: warning
 
   worker:
-    image: core-app
+    image: core-app-prod
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - ./env/.env.production:/var/www/html/.env:ro
+      - app_storage:/var/www/html/storage
     environment:
       APP_ENV: production
-    volumes:
-      - .:/var/www/html
-      - ./env/.env.production:/var/www/html/.env:ro
+      APP_DEBUG: "false"
     depends_on:
       pgsql:
         condition: service_healthy
@@ -34,13 +69,14 @@ services:
       - smauii
 
   schedule:
-    image: core-app
+    image: core-app-prod
     command: php artisan schedule:work
+    volumes:
+      - ./env/.env.production:/var/www/html/.env:ro
+      - app_storage:/var/www/html/storage
     environment:
       APP_ENV: production
-    volumes:
-      - .:/var/www/html
-      - ./env/.env.production:/var/www/html/.env:ro
+      APP_DEBUG: "false"
     depends_on:
       pgsql:
         condition: service_healthy
@@ -69,3 +105,6 @@ services:
     ports: !override
       - "127.0.0.1:${PROD_RUSTFS_PORT:-9003}:9000"
       - "127.0.0.1:${PROD_RUSTFS_CONSOLE_PORT:-9093}:9001"
+
+volumes:
+  app_storage:

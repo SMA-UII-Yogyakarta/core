@@ -12,7 +12,12 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // TypeScriptTransformerServiceProvider hanya tersedia di environment dev
+        // (package spatie/laravel-typescript-transformer ada di require-dev).
+        // Guard class_exists agar tidak crash saat boot production (package tak ter-install).
+        if (class_exists(\Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerApplicationServiceProvider::class)) {
+            $this->app->register(\App\Providers\TypeScriptTransformerServiceProvider::class);
+        }
     }
 
     public function boot(): void

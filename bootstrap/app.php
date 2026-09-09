@@ -149,6 +149,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return ApiResponse::error('Terjadi kesalahan server.', 500);
             }
+
+            // Full-page load (bukan Inertia, bukan API) — render halaman 500 branded
+            // agar tidak menampilkan halaman error default framework (anti-OSINT).
+            return response()->view('errors.500', [], 500);
         });
 
         // 422 — Validation (API)
