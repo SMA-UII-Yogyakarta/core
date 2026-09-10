@@ -100,14 +100,14 @@ tests/
 
 ### 2.2. Cara Menjalankan Test Backend
 ```bash
-# Jalankan seluruh test suite backend (206 tests, 971 assertions)
-docker exec core-dev-app-1 php artisan test
+# Jalankan seluruh test suite backend (316 tests, 1509 assertions)
+./vendor/bin/sail test
 
 # Jalankan test file spesifik
-docker exec core-dev-app-1 php artisan test --filter=TeacherPortalTest
+./vendor/bin/sail test --filter=TeacherPortalTest
 
 # Jalankan dengan filter nama method
-docker exec core-dev-app-1 php artisan test --filter=test_duty_dashboard_renders_with_class_stats
+./vendor/bin/sail test --filter=test_duty_dashboard_renders_with_class_stats
 ```
 
 ---
@@ -232,7 +232,7 @@ Panduan lengkap Design System dan Storybook:
 
 | Divisi | Tanggung Jawab Pengujian | Tool Utama | Perintah Cepat |
 |---|---|---|---|
-| **Backend Dev** | Memastikan controller, domain service, dan database transaction aman & terisolasi. | PHPUnit & Pint | `docker exec core-dev-app-1 php artisan test` |
+| **Backend Dev** | Memastikan controller, domain service, dan database transaction aman & terisolasi. | PHPUnit & Pint | `./vendor/bin/sail test` |
 | **Frontend Dev** | Memastikan skema Zod valid, Drawer responsif, dan komponen bebas error rendering. | Bun Test, Vitest & Storybook | `bun run test:bun` & `bun run test` & `bun run storybook` |
 | **QA / Tester** | Menguji skenario alur nyata, audit visual Playwright screenshot, dan kepatuhan UI/UX. | Playwright & HTML Report | `bun x playwright test` & `bun x playwright show-report --host 0.0.0.0 --port 9300` |
 | **DevOps / CI** | Menjalankan seluruh test matrix otomatis sebelum PR di-merge ke `develop`. | GitHub Actions CI | `bun run lint && bun run typecheck && php artisan test` |
@@ -245,13 +245,13 @@ Sebelum membuat PR ke branch `develop`, setiap pengembang wajib memastikan selur
 
 ```bash
 # 1. Backend Linting & Standar Kode PSR-12
-docker exec core-dev-app-1 ./vendor/bin/pint --test
+./vendor/bin/sail pint --test
 
 # 2. Backend Static Analysis (PHPStan Level 6)
-docker exec core-dev-app-1 ./vendor/bin/phpstan analyse --memory-limit=2G
+./vendor/bin/sail bin phpstan analyse --memory-limit=2G
 
-# 3. Backend Test Suite (PHPUnit - 206 Tests, 971 Assertions)
-docker exec core-dev-app-1 php artisan test
+# 3. Backend Test Suite (PHPUnit - 316 Tests, 1509 Assertions)
+./vendor/bin/sail test
 
 # 4. Frontend Linting & Formatting
 bun run lint

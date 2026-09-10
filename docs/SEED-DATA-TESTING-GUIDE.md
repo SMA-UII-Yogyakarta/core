@@ -151,8 +151,8 @@ Gunakan akun ini untuk menguji presensi mandiri dengan foto selfie dan geolokasi
 Jika tester atau pengembang ingin mengembalikan database ke kondisi awal yang bersih (*fresh state*):
 
 ```bash
-# Melalui Docker Container (VPS / Server Preview)
-docker exec core-app-1 php artisan migrate:fresh --seed
+# Melalui Laravel Sail (local dev) — db lokal di-sed otomatis (pgsql:smauii_core)
+./vendor/bin/sail artisan migrate:fresh --seed
 
 # Atau melalui Host Terminal lokal (Laragon / Makefile)
 make fresh

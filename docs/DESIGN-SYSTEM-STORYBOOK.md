@@ -62,8 +62,8 @@ Storybook dikonfigurasikan dengan integrasi Vite, Tailwind CSS 4, dan **`@storyb
 # Menjalankan Storybook development server (port 6006)
 bun run storybook
 
-# Atau via Docker container
-docker exec core-bun-1 bun run storybook
+# Atau di dalam container frontend (`bun` service) — frontend TIDAK memakai Sail
+docker compose exec bun bun run storybook
 ```
 
 ### 3.2. Membangun Production Static Storybook

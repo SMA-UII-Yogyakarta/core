@@ -1,24 +1,67 @@
+SAIL       := ./vendor/bin/sail
 COMPOSE_DEV  := docker compose -f docker-compose.yml -f docker-compose.dev.yml
 COMPOSE_PROD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
 
-# ── Development ─────────────────────────────────────────────
+# ── Development (Laravel Sail) ────────────────
+# Sail adalah interface utama untuk development (termasuk laragon/Windows).
+# Setelah bootstrap pertama, semua perintah dev memakai SAIL.
 up: dev
 
 dev:
-	$(COMPOSE_DEV) up -d
+	$(SAIL) up -d
 
 down:
-	$(COMPOSE_DEV) down
+	$(SAIL) down
 
 build:
-	docker compose build app --no-cache
+	$(SAIL) build app --no-cache
 
 frontend-build:
 	bun run build
 
 restart: down dev
 
-# ── Production ──────────────────────────────────────────────
+# ── Bootstrap (fresh clone) ───────────────────
+# Hack khusus host tanpa PHP 8.4 di mesin host: Sail membutuhkan
+# `vendor/` agar script `./vendor/bin/sail` ada. Bangun stack dulu,
+# install composer di dalam container, lalu lanjut via Sail.
+setup:
+	$(COMPOSE_DEV) up -d --build
+	$(COMPOSE_DEV) exec app composer install --no-interaction
+	$(SAIL) artisan key:generate --ansi
+	$(SAIL) artisan migrate --seed
+
+# ── Tooling (via Sail) ────────────────────────
+artisan:
+	$(SAIL) artisan $(cmd)
+
+composer:
+	$(SAIL) composer $(cmd)
+
+migrate:
+	$(SAIL) artisan migrate
+
+fresh:
+	$(SAIL) artisan migrate:fresh --seed
+
+queue:
+	$(SAIL) artisan queue:listen --tries=1 --timeout=0
+
+test:
+	$(SAIL) test
+
+shell:
+	$(SAIL) shell
+
+logs:
+	$(SAIL) logs -f app
+
+psql:
+	$(SAIL) psql
+
+# ── Production ────────────────────────────────
+# Production TIDAK memakai Sail — overlay terpisah (docker-compose.prod.yml)
+# + env file khusus. Sail khusus development saja.
 # prod-up: Build image production (termasuk frontend di dalam Docker multi-stage)
 # TIDAK perlu `bun run build` manual — sudah di-handle oleh Dockerfile.prod stage 1
 prod-up:
@@ -62,39 +105,6 @@ prod-shell:
 prod-log-laravel:
 	$(COMPOSE_PROD) exec app tail -f /var/www/html/storage/logs/laravel.log
 
-# ── Tooling (dev stack) ─────────────────────────────────────
-artisan:
-	$(COMPOSE_DEV) exec app php artisan $(cmd)
-
-composer:
-	$(COMPOSE_DEV) exec app composer $(cmd)
-
-migrate:
-	$(COMPOSE_DEV) exec app php artisan migrate
-
-fresh:
-	$(COMPOSE_DEV) exec app php artisan migrate:fresh --seed
-
-queue:
-	$(COMPOSE_DEV) exec app php artisan queue:listen --tries=1 --timeout=0
-
-test:
-	$(COMPOSE_DEV) exec app php artisan test
-
-bash:
-	$(COMPOSE_DEV) exec app sh
-
-logs:
-	$(COMPOSE_DEV) logs -f app
-
-psql:
-	$(COMPOSE_DEV) exec pgsql psql -U sail -d smauii_core
-
-setup: dev
-	$(COMPOSE_DEV) exec app composer install --no-interaction
-	$(COMPOSE_DEV) exec app php artisan key:generate --ansi
-	$(COMPOSE_DEV) exec app php artisan migrate --seed
-
 .PHONY: up dev down build frontend-build restart \
-        prod-up prod-down prod-restart prod-logs prod-fresh prod-migrate prod-shell prod-log-laravel \
-        artisan composer migrate fresh queue test bash logs psql setup
+        setup artisan composer migrate fresh queue test shell logs psql \
+        prod-up prod-down prod-restart prod-logs prod-fresh prod-migrate prod-shell prod-log-laravel

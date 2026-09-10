@@ -177,8 +177,8 @@ bun run typecheck && bun run lint
 # RESULT: 0 Errors / 0 Warnings (PASSED ✅)
 
 # 2. Verifikasi Test Suite PHP Unit
-docker exec core-dev-app-1 php artisan test
-# RESULT: 238 / 238 Tests Passed — 1.076 Assertions (PASSED ✅)
+./vendor/bin/sail test
+# RESULT: 316 / 316 Tests Passed — 1.509 Assertions (PASSED ✅)
 
 # 3. Verifikasi Vite Production Build
 bun run build

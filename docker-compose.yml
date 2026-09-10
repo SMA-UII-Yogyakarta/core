@@ -58,6 +58,7 @@ services:
       POSTGRES_DB: smauii_core
       POSTGRES_USER: ${DB_USERNAME:-sail}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      PGPASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - pgsql_data:/var/lib/postgresql/data
     healthcheck:
