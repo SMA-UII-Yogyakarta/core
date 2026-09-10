@@ -187,21 +187,4 @@ class TeacherPortalController extends Controller
             'pendingLeaveCount' => $pendingLeaves->count(),
         ]);
     }
-
-    /**
-     * TODO: Remove this preview method after Step 2 (backend) is done.
-     * This is temporary for frontend review purposes only.
-     */
-    public function leaveVerificationPreview()
-    {
-        $teacher = $this->teacherService->findByUserId(auth()->id());
-
-        return Inertia::render('Teacher/LeaveVerification', [
-            'teacher' => [
-                'id' => $teacher->id,
-                'name' => $teacher->name,
-            ],
-            'class' => null,
-        ]);
-    }
 }
