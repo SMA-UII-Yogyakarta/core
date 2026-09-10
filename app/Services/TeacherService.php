@@ -42,7 +42,12 @@ class TeacherService
                 $parts = explode(' ', $name);
                 $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
                 $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'guru';
-                $email = "{$cleanFirst}@smauiiyk.sch.id";
+                $cleanCode = (string) preg_replace('/[^a-z0-9]/', '', strtolower($code));
+                $candidate = "{$cleanFirst}.{$cleanCode}@smauiiyk.sch.id";
+                if (User::where('email', $candidate)->exists()) {
+                    $candidate = "{$cleanFirst}.{$cleanCode}." . uniqid() . "@smauiiyk.sch.id";
+                }
+                $email = $candidate;
             }
 
             $user = User::create([
@@ -75,14 +80,17 @@ class TeacherService
             if (isset($data['name'])) {
                 $userUpdates['name'] = $data['name'];
             }
-            if (array_key_exists('email', $data)) {
+            if (isset($data['teacher_code'])) {
+                $userUpdates['username'] = trim((string) $data['teacher_code']);
+            }
+            if (array_key_exists('email', $data) && ! empty($data['email'])) {
                 $userUpdates['email'] = $data['email'];
             }
             if (! empty($data['password'])) {
                 $userUpdates['password'] = Hash::make($data['password']);
             }
 
-            if (! empty($userUpdates)) {
+            if (! empty($userUpdates) && $teacher->user) {
                 $teacher->user->update($userUpdates);
             }
 

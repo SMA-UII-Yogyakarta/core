@@ -1,11 +1,13 @@
 name: core-dev
 
-# Development overlay — HMR via Vite (bun) + port host untuk app.
+# Development overlay — HMR via Vite (bun) + port host untuk app + bind mount source code.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 services:
   app:
     ports:
       - "127.0.0.1:${APP_PORT:-8800}:8000"
+    volumes:
+      - .:/var/www/html
 
   bun:
     build:
@@ -22,3 +24,21 @@ services:
       core: 0
     networks:
       - smauii
+
+  pgsql:
+    ports:
+      - "127.0.0.1:${PGSQL_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6382}:6379"
+
+  rustfs:
+    ports:
+      - "127.0.0.1:${RUSTFS_PORT:-9000}:9000"
+      - "127.0.0.1:${RUSTFS_CONSOLE_PORT:-9091}:9001"
+
+  mailpit:
+    ports:
+      - "127.0.0.1:${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025"

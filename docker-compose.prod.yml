@@ -7,10 +7,6 @@ name: core-prod
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 #   atau: make prod-up
-#
-# Build args VITE_* bisa di-override via:
-#   VITE_APP_NAME="Nama Sekolah" make prod-up
-#   atau definisikan di shell environment sebelum menjalankan make prod-up
 
 services:
   app:
@@ -20,16 +16,12 @@ services:
       target: production
       args:
         # ── SHOULD BE SET — branding ─────────────────────────
-        # Nama yang muncul di browser tab title
         VITE_APP_NAME: ${VITE_APP_NAME:-SMAUII Core}
 
         # ── OPTIONAL — error monitoring ──────────────────────
-        # Kosong = Sentry tidak aktif. Isi untuk production error tracking.
         VITE_SENTRY_DSN: ${VITE_SENTRY_DSN:-}
 
         # ── OPTIONAL — real-time WebSocket ───────────────────
-        # Kosong = window.Echo tidak connect → fitur Live Monitoring (Admin)
-        # tidak berfungsi real-time. Isi jika fitur ini dipakai.
         VITE_PUSHER_APP_KEY: ${VITE_PUSHER_APP_KEY:-}
         VITE_PUSHER_APP_CLUSTER: ${VITE_PUSHER_APP_CLUSTER:-ap1}
         VITE_PUSHER_HOST: ${VITE_PUSHER_HOST:-}
@@ -37,8 +29,6 @@ services:
         VITE_PUSHER_SCHEME: ${VITE_PUSHER_SCHEME:-https}
 
     image: core-app-prod
-    # Override volumes — production TIDAK mount source code host
-    # Assets sudah di-bake ke dalam image di stage frontend (Bun build)
     volumes:
       - ./env/.env.production:/var/www/html/.env:ro
       - app_storage:/var/www/html/storage
@@ -89,20 +79,20 @@ services:
       - smauii
 
   mailpit:
-    ports: !override
+    ports:
       - "127.0.0.1:${PROD_MAILPIT_PORT:-1026}:1025"
       - "127.0.0.1:${PROD_MAILPIT_DASHBOARD_PORT:-8026}:8025"
 
   pgsql:
-    ports: !override
+    ports:
       - "127.0.0.1:${PROD_PGSQL_PORT:-5434}:5432"
 
   redis:
-    ports: !override
+    ports:
       - "127.0.0.1:${PROD_REDIS_PORT:-6384}:6379"
 
   rustfs:
-    ports: !override
+    ports:
       - "127.0.0.1:${PROD_RUSTFS_PORT:-9003}:9000"
       - "127.0.0.1:${PROD_RUSTFS_CONSOLE_PORT:-9093}:9001"
 

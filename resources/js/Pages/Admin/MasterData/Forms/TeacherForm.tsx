@@ -288,11 +288,12 @@ export default function TeacherForm({
                     Kosongkan jika ingin dibuatkan otomatis:{" "}
                     <span className="font-mono text-primary font-medium">
                         {data.name
-                            ? `${data.name
-                                  .split(" ")[0]
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9]/g, "")}@smauiiyk.sch.id`
-                            : "[nama]@smauiiyk.sch.id"}
+                            ? `${data.name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}${
+                                  data.teacher_code
+                                      ? "." + data.teacher_code.toLowerCase().replace(/[^a-z0-9]/g, "")
+                                      : ""
+                              }@smauiiyk.sch.id`
+                            : "[nama].[kode]@smauiiyk.sch.id"}
                     </span>
                 </p>
                 {errors.email && <p className="text-[12px] text-danger mt-1">{errors.email}</p>}
