@@ -135,7 +135,7 @@ resources/js/__tests__/
 # Jalankan seluruh unit test logika TypeScript dengan Bun
 bun test resources/js/__tests__/schemas/ resources/js/__tests__/utils/
 
-# Atau via npm script
+# Atau via bun script
 bun run test:bun
 ```
 
