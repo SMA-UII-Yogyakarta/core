@@ -548,6 +548,7 @@ export default function History({
                                     onChange={(key) => setActiveTab(key as "attendances" | "stats")}
                                     variant="segmented"
                                     shrinkable
+                                    iconOnly="lg"
                                 />
                             </div>
 

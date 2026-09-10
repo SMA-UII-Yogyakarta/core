@@ -23,6 +23,7 @@ const dotColors: Record<string, string> = {
     no_update: "bg-text-muted",
     no_check_in: "bg-text-muted",
     not_open: "bg-text-muted",
+    unknown: "bg-text-muted",
 };
 
 const sizeClasses: Record<string, string> = {

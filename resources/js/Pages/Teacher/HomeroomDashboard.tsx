@@ -166,7 +166,7 @@ export default function HomeroomDashboard({
             className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s);
-                return <StatusBadge variant={st} label={st.toUpperCase()} />;
+                return <StatusBadge variant={st} />;
             },
         },
         {
@@ -277,7 +277,7 @@ export default function HomeroomDashboard({
                                                 </h4>
                                                 <p className="text-[11px] text-text-muted">NISN: {s.nis}</p>
                                             </div>
-                                            <StatusBadge variant={st} label={st.toUpperCase()} />
+                                            <StatusBadge variant={st} />
                                         </div>
                                         <div className="text-[12px] text-text-secondary pt-2 border-t border-border flex items-center justify-between">
                                             <span className="truncate">{rowNote(s)}</span>

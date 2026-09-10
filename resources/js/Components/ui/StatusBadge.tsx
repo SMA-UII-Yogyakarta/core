@@ -79,6 +79,11 @@ const config: Record<StatusVariant, { bg: string; text: string; defaultLabel: st
         text: "text-text-muted",
         defaultLabel: "Belum Buka",
     },
+    unknown: {
+        bg: "bg-background border border-border",
+        text: "text-text-muted",
+        defaultLabel: "-",
+    },
 };
 
 export function resolveStatusVariant(status: string): StatusVariant {
@@ -97,7 +102,7 @@ export function resolveStatusVariant(status: string): StatusVariant {
     if (s === "no_update" || s === "-" || s === "noupdate") return "no_update";
     if (s === "no_check_in" || s === "nocheckin" || s === "belum absen" || s === "belum_absen") return "no_check_in";
     if (s === "not_open" || s === "notopen" || s === "belum buka" || s === "belum_buka") return "not_open";
-    return "pending";
+    return "unknown";
 }
 
 export default function StatusBadge({ variant, label, className = "" }: StatusBadgeProps & { className?: string }) {

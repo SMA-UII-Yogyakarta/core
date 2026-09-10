@@ -39,4 +39,5 @@ export type StatusVariant =
     | "rejected"
     | "no_update"
     | "no_check_in"
-    | "not_open";
+    | "not_open"
+    | "unknown";

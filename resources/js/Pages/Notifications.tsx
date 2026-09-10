@@ -282,6 +282,7 @@ export default function Notifications({ notifications, sentNotifications, unread
                             onChange={(key) => setActiveTab(key as "inbox" | "sent")}
                             variant="segmented"
                             shrinkable
+                            iconOnly="lg"
                         />
                     )}
                 </div>

@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import { FiCalendar, FiCamera, FiCheckCircle } from "react-icons/fi";
 import { Button, DashboardHero, PageHeader, StatCard, StatusBadge } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
 
 interface Student {
@@ -33,6 +34,7 @@ interface PageProps {
 }
 
 export default function StudentDashboard({ student, todayAttendance, stats }: PageProps) {
+    const { t } = useLanguage();
     const absent = stats.absent ?? 0;
     const className = student.class?.name ?? "-";
     const totalDays = (stats as unknown as { total_days?: number }).total_days ?? stats.present + stats.late + absent;
@@ -41,18 +43,22 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
     const absentPct = totalDays > 0 ? Math.round((absent / totalDays) * 100) : 0;
 
     return (
-        <AppShell title="Overview Siswa">
+        <AppShell title={t("studentDash.title")}>
             <div className="flex flex-col gap-4 sm:gap-6 font-inter">
                 <PageHeader
-                    title={`Selamat Datang, ${student.name}`}
-                    description={`Siswa Kelas ${className} • NIS: ${student.nis} (NISN: ${student.nisn || "-"})`}
+                    title={t("studentDash.welcome", { name: student.name })}
+                    description={t("studentDash.subtitle", {
+                        className,
+                        nis: student.nis,
+                        nisn: student.nisn || "-",
+                    })}
                     className="hidden lg:flex shrink-0 mb-4"
                 />
 
                 {/* Hero Greeting Card */}
                 <DashboardHero
                     title={student.name}
-                    description={`Kelas ${className}`}
+                    description={t("studentDash.className", { className })}
                     descriptionClassName="text-accent text-[12px] sm:text-[13px] font-semibold"
                     dusk="student-greeting-card"
                     data-testid="student-greeting-card"
@@ -68,7 +74,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                         <div className="flex items-center gap-2">
                             <FiCheckCircle className="text-[18px]" />
                             <span className="font-bold text-[13px] sm:text-[14px]">
-                                Sudah Presensi Masuk ({todayAttendance.check_in_time} WIB)
+                                {t("studentDash.attendanceDone", { time: todayAttendance.check_in_time })}
                             </span>
                         </div>
                         <StatusBadge variant={todayAttendance.status} />
@@ -86,7 +92,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                             className="w-full justify-center text-[14px] sm:text-[15px] font-extrabold py-3 sm:py-3.5 shadow-md rounded-xl"
                             icon={<FiCamera className="w-4 h-4" />}
                         >
-                            <span>PRESENSI MASUK SEKARANG</span>
+                            <span>{t("studentDash.checkInNow")}</span>
                         </Button>
                     </Link>
                 )}
@@ -95,41 +101,41 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                 <div className="space-y-2.5 sm:space-y-3">
                     <div className="flex items-center justify-between px-0.5">
                         <h3 className="text-[12px] sm:text-[13px] font-bold text-text-muted sm:text-text-primary uppercase tracking-wider">
-                            Rekapitulasi Kehadiran Bulan Ini
+                            {t("studentDash.monthlyRecap")}
                         </h3>
                         {totalDays > 0 && (
                             <span className="text-[11px] text-text-muted font-medium">
-                                Total {totalDays} hari aktif
+                                {t("studentDash.totalDays", { count: String(totalDays) })}
                             </span>
                         )}
                     </div>
                     <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                         <StatCard
-                            label="HADIR"
+                            label={t("studentDash.statHadir")}
                             value={stats.present}
                             color="green"
                             indicatorDot="green"
                             percentage={presentPct}
                             percentageColor="text-success"
-                            subtitle="tepat waktu"
+                            subtitle={t("studentDash.statHadirSub")}
                         />
                         <StatCard
-                            label="TELAT"
+                            label={t("studentDash.statTelat")}
                             value={stats.late}
                             color="amber"
                             indicatorDot="amber"
                             percentage={latePct}
                             percentageColor="text-warning"
-                            subtitle="lewat jam"
+                            subtitle={t("studentDash.statTelatSub")}
                         />
                         <StatCard
-                            label="ALPA"
+                            label={t("studentDash.statAlpa")}
                             value={absent}
                             color="red"
                             indicatorDot="red"
                             percentage={absentPct}
                             percentageColor="text-danger"
-                            subtitle="tanpa kabar"
+                            subtitle={t("studentDash.statAlpaSub")}
                         />
                     </div>
                 </div>
@@ -137,7 +143,7 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                 {/* Menu Utama Navigasi Grid */}
                 <div className="space-y-2.5 sm:space-y-3">
                     <h3 className="text-[12px] sm:text-[13px] font-bold text-text-muted sm:text-text-primary uppercase tracking-wider px-0.5">
-                        Menu Utama
+                        {t("studentDash.menuTitle")}
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                         <Link
@@ -149,10 +155,10 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                             </div>
                             <div>
                                 <span className="text-[13px] sm:text-[14px] font-bold text-text-primary block leading-tight">
-                                    Live Presensi
+                                    {t("studentDash.menuLive")}
                                 </span>
                                 <span className="text-[11px] text-text-muted mt-0.5 block truncate sm:whitespace-normal">
-                                    Selfie & verifikasi GPS
+                                    {t("studentDash.menuLiveDesc")}
                                 </span>
                             </div>
                         </Link>
@@ -166,10 +172,10 @@ export default function StudentDashboard({ student, todayAttendance, stats }: Pa
                             </div>
                             <div>
                                 <span className="text-[13px] sm:text-[14px] font-bold text-text-primary block leading-tight">
-                                    Riwayat Presensi
+                                    {t("studentDash.menuHistory")}
                                 </span>
                                 <span className="text-[11px] text-text-muted mt-0.5 block truncate sm:whitespace-normal">
-                                    Kalender presensi & rekap
+                                    {t("studentDash.menuHistoryDesc")}
                                 </span>
                             </div>
                         </Link>

@@ -510,6 +510,7 @@ export default function Dashboard({
                         variant="segmented"
                         theme="light"
                         shrinkable
+                        iconOnly="lg"
                     />
                 </div>
 

@@ -420,25 +420,25 @@ export default function RecapTable(props: RecapTableProps) {
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.permission > 0 ? "#2E3391" : "#64748B" }}
+                                            style={{ color: s.permission > 0 ? "var(--color-primary)" : "var(--color-text-muted)" }}
                                         >
                                             {s.permission}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.sick > 0 ? "#A855F7" : "#64748B" }}
+                                            style={{ color: s.sick > 0 ? "var(--color-medical)" : "var(--color-text-muted)" }}
                                         >
                                             {s.sick}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.pending > 0 ? "#0EA5E9" : "#64748B" }}
+                                            style={{ color: s.pending > 0 ? "var(--color-info)" : "var(--color-text-muted)" }}
                                         >
                                             {s.pending}
                                         </td>
                                         <td
                                             className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.absent > 0 ? "#EF4444" : "#64748B" }}
+                                            style={{ color: s.absent > 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}
                                         >
                                             {s.absent}
                                         </td>

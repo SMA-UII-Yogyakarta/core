@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FiBarChart2, FiFilter, FiSearch } from "react-icons/fi";
 import { BottomSheet, Button, Card, Input, PageHeader, SelectInput, StatCard, StatusBadge, Table } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import type { Column } from "@/Components/ui/Table";
 import AppShell from "@/Layouts/AppShell";
 
@@ -56,6 +57,7 @@ export default function Monitoring({
     stats: initialStats,
     students: initialStudents,
 }: MonitoringProps) {
+    const { t } = useLanguage();
     const [classId, setClassId] = useState<string>(selectedClassId?.toString() ?? "");
     const [studentsState, setStudentsState] = useState(initialStudents);
     const [statsState, setStatsState] = useState(initialStats);
@@ -153,21 +155,21 @@ export default function Monitoring({
     };
 
     const columns: Column<AttendanceStudent>[] = [
-        { key: "nisn", header: "NISN", render: (s) => s.student.nisn },
-        { key: "name", header: "Nama Siswa", render: (s) => s.student.name },
+        { key: "nisn", header: t("monitoring.colNisn"), render: (s) => s.student.nisn },
+        { key: "name", header: t("monitoring.colName"), render: (s) => s.student.name },
         {
             key: "class",
-            header: "Kelas",
+            header: t("monitoring.colClass"),
             render: (s) => s.student.class?.name ?? "-",
         },
         {
             key: "status",
-            header: "Status",
+            header: t("monitoring.colStatus"),
             render: (s) => <StatusBadge variant={s.status} />,
         },
         {
             key: "time",
-            header: "Waktu",
+            header: t("monitoring.colTime"),
             render: (s) => (s.attendance?.check_in_time ? `${s.attendance.check_in_time} WIB` : "-"),
         },
     ];
@@ -183,8 +185,8 @@ export default function Monitoring({
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
                     hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
                 }`}
-                title="Filter Monitoring Presensi"
-                aria-label="Filter Monitoring Presensi"
+                title={t("monitoring.filterTitle")}
+                aria-label={t("monitoring.filterTitle")}
             >
                 <FiFilter className="text-[14px]" />
             </button>
@@ -194,17 +196,17 @@ export default function Monitoring({
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AppShell title="Monitoring Presensi" hasTopCard={true} headerActions={mobileHeaderActions}>
+        <AppShell title={t("monitoring.title")} hasTopCard={true} headerActions={mobileHeaderActions}>
             <PageHeader
-                title="Monitoring Presensi Siswa"
-                description="Pantau log presensi real-time seluruh rombongan belajar institusi hari ini."
+                title={t("monitoring.pageTitle")}
+                description={t("monitoring.pageDesc")}
                 className="hidden lg:flex shrink-0 mb-4"
             />
             {/* Filter Section (Desktop & Tablet) */}
             <Card className="mb-6 hidden sm:block">
                 <Card.Body className="p-4 lg:p-5 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
                     <SelectInput
-                        label="Filter Kelas"
+                        label={t("monitoring.filterClass")}
                         value={classId}
                         onChange={(val) => {
                             const newId = String(val);
@@ -212,7 +214,7 @@ export default function Monitoring({
                             router.get("/monitoring", { class_id: newId || undefined }, { preserveState: true });
                         }}
                         options={[
-                            { label: "-- Pilih Kelas --", value: "" },
+                            { label: t("monitoring.selectClassPlaceholder"), value: "" },
                             ...classes.map((c) => ({
                                 label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
                                 value: c.id.toString(),
@@ -226,23 +228,25 @@ export default function Monitoring({
             {/* Stats Cards */}
             {statsState && (
                 <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-                    <StatCard label="Total Siswa" value={statsState.total} color="grey" />
-                    <StatCard label="Hadir" value={statsState.present} color="green" />
-                    <StatCard label="Terlambat" value={statsState.late} color="amber" />
-                    <StatCard label="Sakit / Izin" value={statsState.sick_permission} color="blue" />
-                    <StatCard label="Tidak Hadir" value={statsState.absent} color="red" />
+                    <StatCard label={t("monitoring.studentCount")} value={statsState.total} color="grey" />
+                    <StatCard label={t("monitoring.present")} value={statsState.present} color="green" />
+                    <StatCard label={t("monitoring.late")} value={statsState.late} color="amber" />
+                    <StatCard label={t("monitoring.sickPermission")} value={statsState.sick_permission} color="blue" />
+                    <StatCard label={t("monitoring.absent")} value={statsState.absent} color="red" />
                 </section>
             )}
 
             {/* Students Table */}
             {selectedClassId && (
                 <section>
-                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Daftar Kehadiran Siswa</h2>
+                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
+                        {t("monitoring.listTitle")}
+                    </h2>
                     <Table
                         columns={columns}
                         data={studentsState}
                         keyExtractor={(s) => s.student.id}
-                        emptyMessage="Belum ada data untuk kelas ini."
+                        emptyMessage={t("monitoring.emptyClassData")}
                     />
                 </section>
             )}
@@ -252,8 +256,8 @@ export default function Monitoring({
                     <EmptyState
                         variant="no-data"
                         icon={<FiBarChart2 className="text-4xl text-text-inactive" />}
-                        title="Pilih Kelas"
-                        description="Silakan pilih kelas untuk menampilkan data monitoring."
+                        title={t("monitoring.noClassTitle")}
+                        description={t("monitoring.noClassDesc")}
                         className="py-4"
                     />
                 </Card>
@@ -263,17 +267,17 @@ export default function Monitoring({
             <BottomSheet
                 open={isMobileFilterOpen}
                 onClose={() => setIsMobileFilterOpen(false)}
-                title="Filter Monitoring Presensi"
-                subtitle="Pilih kelas dan tanggal untuk memantau kehadiran"
+                title={t("monitoring.filterTitle")}
+                subtitle={t("monitoring.filterSubtitle")}
             >
                 <div className="flex flex-col gap-4 font-inter pb-2">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">Filter Kelas</label>
+                        <label className="text-[12px] font-bold text-text-secondary">{t("monitoring.filterClass")}</label>
                         <SelectInput
                             value={classId}
                             onChange={(val) => setClassId(String(val))}
                             options={[
-                                { label: "-- Pilih Kelas --", value: "" },
+                                { label: t("monitoring.selectClassPlaceholder"), value: "" },
                                 ...classes.map((c) => ({
                                     label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
                                     value: c.id.toString(),
@@ -284,7 +288,7 @@ export default function Monitoring({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[12px] font-bold text-text-secondary">Tanggal</label>
+                        <label className="text-[12px] font-bold text-text-secondary">{t("monitoring.labelDate")}</label>
                         <Input type="date" defaultValue={today} className="h-10 text-[13px]" />
                     </div>
 
@@ -299,7 +303,7 @@ export default function Monitoring({
                                 }}
                                 className="flex-1 h-10 text-[13px] font-bold rounded-xl"
                             >
-                                Reset Filter
+                                {t("monitoring.resetFilter")}
                             </Button>
                         )}
                         <Button
@@ -310,7 +314,7 @@ export default function Monitoring({
                             }}
                             className="flex-1 h-10 text-[13px] font-bold rounded-xl"
                         >
-                            Tampilkan
+                            {t("monitoring.show")}
                         </Button>
                     </div>
                 </div>

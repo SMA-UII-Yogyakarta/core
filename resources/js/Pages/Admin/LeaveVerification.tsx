@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import { useState } from "react";
-import { FiCheck, FiCheckSquare, FiX, FiXCircle } from "react-icons/fi";
+import { FiCheckSquare, FiXCircle } from "react-icons/fi";
 import {
     Button,
     Checkbox,
@@ -257,57 +257,6 @@ export default function VerifikasiIzin({
                     }}
                 />
             </FilterBar>
-
-            {/* List */}
-            <div className="flex flex-col gap-4">
-                {leaveRequests.data.length > 0 ? (
-                    leaveRequests.data.map((lr) => (
-                        <LeaveRequestCard
-                            key={lr.id}
-                            leaveRequest={lr}
-                            onDetailClick={setSelectedRequest}
-                            checkboxSlot={
-                                lr.approval_status === "Pending" ? (
-                                    <Checkbox
-                                        checked={selectedLeaveIds.includes(lr.id)}
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setSelectedLeaveIds((prev) => [...prev, lr.id]);
-                                            } else {
-                                                setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
-                                            }
-                                        }}
-                                    />
-                                ) : undefined
-                            }
-                            actionSlot={
-                                lr.approval_status === "Pending" ? (
-                                    <>
-                                        <Button
-                                            variant="success"
-                                            size="sm"
-                                            onClick={() => handleApprove(lr.id)}
-                                            className="flex-1 sm:flex-none"
-                                        >
-                                            <FiCheck className="mr-1.5" /> Setuju
-                                        </Button>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={() => handleReject(lr.id)}
-                                            className="flex-1 sm:flex-none"
-                                        >
-                                            <FiX className="mr-1.5" /> Tolak
-                                        </Button>
-                                    </>
-                                ) : undefined
-                            }
-                        />
-                    ))
-                ) : (
-                    <EmptyState variant="no-leaves" />
-                )}
-            </div>
 
             <div className="space-y-6 font-inter">
                 {/* Bulk Actions Bar */}

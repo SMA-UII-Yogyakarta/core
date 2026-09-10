@@ -1,6 +1,6 @@
 import { router, usePage } from "@inertiajs/react";
 import type React from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { translations } from "@/utils/translations";
 
 type Language = "id" | "en";
@@ -43,12 +43,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const [locale, setLocaleState] = useState<Language>(getInitialLanguage);
 
-    // Sync when server locale changes (e.g. after Inertia reload with new locale)
-    useEffect(() => {
-        if (isValidLocale(serverLocale) && serverLocale !== locale) {
-            setLocaleState(serverLocale);
-        }
-    }, [serverLocale]);
+    // Sync when server locale changes (e.g. after Inertia reload), using the
+    // store-an-initializer-from-previous-render pattern to avoid setState-in-effect.
+    const [prevServerLocale, setPrevServerLocale] = useState(serverLocale);
+    if (isValidLocale(serverLocale) && serverLocale !== prevServerLocale) {
+        setPrevServerLocale(serverLocale);
+        setLocaleState(serverLocale);
+    }
 
     const setLanguage = (lang: Language) => {
         // 1. Set cookie so Laravel backend can read it on next request

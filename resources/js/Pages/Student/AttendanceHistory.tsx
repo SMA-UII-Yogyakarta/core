@@ -319,6 +319,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                         onChange={(key) => setActiveTab(key as "calendar" | "list")}
                         variant="segmented"
                         shrinkable
+                        iconOnly="lg"
                     />
                 </div>
 

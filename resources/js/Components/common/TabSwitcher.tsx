@@ -9,6 +9,8 @@ export interface TabItem {
     disabled?: boolean;
 }
 
+export type IconCollapseBreakpoint = "xs" | "sm" | "md" | "lg";
+
 export interface TabSwitcherProps {
     tabs: TabItem[];
     activeKey: string;
@@ -21,6 +23,7 @@ export interface TabSwitcherProps {
     itemClassName?: string;
     inHeader?: boolean;
     shrinkable?: boolean;
+    iconOnly?: IconCollapseBreakpoint;
 }
 
 export default function TabSwitcher({
@@ -35,9 +38,13 @@ export default function TabSwitcher({
     itemClassName = "",
     inHeader,
     shrinkable = false,
+    iconOnly,
 }: TabSwitcherProps) {
     const isDark = theme === "dark";
     const hasInnerPadding = inHeader ?? isDark;
+
+    const labelCollapseClass = (tab: TabItem) =>
+        iconOnly && tab.icon ? ` hidden ${iconOnly}:inline` : "";
 
     const sizeBadgeClasses = {
         xs: "min-w-[16px] h-4 px-1 text-[9.5px]",
@@ -76,7 +83,7 @@ export default function TabSwitcher({
                             } ${tab.disabled ? "opacity-40 cursor-not-allowed" : ""} ${itemClassName}`}
                         >
                             {tab.icon && <span className="shrink-0 flex items-center">{tab.icon}</span>}
-                            <span>{tab.label}</span>
+                            <span className={labelCollapseClass(tab)}>{tab.label}</span>
                             {tab.count !== undefined && (
                                 <span
                                     className={`ml-1 inline-flex items-center justify-center ${sizeBadgeClasses[size]} rounded-full font-bold ${
@@ -136,7 +143,7 @@ export default function TabSwitcher({
                             } ${tab.disabled ? "opacity-40 cursor-not-allowed" : ""} ${itemClassName}`}
                         >
                             {tab.icon && <span className="shrink-0 flex items-center">{tab.icon}</span>}
-                            <span className={shrinkable ? "truncate min-w-0" : ""}>{tab.label}</span>
+                            <span className={(shrinkable ? "truncate min-w-0" : "") + labelCollapseClass(tab)}>{tab.label}</span>
                             {tab.count !== undefined && (
                                 <span
                                     className={`inline-flex items-center justify-center shrink-0 ${sizeBadgeClasses[size]} rounded-full font-bold ${
@@ -266,7 +273,7 @@ export default function TabSwitcher({
                             } ${tab.disabled ? "opacity-40 cursor-not-allowed" : ""} ${itemClassName}`}
                         >
                             {tab.icon && <span className="shrink-0 flex items-center">{tab.icon}</span>}
-                            <span className="truncate min-w-0">{tab.label}</span>
+                            <span className={"truncate min-w-0" + labelCollapseClass(tab)}>{tab.label}</span>
                             {tab.count !== undefined && (
                                 <span
                                     className={`inline-flex items-center justify-center shrink-0 ${sizeBadgeClasses[size]} rounded-full font-bold ${
