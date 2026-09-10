@@ -1,6 +1,7 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Drawer, DrawerHeaderActions } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import StudentForm from "./Forms/StudentForm";
 import type { ClassOption, Student } from "./types";
@@ -26,6 +27,7 @@ export default function StudentDrawerForm({
     onClose,
     onRequestDelete,
 }: StudentDrawerFormProps) {
+    const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
@@ -60,13 +62,17 @@ export default function StudentDrawerForm({
         onClose();
     };
 
-    const title = isCreate ? "Tambah Siswa Baru" : isUnlocked ? "Edit Data Siswa" : "Detail Data Siswa";
+    const title = isCreate
+        ? t("masterdata.studentAddTitle")
+        : isUnlocked
+          ? t("masterdata.studentEditTitle")
+          : t("masterdata.studentDetailTitle");
 
     const description = isCreate
-        ? "Isi formulir berikut untuk mendaftarkan siswa baru."
+        ? t("masterdata.studentAddDesc")
         : isUnlocked
-          ? "Perbarui informasi dan data kredensial siswa."
-          : "Informasi lengkap direktori profil peserta didik.";
+          ? t("masterdata.studentEditDesc")
+          : t("masterdata.studentDetailDesc");
 
     const copyFields = student
         ? [
@@ -116,8 +122,8 @@ export default function StudentDrawerForm({
             width="md"
             submitFormId="student-drawer-form"
             onCancel={() => (isCreate ? handleClose() : setIsUnlocked(false))}
-            submitLabel={isCreate ? "Simpan Siswa" : "Perbarui Data"}
-            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            submitLabel={isCreate ? t("masterdata.saveStudent") : t("masterdata.updateData")}
+            cancelLabel={isCreate ? t("masterdata.cancel") : t("masterdata.cancelEdit")}
             showFooter={isUnlocked}
         >
             <StudentForm

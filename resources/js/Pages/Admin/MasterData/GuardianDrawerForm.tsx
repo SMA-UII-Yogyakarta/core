@@ -1,14 +1,16 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Drawer, DrawerHeaderActions } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import GuardianForm from "./Forms/GuardianForm";
-import type { Guardian } from "./types";
+import type { Guardian, Student } from "./types";
 
 interface GuardianDrawerFormProps {
     open: boolean;
     mode: "create" | "edit" | "detail" | null;
     guardian: Guardian | null;
+    allStudents?: Student[];
     onClose: () => void;
     onRequestDelete?: (entity: string, ids: number | number[], label: string) => void;
 }
@@ -17,9 +19,11 @@ export default function GuardianDrawerForm({
     open,
     mode,
     guardian,
+    allStudents = [],
     onClose,
     onRequestDelete,
 }: GuardianDrawerFormProps) {
+    const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
@@ -70,10 +74,10 @@ export default function GuardianDrawerForm({
         : [];
 
     const title = isCreate
-        ? "Tambah Orang Tua / Wali Baru"
+        ? t("masterdata.guardianAddTitle")
         : isUnlocked
-          ? "Edit Data Orang Tua / Wali"
-          : "Detail Data Orang Tua / Wali";
+          ? t("masterdata.guardianEditTitle")
+          : t("masterdata.guardianDetailTitle");
 
     const description = isCreate
         ? "Daftarkan orang tua / wali murid untuk pemantauan presensi dan izin siswa."
@@ -108,8 +112,8 @@ export default function GuardianDrawerForm({
             width="md"
             submitFormId="guardian-drawer-form"
             onCancel={() => (isCreate ? handleClose() : setIsUnlocked(false))}
-            submitLabel={isCreate ? "Simpan Wali" : "Perbarui Wali"}
-            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            submitLabel={isCreate ? t("masterdata.saveGuardian") : t("masterdata.updateGuardian")}
+            cancelLabel={isCreate ? t("masterdata.cancel") : t("masterdata.cancelEdit")}
             showFooter={isUnlocked}
         >
             <GuardianForm

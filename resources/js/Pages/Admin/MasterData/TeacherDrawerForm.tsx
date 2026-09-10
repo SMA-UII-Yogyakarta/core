@@ -1,19 +1,29 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Drawer, DrawerHeaderActions } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import TeacherForm from "./Forms/TeacherForm";
-import type { Teacher } from "./types";
+import type { SchoolClass, Teacher } from "./types";
 
 interface TeacherDrawerFormProps {
     open: boolean;
     mode: "create" | "edit" | "detail" | null;
     teacher: Teacher | null;
+    allClasses?: SchoolClass[];
     onClose: () => void;
     onRequestDelete?: (entity: string, ids: number | number[], label: string) => void;
 }
 
-export default function TeacherDrawerForm({ open, mode, teacher, onClose, onRequestDelete }: TeacherDrawerFormProps) {
+export default function TeacherDrawerForm({
+    open,
+    mode,
+    teacher,
+    allClasses = [],
+    onClose,
+    onRequestDelete,
+}: TeacherDrawerFormProps) {
+    const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
@@ -59,7 +69,7 @@ export default function TeacherDrawerForm({ open, mode, teacher, onClose, onRequ
 
     const copyFields = teacher
         ? [
-              { label: "Kode Guru / NIP", value: teacher.teacher_code },
+              { label: "Kode Guru", value: teacher.teacher_code },
               { label: "Nama Lengkap", value: teacher.name },
               {
                   label: "Tipe Penugasan",
@@ -73,7 +83,11 @@ export default function TeacherDrawerForm({ open, mode, teacher, onClose, onRequ
           ]
         : [];
 
-    const title = isCreate ? "Tambah Guru Baru" : isUnlocked ? "Edit Data Guru" : "Detail Data Guru";
+    const title = isCreate
+        ? t("masterdata.teacherAddTitle")
+        : isUnlocked
+          ? t("masterdata.teacherEditTitle")
+          : t("masterdata.teacherDetailTitle");
 
     const description = isCreate
         ? "Daftarkan data guru dan tentukan perannya (Wali Kelas / Guru Piket). Akun otomatis terintegrasi SSO."
@@ -108,8 +122,8 @@ export default function TeacherDrawerForm({ open, mode, teacher, onClose, onRequ
             width="md"
             submitFormId="teacher-drawer-form"
             onCancel={() => (isCreate ? handleClose() : setIsUnlocked(false))}
-            submitLabel={isCreate ? "Simpan Guru" : "Perbarui Guru"}
-            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            submitLabel={isCreate ? t("masterdata.saveTeacher") : t("masterdata.updateTeacher")}
+            cancelLabel={isCreate ? t("masterdata.cancel") : t("masterdata.cancelEdit")}
             showFooter={isUnlocked}
         >
             <TeacherForm

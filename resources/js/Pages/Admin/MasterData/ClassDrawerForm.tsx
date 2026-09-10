@@ -1,6 +1,7 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { Drawer, DrawerHeaderActions } from "@/Components";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ClassForm from "./Forms/ClassForm";
 import type { SchoolClass, Teacher } from "./types";
@@ -24,6 +25,7 @@ export default function ClassDrawerForm({
     onClose,
     onRequestDelete,
 }: ClassDrawerFormProps) {
+    const { t } = useLanguage();
     const isDesktop = useMediaQuery("(min-width: 640px)");
     const isCreate = mode === "create";
     const [prevOpen, setPrevOpen] = useState(open);
@@ -71,11 +73,13 @@ export default function ClassDrawerForm({
           ]
         : [];
 
-    const title = isCreate ? "Tambah Kelas / Rombel Baru" : isUnlocked ? "Edit Data Kelas" : "Detail Data Kelas";
+    const title = isCreate
+        ? t("masterdata.classAddTitle")
+        : isUnlocked
+          ? t("masterdata.classEditTitle")
+          : t("masterdata.classDetailTitle");
 
-    const description = isCreate
-        ? "Tambahkan rombel belajar baru yang selaras dengan tahun ajaran dan standar Moodle."
-        : undefined;
+    const description = isCreate ? t("masterdata.classAddDesc") : undefined;
 
     const headerActions = (
         <DrawerHeaderActions
@@ -106,8 +110,8 @@ export default function ClassDrawerForm({
             width="md"
             submitFormId="class-drawer-form"
             onCancel={() => (isCreate ? handleClose() : setIsUnlocked(false))}
-            submitLabel={isCreate ? "Simpan Kelas" : "Perbarui Kelas"}
-            cancelLabel={isCreate ? "Batal" : "Batal Edit"}
+            submitLabel={isCreate ? t("masterdata.saveClass") : t("masterdata.updateClass")}
+            cancelLabel={isCreate ? t("masterdata.cancel") : t("masterdata.cancelEdit")}
             showFooter={isUnlocked}
         >
             <ClassForm
