@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@inertiajs/react";
-import { FiUserX, FiLoader, FiFileText, FiImage, FiX, FiInfo } from "react-icons/fi";
+import { FiUserX, FiFileText, FiImage, FiX, FiInfo, FiCircle } from "react-icons/fi";
 import { FiMessageSquare, FiSearch, FiChevronRight } from "react-icons/fi";
 import AppShell from "@/Layouts/AppShell";
 import { useLanguage } from "@/Contexts/LanguageContext";
@@ -11,8 +11,13 @@ import {
     SearchBar,
     EmptyState,
     Drawer,
+    PageHeader,
+    StatCard,
+    StatusBadge,
+    MobileNativePagination,
 } from "@/Components";
 import { type RowStatus } from "@/utils/attentionPriority";
+import type { StatusInput } from "@/Components/ui/StatusBadge";
 import {
     getRowStatus,
     rowNote,
@@ -62,12 +67,12 @@ interface PageProps {
     isSchoolDay: boolean;
 }
 
-const BADGE: Record<RowStatus, { labelKey: string; classes: string }> = {
-    absent: { labelKey: "homeroom.badgeAbsent", classes: "bg-danger-light text-text-danger-badge" },
-    late: { labelKey: "homeroom.badgeLate", classes: "bg-warning-light text-text-warning-badge" },
-    pending: { labelKey: "homeroom.badgePending", classes: "bg-primary-light text-primary" },
-    permitted: { labelKey: "homeroom.badgePermitted", classes: "bg-success-light text-text-success-badge" },
-    present: { labelKey: "homeroom.badgePresent", classes: "bg-success-light text-text-success-badge" },
+const STATUS_BADGE_MAP: Record<RowStatus, { variant: StatusInput; labelKey: string }> = {
+    absent: { variant: "absent", labelKey: "homeroom.badgeAbsent" },
+    late: { variant: "late", labelKey: "homeroom.badgeLate" },
+    pending: { variant: "pending", labelKey: "homeroom.badgePending" },
+    permitted: { variant: "permission", labelKey: "homeroom.badgePermitted" },
+    present: { variant: "present", labelKey: "homeroom.badgePresent" },
 };
 
 function guardianMessage(t: Translate, s: Student, className: string): string {
@@ -109,7 +114,7 @@ function ContactGuardianButton({ student, className }: { student: Student; class
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-[12px] font-bold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light/30 transition-all active:scale-[0.98]"
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-danger bg-danger-bg border border-danger-light hover:bg-danger-light/30 transition-all active:scale-[0.98]"
         >
             <FiMessageSquare className="shrink-0 text-[14px]" />
             <span>{t("homeroom.contactGuardian")}</span>
@@ -151,10 +156,7 @@ export default function HomeroomDashboard({
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [displayedCount, setDisplayedCount] = useState(10);
-    const [loadingMore, setLoadingMore] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const observerRef = useRef<HTMLDivElement | null>(null);
     const pageSize = 10;
 
     const attentionStudents = useMemo(() => {
@@ -170,30 +172,6 @@ export default function HomeroomDashboard({
         const start = (safePage - 1) * pageSize;
         return attentionStudents.slice(start, start + pageSize);
     }, [attentionStudents, safePage, pageSize]);
-
-    useEffect(() => {
-        if (displayedCount >= attentionStudents.length) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && !loadingMore) {
-                    setLoadingMore(true);
-                    setTimeout(() => {
-                        setDisplayedCount((prev) => Math.min(prev + 10, attentionStudents.length));
-                        setLoadingMore(false);
-                    }, 500);
-                }
-            },
-            { threshold: 0.1 },
-        );
-
-        const el = observerRef.current;
-        if (el) observer.observe(el);
-
-        return () => {
-            if (el) observer.unobserve(el);
-        };
-    }, [displayedCount, attentionStudents.length, loadingMore]);
 
     if (!schoolClass) {
         return (
@@ -248,11 +226,9 @@ export default function HomeroomDashboard({
             className: "w-40 text-center",
             render: (s: Student) => {
                 const st = getRowStatus(s, approvedLeaves);
-                const badge = BADGE[st];
+                const badge = STATUS_BADGE_MAP[st];
                 return (
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${badge.classes}`}>
-                        {t(badge.labelKey)}
-                    </span>
+                    <StatusBadge variant={badge.variant} label={t(badge.labelKey)} />
                 );
             },
         },
@@ -301,27 +277,24 @@ export default function HomeroomDashboard({
 
     return (
         <AppShell title={t("homeroom.title")}>
-            {/* Custom header — title + date */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 md:mb-6">
-                <div>
-                    <h1 className="text-[24px] font-bold text-text-primary font-inter leading-tight">
-                        <span className="hidden md:inline">{t("homeroom.title")} — </span>
-                        {classroomName}
-                    </h1>
-                    <p className="text-[14px] text-text-secondary font-inter mt-1 hidden md:block">
-                        {t("homeroom.headerSubtitle")}
-                    </p>
-                </div>
+            {/* Desktop Header */}
+            <PageHeader
+                title={`${t("homeroom.title")} — ${classroomName}`}
+                description={t("homeroom.headerSubtitle")}
+                className="hidden lg:flex shrink-0 mb-4"
+            >
                 <span className="hidden lg:inline self-start px-3 py-1.5 bg-muted border border-border rounded-lg text-[13px] font-medium text-text-secondary whitespace-nowrap">
                     {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                 </span>
-            </div>
+            </PageHeader>
 
-            <div className="space-y-6 font-inter pb-12">
+            <div className="space-y-6 font-inter">
                 {/* ─── Mobile Stat Summary (with date) ─── */}
-                <div className="lg:hidden rounded-xl border border-border bg-surface overflow-hidden">
-                    <div className="flex justify-center px-4 pt-3">
-                        <span className="text-[13px] font-medium text-text-secondary whitespace-nowrap">
+                <div className="lg:hidden rounded-xl border border-border bg-surface p-3 space-y-3">
+                    <span className="text-[13px] font-medium text-text-secondary whitespace-nowrap block text-center">
+                        <span className="inline-flex items-center gap-1">
+                            {t("homeroom.today")}
+                            <FiCircle className="w-1.5 h-1.5 fill-current" />
                             {new Date().toLocaleDateString("id-ID", {
                                 weekday: "long",
                                 day: "numeric",
@@ -329,43 +302,21 @@ export default function HomeroomDashboard({
                                 year: "numeric",
                             })}
                         </span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-2 text-center px-3">
-                        {[
-                            { value: statsData.present, label: t("homeroom.statOnTime"), numClass: "text-success" },
-                            { value: statsData.late, label: t("homeroom.statLate"), numClass: "text-warning" },
-                            { value: statsData.approved_permission ?? 0, label: t("homeroom.statPermit"), numClass: "text-primary" },
-                            { value: statsData.truly_absent ?? 0, label: t("homeroom.statAbsent"), numClass: "text-danger" },
-                        ].map((item) => (
-                            <div key={item.label} className="rounded-xl py-3">
-                                <span className={`text-[20px] font-extrabold leading-none ${item.value === 0 ? "text-text-muted" : item.numClass}`}>
-                                    {item.value}
-                                </span>
-                                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wide block mt-1">
-                                    {item.label}
-                                </span>
-                            </div>
-                        ))}
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                        <StatCard compact label={t("homeroom.statOnTime")} value={statsData.present} variant="success" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
+                        <StatCard compact label={t("homeroom.statLate")} value={statsData.late} variant="warning" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
+                        <StatCard compact label={t("homeroom.statPermit")} value={statsData.approved_permission ?? 0} variant="primary" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
+                        <StatCard compact label={t("homeroom.statAbsent")} value={statsData.truly_absent ?? 0} variant="danger" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
                     </div>
                 </div>
 
                 {/* ─── Desktop Stat Cards ─── */}
                 <div className="hidden lg:grid grid-cols-4 gap-4">
-                    {[
-                        { value: statsData.present, label: t("homeroom.statOnTimeFull"), numClass: "text-success", bgClass: "bg-success-light" },
-                        { value: statsData.late, label: t("homeroom.statLate"), numClass: "text-warning", bgClass: "bg-warning-light" },
-                        { value: statsData.approved_permission ?? 0, label: t("homeroom.statPermitFull"), numClass: "text-primary", bgClass: "bg-primary-light" },
-                        { value: statsData.truly_absent ?? 0, label: t("homeroom.statAbsent"), numClass: "text-danger", bgClass: "bg-danger-light" },
-                    ].map((item) => (
-                        <div key={item.label} className={`rounded-xl p-4 flex flex-col justify-between ${item.value === 0 ? "bg-surface" : item.bgClass}`}>
-                            <span className={`text-[28px] font-extrabold leading-none ${item.value === 0 ? "text-text-muted" : item.numClass}`}>
-                                {item.value}
-                            </span>
-                            <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                                {item.label}
-                            </span>
-                        </div>
-                    ))}
+                    <StatCard label={t("homeroom.statOnTimeFull")} value={statsData.present} variant="success" bgVariant="success-light" />
+                    <StatCard label={t("homeroom.statLate")} value={statsData.late} variant="warning" bgVariant="warning-light" />
+                    <StatCard label={t("homeroom.statPermitFull")} value={statsData.approved_permission ?? 0} variant="primary" bgVariant="primary-light" />
+                    <StatCard label={t("homeroom.statAbsent")} value={statsData.truly_absent ?? 0} variant="danger" bgVariant="danger-light" />
                 </div>
 
                 {/* Backlog banner */}
@@ -388,7 +339,7 @@ export default function HomeroomDashboard({
                                 </button>
                             </div>
                         ) : (
-                            <div className="sticky top-0 z-10 bg-surface py-3 -mx-4 px-4 self-start">
+                            <div className="sticky top-0 z-10 bg-surface py-3 -mx-4 px-4 self-start border-b border-border shadow-sm">
                                 <div className="relative">
                                     <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
                                     <input
@@ -396,7 +347,7 @@ export default function HomeroomDashboard({
                                         value={search}
                                         onChange={(e) => {
                                             setSearch(e.target.value);
-                                            setDisplayedCount(10);
+                                            setCurrentPage(1);
                                         }}
                                         onBlur={() => {
                                             if (!search) setIsSearchOpen(false);
@@ -410,7 +361,7 @@ export default function HomeroomDashboard({
                                             type="button"
                                             onClick={() => {
                                                 setSearch("");
-                                                setDisplayedCount(10);
+                                                setCurrentPage(1);
                                                 setIsSearchOpen(false);
                                             }}
                                             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-inactive hover:text-text-primary text-[14px] font-bold"
@@ -425,22 +376,28 @@ export default function HomeroomDashboard({
                     </div>
 
                     {/* ─── Desktop search ─── */}
-                    <div className="hidden lg:flex items-center justify-between gap-4">
-                        <h3 className="text-[16px] font-bold text-text-primary font-inter">{t("homeroom.attentionTitle")}</h3>
-                        <div className="w-72">
-                            <SearchBar
-                                value={search}
-                                onChange={(val) => {
-                                    setSearch(val);
-                                    setCurrentPage(1);
-                                }}
-                                onSearch={() => setCurrentPage(1)}
-                                placeholder={t("homeroom.searchPlaceholder")}
-                            />
+                    <div className="hidden lg:flex flex-col gap-1">
+                        <div className="flex items-center justify-between gap-4">
+                            <h3 className="text-[16px] font-bold text-text-primary font-inter">{t("homeroom.attentionTitle")}</h3>
+                            <div className="w-72">
+                                <SearchBar
+                                    value={search}
+                                    onChange={(val) => {
+                                        setSearch(val);
+                                        setCurrentPage(1);
+                                    }}
+                                    onSearch={() => setCurrentPage(1)}
+                                    placeholder={t("homeroom.searchPlaceholder")}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
+                            <FiInfo className="text-primary text-[14px] shrink-0" />
+                            <span>{t("homeroom.attentionSubtitle", { className: classroomName })}</span>
                         </div>
                     </div>
 
-                    {/* ─── Mobile Card List (lazy loading) ─── */}
+                    {/* ─── Mobile Card List (page-based) ─── */}
                     <div className="lg:hidden flex flex-col min-h-[400px]">
                         <div className="flex-1 space-y-3">
                             {attentionStudents.length === 0 ? (
@@ -448,9 +405,9 @@ export default function HomeroomDashboard({
                                     {t("homeroom.allPresent")}
                                 </div>
                             ) : (
-                                attentionStudents.slice(0, displayedCount).map((s) => {
+                                paginatedAttention.map((s) => {
                                     const st = getRowStatus(s, approvedLeaves);
-                                    const badge = BADGE[st];
+                                    const badge = STATUS_BADGE_MAP[st];
                                     const borderColors = {
                                         absent: "border-danger",
                                         late: "border-warning",
@@ -468,9 +425,7 @@ export default function HomeroomDashboard({
                                             <div className="flex items-start justify-between gap-2">
                                                 <h4 className="min-w-0 flex-1 text-[15px] font-bold text-text-primary truncate">{s.name}</h4>
                                                 <div className="flex items-center gap-1.5 shrink-0">
-                                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${badge.classes}`}>
-                                                        {t(badge.labelKey)}
-                                                    </span>
+                                                    <StatusBadge variant={badge.variant} label={t(badge.labelKey)} className="text-[10px]" />
                                                     {isClickable && (
                                                         <FiChevronRight className="text-[11px] text-text-muted" />
                                                     )}
@@ -481,7 +436,7 @@ export default function HomeroomDashboard({
                                             </div>
                                             {st === "absent" && (
                                                 <div onClick={(e) => e.stopPropagation()}>
-                            <ContactGuardianButton student={s} className={schoolClass.name} />
+                                                    <ContactGuardianButton student={s} className={schoolClass.name} />
                                                 </div>
                                             )}
                                             {st === "pending" && (
@@ -500,32 +455,30 @@ export default function HomeroomDashboard({
                             )}
                         </div>
 
-{/* Lazy loading sentinel */}
-                        {attentionStudents.length > 0 && (
-                            <div ref={observerRef} className="py-4 text-center">
-                                {loadingMore ? (
-                                    <p className="text-[13px] text-text-muted">
-                                        <FiLoader className="inline animate-spin mr-2" />
-                                        {t("homeroom.loadingMore")}
-                                    </p>
-                                ) : displayedCount < attentionStudents.length ? (
-                                    <p className="text-[13px] text-text-muted">
-                                        {t("homeroom.showingOf", { displayed: displayedCount, total: attentionStudents.length })}
-                                    </p>
-                                ) : (
-                                    <p className="text-[13px] text-text-muted">
-                                        {t("homeroom.allShown", { count: attentionStudents.length })}
-                                    </p>
-                                )}
-                            </div>
+                        {attentionStudents.length > pageSize && (
+                            <MobileNativePagination
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={attentionStudents.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                                className="mb-4"
+                                labels={{
+                                    showingAll: t("ui.pagination.showingAll"),
+                                    showingRange: t("ui.pagination.showingRange"),
+                                    prev: t("ui.pagination.prev"),
+                                    next: t("ui.pagination.next"),
+                                    pageInfo: t("ui.pagination.pageInfo"),
+                                    selectPage: t("ui.pagination.selectPage"),
+                                    sheetTitle: t("ui.pagination.sheetTitle"),
+                                    sheetSubtitle: t("ui.pagination.sheetSubtitle"),
+                                    firstPage: t("ui.pagination.firstPage"),
+                                    lastPage: t("ui.pagination.lastPage"),
+                                    prevAria: t("ui.pagination.prevAria"),
+                                    nextAria: t("ui.pagination.nextAria"),
+                                }}
+                            />
                         )}
-
-                        <div className="pt-3 border-t border-border">
-                            <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                                <FiInfo className="text-primary text-[14px] shrink-0" />
-                                <span>{t("homeroom.footerNote", { className: classroomName })}</span>
-                            </div>
-                        </div>
                     </div>
 
                     {/* ─── Desktop Table ─── */}
@@ -543,11 +496,7 @@ export default function HomeroomDashboard({
                     </div>
 
                     {/* Desktop footer (outside mobile flex container) */}
-                    <div className="hidden lg:flex pt-2 flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                            <FiInfo className="text-primary text-[14px] shrink-0" />
-                            <span>{t("homeroom.footerNote", { className: classroomName })}</span>
-                        </div>
+                    <div className="hidden lg:flex pt-2 justify-end shrink-0 mt-auto font-inter min-h-[36px]">
                         {attentionStudents.length > pageSize && (
                             <Pagination
                                 currentPage={safePage}
@@ -576,14 +525,13 @@ export default function HomeroomDashboard({
                                     {t("homeroom.thStatus")}
                                 </span>
                                 <span className="font-bold text-[15px]">
-                                    {t(BADGE[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
+                                    {t(STATUS_BADGE_MAP[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
                                 </span>
                             </div>
-                            <span
-                                className={`text-[11px] font-bold px-3 py-1 rounded-full ${BADGE[getRowStatus(selectedStudent, approvedLeaves)].classes}`}
-                            >
-                                {t(BADGE[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
-                            </span>
+                            <StatusBadge
+                                variant={STATUS_BADGE_MAP[getRowStatus(selectedStudent, approvedLeaves)].variant}
+                                label={t(STATUS_BADGE_MAP[getRowStatus(selectedStudent, approvedLeaves)].labelKey)}
+                            />
                         </div>
 
                         <div className="border border-border/80 rounded-xl p-4 space-y-2">

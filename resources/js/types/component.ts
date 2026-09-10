@@ -30,4 +30,7 @@ export type StatusVariant =
     | "inactive"
     | "pending"
     | "approved"
-    | "rejected";
+    | "rejected"
+    | "no_update"
+    | "no_check_in"
+    | "not_open";

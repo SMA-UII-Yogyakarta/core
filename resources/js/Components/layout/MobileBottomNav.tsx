@@ -56,10 +56,10 @@ export default function MobileBottomNav({ items, currentUrl }: MobileBottomNavPr
                             className={`mobile-nav-item ${isActive ? "is-active" : ""}`}
                             aria-current={isActive ? "page" : undefined}
                         >
-                            <span className="mobile-nav-icon" aria-hidden="true">
+                            <span className="mobile-nav-icon relative" aria-hidden="true">
                                 {renderSvgIcon(item.icon, false)}
                                 {item.badge !== undefined && item.badge > 0 && (
-                                        <span className="absolute -top-1 -right-1 bg-danger text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center animate-radar">
+                                        <span className="absolute -top-1.5 -right-2 bg-danger text-white text-[10px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center ring-2 ring-white animate-radar">
                                             {item.badge}
                                         </span>
                                     )}
