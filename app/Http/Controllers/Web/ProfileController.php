@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -34,16 +35,6 @@ class ProfileController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        if ($request->boolean('remove_avatar')) {
-            $user->avatar = null;
-        } elseif ($request->hasFile('avatar')) {
-            $storageService = app(\App\Services\StorageService::class);
-            $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
-        }
-
         if ($request->filled('password')) {
             if (! Hash::check($request->current_password, $user->password)) {
                 return redirect()->back()->with('error', 'Password saat ini tidak sesuai.');
@@ -51,7 +42,27 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        $user->save();
+        DB::transaction(function () use ($user, $request) {
+            $nameChanged = $user->name !== $request->name;
+
+            $user->name = $request->name;
+            $user->email = $request->email;
+
+            if ($request->boolean('remove_avatar')) {
+                $user->avatar = null;
+            } elseif ($request->hasFile('avatar')) {
+                $storageService = app(\App\Services\StorageService::class);
+                $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
+            }
+
+            $user->save();
+
+            if ($nameChanged) {
+                $user->student?->update(['name' => $user->name]);
+                $user->teacher?->update(['name' => $user->name]);
+                $user->guardian?->update(['name' => $user->name]);
+            }
+        });
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui.');
     }

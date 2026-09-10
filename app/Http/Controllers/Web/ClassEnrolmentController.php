@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Services\SchoolClassService;
 use App\Services\StudentService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class ClassEnrolmentController extends Controller
@@ -15,9 +16,13 @@ class ClassEnrolmentController extends Controller
     ) {
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $classId = request('class_id');
+        $request->validate([
+            'class_id' => 'nullable|integer|exists:school_classes,id',
+        ]);
+
+        $classId = $request->integer('class_id') ?: null;
         $classes = $this->schoolClassService->findAll();
 
         $students = [];
@@ -39,12 +44,14 @@ class ClassEnrolmentController extends Controller
         ]);
     }
 
-    public function assignStudent()
+    public function assignStudent(Request $request)
     {
-        $classId = request('class_id');
-        $studentId = request('student_id');
+        $validated = $request->validate([
+            'class_id' => 'required|integer|exists:school_classes,id',
+            'student_id' => 'required|integer|exists:students,id',
+        ]);
 
-        $this->studentService->assignToClass($studentId, $classId);
+        $this->studentService->assignToClass((int) $validated['student_id'], (int) $validated['class_id']);
 
         return redirect()->back()->with('success', 'Student added to class successfully.');
     }

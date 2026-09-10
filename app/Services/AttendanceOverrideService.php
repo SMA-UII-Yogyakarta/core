@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\AttendanceOverride;
 use App\Models\Student;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceOverrideService
 {
@@ -40,10 +41,11 @@ class AttendanceOverrideService
                 'nis' => $s->nis,
                 'name' => $s->name,
                 'class' => $s->class->name ?? '-',
-                'original_status' => $att->status ?? 'Absent',
+                'original_status' => $override ? ($override->original_status ?? 'Absent') : ($att->status ?? 'Absent'),
                 'overridden_status' => $override->new_status ?? null,
-                'current_status' => $override->new_status ?? $att->status ?? 'Absent',
+                'current_status' => $att->status ?? $override->new_status ?? 'Absent',
                 'override_id' => $override?->id,
+                'override_reason' => $override?->reason,
                 'check_in_time' => $att?->check_in_time,
             ];
         })->toArray();
@@ -51,31 +53,72 @@ class AttendanceOverrideService
 
     public function override(int $studentId, int $userId, string $date, string $newStatus, string $reason): AttendanceOverride
     {
-        $existing = AttendanceOverride::where('student_id', $studentId)
-            ->where('attendance_date', $date)->first();
+        return DB::transaction(function () use ($studentId, $userId, $date, $newStatus, $reason) {
+            $existing = AttendanceOverride::where('student_id', $studentId)
+                ->where('attendance_date', $date)
+                ->first();
 
-        $att = Attendance::where('student_id', $studentId)
-            ->whereDate('attendance_date', $date)->first();
+            $att = Attendance::where('student_id', $studentId)
+                ->whereDate('attendance_date', $date)
+                ->first();
 
-        $data = [
-            'student_id' => $studentId,
-            'user_id' => $userId,
-            'attendance_date' => $date,
-            'original_status' => $att?->status,
-            'new_status' => $newStatus,
-            'reason' => $reason,
-        ];
+            $originalStatus = $existing ? ($existing->original_status ?? $att?->status) : $att?->status;
 
-        if ($existing) {
-            $existing->update($data);
-            return $existing->fresh();
-        }
+            $data = [
+                'student_id' => $studentId,
+                'user_id' => $userId,
+                'attendance_date' => $date,
+                'original_status' => $originalStatus,
+                'new_status' => $newStatus,
+                'reason' => $reason,
+            ];
 
-        return AttendanceOverride::create($data);
+            if ($existing) {
+                $existing->update($data);
+                $override = $existing->fresh();
+            } else {
+                $override = AttendanceOverride::create($data);
+            }
+
+            if ($att) {
+                $att->update(['status' => $newStatus]);
+            } else {
+                Attendance::create([
+                    'student_id' => $studentId,
+                    'attendance_date' => $date,
+                    'check_in_time' => now()->format('H:i:s'),
+                    'latitude' => '0.000000',
+                    'longitude' => '0.000000',
+                    'photo_url' => '',
+                    'status' => $newStatus,
+                ]);
+            }
+
+            return $override;
+        });
     }
 
     public function deleteOverride(int $overrideId): void
     {
-        AttendanceOverride::destroy($overrideId);
+        DB::transaction(function () use ($overrideId) {
+            $override = AttendanceOverride::find($overrideId);
+            if (! $override) {
+                return;
+            }
+
+            $att = Attendance::where('student_id', $override->student_id)
+                ->whereDate('attendance_date', $override->attendance_date)
+                ->first();
+
+            if ($att) {
+                if ($override->original_status !== null) {
+                    $att->update(['status' => $override->original_status]);
+                } else {
+                    $att->delete();
+                }
+            }
+
+            $override->delete();
+        });
     }
 }

@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class AttendanceOverride extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'student_id',
+        'user_id',
+        'attendance_date',
+        'original_status',
+        'new_status',
+        'reason',
+    ];
 
     protected function casts(): array
     {

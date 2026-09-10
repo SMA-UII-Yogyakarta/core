@@ -26,7 +26,16 @@ class AuthorizeRoute
         // Get route key from current route name
         $routeName = $request->route()?->getName();
         if (! $routeName) {
-            return $next($request); // Allow if no named route
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak: rute tidak terdefinisi.',
+                    'errors' => null,
+                    'data' => null,
+                ], 403);
+            }
+
+            abort(403, 'Akses ditolak: rute tidak terdefinisi.');
         }
 
         // Strip .index, .store, etc suffixes for permission check

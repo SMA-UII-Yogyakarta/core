@@ -81,7 +81,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
         // Teachers RESTful CRUD & Shortcut Redirect
         Route::prefix('teachers')->name('teachers.')->group(function () {
-            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'teachers']));
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'teachers']))->name('index');
             Route::post('/', [TeacherController::class, 'store'])->name('store');
             Route::patch('/{id}', [TeacherController::class, 'update'])->name('update');
             Route::delete('/{id}', [TeacherController::class, 'destroy'])->name('destroy');
@@ -90,7 +90,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
         // Classes RESTful CRUD & Shortcut Redirect
         Route::prefix('classes')->name('classes.')->group(function () {
-            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'class']));
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'class']))->name('index');
             Route::post('/', [SchoolClassController::class, 'store'])->name('store');
             Route::patch('/{id}', [SchoolClassController::class, 'update'])->name('update');
             Route::delete('/{id}', [SchoolClassController::class, 'destroy'])->name('destroy');
@@ -99,7 +99,7 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
         // Guardians RESTful CRUD & Shortcut Redirect
         Route::prefix('guardians')->name('guardians.')->group(function () {
-            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'guardians']));
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'guardians']))->name('index');
             Route::post('/', [GuardianController::class, 'store'])->name('store');
             Route::patch('/{id}', [GuardianController::class, 'update'])->name('update');
             Route::delete('/{id}', [GuardianController::class, 'destroy'])->name('destroy');
@@ -109,9 +109,6 @@ Route::middleware(['auth', 'authorize'])->group(function () {
         // Master Data Import & Templates
         Route::post('/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('import');
         Route::get('/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('import.template');
-
-        // Backward compatibility fallback for legacy POST /master-data
-        Route::post('/', [StudentController::class, 'store']);
     });
 
     // Route alias for 'master-data'
@@ -126,15 +123,12 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
     // Guardian Assignment (Hubungkan Wali Murid dengan Murid)
     Route::get('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'index'])->name('guardian-assignment');
-    Route::post('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent']);
     Route::post('/guardian-assignment/assign', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent'])->name('guardian-assignment.assign');
-    Route::delete('/guardian-assignment/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent']);
     Route::delete('/guardian-assignment/remove/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent'])->name('guardian-assignment.remove');
 
-    // Operational Settings (Atur Waktu, Lokasi & Libur)
+    // Operational Settings (Atur Waktu & Libur)
     Route::get('/operational-settings', [AttendanceSettingController::class, 'index'])->name('operational-settings');
     Route::post('/operational-settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('operational-settings.time-settings');
-    Route::post('/operational-settings/location-settings', [AttendanceSettingController::class, 'updateLocationSettings'])->name('operational-settings.location-settings');
     Route::post('/operational-settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('operational-settings.holidays');
     Route::delete('/operational-settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('operational-settings.holidays.destroy');
 
