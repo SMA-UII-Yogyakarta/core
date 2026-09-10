@@ -51,12 +51,15 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        $settings = \App\Models\AppSetting::allCached();
+
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
-            'appName' => \App\Models\AppSetting::get('app_name', config('app.name', 'SMART Absen')),
-            'schoolName' => \App\Models\AppSetting::get('school_name', config('app.school_name', 'SMA UII Yogyakarta')),
-            'schoolEmail' => \App\Models\AppSetting::get('email', 'info@smauii.sch.id'),
+            'appName' => $settings['app_name'] ?? config('app.name'),
+            'schoolName' => $settings['school_name'] ?? config('app.school_name'),
+            'schoolEmail' => $settings['email'] ?? config('app.school_email'),
+            'academicYear' => $settings['academic_year'] ?? config('app.academic_year'),
             'auth' => [
                 'user' => $user
                     ? array_merge($user->only('id', 'name', 'email', 'role', 'teacher'), [

@@ -14,22 +14,37 @@ class AppSetting extends Model
 
     protected $fillable = ['key', 'value'];
 
-    public static function get(string $key, mixed $default = null): mixed
+    /**
+     * Get all app settings cached in a single memory lookup key (O(1) memory read, 0 DB queries).
+     *
+     * @return array<string, string>
+     */
+    public static function allCached(): array
     {
         try {
-            return Cache::rememberForever("app_setting:{$key}", function () use ($key, $default) {
-                $setting = static::find($key);
-                return $setting !== null ? $setting->value : $default;
+            return Cache::rememberForever('app_settings:all', function () {
+                return static::query()->pluck('value', 'key')->all();
             });
         } catch (\Throwable) {
-            return $default;
+            return [];
         }
+    }
+
+    public static function get(string $key, mixed $default = null): mixed
+    {
+        $cached = static::allCached();
+        if (array_key_exists($key, $cached)) {
+            return $cached[$key];
+        }
+
+        return $default;
     }
 
     public static function set(string $key, mixed $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => (string) $value]);
         Cache::forget("app_setting:{$key}");
+        Cache::forget('app_settings:all');
     }
 
     /**
@@ -38,7 +53,9 @@ class AppSetting extends Model
     public static function setMany(array $settings): void
     {
         foreach ($settings as $key => $value) {
-            static::set($key, $value);
+            static::updateOrCreate(['key' => $key], ['value' => (string) $value]);
+            Cache::forget("app_setting:{$key}");
         }
+        Cache::forget('app_settings:all');
     }
 }

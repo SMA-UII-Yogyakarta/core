@@ -51,7 +51,10 @@ export default function GuardianDashboard({
     semesterStats,
 }: PageProps) {
     const { t } = useLanguage();
-    const { schoolName = "SMA UII Yogyakarta" } = usePage().props as { schoolName?: string };
+    const { schoolName = "SMA UII Yogyakarta", academicYear = "2026/2027" } = usePage().props as {
+        schoolName?: string;
+        academicYear?: string;
+    };
     const handleSelectStudent = (val: string) => {
         router.get("/guardian", { student_id: val }, { preserveState: true });
     };
@@ -76,7 +79,7 @@ export default function GuardianDashboard({
                         },
                         {
                             icon: <FiCalendar className="w-3.5 h-3.5 text-white/70" />,
-                            label: t("guardianDash.academicYear"),
+                            label: t("guardianDash.academicYear", { year: academicYear }),
                         },
                     ]}
                 />
