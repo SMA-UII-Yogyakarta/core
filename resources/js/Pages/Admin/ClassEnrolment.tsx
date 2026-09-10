@@ -1,5 +1,6 @@
 import { router, usePage } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
     FiChevronDown,
     FiChevronUp,
@@ -156,12 +157,13 @@ export default function EnrolmentKelas({
 
     // Enrolled Students Pagination & Search
     const [search, setSearch] = useState("");
+    const debouncedSearch = useDebounce(search, 300);
 
     const filteredStudents = useMemo(() => {
         let result = [...students];
 
-        if (search.trim()) {
-            const q = search.toLowerCase();
+        if (debouncedSearch.trim()) {
+            const q = debouncedSearch.toLowerCase();
             result = result.filter(
                 (s) =>
                     s.name.toLowerCase().includes(q) ||
@@ -185,7 +187,7 @@ export default function EnrolmentKelas({
         });
 
         return result;
-    }, [students, search, emailFilter, sortBy]);
+    }, [students, debouncedSearch, emailFilter, sortBy]);
 
     const {
         safePage,
@@ -197,15 +199,16 @@ export default function EnrolmentKelas({
 
     // Modal Unassigned Students Pagination & Search
     const [modalSearch, setModalSearch] = useState("");
+    const debouncedModalSearch = useDebounce(modalSearch, 300);
 
     const filteredUnassigned = useMemo(() => {
-        if (!modalSearch.trim()) return unassignedStudents;
-        const q = modalSearch.toLowerCase();
+        if (!debouncedModalSearch.trim()) return unassignedStudents;
+        const q = debouncedModalSearch.toLowerCase();
         return unassignedStudents.filter(
             (s) =>
                 s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q) || s.nisn.toLowerCase().includes(q),
         );
-    }, [unassignedStudents, modalSearch]);
+    }, [unassignedStudents, debouncedModalSearch]);
 
     const {
         safePage: modalSafePage,

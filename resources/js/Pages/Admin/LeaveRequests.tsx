@@ -1,5 +1,6 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { FiExternalLink } from "react-icons/fi";
 import {
     Drawer,
@@ -36,7 +37,7 @@ const statusTabs = [
 
 const categoryLabels: Record<string, string> = {
     Sick: "Sakit",
-    Event: "Kegiatan",
+    Event: "Izin Acara",
     Competition: "Lomba",
     Other: "Lainnya",
 };
@@ -45,6 +46,8 @@ export default function LeaveRequestsIndex({ leaveRequests, filters }: LeaveRequ
     const [statusTab, setStatusTab] = useState(filters.status ?? "");
     const [categoryFilter, setCategoryFilter] = useState(filters.category ?? "");
     const [search, setSearch] = useState(filters.search ?? "");
+    const debouncedSearch = useDebounce(search, 350);
+    const isFirstRender = useRef(true);
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
 
     const handleFilter = (extra?: Record<string, string | undefined>) => {
@@ -59,6 +62,22 @@ export default function LeaveRequestsIndex({ leaveRequests, filters }: LeaveRequ
             { preserveState: true },
         );
     };
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        router.get(
+            "/leave-requests",
+            {
+                status: statusTab || undefined,
+                category: categoryFilter || undefined,
+                search: debouncedSearch || undefined,
+            },
+            { preserveState: true },
+        );
+    }, [debouncedSearch]);
 
     const handlePageChange = (page: number) => {
         handleFilter({ page: String(page) });
