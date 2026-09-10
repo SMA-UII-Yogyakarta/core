@@ -96,7 +96,7 @@ class GuardiansImport
             }
 
             if (empty($username)) {
-                $username = ! empty($phone) ? 'wali_' . preg_replace('/[^0-9]/', '', $phone) : 'wali_' . fake()->unique()->numerify('#####');
+                $username = ! empty($phone) ? 'wali_' . preg_replace('/[^0-9]/', '', $phone) : 'wali_' . str_pad((string) random_int(10000, 99999), 5, '0', STR_PAD_LEFT);
             }
 
             $existingUser = User::where('username', $username)->first();

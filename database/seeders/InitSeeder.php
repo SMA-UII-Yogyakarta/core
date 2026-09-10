@@ -97,5 +97,26 @@ class InitSeeder extends Seeder
         foreach ($academicEvents as $event) {
             AcademicCalendar::firstOrCreate(['holiday_date' => $event['holiday_date']], $event);
         }
+
+        // 6. Baseline Application Settings (Identitas Resmi & Preferensi Sistem SMA UII)
+        $initialAppSettings = [
+            'school_name' => 'SMA UII Yogyakarta',
+            'npsn' => '20403178',
+            'accreditation' => 'A (Unggul)',
+            'academic_year' => '2025/2026 - Ganjil',
+            'principal_name' => 'Drs. H. M. Suparno, M.Pd.',
+            'address' => 'Jl. Sorowajan Baru No. 12, Banguntapan, Bantul, DIY',
+            'phone' => '(0274) 555-1234',
+            'email' => 'info@smauii.sch.id',
+            'default_page_limit' => '10',
+            'session_timeout_minutes' => '120',
+            'maintenance_mode' => '0',
+            'mfa_enforced' => '1',
+            'wa_gateway_status' => 'Active',
+        ];
+
+        foreach ($initialAppSettings as $key => $value) {
+            \App\Models\AppSetting::firstOrCreate(['key' => $key], ['value' => (string) $value]);
+        }
     }
 }
