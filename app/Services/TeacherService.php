@@ -43,8 +43,10 @@ class TeacherService
                 $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'guru';
                 $cleanCode = (string) preg_replace('/[^a-z0-9]/', '', strtolower($code));
                 $candidate = "{$cleanFirst}.{$cleanCode}@smauiiyk.sch.id";
-                if (User::where('email', $candidate)->exists()) {
-                    $candidate = "{$cleanFirst}.{$cleanCode}." . uniqid() . '@smauiiyk.sch.id';
+                $counter = 1;
+                while (User::where('email', $candidate)->exists()) {
+                    $counter++;
+                    $candidate = "{$cleanFirst}.{$cleanCode}.{$counter}@smauiiyk.sch.id";
                 }
                 $email = $candidate;
             }
@@ -53,7 +55,7 @@ class TeacherService
                 'username' => $code,
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make(! empty($data['password']) ? $data['password'] : 'SmaUii@2026'),
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'teacher',
             ]);
             $user->assignRole('teacher');

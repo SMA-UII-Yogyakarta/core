@@ -11,7 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class StorageProxyTest extends TestCase
+class MediaAccessTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,11 +22,11 @@ class StorageProxyTest extends TestCase
         config(['filesystems.default' => 's3']);
     }
 
-    public function test_guest_cannot_access_storage_proxy(): void
+    public function test_guest_cannot_access_media(): void
     {
         $path = $this->putAttendancePhoto(42);
 
-        $this->get('/storage-s3/' . $path)->assertRedirect(route('login'));
+        $this->get('/media/' . $path)->assertRedirect(route('login'));
     }
 
     public function test_student_can_access_own_attendance_photo(): void
@@ -46,7 +46,7 @@ class StorageProxyTest extends TestCase
 
         $path = $this->putAttendancePhoto($student->id);
 
-        $response = $this->actingAs($user)->get('/storage-s3/' . $path);
+        $response = $this->actingAs($user)->get('/media/' . $path);
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'image/jpeg');
@@ -70,7 +70,7 @@ class StorageProxyTest extends TestCase
 
         $path = $this->putAttendancePhoto(999999);
 
-        $this->actingAs($user)->get('/storage-s3/' . $path)->assertStatus(403);
+        $this->actingAs($user)->get('/media/' . $path)->assertStatus(403);
     }
 
     public function test_guardian_can_access_own_child_photo_but_not_others(): void
@@ -96,8 +96,8 @@ class StorageProxyTest extends TestCase
         $ownPath = $this->putAttendancePhoto($child->id);
         $otherPath = $this->putAttendancePhoto(888888);
 
-        $this->actingAs($guardianUser)->get('/storage-s3/' . $ownPath)->assertStatus(200);
-        $this->actingAs($guardianUser)->get('/storage-s3/' . $otherPath)->assertStatus(403);
+        $this->actingAs($guardianUser)->get('/media/' . $ownPath)->assertStatus(200);
+        $this->actingAs($guardianUser)->get('/media/' . $otherPath)->assertStatus(403);
     }
 
     public function test_admin_and_teacher_can_access_any_photo(): void
@@ -106,8 +106,8 @@ class StorageProxyTest extends TestCase
         $teacher = User::factory()->create(['role' => 'teacher']);
         $path = $this->putAttendancePhoto(777777);
 
-        $this->actingAs($admin)->get('/storage-s3/' . $path)->assertStatus(200);
-        $this->actingAs($teacher)->get('/storage-s3/' . $path)->assertStatus(200);
+        $this->actingAs($admin)->get('/media/' . $path)->assertStatus(200);
+        $this->actingAs($teacher)->get('/media/' . $path)->assertStatus(200);
     }
 
     public function test_paths_outside_allowlist_are_rejected_even_when_file_exists(): void
@@ -115,7 +115,7 @@ class StorageProxyTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         Storage::disk('s3')->put('private/secrets.txt', 'top secret');
 
-        $this->actingAs($admin)->get('/storage-s3/private/secrets.txt')->assertStatus(404);
+        $this->actingAs($admin)->get('/media/private/secrets.txt')->assertStatus(404);
     }
 
     public function test_documents_remain_accessible_to_authenticated_users(): void
@@ -126,7 +126,7 @@ class StorageProxyTest extends TestCase
             UploadedFile::fake()->create('leave.pdf', 100, 'application/pdf'),
         );
 
-        $this->actingAs($admin)->get('/storage-s3/' . $path)
+        $this->actingAs($admin)->get('/media/' . $path)
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'application/pdf');
     }
@@ -135,7 +135,7 @@ class StorageProxyTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'admin']);
 
-        $this->actingAs($user)->get('/storage-s3/non-existent-file.jpg')->assertStatus(404);
+        $this->actingAs($user)->get('/media/non-existent-file.jpg')->assertStatus(404);
     }
 
     private const SAMPLE_JPEG = '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAACAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q==';

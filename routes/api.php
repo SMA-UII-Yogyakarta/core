@@ -17,13 +17,10 @@ use Illuminate\Support\Facades\Route;
 
 // ─── API v1 ───
 Route::prefix('v1')->group(function () {
-    // ─── Client Log & Universal AI Agent Telemetry (Hermes / OpenClaw) ───
+    // ─── Client Log & AI Agent Telemetry ───
     Route::post('/log-client-error', ClientLogController::class)->middleware('throttle:60,1');
     Route::post('/agent/report-error', [UniversalAgentController::class, 'reportError'])->middleware('throttle:60,1');
     Route::post('/agent/ping', [UniversalAgentController::class, 'ping'])->middleware('throttle:60,1');
-    // Backward compatibility aliases
-    Route::post('/hermes/report-error', [UniversalAgentController::class, 'reportError'])->middleware('throttle:60,1');
-    Route::post('/openclaw/report-error', [UniversalAgentController::class, 'reportError'])->middleware('throttle:60,1');
 
     // ─── Public ───
     Route::post('/login', [AuthController::class, 'login'])->name('api.login')

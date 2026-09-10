@@ -29,47 +29,49 @@ class GuardiansImport
         $headers = [];
         $currentRowIndex = 0;
 
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $currentRowIndex++;
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $currentRowIndex++;
 
-                $cells = [];
-                foreach ($row->getCells() as $cell) {
-                    $cells[] = trim((string) $cell->getValue());
-                }
-
-                if ($isFirstRow) {
-                    $headers = $cells;
-                    $isFirstRow = false;
-
-                    continue;
-                }
-
-                if (empty(array_filter($cells))) {
-                    continue;
-                }
-
-                $data = array_combine($headers, $cells);
-
-                try {
-                    $this->importRow($data);
-                } catch (\Exception $e) {
-                    $msg = $e->getMessage();
-                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
-                        if (str_contains($msg, 'users_email_unique')) {
-                            $msg = 'Email wali murid sudah terdaftar untuk akun lain.';
-                        } elseif (str_contains($msg, 'users_username_unique')) {
-                            $msg = 'Username wali murid sudah terdaftar di sistem.';
-                        } else {
-                            $msg = 'Data wali murid sudah terdaftar di sistem (duplicate entry).';
-                        }
+                    $cells = [];
+                    foreach ($row->getCells() as $cell) {
+                        $cells[] = trim((string) $cell->getValue());
                     }
-                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+
+                    if ($isFirstRow) {
+                        $headers = $cells;
+                        $isFirstRow = false;
+
+                        continue;
+                    }
+
+                    if (empty(array_filter($cells))) {
+                        continue;
+                    }
+
+                    $data = array_combine($headers, $cells);
+
+                    try {
+                        $this->importRow($data);
+                    } catch (\Exception $e) {
+                        $msg = $e->getMessage();
+                        if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                            if (str_contains($msg, 'users_email_unique')) {
+                                $msg = 'Email wali murid sudah terdaftar untuk akun lain.';
+                            } elseif (str_contains($msg, 'users_username_unique')) {
+                                $msg = 'Username wali murid sudah terdaftar di sistem.';
+                            } else {
+                                $msg = 'Data wali murid sudah terdaftar di sistem (duplicate entry).';
+                            }
+                        }
+                        $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+                    }
                 }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
 
         return [
             'success_count' => count($this->success),
@@ -150,7 +152,7 @@ class GuardiansImport
 
             $initialPassword = ! empty($password)
                 ? $password
-                : (! empty($this->defaultPassword) ? $this->defaultPassword : 'SmaUii@' . date('Y'));
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : config('auth.defaults.user_password', 'SmaUii@' . date('Y')));
 
             $user = User::create([
                 'username' => $username,

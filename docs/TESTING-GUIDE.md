@@ -91,8 +91,8 @@ tests/
     │   ├── GuardianPortalTest.php       # Dashboard & riwayat wali murid (168 assertions)
     │   ├── ImportWebTest.php            # Import CSV/Excel master data
     │   ├── LeaveVerificationAccessTest.php  # Izin verifikasi guru piket vs wali
+    │   ├── MediaAccessTest.php          # Akses media & berkas terautentikasi dan terotorisasi
     │   ├── RolePageAccessTest.php       # Proteksi rute 403/404 antar role
-    │   ├── StorageProxyTest.php         # Proxy penyajian berkas S3
     │   ├── StudentPortalTest.php        # Dashboard, live attendance, & history siswa
     │   └── TeacherPortalTest.php        # DutyDashboard & HomeroomDashboard guru (13 tests)
     └── UserRoleSyncTest.php             # Sinkronisasi role Spatie vs kolom DB

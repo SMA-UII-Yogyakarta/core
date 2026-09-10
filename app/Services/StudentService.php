@@ -42,7 +42,13 @@ class StudentService
                 $parts = explode(' ', $name);
                 $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
                 $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'siswa';
-                $email = "{$cleanFirst}{$nis}@smauiiyk.sch.id";
+                $candidate = "{$cleanFirst}{$nis}@smauiiyk.sch.id";
+                $counter = 1;
+                while (User::where('email', $candidate)->exists()) {
+                    $counter++;
+                    $candidate = "{$cleanFirst}{$nis}.{$counter}@smauiiyk.sch.id";
+                }
+                $email = $candidate;
             }
 
             // Create user account
@@ -50,7 +56,7 @@ class StudentService
                 'username' => $nis,
                 'name' => $name,
                 'email' => $email,
-                'password' => Hash::make(! empty($data['password']) ? $data['password'] : 'SmaUii@2026'),
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'student',
             ]);
             $user->assignRole('student');
@@ -89,6 +95,9 @@ class StudentService
             $userUpdates = [];
             if (isset($data['name'])) {
                 $userUpdates['name'] = trim((string) $data['name']);
+            }
+            if (isset($data['nis'])) {
+                $userUpdates['username'] = trim((string) $data['nis']);
             }
             if (array_key_exists('email', $data) && ! empty($data['email'])) {
                 $userUpdates['email'] = trim((string) $data['email']);

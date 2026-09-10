@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StorageService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,19 +66,6 @@ class Attendance extends Model
 
     public function getPhotoUrlAttribute(?string $value): ?string
     {
-        if (empty($value)) {
-            return $value;
-        }
-
-        if (str_contains($value, 'rustfs:9000') || str_contains($value, 'localhost:9000') || str_contains($value, '127.0.0.1:9000')) {
-            $path = preg_replace('#^https?://[^/]+/(smauii-attendance/)?#', '', $value);
-            return route('storage-s3', ['path' => $path]);
-        }
-
-        if (! str_starts_with($value, 'http://') && ! str_starts_with($value, 'https://') && ! str_starts_with($value, '/')) {
-            return route('storage-s3', ['path' => $value]);
-        }
-
-        return $value;
+        return StorageService::url($value);
     }
 }

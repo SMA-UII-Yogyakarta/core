@@ -13,13 +13,13 @@ use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianPortalController;
 use App\Http\Controllers\Web\HomeroomReportController;
 use App\Http\Controllers\Web\LeaveRequestController;
+use App\Http\Controllers\Web\MediaController;
 use App\Http\Controllers\Web\MonthlyReportController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OverviewController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SchoolClassController;
 use App\Http\Controllers\Web\SemesterReportController;
-use App\Http\Controllers\Web\StorageProxyController;
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\StudentPortalController;
 use App\Http\Controllers\Web\TeacherController;
@@ -36,16 +36,18 @@ Route::post('/login', [AuthController::class, 'authenticate'])->name('login.auth
     ->middleware('throttle:web-login');
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
 
-// ─── DEV ERROR SIMULATOR (staging-aware) ───
-Route::get('/dev/errors', [ErrorSimulatorController::class, 'index'])->name('dev.errors');
-Route::get('/dev/errors/{code}', ErrorSimulatorController::class)
-    ->where('code', '401|402|403|404|419|429|500|503')
-    ->name('dev.errors.show');
+// ─── DEV ERROR SIMULATOR (non-production only) ───
+if (! app()->isProduction()) {
+    Route::get('/dev/errors', [ErrorSimulatorController::class, 'index'])->name('dev.errors');
+    Route::get('/dev/errors/{code}', ErrorSimulatorController::class)
+        ->where('code', '401|402|403|404|419|429|500|503')
+        ->name('dev.errors.show');
+}
 
 Route::middleware('auth')->group(function () {
-    Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
+    Route::get('/media/{path}', [MediaController::class, 'show'])
         ->where('path', '.*')
-        ->name('storage-s3');
+        ->name('media.show');
 });
 
 // ─── AUTHENTICATED + AUTHORIZED ───

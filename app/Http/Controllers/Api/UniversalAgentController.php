@@ -52,15 +52,10 @@ class UniversalAgentController extends Controller
             }
         }
 
-        // 3. Tentukan URL Target Webhook Agent (Prioritas: Config -> Env -> Fallback Localhost 18789)
-        $agentUrl = config('services.agent.url')
-            ?? env('AI_AGENT_URL')
-            ?? env('OPENCLAW_WEBHOOK_URL')
-            ?? env('HERMES_WEBHOOK_URL')
-            ?? 'http://localhost:18789';
-
-        $agentSecret = config('services.agent.secret') ?? env('AI_AGENT_SECRET', '');
-        $agentProvider = config('services.agent.provider') ?? env('AI_AGENT_PROVIDER', 'auto');
+        // 3. Tentukan URL Target Webhook Agent (Prioritas: Config)
+        $agentUrl = config('services.agent.url') ?: 'http://localhost:18789';
+        $agentSecret = config('services.agent.secret', '');
+        $agentProvider = config('services.agent.provider', 'auto');
 
         $agentNotified = false;
         $agentStatus = 'not_configured';
@@ -68,7 +63,7 @@ class UniversalAgentController extends Controller
         if ($agentUrl) {
             try {
                 $client = Http::timeout(3);
-                if ($agentSecret) {
+                if (! empty($agentSecret)) {
                     $client = $client->withHeaders(['X-Agent-Secret' => $agentSecret]);
                 }
 
@@ -90,8 +85,13 @@ class UniversalAgentController extends Controller
                     ],
                 ]);
 
-                $agentNotified = true;
-                $agentStatus = 'delivered (HTTP ' . $response->status() . ')';
+                if ($response->successful()) {
+                    $agentNotified = true;
+                    $agentStatus = 'delivered (HTTP ' . $response->status() . ')';
+                } else {
+                    $agentNotified = false;
+                    $agentStatus = 'failed (HTTP ' . $response->status() . ')';
+                }
             } catch (\Throwable $e) {
                 Log::warning('[UNIVERSAL-AGENT] Webhook dispatch notice: ' . $e->getMessage());
                 $agentStatus = 'logged_locally (' . $e->getMessage() . ')';
@@ -101,15 +101,15 @@ class UniversalAgentController extends Controller
         return response()->json([
             'success' => true,
             'incident_id' => $incidentId,
-            'message' => 'Laporan error berhasil diproses dan dikirim ke AI Agent & Sentry.',
+            'message' => 'Laporan error berhasil diproses dan dicatat.',
             'sentry_captured' => $sentryCaptured,
-            'agent_notified' => $agentNotified || true,
+            'agent_notified' => $agentNotified,
             'agent_status' => $agentStatus,
         ]);
     }
 
     /**
-     * Uji Koneksi & Ping ke Target Agent AI (OpenClaw / Hermes Agent).
+     * Uji Koneksi & Ping ke Target Agent AI.
      */
     public function ping(Request $request): JsonResponse
     {
@@ -120,14 +120,11 @@ class UniversalAgentController extends Controller
             'deploymentMode' => 'nullable|string',
         ]);
 
-        $url = $validated['url']
-            ?? config('services.agent.url')
-            ?? env('AI_AGENT_URL')
-            ?? env('OPENCLAW_WEBHOOK_URL')
-            ?? env('HERMES_WEBHOOK_URL')
-            ?? 'http://localhost:18789';
+        $url = ! empty($validated['url'])
+            ? $validated['url']
+            : (config('services.agent.url') ?: 'http://localhost:18789');
 
-        $secret = $validated['secret'] ?? env('AI_AGENT_SECRET', '');
+        $secret = $validated['secret'] ?? config('services.agent.secret', '');
         $startTime = microtime(true);
 
         $urlsToTry = [$url];

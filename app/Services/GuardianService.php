@@ -50,15 +50,17 @@ class GuardianService
             $phone = ! empty($data['phone']) ? (string) preg_replace('/[^0-9]/', '', (string) $data['phone']) : null;
             $baseUsername = $phone ?: 'wali-' . strtolower((string) preg_replace('/[^a-z0-9]/', '', $name));
             $username = $baseUsername;
-            if (User::where('username', $username)->exists()) {
-                $username = $baseUsername . '-' . substr(uniqid(), -4);
+            $counter = 1;
+            while (User::where('username', $username)->exists()) {
+                $counter++;
+                $username = "{$baseUsername}-{$counter}";
             }
 
             $user = User::create([
                 'username' => $username,
                 'name' => $name,
                 'email' => ! empty($data['email']) ? trim((string) $data['email']) : null,
-                'password' => Hash::make(! empty($data['password']) ? $data['password'] : 'SmaUii@2026'),
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'guardian',
             ]);
             $user->assignRole('guardian');

@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Services\GuardianService;
+use App\Services\StorageService;
 use App\Services\StudentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class StorageProxyController extends Controller
+class MediaController extends Controller
 {
     private const ATTENDANCE_PHOTO_PATTERN = '#^attendance/(?P<date>\d{4}-\d{2}-\d{2})/(?P<studentId>\d+)_(?P<random>[A-Za-z0-9_-]{4,})\.(jpg|jpeg|png|webp)$#i';
 
@@ -33,7 +34,7 @@ class StorageProxyController extends Controller
 
         // Auto-ensure bucket if using s3
         if ($diskName === 's3' || config('filesystems.disks.s3.bucket')) {
-            app(\App\Services\StorageService::class)->ensureBucketExists();
+            app(StorageService::class)->ensureBucketExists();
         }
 
         // Try candidate disks in order, safely catching flysystem exceptions
@@ -80,7 +81,7 @@ class StorageProxyController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
-        // Avatars and public documents are viewable by all authenticated users
+        // Avatars and documents are viewable by all authenticated users
         if (preg_match(self::AVATAR_PATTERN, $path) === 1 || preg_match(self::DOCUMENT_PATTERN, $path) === 1) {
             return;
         }

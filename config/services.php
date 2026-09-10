@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'agent' => [
+        'url' => env('AI_AGENT_URL', 'http://localhost:18789'),
+        'secret' => env('AI_AGENT_SECRET', ''),
+        'provider' => env('AI_AGENT_PROVIDER', 'auto'),
+    ],
+
 ];

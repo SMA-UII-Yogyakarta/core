@@ -23,41 +23,43 @@ class SchoolClassesImport
         $headers = [];
         $currentRowIndex = 0;
 
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $currentRowIndex++;
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $currentRowIndex++;
 
-                $cells = [];
-                foreach ($row->getCells() as $cell) {
-                    $cells[] = trim((string) $cell->getValue());
-                }
-
-                if ($isFirstRow) {
-                    $headers = $cells;
-                    $isFirstRow = false;
-
-                    continue;
-                }
-
-                if (empty(array_filter($cells))) {
-                    continue;
-                }
-
-                $data = array_combine($headers, $cells);
-
-                try {
-                    $this->importRow($data);
-                } catch (\Exception $e) {
-                    $msg = $e->getMessage();
-                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
-                        $msg = 'Nama kelas dan tahun ajaran sudah terdaftar di sistem.';
+                    $cells = [];
+                    foreach ($row->getCells() as $cell) {
+                        $cells[] = trim((string) $cell->getValue());
                     }
-                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+
+                    if ($isFirstRow) {
+                        $headers = $cells;
+                        $isFirstRow = false;
+
+                        continue;
+                    }
+
+                    if (empty(array_filter($cells))) {
+                        continue;
+                    }
+
+                    $data = array_combine($headers, $cells);
+
+                    try {
+                        $this->importRow($data);
+                    } catch (\Exception $e) {
+                        $msg = $e->getMessage();
+                        if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                            $msg = 'Nama kelas dan tahun ajaran sudah terdaftar di sistem.';
+                        }
+                        $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+                    }
                 }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
 
         return [
             'success_count' => count($this->success),
