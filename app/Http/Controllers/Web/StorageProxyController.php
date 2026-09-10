@@ -14,9 +14,9 @@ class StorageProxyController extends Controller
 {
     private const ATTENDANCE_PHOTO_PATTERN = '#^attendance/(?P<date>\d{4}-\d{2}-\d{2})/(?P<studentId>\d+)_(?P<random>[A-Za-z0-9_-]{4,})\.(jpg|jpeg|png|webp)$#i';
 
-    private const DOCUMENT_PATTERN = '#^(documents|leaves)/(?P<date>\d{4}-\d{2}-\d{2})/[A-Za-z0-9_-]+\.[A-Za-z0-9]{2,5}$#i';
+    private const DOCUMENT_PATTERN = '#^(documents|leaves|leave-documents|assignments|materials)/.+$#i';
 
-    private const AVATAR_PATTERN = '#^(avatars|profiles)/(\d{4}-\d{2}-\d{2}/)?[A-Za-z0-9_-]+\.[A-Za-z0-9]{2,5}$#i';
+    private const AVATAR_PATTERN = '#^(avatars|profiles)/.+$#i';
 
     public function __construct(
         protected GuardianService $guardianService,

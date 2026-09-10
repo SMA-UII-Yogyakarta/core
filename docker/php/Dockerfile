@@ -2,6 +2,7 @@ FROM php:8.4-cli-alpine
 
 RUN apk add --no-cache \
         postgresql-dev \
+        sqlite-dev \
         autoconf \
         g++ \
         make \
@@ -11,7 +12,7 @@ RUN apk add --no-cache \
         libpng-dev \
         libwebp-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath zip gd \
+    && docker-php-ext-install pdo pdo_pgsql pgsql pdo_sqlite bcmath zip gd \
     && pecl install redis excimer \
     && docker-php-ext-enable redis excimer
 
