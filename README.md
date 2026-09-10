@@ -154,8 +154,8 @@ Frontend tooling stays on its dedicated `bun` service (Vite HMR runs automatical
 **Production** does NOT use Sail — it uses the prod overlay directly:
 
 ```bash
-make prod-up       # production (build assets, then up base+prod)
-make prod-migrate  # migrate tanpa hapus data
+make prod:up       # production (build assets, then up base+prod)
+make prod:migrate  # migrate tanpa hapus data
 ```
 
 > Docker/lerd: development is containerized regardless of environment (`lerd` = the team's Podman dev environment: `composer setup` / `composer dev`). On Linux, Sail runs on top of Docker and is functionally equivalent; production always deploys via the `prod` overlay above.

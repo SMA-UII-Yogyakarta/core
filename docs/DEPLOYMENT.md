@@ -57,9 +57,9 @@ Perintah utama:
 ```bash
 make dev          # dev: up base+dev
 make down
-make prod-up      # prod: rm public/hot → bun run build → up base+prod --build
-make prod-down
-make prod-logs    # tail app worker schedule
+make prod:up      # prod: rm public/hot → bun run build → up base+prod --build
+make prod:down
+make prod:logs    # tail app worker schedule
 ```
 
 ### 3.1. Strategi Object Storage (S3 / RustFS / MinIO / Cloudflare R2)

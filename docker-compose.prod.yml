@@ -6,7 +6,7 @@ name: core-prod
 #
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-#   atau: make prod-up
+#   atau: make prod:up
 
 services:
   app:
