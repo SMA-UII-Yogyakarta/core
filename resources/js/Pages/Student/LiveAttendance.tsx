@@ -27,14 +27,35 @@ interface TodayAttendance {
     attendance_date: string;
 }
 
+interface SchoolLocation {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    radius_meters: number;
+}
+
 interface PageProps {
     student: Student;
     todayAttendance: TodayAttendance | null;
+    schoolLocation?: SchoolLocation | null;
 }
 
 type GpsStatus = "idle" | "acquiring" | "locked" | "error";
 
-export default function LiveAttendance({ todayAttendance }: PageProps) {
+export default function LiveAttendance({ todayAttendance, schoolLocation }: PageProps) {
+    const activeLocation = useMemo(() => {
+        return (
+            schoolLocation ?? {
+                name: SMA_UII_LOCATION.name,
+                address: SMA_UII_LOCATION.address,
+                latitude: SMA_UII_LOCATION.latitude,
+                longitude: SMA_UII_LOCATION.longitude,
+                radius_meters: SMA_UII_LOCATION.maxRadiusMeters,
+            }
+        );
+    }, [schoolLocation]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -177,13 +198,19 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
     // Distance calculation
     const distanceMeters = useMemo(() => {
         if (!coords) return null;
-        return calculateDistance(coords.lat, coords.lng);
-    }, [coords]);
+        return calculateDistance(coords.lat, coords.lng, activeLocation.latitude, activeLocation.longitude);
+    }, [coords, activeLocation]);
 
     const isInsideRadius = useMemo(() => {
         if (!coords) return false;
-        return isWithinSchoolGeofence(coords.lat, coords.lng);
-    }, [coords]);
+        return isWithinSchoolGeofence(
+            coords.lat,
+            coords.lng,
+            activeLocation.radius_meters,
+            activeLocation.latitude,
+            activeLocation.longitude,
+        );
+    }, [coords, activeLocation]);
 
     const canSubmit = cameraReady && (isLivenessVerified || livenessStatus === "unsupported" || !isModelLoaded);
 
@@ -319,7 +346,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                 {coords && distanceMeters !== null
                     ? isInsideRadius
                         ? `${distanceMeters}m ✓`
-                        : `-${distanceMeters - SMA_UII_LOCATION.maxRadiusMeters}m`
+                        : `-${distanceMeters - activeLocation.radius_meters}m`
                     : gpsStatus === "error"
                       ? "GPS ✗"
                       : "GPS..."}
@@ -446,10 +473,10 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                             {/* Real Geographical Map Area */}
                             <div className="relative flex-1 min-h-[160px] overflow-hidden">
                                 <LiveAttendanceMap
-                                    schoolLat={SMA_UII_LOCATION.latitude}
-                                    schoolLng={SMA_UII_LOCATION.longitude}
-                                    schoolName={SMA_UII_LOCATION.name}
-                                    radiusMeters={SMA_UII_LOCATION.maxRadiusMeters}
+                                    schoolLat={activeLocation.latitude}
+                                    schoolLng={activeLocation.longitude}
+                                    schoolName={activeLocation.name}
+                                    radiusMeters={activeLocation.radius_meters}
                                     userCoords={coords}
                                     isInsideRadius={isInsideRadius}
                                     gpsStatus={gpsStatus}
@@ -460,7 +487,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                             <div className="px-4 py-3 bg-surface border-t border-border flex items-center justify-between shrink-0">
                                 <div className="min-w-0 pr-2">
                                     <h2 className="text-[13px] font-bold text-text-primary leading-tight truncate">
-                                        Lokasi Terkunci: {SMA_UII_LOCATION.name}
+                                        Lokasi Terkunci: {activeLocation.name}
                                     </h2>
                                     <p className="text-[11px] text-text-muted mt-0.5 font-mono truncate">
                                         {coords
@@ -478,7 +505,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                                         {distanceMeters !== null
                                             ? isInsideRadius
                                                 ? `Tepat di dalam (${formatDistance(distanceMeters)})`
-                                                : `Kurang ${distanceMeters - SMA_UII_LOCATION.maxRadiusMeters}m (${formatDistance(distanceMeters)})`
+                                                : `Kurang ${distanceMeters - activeLocation.radius_meters}m (${formatDistance(distanceMeters)})`
                                             : "—"}
                                     </span>
                                     <span className="text-[10px] text-text-muted">jarak ke sekolah</span>
@@ -547,14 +574,14 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-bold text-text-primary leading-tight truncate">
-                                {SMA_UII_LOCATION.name}
+                                {activeLocation.name}
                             </p>
                             <p className="text-[11px] text-text-muted mt-0.5 truncate">
                                 {coords && distanceMeters !== null
                                     ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)} • ${
                                           isInsideRadius
                                               ? `Tepat di dalam (${distanceMeters}m)`
-                                              : `Kurang ${distanceMeters - SMA_UII_LOCATION.maxRadiusMeters}m (${distanceMeters}m)`
+                                              : `Kurang ${distanceMeters - activeLocation.radius_meters}m (${distanceMeters}m)`
                                       }`
                                     : gpsStatus === "error"
                                       ? "GPS Tidak Terdeteksi"

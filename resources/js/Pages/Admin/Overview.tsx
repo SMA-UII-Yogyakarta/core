@@ -169,35 +169,6 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
                         </div>
                     )}
 
-                    {/* Guardian: Children Status Cards */}
-                    {isGuardian && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <StatCard
-                                label={t("overview.myChildren")}
-                                value="2"
-                                color="blue"
-                                subtitle={t("overview.activeToday")}
-                            />
-                            <StatCard label={t("overview.pendingLeaves")} value="0" color="amber" />
-                            <StatCard label={t("overview.todayAttendance")} value="2/2" color="green" />
-                            <StatCard label={t("overview.pendingActions")} value="0" color="blue" />
-                        </div>
-                    )}
-
-                    {/* Student: Today Status Card */}
-                    {isStudent && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <StatCard
-                                label={t("overview.todayStatus")}
-                                value="Present"
-                                color="green"
-                                subtitle={t("overview.checkedInAt").replace("{time}", "07:15")}
-                            />
-                            <StatCard label={t("overview.thisWeek")} value="5/5" color="blue" />
-                            <StatCard label={t("overview.thisMonth")} value="95%" color="green" />
-                        </div>
-                    )}
-
                     {/* Quick Actions / Links by Role */}
                     <Card>
                         <div className="p-6">

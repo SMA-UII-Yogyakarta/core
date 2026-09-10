@@ -93,8 +93,9 @@ function rowNote(s: Student): string {
     const status = getRowStatus(s);
     if (status === "alpa" || status === "absent") return "Belum ada kabar";
     if (status === "terlambat" || status === "late")
-        return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
-    if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "Sakit");
+        return att?.check_in_time ? `${att.check_in_time} WIB` : "Terlambat";
+    if (status === "pending")
+        return s.pendingLeave?.category ? `Pengajuan Izin ${s.pendingLeave.category}` : "Pengajuan Izin";
     if (status === "diizinkan" || status === "approved_leave") return "Pengajuan Izin Diterima";
     return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
 }

@@ -54,6 +54,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
+            'appName' => \App\Models\AppSetting::get('app_name', config('app.name', 'SMART Absen')),
+            'schoolName' => \App\Models\AppSetting::get('school_name', config('app.school_name', 'SMA UII Yogyakarta')),
+            'schoolEmail' => \App\Models\AppSetting::get('email', 'info@smauii.sch.id'),
             'auth' => [
                 'user' => $user
                     ? array_merge($user->only('id', 'name', 'email', 'role', 'teacher'), [

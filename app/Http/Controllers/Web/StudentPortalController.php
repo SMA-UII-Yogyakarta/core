@@ -60,6 +60,8 @@ class StudentPortalController extends Controller
         }
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
+        $schoolLocation = \App\Models\SchoolLocationSetting::where('is_active', true)->first()
+            ?? \App\Models\SchoolLocationSetting::find(1);
 
         return Inertia::render('Student/LiveAttendance', [
             'student' => [
@@ -68,6 +70,13 @@ class StudentPortalController extends Controller
                 'name' => $student->name,
                 'class' => $student->class ? ['id' => $student->class->id, 'name' => $student->class->name] : null,
             ],
+            'schoolLocation' => $schoolLocation ? [
+                'name' => $schoolLocation->name,
+                'address' => $schoolLocation->address,
+                'latitude' => (float) $schoolLocation->latitude,
+                'longitude' => (float) $schoolLocation->longitude,
+                'radius_meters' => (int) $schoolLocation->radius_meters,
+            ] : null,
             'todayAttendance' => $todayAttendance ? [
                 'id' => $todayAttendance->id,
                 'status' => $todayAttendance->status,

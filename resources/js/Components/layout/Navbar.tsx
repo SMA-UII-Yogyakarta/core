@@ -56,7 +56,7 @@ export default function Navbar({
                 <Link
                     href="/dashboard"
                     className="px-2.5 py-1 rounded-lg bg-accent text-primary font-brand font-extrabold text-[13px] leading-none shrink-0 shadow-xs hover:scale-105 transition-transform"
-                    title="SMA UII Yogyakarta"
+                    title={brand || "Portal Sekolah"}
                 >
                     UII
                 </Link>

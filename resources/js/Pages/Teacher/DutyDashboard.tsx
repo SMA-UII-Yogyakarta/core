@@ -69,8 +69,8 @@ type MobileTab = "anomali" | "izin";
 function rowNote(s: AttentionStudent): string {
     if (s.status === "alpa" || s.status === "absent") return "Belum ada kabar";
     if (s.status === "terlambat" || s.status === "late")
-        return s.check_in_time ? `${s.check_in_time} WIB` : "07:15 WIB";
-    if (s.status === "pending") return `Pengajuan Izin ${s.leave_category ?? "Sakit"}`;
+        return s.check_in_time ? `${s.check_in_time} WIB` : "Terlambat";
+    if (s.status === "pending") return s.leave_category ? `Pengajuan Izin ${s.leave_category}` : "Pengajuan Izin";
     return "Pengajuan Izin Diterima";
 }
 

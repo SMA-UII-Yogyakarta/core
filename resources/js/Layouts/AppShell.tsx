@@ -116,16 +116,18 @@ export default function AppShell({
     const userAvatar = user?.avatar || user?.avatar_url || null;
     const userRole = user?.role;
     const teacherType = user?.active_teacher_role ?? "duty";
+    const schoolName = (pageProps as unknown as { schoolName?: string }).schoolName || "SMA UII Yogyakarta";
+    const brandName = schoolName.toUpperCase();
     const mobileBrand =
         userRole === "admin"
-            ? "ADMIN SMA UII"
+            ? `ADMIN ${brandName}`
             : userRole === "student"
-              ? "SISWA SMA UII"
+              ? `SISWA ${brandName}`
               : userRole === "guardian"
                 ? "WALI MURID"
                 : userRole === "teacher"
-                  ? "GURU SMA UII"
-                  : "SMA UII YOGYAKARTA";
+                  ? `GURU ${brandName}`
+                  : brandName;
 
     const handleLogout = () => router.post("/logout");
 
@@ -166,7 +168,7 @@ export default function AppShell({
                 {/* Desktop Navbar (lg:block - full width top bar matching Figma Dekstop Dashboard.png & Siswa Dashboard.png) */}
                 <div className="hidden lg:block shrink-0">
                     <Navbar
-                        brand="SMA UII YOGYAKARTA"
+                        brand={brandName}
                         username={userName}
                         userInitial={userInitial}
                         userAvatar={userAvatar}

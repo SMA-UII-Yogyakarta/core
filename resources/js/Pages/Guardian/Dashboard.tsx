@@ -1,4 +1,4 @@
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import {
     FiActivity,
     FiCalendar,
@@ -49,6 +49,7 @@ export default function GuardianDashboard({
     todayAttendance,
     semesterStats,
 }: PageProps) {
+    const { schoolName = "SMA UII Yogyakarta" } = usePage().props as { schoolName?: string };
     const handleSelectStudent = (val: string) => {
         router.get("/guardian", { student_id: val }, { preserveState: true });
     };
@@ -59,13 +60,13 @@ export default function GuardianDashboard({
                 {/* 1. Page Header & Hero Greeting Card */}
                 <PageHeader
                     title={`Selamat Datang, ${guardian?.name ?? "Wali Murid"}`}
-                    description="Portal Informasi Kehadiran & Pengajuan Izin Siswa · SMA UII Yogyakarta"
+                    description={`Portal Informasi Kehadiran & Pengajuan Izin Siswa · ${schoolName}`}
                     className="hidden lg:flex shrink-0 mb-4"
                 />
 
                 <DashboardHero
                     title="Pantauan Presensi Real-Time"
-                    description="SMA UII Yogyakarta"
+                    description={schoolName}
                     badges={[
                         {
                             icon: <FiUsers className="w-3.5 h-3.5 text-accent" />,

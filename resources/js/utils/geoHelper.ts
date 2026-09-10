@@ -37,8 +37,10 @@ export function isWithinSchoolGeofence(
     lat: number,
     lon: number,
     maxRadiusMeters: number = SMA_UII_LOCATION.maxRadiusMeters,
+    targetLat: number = SMA_UII_LOCATION.latitude,
+    targetLon: number = SMA_UII_LOCATION.longitude,
 ): boolean {
-    const distance = calculateDistance(lat, lon);
+    const distance = calculateDistance(lat, lon, targetLat, targetLon);
     return distance <= maxRadiusMeters;
 }
 

@@ -269,10 +269,10 @@ export default function SystemSettings({ systemInfo, locationSetting }: SystemSe
 
     // Form 2: Location & Geofence
     const [locationForm, setLocationForm] = useState<SchoolLocationSetting>({
-        name: locationSetting?.name ?? "SMA UII Yogyakarta",
-        address: locationSetting?.address ?? "Jl. Taman Siswa No.158, Wirogunan, Mergangsan, Yogyakarta",
-        latitude: locationSetting?.latitude ?? -7.814257,
-        longitude: locationSetting?.longitude ?? 110.375944,
+        name: locationSetting?.name ?? "",
+        address: locationSetting?.address ?? "",
+        latitude: locationSetting?.latitude ?? 0,
+        longitude: locationSetting?.longitude ?? 0,
         radius_meters: locationSetting?.radius_meters ?? 100,
         is_active: locationSetting?.is_active ?? true,
     });

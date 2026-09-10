@@ -16,10 +16,14 @@ class AppSetting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        return Cache::rememberForever("app_setting:{$key}", function () use ($key, $default) {
-            $setting = static::find($key);
-            return $setting !== null ? $setting->value : $default;
-        });
+        try {
+            return Cache::rememberForever("app_setting:{$key}", function () use ($key, $default) {
+                $setting = static::find($key);
+                return $setting !== null ? $setting->value : $default;
+            });
+        } catch (\Throwable) {
+            return $default;
+        }
     }
 
     public static function set(string $key, mixed $value): void

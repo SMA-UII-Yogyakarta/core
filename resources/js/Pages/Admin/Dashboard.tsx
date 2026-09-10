@@ -1,4 +1,4 @@
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import {
     FiActivity,
@@ -130,6 +130,7 @@ export default function Dashboard({
     monthlyTrend,
     weeklyTrend,
 }: DashboardProps) {
+    const { schoolName = "SMA UII Yogyakarta" } = usePage().props as { schoolName?: string };
     const today = new Date().toISOString().split("T")[0];
 
     const [activeTab, setActiveTab] = useState<"overview" | "attention">(() => {
@@ -549,7 +550,7 @@ export default function Dashboard({
                                     </div>
                                     <div className="min-w-0">
                                         <h2 className="text-[14px] font-bold text-text-primary leading-tight truncate">
-                                            Presensi SMA UII Yogyakarta
+                                            Presensi {schoolName}
                                         </h2>
                                         <p className="text-[11px] text-text-muted mt-0.5 truncate">
                                             {formatIndonesianDate(selectedDate)}

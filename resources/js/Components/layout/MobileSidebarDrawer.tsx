@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import { FiChevronUp, FiLogOut, FiRefreshCw, FiSliders, FiUser, FiX } from "react-icons/fi";
 import type { NavSection } from "@/Layouts/AppShell";
@@ -31,6 +31,10 @@ export default function MobileSidebarDrawer({
     onClose,
     onLogout,
 }: MobileSidebarDrawerProps) {
+    const { appName = "SMART Presensi", schoolName = "SMA UII Yogyakarta" } = usePage().props as {
+        appName?: string;
+        schoolName?: string;
+    };
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
     const roleLabel =
@@ -82,9 +86,9 @@ export default function MobileSidebarDrawer({
                         </div>
                         <div>
                             <h2 className="text-[14px] font-bold text-text-primary font-brand leading-tight">
-                                SMART Presensi
+                                {appName}
                             </h2>
-                            <p className="text-[10px] text-text-muted">SMA UII Yogyakarta</p>
+                            <p className="text-[10px] text-text-muted">{schoolName}</p>
                         </div>
                     </div>
                     <button
