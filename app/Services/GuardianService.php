@@ -48,7 +48,11 @@ class GuardianService
         return DB::transaction(function () use ($data) {
             $name = trim((string) $data['name']);
             $phone = ! empty($data['phone']) ? (string) preg_replace('/[^0-9]/', '', (string) $data['phone']) : null;
-            $username = $phone ?: 'wali-' . strtolower((string) preg_replace('/[^a-z0-9]/', '', $name));
+            $baseUsername = $phone ?: 'wali-' . strtolower((string) preg_replace('/[^a-z0-9]/', '', $name));
+            $username = $baseUsername;
+            if (User::where('username', $username)->exists()) {
+                $username = $baseUsername . '-' . substr(uniqid(), -4);
+            }
 
             $user = User::create([
                 'username' => $username,

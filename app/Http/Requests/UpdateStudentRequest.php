@@ -15,9 +15,17 @@ class UpdateStudentRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('id') ?? $this->route('student');
+        $student = \App\Models\Student::find($id);
+        $userId = $student?->user_id;
 
         return [
-            'nis' => ['required', 'string', 'max:30', Rule::unique('students', 'nis')->ignore($id)],
+            'nis' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('students', 'nis')->ignore($id),
+                Rule::unique('users', 'username')->ignore($userId),
+            ],
             'nisn' => ['required', 'string', 'max:30', Rule::unique('students', 'nisn')->ignore($id)],
             'name' => 'required|string|max:100',
             'class_id' => 'nullable|exists:school_classes,id',
@@ -27,7 +35,12 @@ class UpdateStudentRequest extends FormRequest
             'enrollment_year' => 'required|integer|min:2000|max:2099',
             'guardian_id' => 'nullable|exists:guardians,id',
             'status' => 'required|in:Active,Inactive,Graduated,Transferred,Dropped',
-            'email' => 'nullable|email|max:100',
+            'email' => [
+                'nullable',
+                'email',
+                'max:100',
+                Rule::unique('users', 'email')->ignore($userId),
+            ],
             'password' => 'nullable|string|min:6',
         ];
     }

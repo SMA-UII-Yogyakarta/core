@@ -14,7 +14,7 @@ class StoreStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nis' => 'required|string|max:30|unique:students,nis',
+            'nis' => 'required|string|max:30|unique:students,nis|unique:users,username',
             'nisn' => 'required|string|max:30|unique:students,nisn',
             'name' => 'required|string|max:100',
             'class_id' => 'nullable|exists:school_classes,id',

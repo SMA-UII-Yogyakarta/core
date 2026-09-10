@@ -248,7 +248,7 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
     );
 
     return (
-        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true} hasTopCard={true} mobileHeaderActions={mobileFilterAction}>
+        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true} hasTopCard={true} headerActions={mobileFilterAction}>
             <div className="space-y-6">
                 {/* Header */}
                 <LeaveVerificationHeader

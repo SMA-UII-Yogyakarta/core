@@ -13,7 +13,11 @@ echo "[entrypoint] Bootstrapping Laravel production..."
 mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/testing \
-         /var/www/html/storage/framework/views
+         /var/www/html/storage/framework/views \
+         /var/www/html/storage/app/public
+
+# Pastikan symbolic link public/storage -> storage/app/public aktif
+php artisan storage:link --force 2>&1 || echo "[entrypoint] WARNING: storage:link failed, skipping"
 
 # Regenerasi package manifest (services.php/packages.php) dari vendor production.
 # WAJIB sebelum config:cache: manifest stale hasil develop di host

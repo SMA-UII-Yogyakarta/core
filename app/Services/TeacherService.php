@@ -14,8 +14,7 @@ class TeacherService
     {
         return Teacher::query()
             ->with(['user', 'schoolClasses'])
-            ->when($filters['search'] ?? null, fn ($q, $v) => $q->where('name', 'like', "%{$v}%")
-                ->orWhere('teacher_code', 'like', "%{$v}%"))
+            ->when($filters['search'] ?? null, fn ($q, $v) => $q->whereAny(['name', 'teacher_code'], 'like', "%{$v}%"))
             ->when($filters['teacher_type'] ?? null, fn ($q, $v) => $q->whereJsonContains('teacher_type', $v))
             ->latest()
             ->paginate($perPage);
@@ -45,7 +44,7 @@ class TeacherService
                 $cleanCode = (string) preg_replace('/[^a-z0-9]/', '', strtolower($code));
                 $candidate = "{$cleanFirst}.{$cleanCode}@smauiiyk.sch.id";
                 if (User::where('email', $candidate)->exists()) {
-                    $candidate = "{$cleanFirst}.{$cleanCode}." . uniqid() . "@smauiiyk.sch.id";
+                    $candidate = "{$cleanFirst}.{$cleanCode}." . uniqid() . '@smauiiyk.sch.id';
                 }
                 $email = $candidate;
             }

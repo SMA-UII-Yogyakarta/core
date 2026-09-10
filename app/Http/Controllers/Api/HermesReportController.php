@@ -76,7 +76,7 @@ class HermesReportController extends Controller
                 ]);
                 $hermesNotified = true;
             } catch (\Throwable $e) {
-                Log::warning("[HERMES-AGENT] Could not dispatch webhook to Hermes Agent: " . $e->getMessage());
+                Log::warning('[HERMES-AGENT] Could not dispatch webhook to Hermes Agent: ' . $e->getMessage());
             }
         }
 

@@ -93,7 +93,7 @@ class UniversalAgentController extends Controller
                 $agentNotified = true;
                 $agentStatus = 'delivered (HTTP ' . $response->status() . ')';
             } catch (\Throwable $e) {
-                Log::warning("[UNIVERSAL-AGENT] Webhook dispatch notice: " . $e->getMessage());
+                Log::warning('[UNIVERSAL-AGENT] Webhook dispatch notice: ' . $e->getMessage());
                 $agentStatus = 'logged_locally (' . $e->getMessage() . ')';
             }
         }
@@ -152,7 +152,7 @@ class UniversalAgentController extends Controller
                     }
                 }
             }
-            if ($defaultGateway && !in_array($defaultGateway, ['127.0.0.1', '0.0.0.0'])) {
+            if ($defaultGateway && ! in_array($defaultGateway, ['127.0.0.1', '0.0.0.0'])) {
                 $urlsToTry[] = "{$parsedScheme}://{$defaultGateway}:{$parsedPort}";
             }
             $urlsToTry[] = "{$parsedScheme}://172.17.0.1:{$parsedPort}";
