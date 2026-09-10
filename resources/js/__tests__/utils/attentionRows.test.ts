@@ -92,7 +92,7 @@ describe("rowNote", () => {
         const approvedLeaves: Record<number, ApprovedLeaveInfo> = {};
         expect(rowNote(makeStudent({ consecutiveAbsences: 3 }), approvedLeaves, t)).toBe("Sudah 3× berturut-turut");
         expect(rowNote(makeStudent({ consecutiveAbsences: 2 }), approvedLeaves, t)).toBe("Sudah 2×");
-        expect(rowNote(makeStudent({ consecutiveAbsences: 1 }), approvedLeaves, t)).toBe("1× hari ini");
+        expect(rowNote(makeStudent({ consecutiveAbsences: 1 }), approvedLeaves, t)).toBe("1×, hari ini");
     });
 
     it("notes pending leave with category, range and submitted age", () => {
