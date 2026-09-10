@@ -56,13 +56,13 @@ class SchoolClassController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Kelas rombel berhasil ditambahkan.',
+                'message' => __('messages.class_added'),
             ]);
         }
 
         return redirect()
             ->back()
-            ->with('success', 'Kelas rombel berhasil ditambahkan.');
+            ->with('success', __('messages.class_added'));
     }
 
     public function update(UpdateSchoolClassRequest $request, int $id)
@@ -75,13 +75,13 @@ class SchoolClassController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message' => 'Data kelas berhasil diperbarui.',
+                'message' => __('messages.class_updated'),
             ]);
         }
 
         return redirect()
             ->back()
-            ->with('success', 'Data kelas berhasil diperbarui.');
+            ->with('success', __('messages.class_updated'));
     }
 
     public function destroy(int $id)
@@ -89,7 +89,7 @@ class SchoolClassController extends Controller
         $this->authorize('delete', SchoolClass::class);
 
         $this->schoolClassService->delete($id);
-        return redirect()->back()->with('success', 'Class deleted successfully.');
+        return redirect()->back()->with('success', __('messages.class_deleted'));
     }
 
     public function bulkDestroy(\Illuminate\Http\Request $request)

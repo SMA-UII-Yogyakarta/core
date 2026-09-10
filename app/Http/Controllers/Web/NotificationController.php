@@ -77,7 +77,7 @@ class NotificationController extends Controller
             'content' => $request->content,
         ]);
 
-        return redirect()->back()->with('success', 'Notifikasi berhasil dikirim.');
+        return redirect()->back()->with('success', __('messages.notification_sent'));
     }
 
     public function markAsRead(Request $request, $id)
@@ -95,7 +95,7 @@ class NotificationController extends Controller
             'read_at' => now(),
         ]);
 
-        return redirect()->back()->with('success', 'Notifikasi ditandai telah dibaca.');
+        return redirect()->back()->with('success', __('messages.notification_read'));
     }
 
     public function markAllAsRead(Request $request)
@@ -130,7 +130,7 @@ class NotificationController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Semua notifikasi ditandai telah dibaca.');
+        return redirect()->back()->with('success', __('messages.all_notifications_read'));
     }
 
     public function destroy($id)
@@ -142,7 +142,7 @@ class NotificationController extends Controller
         $notification = Notification::findOrFail($id);
         $notification->delete();
 
-        return redirect()->back()->with('success', 'Notifikasi berhasil dihapus.');
+        return redirect()->back()->with('success', __('messages.notification_deleted'));
     }
 
     private function getUnreadCount($user, $role)

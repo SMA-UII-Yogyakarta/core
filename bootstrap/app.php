@@ -43,6 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        // API middleware group
+        $middleware->api(append: [
+            SetLocaleMiddleware::class,
+        ]);
+
         // Alias middleware untuk route role guard
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,

@@ -36,7 +36,7 @@ class GuardianController extends Controller
         $this->authorize('create', Guardian::class);
 
         $this->guardianService->create($request->validated());
-        return redirect()->back()->with('success', 'Guardian added successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_added'));
     }
 
     public function update(UpdateGuardianRequest $request, int $id)
@@ -44,7 +44,7 @@ class GuardianController extends Controller
         $this->authorize('update', Guardian::class);
 
         $this->guardianService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Guardian data updated successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_updated'));
     }
 
     public function destroy(int $id)
@@ -52,7 +52,7 @@ class GuardianController extends Controller
         $this->authorize('delete', Guardian::class);
 
         $this->guardianService->delete($id);
-        return redirect()->back()->with('success', 'Guardian deleted successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_deleted'));
     }
 
     public function bulkDestroy(\Illuminate\Http\Request $request)

@@ -42,7 +42,7 @@ class AttendanceSettingController extends Controller
         ]);
 
         $this->timeSettingService->bulkUpdate($validated['settings']);
-        return redirect()->back()->with('success', 'Pengaturan jam operasional berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.schedule_updated'));
     }
 
     public function storeHoliday(Request $request)
@@ -53,12 +53,12 @@ class AttendanceSettingController extends Controller
         ]);
 
         $this->academicCalendarService->create($validated);
-        return redirect()->back()->with('success', 'Hari libur akademik berhasil ditambahkan.');
+        return redirect()->back()->with('success', __('messages.holiday_added'));
     }
 
     public function deleteHoliday(int $id)
     {
         $this->academicCalendarService->delete($id);
-        return redirect()->back()->with('success', 'Hari libur akademik berhasil dihapus.');
+        return redirect()->back()->with('success', __('messages.holiday_deleted'));
     }
 }

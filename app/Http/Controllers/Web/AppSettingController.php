@@ -72,7 +72,7 @@ class AppSettingController extends Controller
             'mfa_enforced' => $request->boolean('mfaEnforced') ? '1' : '0',
         ]);
 
-        return redirect()->back()->with('success', 'Pengaturan Sistem SMA UII Core berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.settings_updated'));
     }
 
     public function updateLocation(Request $request): RedirectResponse
@@ -91,6 +91,6 @@ class AppSettingController extends Controller
             $validated,
         );
 
-        return redirect()->back()->with('success', 'Pengaturan titik lokasi presensi & geofence berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.location_updated'));
     }
 }

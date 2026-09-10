@@ -186,7 +186,7 @@ class TeachersImport
 
             $initialPassword = ! empty($password)
                 ? $password
-                : (! empty($this->defaultPassword) ? $this->defaultPassword : config('auth.defaults.user_password', 'SmaUii@' . date('Y')));
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : \App\Models\AppSetting::get('default_teacher_password', config('auth.defaults.user_password', 'SmaUii@' . date('Y'))));
 
             // Create new User and Teacher
             $user = User::create([

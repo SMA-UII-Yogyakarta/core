@@ -1,11 +1,11 @@
 export const translations: Record<string, Record<string, string>> = {
     id: {
-        "welcome.documentTitle": "Selamat Datang - SMART Absen SMA UII",
+        "welcome.documentTitle": "Selamat Datang - SMART Absen {schoolName}",
         "welcome.systemOnline": "Sistem Online",
         "welcome.loginButton": "Masuk Portal",
         "welcome.badge": "⚡ Terintegrasi & Biometrik",
         "welcome.titleLine1": "Portal Kehadiran Digital",
-        "welcome.titleLine2": "SMA UII Yogyakarta",
+        "welcome.titleLine2": "{schoolName}",
         "welcome.subtitle":
             "Aplikasi presensi modern yang menghubungkan Siswa, Orang Tua, dan Guru Piket secara real-time dengan akurasi GPS dan keamanan biometrik kamera.",
         "welcome.ctaButton": "Pilih Portal Akses",
@@ -39,7 +39,7 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.devLogin": "🔑 Halaman Login",
         "welcome.devDashboard": "📊 Dashboard Admin Bypass",
         "welcome.devMaster": "🗂️ Data Master Bypass",
-        "welcome.footerCopyright": "SMA UII Yogyakarta. All rights reserved.",
+        "welcome.footerCopyright": "{schoolName}. All rights reserved.",
         "welcome.footerDev": "Dikembangkan oleh PT Koneksi Jaringan Indonesia",
         "attendance.title": "Presensi",
         "attendance.description": "Presensi tanggal {date}",
@@ -399,12 +399,12 @@ export const translations: Record<string, Record<string, string>> = {
             "Tidak ada data yang cocok dengan kata kunci atau filter yang Anda pilih. Coba sesuaikan kembali pencarian.",
     },
     en: {
-        "welcome.documentTitle": "Welcome - SMART Absen SMA UII",
+        "welcome.documentTitle": "Welcome - SMART Absen {schoolName}",
         "welcome.systemOnline": "System Online",
         "welcome.loginButton": "Login to Portal",
         "welcome.badge": "⚡ Integrated & Biometric",
         "welcome.titleLine1": "Digital Attendance Portal",
-        "welcome.titleLine2": "SMA UII Yogyakarta",
+        "welcome.titleLine2": "{schoolName}",
         "welcome.subtitle":
             "A modern attendance application connecting Students, Parents, and Duty Teachers in real-time with GPS accuracy and camera biometric security.",
         "welcome.ctaButton": "Choose Access Portal",
@@ -440,7 +440,7 @@ export const translations: Record<string, Record<string, string>> = {
         "welcome.devLogin": "🔑 Login Page",
         "welcome.devDashboard": "📊 Admin Dashboard Bypass",
         "welcome.devMaster": "🗂️ Master Data Bypass",
-        "welcome.footerCopyright": "SMA UII Yogyakarta. All rights reserved.",
+        "welcome.footerCopyright": "{schoolName}. All rights reserved.",
         "welcome.footerDev": "Developed by PT Koneksi Jaringan Indonesia",
         "attendance.title": "Attendance",
         "attendance.description": "Attendance on {date}",

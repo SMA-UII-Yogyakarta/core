@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { type FormEventHandler, useState } from "react";
 import { FiEye, FiEyeOff, FiLock, FiUser } from "react-icons/fi";
 import BrandLogo from "@/Components/layout/BrandLogo";
@@ -18,6 +18,8 @@ interface LoginCardProps {
 }
 
 export default function LoginCard({ onSubmit, loading, error, data, setData }: LoginCardProps) {
+    const { schoolName } = usePage().props as { schoolName?: string };
+    const school = schoolName || "Sekolah";
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -40,7 +42,7 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                         <div className="text-center">
                             <h2 className="text-xl font-bold font-inter mb-1">Portal SSO Mandiri</h2>
                             <p className="text-white/70 text-xs font-inter leading-relaxed">
-                                Satu identitas digital resmi untuk seluruh civitas akademika SMA UII.
+                                Satu identitas digital resmi untuk seluruh civitas akademika {school}.
                             </p>
                         </div>
                     </div>
@@ -51,7 +53,7 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                         <div>
                             <h2 className="text-2xl font-bold font-inter mb-2">Portal SSO Mandiri</h2>
                             <p className="text-white/70 text-sm font-inter leading-relaxed max-w-64">
-                                Satu identitas digital resmi untuk seluruh civitas akademika SMA UII.
+                                Satu identitas digital resmi untuk seluruh civitas akademika {school}.
                             </p>
                         </div>
                     </div>
@@ -143,7 +145,7 @@ export default function LoginCard({ onSubmit, loading, error, data, setData }: L
                         </form>
 
                         <p className="pt-5 text-center text-[12px] text-text-muted font-inter">
-                            &copy; {new Date().getFullYear()} SMA UII Yogyakarta &mdash; Copyright Terpusat
+                            &copy; {new Date().getFullYear()} {school} &mdash; Copyright Terpusat
                         </p>
                     </div>
                 </div>

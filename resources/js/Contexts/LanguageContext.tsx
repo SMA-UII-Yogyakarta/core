@@ -1,6 +1,6 @@
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import type React from "react";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { translations } from "@/utils/translations";
 
 type Language = "id" | "en";
@@ -21,18 +21,38 @@ const getCookie = (name: string): string | null => {
     return null;
 };
 
+const setCookie = (name: string, value: string): void => {
+    document.cookie = `${name}=${value}; path=/; max-age=31536000; SameSite=Lax`;
+};
+
+const VALID_LOCALES: Language[] = ["id", "en"];
+
+const isValidLocale = (val: unknown): val is Language =>
+    typeof val === "string" && (VALID_LOCALES as string[]).includes(val);
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { locale: serverLocale } = usePage().props as { locale?: string };
+
     const getInitialLanguage = (): Language => {
+        // Priority: server-side locale (most authoritative) > cookie > default
+        if (isValidLocale(serverLocale)) return serverLocale;
         const cookieLang = getCookie("app_locale");
-        if (cookieLang === "id" || cookieLang === "en") return cookieLang as Language;
+        if (isValidLocale(cookieLang)) return cookieLang;
         return "id";
     };
 
     const [locale, setLocaleState] = useState<Language>(getInitialLanguage);
 
+    // Sync when server locale changes (e.g. after Inertia reload with new locale)
+    useEffect(() => {
+        if (isValidLocale(serverLocale) && serverLocale !== locale) {
+            setLocaleState(serverLocale);
+        }
+    }, [serverLocale]);
+
     const setLanguage = (lang: Language) => {
         // 1. Set cookie so Laravel backend can read it on next request
-        document.cookie = `app_locale=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+        setCookie("app_locale", lang);
 
         // 2. Update local state
         setLocaleState(lang);

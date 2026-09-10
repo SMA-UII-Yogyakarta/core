@@ -68,12 +68,12 @@ class GuardianAssignmentController extends Controller
         $student = Student::findOrFail($validated['student_id']);
 
         if ($student->guardian_id !== null) {
-            return redirect()->back()->with('error', 'Siswa sudah dihubungkan dengan wali murid dan tidak dapat dihubungkan lagi.');
+            return redirect()->back()->with('error', __('messages.guardian_already_linked'));
         }
 
         $student->update(['guardian_id' => $validated['guardian_id']]);
 
-        return redirect()->back()->with('success', 'Siswa berhasil dihubungkan dengan Wali Murid.');
+        return redirect()->back()->with('success', __('messages.guardian_assigned'));
     }
 
     public function removeStudent(int $studentId)
@@ -83,6 +83,6 @@ class GuardianAssignmentController extends Controller
         $student = Student::findOrFail($studentId);
         $student->update(['guardian_id' => null]);
 
-        return redirect()->back()->with('success', 'Hubungan siswa dengan Wali Murid berhasil dilepas.');
+        return redirect()->back()->with('success', __('messages.guardian_unassigned'));
     }
 }

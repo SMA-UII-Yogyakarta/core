@@ -113,6 +113,11 @@ class InitSeeder extends Seeder
             'maintenance_mode' => '0',
             'mfa_enforced' => '1',
             'wa_gateway_status' => 'Active',
+            'default_student_password' => 'SmaUii@2026',
+            'default_teacher_password' => 'SmaUii@2026',
+            'default_guardian_password' => 'SmaUii@2026',
+            'default_locale' => 'id',
+            'fallback_locale' => 'en',
         ];
 
         foreach ($initialAppSettings as $key => $value) {

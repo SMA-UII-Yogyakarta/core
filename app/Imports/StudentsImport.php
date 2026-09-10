@@ -198,7 +198,7 @@ class StudentsImport
 
             $initialPassword = ! empty($password)
                 ? $password
-                : (! empty($this->defaultPassword) ? $this->defaultPassword : config('auth.defaults.user_password', 'SmaUii@' . $enrollmentYear));
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : \App\Models\AppSetting::get('default_student_password', config('auth.defaults.user_password', 'SmaUii@' . $enrollmentYear)));
 
             $user = User::create([
                 'username' => $nis,

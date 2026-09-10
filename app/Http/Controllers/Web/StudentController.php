@@ -108,7 +108,7 @@ class StudentController extends Controller
         $this->authorize('create', Student::class);
 
         $this->studentService->create($request->validated());
-        return redirect()->back()->with('success', 'Siswa berhasil ditambahkan.');
+        return redirect()->back()->with('success', __('messages.student_added'));
     }
 
     public function update(UpdateStudentRequest $request, int $id)
@@ -116,7 +116,7 @@ class StudentController extends Controller
         $this->authorize('update', Student::class);
 
         $this->studentService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Data siswa berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.student_updated'));
     }
 
     public function destroy(int $id)
@@ -124,7 +124,7 @@ class StudentController extends Controller
         $this->authorize('delete', Student::class);
 
         $this->studentService->delete($id);
-        return redirect()->back()->with('success', 'Siswa berhasil dihapus.');
+        return redirect()->back()->with('success', __('messages.student_deleted'));
     }
 
     public function bulkDestroy(\Illuminate\Http\Request $request)
@@ -140,7 +140,7 @@ class StudentController extends Controller
 
         return redirect()->back()->with(
             'success',
-            $count . ' siswa terpilih berhasil dihapus.',
+            trans_choice('messages.student_deleted', $count, ['count' => $count]),
         );
     }
 
@@ -149,7 +149,7 @@ class StudentController extends Controller
         $this->authorize('update', Student::class);
 
         $this->studentService->toggleStatus($id);
-        return redirect()->back()->with('success', 'Status siswa berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.student_status_updated'));
     }
 
     public function create(): Response

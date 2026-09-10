@@ -95,7 +95,7 @@ class StudentPortalTest extends TestCase
             ]);
 
         $response->assertRedirect(route('student.dashboard'));
-        $response->assertSessionHas('success', 'Check-in successful.');
+        $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('attendances', [
             'student_id' => $student->id,

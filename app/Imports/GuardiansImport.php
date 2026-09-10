@@ -152,7 +152,7 @@ class GuardiansImport
 
             $initialPassword = ! empty($password)
                 ? $password
-                : (! empty($this->defaultPassword) ? $this->defaultPassword : config('auth.defaults.user_password', 'SmaUii@' . date('Y')));
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : \App\Models\AppSetting::get('default_guardian_password', config('auth.defaults.user_password', 'SmaUii@' . date('Y'))));
 
             $user = User::create([
                 'username' => $username,

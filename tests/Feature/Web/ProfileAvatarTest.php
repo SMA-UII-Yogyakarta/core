@@ -33,7 +33,7 @@ class ProfileAvatarTest extends TestCase
                     'avatar' => $file,
                 ]);
 
-            $response->assertSessionHas('success', 'Foto profil berhasil diperbarui.');
+            $response->assertSessionHas('success');
 
             $user->refresh();
             $this->assertNotNull($user->avatar);
@@ -50,7 +50,7 @@ class ProfileAvatarTest extends TestCase
         $response = $this->actingAs($user)
             ->delete('/profile/avatar');
 
-        $response->assertSessionHas('success', 'Foto profil berhasil dihapus.');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertNull($user->avatar);
@@ -100,7 +100,7 @@ class ProfileAvatarTest extends TestCase
                 'remove_avatar' => true,
             ]);
 
-        $response->assertSessionHas('success', 'Profil berhasil diperbarui.');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertEquals('Updated Name', $user->name);

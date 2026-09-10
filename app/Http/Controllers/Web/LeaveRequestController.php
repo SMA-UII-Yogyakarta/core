@@ -170,9 +170,9 @@ class LeaveRequestController extends Controller
         $status = $validated['status'];
         $count = $this->leaveRequestService->bulkVerify($validated['ids'], $status);
 
-        $statusText = $status === 'Approved' ? 'disetujui' : 'ditolak';
+        $statusText = $status === 'Approved' ? __('messages.leave_status_approved') : __('messages.leave_status_rejected');
 
-        return redirect()->back()->with('success', $count . ' permohonan izin berhasil ' . $statusText . '.');
+        return redirect()->back()->with('success', __('messages.leave_bulk_verified', ['count' => $count, 'status' => $statusText]));
     }
 
     private function assertInScope(Request $request, int $id): void

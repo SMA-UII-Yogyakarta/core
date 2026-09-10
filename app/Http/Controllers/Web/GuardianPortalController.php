@@ -29,7 +29,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [
@@ -105,7 +105,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->get()->map(fn ($s) => [
@@ -135,7 +135,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->back()->with('error', 'Guardian data not found.');
+            return redirect()->back()->with('error', __('messages.guardian_not_found'));
         }
 
         $validated = $request->validate([
@@ -172,7 +172,7 @@ class GuardianPortalController extends Controller
         ]);
 
         return redirect()->route('guardian.leave-application')
-            ->with('success', 'Pengajuan izin berhasil dikirim ke Wali Kelas.');
+            ->with('success', __('messages.leave_submitted'));
     }
 
     public function history(Request $request)
@@ -180,7 +180,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [

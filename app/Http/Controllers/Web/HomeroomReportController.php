@@ -23,7 +23,7 @@ class HomeroomReportController extends Controller
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
         if (! $teacher) {
-            return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.teacher_not_found'));
         }
 
         $schoolClass = $teacher->schoolClasses()->first();

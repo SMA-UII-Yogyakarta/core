@@ -53,14 +53,14 @@ class ClassEnrolmentController extends Controller
 
         $this->studentService->assignToClass((int) $validated['student_id'], (int) $validated['class_id']);
 
-        return redirect()->back()->with('success', 'Student added to class successfully.');
+        return redirect()->back()->with('success', __('messages.student_enrolled'));
     }
 
     public function removeStudent(int $studentId)
     {
         $this->studentService->assignToClass($studentId, null);
 
-        return redirect()->back()->with('success', 'Student removed from class successfully.');
+        return redirect()->back()->with('success', __('messages.student_unenrolled'));
     }
 
     public function bulkAssign(\Illuminate\Http\Request $request)
@@ -73,7 +73,7 @@ class ClassEnrolmentController extends Controller
 
         $count = $this->studentService->bulkAssignToClass($validated['student_ids'], (int) $validated['class_id']);
 
-        return redirect()->back()->with('success', $count . ' siswa berhasil ditambahkan ke kelas.');
+        return redirect()->back()->with('success', __('messages.students_enrolled_bulk', ['count' => $count]));
     }
 
     public function bulkRemove(\Illuminate\Http\Request $request)
@@ -85,6 +85,6 @@ class ClassEnrolmentController extends Controller
 
         $count = $this->studentService->bulkAssignToClass($validated['student_ids'], null);
 
-        return redirect()->back()->with('success', $count . ' siswa berhasil dikeluarkan dari kelas.');
+        return redirect()->back()->with('success', __('messages.students_unenrolled_bulk', ['count' => $count]));
     }
 }

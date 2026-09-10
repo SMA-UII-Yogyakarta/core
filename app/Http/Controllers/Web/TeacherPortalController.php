@@ -27,7 +27,7 @@ class TeacherPortalController extends Controller
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
         if (! $teacher) {
-            return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.teacher_not_found'));
         }
 
         $today = now()->toDateString();
@@ -121,7 +121,7 @@ class TeacherPortalController extends Controller
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
         if (! $teacher) {
-            return redirect()->route('dashboard')->with('error', 'Teacher data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.teacher_not_found'));
         }
 
         $schoolClass = $teacher->schoolClasses()->first();

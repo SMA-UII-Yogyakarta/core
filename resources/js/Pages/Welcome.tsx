@@ -18,7 +18,7 @@ import { useLanguage } from "@/Contexts/LanguageContext";
 import PublicLayout from "@/Layouts/PublicLayout";
 
 export default function Welcome() {
-    const { auth } = usePage().props as unknown as {
+    const pageProps = usePage().props as unknown as {
         auth: {
             user: {
                 id?: number;
@@ -28,7 +28,10 @@ export default function Welcome() {
                 teacher?: { teacher_type?: string[] | string } | null;
             } | null;
         };
+        schoolName?: string;
     };
+    const { auth } = pageProps;
+    const schoolName = pageProps.schoolName || "SMART Absen";
     const isLoading = !!auth.user;
     const [showDevShortcuts, setShowDevShortcuts] = useState(false);
     const { locale, setLanguage, t } = useLanguage();
@@ -196,7 +199,7 @@ export default function Welcome() {
     ];
 
     return (
-        <PublicLayout title={t("welcome.documentTitle")}>
+        <PublicLayout title={t("welcome.documentTitle", { schoolName })}>
             <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
                 {/* --- HEADER --- */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-neutral-950/90 border-b border-slate-200/80 dark:border-neutral-900/80">
@@ -212,7 +215,7 @@ export default function Welcome() {
                                 </span>
                                 {/* Subtitle hanya tampil ab sm agar tidak overflow di 320px */}
                                 <span className="hidden xs:block text-[9px] sm:text-[10px] text-neutral-500 font-semibold tracking-wider uppercase leading-tight">
-                                    SMA UII Yogyakarta
+                                    {schoolName}
                                 </span>
                             </div>
                         </div>
@@ -277,7 +280,7 @@ export default function Welcome() {
                         <h1 className="font-brand font-extrabold text-[2rem] xs:text-[2.25rem] sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] max-w-4xl mx-auto">
                             <span className="block text-neutral-900 dark:text-white">{t("welcome.titleLine1")}</span>
                             <span className="block mt-1 sm:mt-2 bg-linear-to-r from-primary to-indigo-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-accent">
-                                {t("welcome.titleLine2")}
+                                {t("welcome.titleLine2", { schoolName })}
                             </span>
                         </h1>
 
@@ -423,7 +426,7 @@ export default function Welcome() {
                 <footer className="border-t border-slate-200 dark:border-neutral-900 bg-white dark:bg-neutral-950 py-6 sm:py-8">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                         <div className="text-xs text-neutral-500 dark:text-neutral-400">
-                            &copy; {new Date().getFullYear()} {t("welcome.footerCopyright")}
+                            &copy; {new Date().getFullYear()} {t("welcome.footerCopyright", { schoolName })}
                         </div>
                         <div className="text-[11px] text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
                             <FiCpu className="w-3.5 h-3.5" />

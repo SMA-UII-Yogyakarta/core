@@ -21,7 +21,7 @@ class StudentPortalController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Student data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.student_not_found'));
         }
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
@@ -56,7 +56,7 @@ class StudentPortalController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Student data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.student_not_found'));
         }
 
         $todayAttendance = $this->attendanceService->todayByStudent($student->id);
@@ -95,12 +95,12 @@ class StudentPortalController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->back()->with('error', 'Student data not found.');
+            return redirect()->back()->with('error', __('messages.student_not_found'));
         }
 
         try {
             $this->attendanceService->checkIn($student->id, $request->all());
-            return redirect()->route('student.dashboard')->with('success', 'Check-in successful.');
+            return redirect()->route('student.dashboard')->with('success', __('messages.checkin_success'));
         } catch (\RuntimeException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
@@ -111,7 +111,7 @@ class StudentPortalController extends Controller
         $student = $this->studentService->findByUserId(auth()->id());
 
         if (! $student) {
-            return redirect()->route('dashboard')->with('error', 'Student data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.student_not_found'));
         }
 
         $month = (int) request('month', date('m'));
