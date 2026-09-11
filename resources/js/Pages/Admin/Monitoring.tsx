@@ -1,5 +1,6 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { FiBarChart2, FiFilter, FiSearch } from "react-icons/fi";
 import { BottomSheet, Button, Card, Input, PageHeader, SelectInput, StatCard, StatusBadge, Table } from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
@@ -61,6 +62,14 @@ export default function Monitoring({
     const [classId, setClassId] = useState<string>(selectedClassId?.toString() ?? "");
     const [studentsState, setStudentsState] = useState(initialStudents);
     const [statsState, setStatsState] = useState(initialStats);
+
+    // Debounced class filter - triggers router.get 350ms after user stops changing filter
+    const debouncedClassId = useDebounce(classId, 350);
+
+    // Effect to trigger router.get when debounced classId changes
+    useEffect(() => {
+        router.get("/monitoring", { class_id: debouncedClassId || undefined }, { preserveState: true });
+    }, [debouncedClassId]);
 
     // Keep studentsState and statsState in sync when Inertia reloads props
     useEffect(() => {
@@ -149,10 +158,6 @@ export default function Monitoring({
             }
         };
     }, [classId]);
-
-    const handleFilter = () => {
-        router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });
-    };
 
     const columns: Column<AttendanceStudent>[] = [
         { key: "nisn", header: t("monitoring.colNisn"), render: (s) => s.student.nisn },
@@ -309,7 +314,7 @@ export default function Monitoring({
                         <Button
                             variant="primary"
                             onClick={() => {
-                                handleFilter();
+                                router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });
                                 setIsMobileFilterOpen(false);
                             }}
                             className="flex-1 h-10 text-[13px] font-bold rounded-xl"

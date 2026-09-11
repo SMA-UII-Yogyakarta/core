@@ -1,5 +1,6 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { FiCheckSquare, FiXCircle } from "react-icons/fi";
 import {
     Button,
@@ -68,15 +69,30 @@ export default function VerifikasiIzin({
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
     const [selectedLeaveIds, setSelectedLeaveIds] = useState<number[]>([]);
 
+    // Debounced filters - triggers router.get 350ms after user stops changing filters
+    const debouncedStatusFilter = useDebounce(statusFilter, 350);
+    const debouncedCategoryFilter = useDebounce(categoryFilter, 350);
+    const debouncedClassId = useDebounce(selectedClassId, 350);
+
+    // Effect to trigger router.get when debounced filters change
+    useEffect(() => {
+        router.get(
+            "/leave-requests/verification",
+            {
+                status: debouncedStatusFilter || undefined,
+                category: debouncedCategoryFilter || undefined,
+                class_id: debouncedClassId || undefined,
+            },
+            { preserveState: true },
+        );
+    }, [debouncedStatusFilter, debouncedCategoryFilter, debouncedClassId]);
+
     const handleFilter = (status?: string, category?: string) => {
         const s = status ?? statusFilter;
         const c = category ?? categoryFilter;
         setSelectedLeaveIds([]);
-        router.get(
-            "/leave-requests/verification",
-            { status: s || undefined, category: c || undefined },
-            { preserveState: true },
-        );
+        setStatusFilter(s);
+        setCategoryFilter(c);
     };
 
     const handlePageChange = (page: number) => {

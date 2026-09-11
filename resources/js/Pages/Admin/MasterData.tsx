@@ -1,6 +1,7 @@
 import { router, usePage } from "@inertiajs/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
     FiAlertCircle,
     FiBookOpen,
@@ -239,14 +240,16 @@ export default function MasterData({
         }
     };
 
-    const handleSearch = (val: string) => {
-        if (val === search) return;
-        setSearch(val);
+    // Debounced search - triggers router.get 350ms after user stops typing
+    const debouncedSearch = useDebounce(search, 350);
+
+    // Effect to trigger router.get when debounced search value changes
+    useEffect(() => {
         router.get(
             "/master-data",
             {
                 tab: currentTab,
-                search: val || undefined,
+                search: debouncedSearch || undefined,
                 class_id: currentTab === "students" ? selectedClassId || undefined : undefined,
                 status: currentTab === "students" ? selectedStatus || undefined : undefined,
                 teacher_type: currentTab === "teachers" ? selectedTeacherType || undefined : undefined,
@@ -255,6 +258,10 @@ export default function MasterData({
             },
             { preserveState: true, replace: true },
         );
+    }, [debouncedSearch, currentTab, selectedClassId, selectedStatus, selectedTeacherType, selectedLevel, selectedHasStudent]);
+
+    const handleSearch = (val: string) => {
+        setSearch(val);
     };
 
     const handleFilterChange = (key: string, val: string) => {
