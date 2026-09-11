@@ -54,7 +54,7 @@ class GuardianPortalController extends Controller
                 $todayAttendance = [
                     'id' => $att->id,
                     'status' => $att->status,
-                    'check_in_time' => $att->check_in_time->format('H:i:s'),
+                    'check_in_time' => $att->check_in_time?->format('H:i:s'),
                     'attendance_date' => $att->attendance_date->toDateString(),
                 ];
             }

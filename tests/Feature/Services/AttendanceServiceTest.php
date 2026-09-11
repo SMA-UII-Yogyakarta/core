@@ -3,6 +3,7 @@
 namespace Tests\Feature\Services;
 
 use App\Models\AcademicCalendar;
+use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
 use App\Models\Guardian;
 use App\Models\LeaveRequest;
@@ -481,6 +482,26 @@ class AttendanceServiceTest extends TestCase
         $this->assertEquals(1, $stats['sick_permission']);
     }
 
+    public function test_approved_permission_counts_student_once_when_multiple_leaves_overlap(): void
+    {
+        $data = $this->createClassWithStudent();
+
+        foreach (['Sick', 'Event'] as $category) {
+            LeaveRequest::create([
+                'student_id' => $data['student']->id,
+                'guardian_id' => $data['guardian']->id,
+                'category' => $category,
+                'start_date' => now()->subDay()->toDateString(),
+                'end_date' => now()->addDay()->toDateString(),
+                'approval_status' => 'Approved',
+            ]);
+        }
+
+        $stats = $this->service->stats($data['class']->id);
+
+        $this->assertEquals(1, $stats['approved_permission']);
+    }
+
     public function test_sick_stats_excludes_event_category(): void
     {
         $data = $this->createClassWithStudent();
@@ -570,6 +591,57 @@ class AttendanceServiceTest extends TestCase
         $stats = $this->service->stats($otherClass->id);
 
         $this->assertEquals(0, $stats['sick_permission']);
+    }
+
+    public function test_consecutive_alpa_streak_counts_single_missing_day(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-10 08:00:00'));
+
+        $data = $this->createClassWithStudent();
+
+        Attendance::factory()->create([
+            'student_id' => $data['student']->id,
+            'attendance_date' => '2026-07-09',
+            'status' => 'Present',
+        ]);
+
+        $streak = $this->service->getConsecutiveAlpaStreak($data['student']->id);
+
+        $this->assertEquals(1, $streak);
+    }
+
+    public function test_consecutive_alpa_streak_skips_weekend_and_breaks_on_present(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-10 08:00:00'));
+
+        $data = $this->createClassWithStudent();
+
+        Attendance::factory()->create([
+            'student_id' => $data['student']->id,
+            'attendance_date' => '2026-07-07',
+            'status' => 'Present',
+        ]);
+
+        $streak = $this->service->getConsecutiveAlpaStreak($data['student']->id);
+
+        $this->assertEquals(3, $streak);
+    }
+
+    public function test_consecutive_alpa_streaks_plural_matches_attendance_dates(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-07-10 08:00:00'));
+
+        $data = $this->createClassWithStudent();
+
+        Attendance::factory()->create([
+            'student_id' => $data['student']->id,
+            'attendance_date' => '2026-07-07',
+            'status' => 'Present',
+        ]);
+
+        $result = $this->service->getConsecutiveAlpaStreaks([$data['student']->id]);
+
+        $this->assertEquals(3, $result[$data['student']->id]);
     }
 
     private function scheduleToday(): void

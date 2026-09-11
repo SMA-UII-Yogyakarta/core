@@ -33,6 +33,13 @@ class HomeroomReportController extends Controller
             'teacher' => ['id' => $teacher->id, 'name' => $teacher->name],
             'class' => $schoolClass ? ['id' => $schoolClass->id, 'name' => $schoolClass->name] : null,
             'tab' => $tab,
+            'pendingLeaveCount' => $schoolClass
+                ? \App\Models\LeaveRequest::where('approval_status', 'Pending')
+                    ->whereIn('student_id', \App\Models\Student::where('class_id', $schoolClass->id)->where('status', 'Active')->pluck('id'))
+                    ->whereDate('start_date', '<=', now()->toDateString())
+                    ->whereDate('end_date', '>=', now()->toDateString())
+                    ->count()
+                : 0,
         ];
 
         if (! $schoolClass) {
@@ -106,10 +113,10 @@ class HomeroomReportController extends Controller
             ];
         }
 
-        $totalHeb = array_sum(array_column($monthlyBreakdown, 'school_days'));
+        $totalEffectiveDays = array_sum(array_column($monthlyBreakdown, 'school_days'));
         $totalStudentCount = $allStudentsRecap->pluck('id')->unique()->count();
 
-        $grouped = $allStudentsRecap->groupBy('id')->map(function ($records) use ($totalHeb) {
+        $grouped = $allStudentsRecap->groupBy('id')->map(function ($records) use ($totalEffectiveDays) {
             $first = $records->first();
             $onTimeTotal = $records->sum('on_time');
 
@@ -129,8 +136,8 @@ class HomeroomReportController extends Controller
                 'absent' => $records->sum('absent'),
                 'on_time' => $onTimeTotal,
                 'late' => $records->sum('present') - $onTimeTotal,
-                'discipline_rate' => $totalHeb > 0
-                    ? round(($onTimeTotal / $totalHeb) * 100, 1)
+                'discipline_rate' => $totalEffectiveDays > 0
+                    ? round(($onTimeTotal / $totalEffectiveDays) * 100, 1)
                     : 0,
                 'attendance_rate' => $attendanceDenominator > 0
                     ? round(($records->sum('present') / $attendanceDenominator) * 100, 1)
@@ -158,9 +165,9 @@ class HomeroomReportController extends Controller
             'attendance_rate' => $rateDenominator > 0
                 ? round((($totalOnTime + $totalLate) / $rateDenominator) * 100, 1)
                 : 0,
-            'school_days' => $totalHeb,
-            'discipline_rate' => ($totalHeb > 0 && $totalStudentCount > 0)
-                ? round(($totalOnTime / ($totalHeb * $totalStudentCount)) * 100, 1)
+            'school_days' => $totalEffectiveDays,
+            'discipline_rate' => ($totalEffectiveDays > 0 && $totalStudentCount > 0)
+                ? round(($totalOnTime / ($totalEffectiveDays * $totalStudentCount)) * 100, 1)
                 : 0,
             'total_students' => $totalStudentCount,
         ];

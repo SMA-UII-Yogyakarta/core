@@ -13,14 +13,16 @@ return new class () extends Migration {
             DB::statement('ALTER TABLE teachers DROP CONSTRAINT IF EXISTS teachers_teacher_type_check');
             DB::statement('ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT');
             DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type TYPE json USING (
-                CASE 
-                    WHEN teacher_type = 'duty' THEN '[\"piket\"]'::json
-                    WHEN teacher_type = 'homeroom' THEN '[\"wali\"]'::json
-                    WHEN teacher_type = 'both' THEN '[\"piket\",\"wali\"]'::json
-                    ELSE '[\"piket\"]'::json
+                CASE
+                    WHEN teacher_type = 'homeroom' THEN '[\"homeroom\"]'::json
+                    WHEN teacher_type = 'duty' THEN '[\"duty\"]'::json
+                    WHEN teacher_type = 'both' THEN '[\"homeroom\",\"duty\"]'::json
+                    WHEN teacher_type = 'wali' THEN '[\"homeroom\"]'::json
+                    WHEN teacher_type = 'piket' THEN '[\"duty\"]'::json
+                    ELSE '[\"duty\"]'::json
                 END
             )");
-            DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type SET DEFAULT '[\"piket\"]'::json");
+            DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type SET DEFAULT '[\"duty\"]'::json");
         } else {
             Schema::table('teachers', function (Blueprint $table) {
                 $table->dropColumn('teacher_type');
@@ -36,9 +38,9 @@ return new class () extends Migration {
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('ALTER TABLE teachers ALTER COLUMN teacher_type DROP DEFAULT');
             DB::statement("ALTER TABLE teachers ALTER COLUMN teacher_type TYPE varchar(255) USING (
-                CASE 
-                    WHEN teacher_type::text = '[\"piket\",\"wali\"]' THEN 'both'
-                    WHEN teacher_type::text = '[\"wali\"]' THEN 'wali'
+                CASE
+                    WHEN teacher_type::text = '[\"homeroom\",\"duty\"]' THEN 'both'
+                    WHEN teacher_type::text = '[\"homeroom\"]' THEN 'wali'
                     ELSE 'piket'
                 END
             )");

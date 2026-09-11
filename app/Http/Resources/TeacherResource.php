@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property int $id
  * @property string $teacher_code
  * @property string $name
- * @property string $teacher_type
+ * @property \Illuminate\Support\Collection<int, \App\Enums\TeacherType>|null $teacher_type
  * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\SchoolClass> $schoolClasses
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -22,7 +22,7 @@ class TeacherResource extends JsonResource
             'id' => $this->id,
             'teacher_code' => $this->teacher_code,
             'name' => $this->name,
-            'teacher_type' => $this->teacher_type,
+            'teacher_type' => $this->teacher_type?->map(fn ($t) => $t->value)->values() ?? [],
             'school_classes' => $this->whenLoaded('schoolClasses', fn () => $this->schoolClasses->map(
                 fn ($class) => ['id' => $class->id, 'name' => $class->name],
             )),

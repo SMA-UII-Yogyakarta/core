@@ -157,3 +157,22 @@ docker exec core-app-1 php artisan migrate:fresh --seed
 # Atau melalui Host Terminal lokal (Laragon / Makefile)
 make fresh
 ```
+
+### 4.1. Seeder Presensi Hari Ini (`SEED_TODAY_ATTENDANCE`)
+
+Secara default seeder **tidak** membuat presensi untuk tanggal sekarang, sehingga demo kamera/lokasi siswa tetap bisa dicoba secara live di hari tersebut. Untuk menguji **Dashboard Wali Kelas** (tabel *Perhatian Khusus Hari Ini*), aktifkan presensi hari ini via variabel lingkungan sebelum re-seed:
+
+```dotenv
+# .env (lokal / testing — jangan commit ke repository)
+SEED_TODAY_ATTENDANCE=true
+```
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+**Yang di-seed saat flag aktif:**
+* Presensi hari ini untuk seluruh siswa aktif (masuk ke dalam pita ambang batas yang suara alamiah via loop probabilistik).
+* Kurasi penuh **kelas X-A** agar tabel Perhatian Khusus merepresentasikan seluruh status: ALPA streak `3×` (NIS `24250006`, `24250020`), ALPA `1×` (NIS `24250010`), pengajuan izin **Pending** (TERTUNDA), izin **Approved** (DIIZINKAN), **TERLAMBAT**, serta mayoritas sisanya hadir tepat waktu. Siswa dengan izin Pending/Approved hari itu sengaja **tidak** diberi presensi.
+
+> Gunakan akun `budi` (Wali Kelas X-A) untuk memverifikasi tabel ini di `/teacher/homeroom`. Set `SEED_TODAY_ATTENDANCE=false` (atau hapus dari `.env`) untuk mengembalikan perilaku seeding default.

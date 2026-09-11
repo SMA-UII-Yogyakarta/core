@@ -88,8 +88,8 @@ class PermissionRegistry
                 'label' => 'Utama',
                 'items' => [
                     ['key' => 'dashboard-admin',    'label' => 'Dashboard',      'icon' => 'fa-th-large',    'href' => '/dashboard',               'roles' => ['admin']],
-                    ['key' => 'dashboard-piket',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:duty']],
-                    ['key' => 'dashboard-wali',     'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:homeroom']],
+['key' => 'dashboard-piket',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/teacher/duty',            'roles' => ['teacher:duty']],
+                    ['key' => 'dashboard-wali',     'label' => 'Dasbor',    'icon' => 'fa-th-large',    'href' => '/teacher/homeroom',        'roles' => ['teacher:homeroom'], 'labelKey' => 'nav.dasbor'],
                     ['key' => 'dashboard-guardian', 'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/guardian',                'roles' => ['guardian']],
                     ['key' => 'dashboard-siswa',    'label' => 'Overview',       'icon' => 'fa-th-large',    'href' => '/student/dashboard',       'roles' => ['student']],
 
@@ -99,10 +99,10 @@ class PermissionRegistry
                     ['key' => 'operational-settings','label' => 'Atur Waktu & Libur','icon' => 'fa-clock',             'href' => '/operational-settings', 'roles' => ['admin']],
                     ['key' => 'export',             'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/export',               'roles' => ['admin', 'teacher:duty']],
 
-                    ['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:duty']],
-                    ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:homeroom']],
+['key' => 'pantauan-izin',      'label' => 'Pantauan Izin',     'icon' => 'fa-file-signature',    'href' => '/leave-requests',       'roles' => ['teacher:duty']],
+                    ['key' => 'verifikasi-izin',    'label' => 'Verifikasi Izin',   'icon' => 'fa-check-circle',      'href' => '/leave-requests/verification', 'roles' => ['teacher:homeroom'], 'badge' => 'pendingLeaveCount', 'labelKey' => 'nav.verifikasiIzin'],
 
-                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:homeroom']],
+                    ['key' => 'reports',            'label' => 'Laporan Rekap',     'icon' => 'fa-file-alt',          'href' => '/reports',              'roles' => ['teacher:homeroom'], 'labelKey' => 'nav.laporanRekap'],
                     ['key' => 'reports.daily',      'label' => 'Rekap Harian',      'icon' => 'fa-history',           'href' => '/reports?tab=daily',    'roles' => ['teacher:duty']],
 
                     ['key' => 'guardian.leave-application', 'label' => 'Pengajuan Izin', 'icon' => 'fa-paper-plane', 'href' => '/guardian/leave-application', 'roles' => ['guardian']],

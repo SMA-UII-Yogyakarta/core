@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import type { NavSection } from "@/Layouts/AppShell";
 import Avatar from "../ui/Avatar";
 
@@ -30,6 +31,9 @@ export default function MobileSidebarDrawer({
     onClose,
     onLogout,
 }: MobileSidebarDrawerProps) {
+const { props: pageProps } = usePage<{ pendingLeaveCount?: number }>();
+    const pendingLeaveCount = pageProps.pendingLeaveCount ?? 0;
+    const { t } = useLanguage();
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
     const roleLabel =
@@ -127,7 +131,12 @@ export default function MobileSidebarDrawer({
                                                 isActive ? "text-primary" : "text-text-inactive"
                                             }`}
                                         />
-                                        <span className="text-[14px] truncate">{item.label}</span>
+                                        <span className="text-[14px] truncate flex-1">{t(item.labelKey ?? item.label)}</span>
+                                        {item.badge === "pendingLeaveCount" && pendingLeaveCount > 0 && (
+                                            <span className="bg-danger text-white text-[11px] font-bold min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center">
+                                                {pendingLeaveCount}
+                                            </span>
+                                        )}
                                     </Link>
                                 );
                             })}

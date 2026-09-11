@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $student_id
  * @property \Illuminate\Support\Carbon $attendance_date
- * @property \Illuminate\Support\Carbon $check_in_time
+ * @property \Illuminate\Support\Carbon|null $check_in_time
  * @property string $latitude
  * @property string $longitude
  * @property string $photo_url

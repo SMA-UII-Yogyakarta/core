@@ -14,6 +14,7 @@ export interface TableProps<T> {
     emptyMessage?: string;
     loading?: boolean;
     bare?: boolean;
+    onRowClick?: (item: T) => void;
     stickyHeader?: boolean;
     containerClassName?: string;
     dense?: boolean;
@@ -33,6 +34,7 @@ export default function Table<T>({
     emptyMessage = "Tidak ada data.",
     loading = false,
     bare = false,
+    onRowClick,
     stickyHeader = true,
     containerClassName = "",
     dense = false,
@@ -84,7 +86,8 @@ export default function Table<T>({
                         data.map((item) => (
                             <tr
                                 key={keyExtractor(item)}
-                                className="border-b border-border last:border-b-0 hover:bg-muted transition-colors"
+                                onClick={() => onRowClick?.(item)}
+                                className={`border-b border-border last:border-b-0 hover:bg-muted transition-colors ${onRowClick ? "cursor-pointer" : ""}`}
                             >
                                 {columns.map((col) => {
                                     const justify = getJustifyClass(col.className);

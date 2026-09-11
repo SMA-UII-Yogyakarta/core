@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'seed_today_attendance' => env('SEED_TODAY_ATTENDANCE', false),
+
 ];

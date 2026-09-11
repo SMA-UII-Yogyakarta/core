@@ -4,6 +4,8 @@ export interface NavItem {
     icon: string;
     href: string;
     roles?: string[];
+    badge?: string;
+    labelKey?: string;
 }
 
 export interface NavSection {
@@ -28,4 +30,7 @@ export type StatusVariant =
     | "inactive"
     | "pending"
     | "approved"
-    | "rejected";
+    | "rejected"
+    | "no_update"
+    | "no_check_in"
+    | "not_open";
