@@ -306,7 +306,7 @@ export default function HomeroomDashboard({
                     <div className="grid grid-cols-2 gap-2">
                         <StatCard compact label={t("homeroom.statOnTime")} value={statsData.present} variant="success" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
                         <StatCard compact label={t("homeroom.statLate")} value={statsData.late} variant="warning" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
-                        <StatCard compact label={t("homeroom.statPermit")} value={statsData.approved_permission ?? 0} variant="primary" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
+                        <StatCard compact label={t("homeroom.statPermitFull")} value={statsData.approved_permission ?? 0} variant="primary" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
                         <StatCard compact label={t("homeroom.statAbsent")} value={statsData.truly_absent ?? 0} variant="danger" className="!flex-row-reverse !items-baseline !justify-center !gap-2 !min-h-0 !p-2.5" />
                     </div>
                 </div>
