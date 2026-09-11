@@ -9,6 +9,7 @@ use App\Models\SchoolClass;
 use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
@@ -30,7 +31,7 @@ class AnalyticsService
 
         $total = $studentCounts->sum();
 
-        $attendanceCounts = \Illuminate\Support\Facades\DB::table('attendances')
+        $attendanceCounts = DB::table('attendances')
             ->join('students', 'students.id', '=', 'attendances.student_id')
             ->whereDate('attendances.attendance_date', $date)
             ->where('students.status', 'Active')
@@ -412,6 +413,7 @@ class AnalyticsService
 
         $schoolDays = $this->countSchoolDays($startOfMonth, $endOfMonth);
 
+        // Build recap using original per-day logic for correct leave handling
         $recap = $students->map(function ($student) use ($attendancesByStudent, $leavesByStudent, $schoolDays, $startOfMonth, $endOfMonth) {
             $studentAttendances = $attendancesByStudent->get($student->id, collect())
                 ->keyBy(fn ($a) => $a->attendance_date->toDateString());
@@ -492,6 +494,7 @@ class AnalyticsService
             ];
         })->values();
 
+        // Daily breakdown using original logic (iterates per student per day for correct leave handling)
         $daily = [];
         for ($d = 1; $d <= $daysInMonth; $d++) {
             $date = $startOfMonth->copy()->day($d);
