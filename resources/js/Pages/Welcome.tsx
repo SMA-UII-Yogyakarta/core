@@ -200,7 +200,7 @@ export default function Welcome() {
 
     return (
         <PublicLayout title={t("welcome.documentTitle", { schoolName })}>
-            <div className="min-h-screen bg-[#FDFDFC] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
+            <div className="min-h-screen bg-[var(--color-surface)] dark:bg-neutral-950 text-neutral-800 dark:text-neutral-200 selection:bg-primary selection:text-white font-sans transition-colors duration-300">
                 {/* --- HEADER --- */}
                 <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-neutral-950/90 border-b border-slate-200/80 dark:border-neutral-900/80">
                     <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">

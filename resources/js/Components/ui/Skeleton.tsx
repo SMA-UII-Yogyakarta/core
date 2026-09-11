@@ -18,7 +18,7 @@ interface SkeletonProps {
     height?: string | number;
 }
 
-const base = "animate-pulse bg-[#e2e8f0] dark:bg-[#334155] rounded";
+const base = "animate-pulse bg-[var(--color-border)] dark:bg-[#334155] rounded";
 
 const variants: Record<string, string> = {
     text: "h-4 w-full",

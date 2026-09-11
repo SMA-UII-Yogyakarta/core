@@ -243,7 +243,7 @@ export function LiveAttendanceMap({
                     left: 0 !important;
                     right: 0 !important;
                     bottom: 0 !important;
-                    background: #f1f5f9 !important;
+                    background: var(--color-background) !important;
                 }
                 .school-map-pin, .user-map-pin {
                     background: transparent !important;
@@ -257,18 +257,18 @@ export function LiveAttendanceMap({
                 <svg className="w-full h-full text-slate-300" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                         <pattern id="road-pattern" width="80" height="80" patternUnits="userSpaceOnUse">
-                            <rect width="80" height="80" fill="#f8fafc" />
-                            <path d="M 0 40 L 80 40 M 40 0 L 40 80" stroke="#e2e8f0" strokeWidth="6" />
+                            <rect width="80" height="80" fill="var(--color-muted)" />
+                            <path d="M 0 40 L 80 40 M 40 0 L 40 80" stroke="var(--color-border)" strokeWidth="6" />
                             <path
                                 d="M 0 40 L 80 40 M 40 0 L 40 80"
-                                stroke="#cbd5e1"
+                                stroke="var(--color-border-input)"
                                 strokeWidth="2"
                                 strokeDasharray="4 4"
                             />
-                            <rect x="10" y="10" width="22" height="22" rx="4" fill="#e0f2fe" opacity="0.6" />
-                            <rect x="48" y="10" width="22" height="22" rx="4" fill="#f0fdf4" opacity="0.6" />
-                            <rect x="10" y="48" width="22" height="22" rx="4" fill="#fef3c7" opacity="0.4" />
-                            <rect x="48" y="48" width="22" height="22" rx="4" fill="#f1f5f9" opacity="0.8" />
+                            <rect x="10" y="10" width="22" height="22" rx="4" fill="var(--color-info-light)" opacity="0.6" />
+                            <rect x="48" y="10" width="22" height="22" rx="4" fill="var(--color-success-light)" opacity="0.6" />
+                            <rect x="10" y="48" width="22" height="22" rx="4" fill="var(--color-warning-light)" opacity="0.4" />
+                            <rect x="48" y="48" width="22" height="22" rx="4" fill="var(--color-background)" opacity="0.8" />
                         </pattern>
                     </defs>
                     <rect width="100%" height="100%" fill="url(#road-pattern)" />
@@ -276,8 +276,8 @@ export function LiveAttendanceMap({
 
                 {/* Simulated Geofence Circle Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-48 h-48 rounded-full border-2 border-dashed border-[#2E3391]/40 bg-[#2E3391]/10 flex items-center justify-center">
-                        <div className="w-8 h-8 rounded-full bg-[#2E3391] text-white flex items-center justify-center text-xs shadow-md border-2 border-white">
+                    <div className="w-48 h-48 rounded-full border-2 border-dashed border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-xs shadow-md border-2 border-white">
                             🏫
                         </div>
                     </div>

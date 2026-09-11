@@ -363,9 +363,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         style={
                             form[day].is_active
                                 ? {
-                                      color: "#d97706",
-                                      borderColor: "#fcd34d",
-                                      backgroundColor: "rgba(254, 243, 199, 0.5)",
+                                      color: "var(--color-warning)",
+                                      borderColor: "var(--color-warning-light)",
+                                      backgroundColor: "var(--color-warning-bg)",
                                   }
                                 : undefined
                         }
@@ -389,9 +389,9 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         style={
                             form[day].is_active
                                 ? {
-                                      color: "#dc2626",
-                                      borderColor: "#fca5a5",
-                                      backgroundColor: "rgba(254, 226, 226, 0.5)",
+                                      color: "var(--color-danger)",
+                                      borderColor: "var(--color-danger-light)",
+                                      backgroundColor: "var(--color-danger-bg)",
                                   }
                                 : undefined
                         }
