@@ -17,9 +17,13 @@ class OverviewController extends Controller
         }
 
         return match ($user->role) {
-            'teacher' => $user->teacher?->isHomeroom()
-                ? redirect()->route('teacher.homeroom')
-                : redirect()->route('teacher.duty'),
+            'teacher' => match (session('active_teacher_role')) {
+                'duty' => ($user->teacher?->isDuty()) ? redirect()->route('teacher.duty') : redirect()->route('teacher.homeroom'),
+                'homeroom' => ($user->teacher?->isHomeroom()) ? redirect()->route('teacher.homeroom') : redirect()->route('teacher.duty'),
+                default => $user->teacher?->isHomeroom()
+                    ? redirect()->route('teacher.homeroom')
+                    : redirect()->route('teacher.duty'),
+            },
             'guardian' => redirect()->route('guardian.dashboard', $request->query()),
             'student' => redirect()->route('student.dashboard'),
             default => redirect()->route('dashboard'),

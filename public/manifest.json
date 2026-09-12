@@ -67,41 +67,25 @@
             "short_name": "Presensi",
             "description": "Lakukan presensi kehadiran sekarang",
             "url": "/attendance",
-            "icons": [{ "src": "/icons/shortcut-attendance.png", "sizes": "192x192" }]
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         },
         {
             "name": "Riwayat Kehadiran",
             "short_name": "Riwayat",
             "description": "Lihat riwayat kehadiran Anda",
             "url": "/history",
-            "icons": [{ "src": "/icons/shortcut-history.png", "sizes": "192x192" }]
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         },
         {
             "name": "Pengajuan Izin",
             "short_name": "Izin",
             "description": "Ajukan izin cuti/sakit",
             "url": "/leave-application",
-            "icons": [{ "src": "/icons/shortcut-leave.png", "sizes": "192x192" }]
+            "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
         }
     ],
     "prefer_related_applications": false,
     "related_applications": [],
-    "screenshots": [
-        {
-            "src": "/screenshots/dashboard-wide.png",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "form_factor": "wide",
-            "label": "Dashboard Overview"
-        },
-        {
-            "src": "/screenshots/attendance-mobile.png",
-            "sizes": "390x844",
-            "type": "image/png",
-            "form_factor": "narrow",
-            "label": "Live Attendance"
-        }
-    ],
     "protocol_handlers": [
         {
             "protocol": "web+smartabsen",

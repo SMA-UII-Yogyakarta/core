@@ -46,3 +46,10 @@ test:     Adding tests
 - Do not commit `.env`, keys, tokens, passwords
 - Validate & sanitize user input
 - Prepared statements via Eloquent
+
+## Role & Authorization Conventions (D1/ADR — Accepted Opsi A)
+- **Single source of truth**: kolom `users.role` (`admin|teacher|student|guardian`) adalah satu-satunya tempat menulis peran pengguna.
+- **Spatie roles = derived cache**: Spatie roles diturunkan otomatis via hook `User::syncRoleFromColumn()` (panggil `$user->syncRoleFromColumn()` setelah mengubah `role`; otomatis dijalankan di `saved` event).
+- **JANGAN** panggil `assignRole()` / `syncRoles()` / `removeRole()` secara manual di service/import/controller — gunakan hook.
+- **Guard selalu `web`**: User model punya `protected string $guard_name = 'web'`. Semua `hasRole()` / `syncRoles()` memakai guard `web` eksplisit. Jangan hapus property ini tanpa mengganti semua `hasRole` jadi `$user->hasRole('role', 'web')`.
+- **Test guard rail**: `UserRoleConsistencyTest` menjamin kolom↔Spatie sinkron untuk 4 role, survival di konteks `auth:sanctum`, tak ada duplikat role.

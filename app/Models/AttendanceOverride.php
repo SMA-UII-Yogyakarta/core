@@ -4,9 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $student_id
+ * @property int $user_id
+ * @property \Illuminate\Support\Carbon $attendance_date
+ * @property string|null $original_status
+ * @property string $new_status
+ * @property string $reason
+ */
 class AttendanceOverride extends Model
 {
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'student_id',
+        'user_id',
+        'attendance_date',
+        'original_status',
+        'new_status',
+        'reason',
+    ];
 
     protected function casts(): array
     {

@@ -1,4 +1,7 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
+import IconButton from "@/Components/ui/IconButton";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface DatePickerProps {
     value?: string;
@@ -11,10 +14,7 @@ interface DatePickerProps {
     max?: string;
 }
 
-const MONTH_NAMES = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 const DAY_LABELS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
@@ -30,11 +30,7 @@ function displayToIso(display: string): string | null {
     const [d, m, y] = parts;
     if (d.length !== 2 || m.length !== 2 || y.length !== 4) return null;
     const date = new Date(Number(y), Number(m) - 1, Number(d));
-    if (
-        date.getDate() !== Number(d) ||
-        date.getMonth() !== Number(m) - 1 ||
-        date.getFullYear() !== Number(y)
-    ) {
+    if (date.getDate() !== Number(d) || date.getMonth() !== Number(m) - 1 || date.getFullYear() !== Number(y)) {
         return null;
     }
     return `${y}-${m}-${d}`;
@@ -72,8 +68,14 @@ function incrementSegment(display: string, cursorPos: number, delta: number): st
         }
         case "month": {
             m += delta;
-            if (m < 1) { m = 12; y -= 1; }
-            if (m > 12) { m = 1; y += 1; }
+            if (m < 1) {
+                m = 12;
+                y -= 1;
+            }
+            if (m > 12) {
+                m = 1;
+                y += 1;
+            }
             const maxDaysM = new Date(y, m, 0).getDate();
             if (d > maxDaysM) d = maxDaysM;
             break;
@@ -136,8 +138,14 @@ export default function DatePicker({
             }
             const iso = displayToIso(display);
             if (iso) {
-                if (min && iso < min) { setIsInvalid(true); return; }
-                if (max && iso > max) { setIsInvalid(true); return; }
+                if (min && iso < min) {
+                    setIsInvalid(true);
+                    return;
+                }
+                if (max && iso > max) {
+                    setIsInvalid(true);
+                    return;
+                }
                 setIsInvalid(false);
                 onChange?.(iso);
             } else {
@@ -249,9 +257,7 @@ export default function DatePicker({
 
     return (
         <div className={`relative ${className}`} ref={containerRef}>
-            {label && (
-                <label className="block text-[13px] text-text-muted font-inter mb-1">{label}</label>
-            )}
+            {label && <label className="block text-[13px] text-text-muted font-inter mb-1">{label}</label>}
 
             <div className="relative flex items-center">
                 <input
@@ -272,42 +278,52 @@ export default function DatePicker({
 
                 <div className="absolute right-1 flex items-center gap-0.5">
                     {value && !disabled && (
-                        <button
-                            type="button"
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiX className="text-[12px]" />}
+                            label="Hapus tanggal"
                             onClick={clearValue}
-                            className="p-1 text-text-muted hover:text-text-primary transition-colors"
                             tabIndex={-1}
-                        >
-                            <i className="fas fa-times text-[10px]" />
-                        </button>
+                            className="w-6 h-6 rounded-md"
+                        />
                     )}
-                    <button
-                        type="button"
+                    <IconButton
+                        size="xs"
+                        variant="ghost"
+                        icon={<FiCalendar className="text-[14px]" />}
+                        label="Pilih tanggal"
                         onClick={() => !disabled && setIsOpen(!isOpen)}
-                        className="p-1 text-text-muted hover:text-text-primary transition-colors"
                         tabIndex={-1}
-                    >
-                        <i className="fas fa-calendar text-[12px]" />
-                    </button>
+                        className="w-6 h-6 rounded-md"
+                    />
                 </div>
             </div>
 
-            {isInvalid && displayValue && (
-                <p className="text-[11px] text-danger mt-1">Format: dd/mm/yyyy</p>
-            )}
+            {isInvalid && displayValue && <p className="text-[11px] text-danger mt-1">Format: dd/mm/yyyy</p>}
 
             {isOpen && !disabled && (
                 <div className="absolute z-50 mt-1 bg-surface border border-border rounded-xl shadow-dropdown p-3 w-[280px]">
                     <div className="flex items-center justify-between mb-3">
-                        <button type="button" onClick={prevMonth} className="p-1 hover:bg-muted rounded-lg transition-colors">
-                            <i className="fas fa-chevron-left text-[11px] text-text-muted" />
-                        </button>
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiChevronLeft className="text-[14px] text-text-muted" />}
+                            label="Bulan sebelumnya"
+                            onClick={prevMonth}
+                            className="w-7 h-7"
+                        />
                         <span className="text-[13px] font-bold text-text-primary">
                             {MONTH_NAMES[viewMonth.month - 1]} {viewMonth.year}
                         </span>
-                        <button type="button" onClick={nextMonth} className="p-1 hover:bg-muted rounded-lg transition-colors">
-                            <i className="fas fa-chevron-right text-[11px] text-text-muted" />
-                        </button>
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiChevronRight className="text-[14px] text-text-muted" />}
+                            label="Bulan selanjutnya"
+                            onClick={nextMonth}
+                            className="w-7 h-7"
+                        />
                     </div>
 
                     <div className="grid grid-cols-7 mb-1">
@@ -333,8 +349,7 @@ export default function DatePicker({
                                 viewMonth.month === today.getMonth() + 1 &&
                                 viewMonth.year === today.getFullYear();
                             const isSelected = selectedIso === iso;
-                            const isDisabled =
-                                (min && iso < min) || (max && iso > max);
+                            const isDisabled = (min && iso < min) || (max && iso > max);
 
                             return (
                                 <button

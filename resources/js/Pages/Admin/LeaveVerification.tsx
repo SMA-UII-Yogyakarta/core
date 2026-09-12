@@ -1,29 +1,24 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { FiCheckSquare, FiXCircle } from "react-icons/fi";
 import {
     Button,
-    Pagination,
-    Drawer,
     Checkbox,
-    EmptyState,
     ConfirmDialog,
+    Drawer,
+    EmptyState,
     FilterBar,
-    TabSwitcher,
-    StickyContainer,
+    MobileNativePagination,
     PageHeader,
+    StickyContainer,
+    TableFooter,
+    TabSwitcher,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiCheck, FiX, FiCheckSquare, FiXCircle } from "react-icons/fi";
-import type { LeaveRequest } from "@/types";
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-}
+import AppShell from "@/Layouts/AppShell";
+import type { LeaveRequest, PaginatedData } from "@/types";
+import { formatIndonesianDate } from "@/utils/helpers";
 
 interface Filters {
     status?: string;
@@ -52,22 +47,6 @@ const categoryFilters = [
     { key: "Other", label: "Lainnya" },
 ];
 
-const formatDatePretty = (dateStr: string | null | undefined): string => {
-    if (!dateStr) return "-";
-    try {
-        const cleanStr = dateStr.split("T")[0];
-        const d = new Date(cleanStr);
-        if (isNaN(d.getTime())) return dateStr;
-        return d.toLocaleDateString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        });
-    } catch {
-        return dateStr;
-    }
-};
-
 const formatCategoryPretty = (cat: string | null | undefined): string => {
     if (!cat) return "-";
     const map: Record<string, string> = {
@@ -90,19 +69,55 @@ export default function VerifikasiIzin({
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
     const [selectedLeaveIds, setSelectedLeaveIds] = useState<number[]>([]);
 
+    // Debounced filters - triggers router.get 350ms after user stops changing filters
+    const debouncedStatusFilter = useDebounce(statusFilter, 350);
+    const debouncedCategoryFilter = useDebounce(categoryFilter, 350);
+    const debouncedClassId = useDebounce(selectedClassId, 350);
+
+    // Effect to trigger router.get when debounced filters change
+    useEffect(() => {
+        router.get(
+            "/leave-requests/verification",
+            {
+                status: debouncedStatusFilter || undefined,
+                category: debouncedCategoryFilter || undefined,
+                class_id: debouncedClassId || undefined,
+            },
+            { preserveState: true },
+        );
+    }, [debouncedStatusFilter, debouncedCategoryFilter, debouncedClassId]);
+
     const handleFilter = (status?: string, category?: string) => {
         const s = status ?? statusFilter;
         const c = category ?? categoryFilter;
         setSelectedLeaveIds([]);
+        setStatusFilter(s);
+        setCategoryFilter(c);
+    };
+
+    const handlePageChange = (page: number) => {
         router.get(
             "/leave-requests/verification",
-            { status: s || undefined, category: c || undefined },
+            {
+                page,
+                status: statusFilter || undefined,
+                category: categoryFilter || undefined,
+                class_id: selectedClassId || undefined,
+            },
             { preserveState: true },
         );
     };
 
-    const [approveConfirm, setApproveConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
-    const [rejectConfirm, setRejectConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({ open: false, id: null, isBulk: false });
+    const [approveConfirm, setApproveConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({
+        open: false,
+        id: null,
+        isBulk: false,
+    });
+    const [rejectConfirm, setRejectConfirm] = useState<{ open: boolean; id: number | null; isBulk: boolean }>({
+        open: false,
+        id: null,
+        isBulk: false,
+    });
 
     const handleApprove = (id: number) => {
         setApproveConfirm({ open: true, id, isBulk: false });
@@ -135,9 +150,13 @@ export default function VerifikasiIzin({
                 },
             );
         } else if (approveConfirm.id) {
-            router.patch(`/leave-requests/${approveConfirm.id}/approve`, {}, {
-                onSuccess: () => setApproveConfirm({ open: false, id: null, isBulk: false }),
-            });
+            router.patch(
+                `/leave-requests/${approveConfirm.id}/approve`,
+                {},
+                {
+                    onSuccess: () => setApproveConfirm({ open: false, id: null, isBulk: false }),
+                },
+            );
         }
     };
 
@@ -154,9 +173,13 @@ export default function VerifikasiIzin({
                 },
             );
         } else if (rejectConfirm.id) {
-            router.patch(`/leave-requests/${rejectConfirm.id}/reject`, {}, {
-                onSuccess: () => setRejectConfirm({ open: false, id: null, isBulk: false }),
-            });
+            router.patch(
+                `/leave-requests/${rejectConfirm.id}/reject`,
+                {},
+                {
+                    onSuccess: () => setRejectConfirm({ open: false, id: null, isBulk: false }),
+                },
+            );
         }
     };
 
@@ -169,16 +192,15 @@ export default function VerifikasiIzin({
     };
 
     const toggleSelect = (id: number) => {
-        setSelectedLeaveIds((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-        );
+        setSelectedLeaveIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
     };
 
     return (
-        <AppShell title="Verifikasi Izin & Sakit">
+        <AppShell title="Verifikasi Izin & Sakit" hasTopTabs={true}>
             <PageHeader
                 title="Verifikasi Izin & Sakit"
                 description="Verifikasi berkas keterangan dispensasi dan ketidakhadiran siswa."
+                className="hidden lg:flex shrink-0 mb-4"
             />
 
             <StickyContainer>
@@ -189,6 +211,7 @@ export default function VerifikasiIzin({
                         setStatusFilter(key);
                         handleFilter(key, categoryFilter);
                     }}
+                    fullWidth="mobile-only"
                 />
             </StickyContainer>
 
@@ -251,59 +274,6 @@ export default function VerifikasiIzin({
                 />
             </FilterBar>
 
-
-
-            {/* List */}
-            <div className="flex flex-col gap-4">
-                    {leaveRequests.data.length > 0 ? (
-                        leaveRequests.data.map((lr) => (
-                            <LeaveRequestCard 
-                                key={lr.id} 
-                                leaveRequest={lr} 
-                                onDetailClick={setSelectedRequest}
-                                checkboxSlot={
-                                    lr.approval_status === "Pending" ? (
-                                        <Checkbox
-                                            checked={selectedLeaveIds.includes(lr.id)}
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setSelectedLeaveIds((prev) => [...prev, lr.id]);
-                                                } else {
-                                                    setSelectedLeaveIds((prev) => prev.filter((id) => id !== lr.id));
-                                                }
-                                            }}
-                                        />
-                                    ) : undefined
-                                }
-                                actionSlot={
-                                    lr.approval_status === "Pending" ? (
-                                        <>
-                                            <Button
-                                                variant="success"
-                                                size="sm"
-                                                onClick={() => handleApprove(lr.id)}
-                                                className="flex-1 sm:flex-none"
-                                            >
-                                                <FiCheck className="mr-1.5" /> Setuju
-                                            </Button>
-                                            <Button
-                                                variant="danger"
-                                                size="sm"
-                                                onClick={() => handleReject(lr.id)}
-                                                className="flex-1 sm:flex-none"
-                                            >
-                                                <FiX className="mr-1.5" /> Tolak
-                                            </Button>
-                                        </>
-                                    ) : undefined
-                                }
-                            />
-                        ))
-                    ) : (
-                        <EmptyState variant="no-leaves" />
-                    )}
-                </div>
-
             <div className="space-y-6 font-inter">
                 {/* Bulk Actions Bar */}
                 {statusFilter === "" && leaveRequests.data.length > 0 && (
@@ -317,7 +287,10 @@ export default function VerifikasiIzin({
                                 }
                                 onChange={toggleSelectAll}
                             />
-                            <label htmlFor="select-all" className="text-[13px] font-bold text-text-primary cursor-pointer">
+                            <label
+                                htmlFor="select-all"
+                                className="text-[13px] font-bold text-text-primary cursor-pointer"
+                            >
                                 Pilih Semua ({selectedLeaveIds.length} dipilih)
                             </label>
                         </div>
@@ -354,28 +327,31 @@ export default function VerifikasiIzin({
                     </div>
                 )}
 
-                {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                    <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                        <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                        <span>Menampilkan pengajuan izin siswa yang diverifikasi.</span>
-                    </div>
-                    {leaveRequests.last_page > 1 && (
-                        <Pagination
+                {/* Desktop Symmetrical Footer Info & Table Pagination */}
+                <div className="hidden sm:block pt-2 shrink-0 mt-auto">
+                    <TableFooter
+                        info="Menampilkan pengajuan izin siswa yang diverifikasi."
+                        currentPage={leaveRequests.current_page}
+                        totalPages={leaveRequests.last_page}
+                        totalItems={leaveRequests.total}
+                        perPage={leaveRequests.per_page}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
+
+                {/* Mobile Native App Pagination */}
+                {leaveRequests.last_page > 1 && (
+                    <div className="sm:hidden pt-2 shrink-0 font-inter">
+                        <MobileNativePagination
                             currentPage={leaveRequests.current_page}
                             totalPages={leaveRequests.last_page}
                             totalItems={leaveRequests.total}
                             perPage={leaveRequests.per_page}
-                            onPageChange={(page) =>
-                                router.get(
-                                    "/leave-requests/verification",
-                                    { page, status: statusFilter, category: categoryFilter, class_id: selectedClassId },
-                                    { preserveState: true },
-                                )
-                            }
+                            onPageChange={handlePageChange}
+                            itemLabel="pengajuan izin"
                         />
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* Intuitive Detail Drawer with Clean Indonesian Formatting */}
@@ -392,7 +368,8 @@ export default function VerifikasiIzin({
                                     {selectedRequest.student?.name}
                                 </h3>
                                 <p className="text-[13px] text-text-muted mt-0.5">
-                                    NIS: {selectedRequest.student?.nis} • Kelas: {selectedRequest.student?.class?.name?.split(" (")[0] ?? "-"}
+                                    NIS: {selectedRequest.student?.nis} • Kelas:{" "}
+                                    {selectedRequest.student?.class?.name?.split(" (")[0] ?? "-"}
                                 </p>
                             </div>
                             <div className="shrink-0">
@@ -423,8 +400,8 @@ export default function VerifikasiIzin({
                                 <span className="text-text-muted font-semibold">Tanggal:</span>
                                 <span className="font-bold text-text-primary">
                                     {selectedRequest.start_date === selectedRequest.end_date
-                                        ? formatDatePretty(selectedRequest.start_date)
-                                        : `${formatDatePretty(selectedRequest.start_date)} s/d ${formatDatePretty(selectedRequest.end_date)}`}
+                                        ? formatIndonesianDate(selectedRequest.start_date)
+                                        : `${formatIndonesianDate(selectedRequest.start_date)} s/d ${formatIndonesianDate(selectedRequest.end_date)}`}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
@@ -468,11 +445,7 @@ export default function VerifikasiIzin({
                                     </Button>
                                 </>
                             )}
-                            <Button
-                                variant="outline"
-                                className="w-full"
-                                onClick={() => setSelectedRequest(null)}
-                            >
+                            <Button variant="outline" className="w-full" onClick={() => setSelectedRequest(null)}>
                                 Tutup
                             </Button>
                         </div>

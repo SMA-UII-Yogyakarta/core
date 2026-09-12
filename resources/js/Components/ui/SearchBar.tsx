@@ -1,24 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FiSearch } from "react-icons/fi";
 import Button from "@/Components/ui/Button";
 import { useDebounce } from "@/hooks/useDebounce";
 
 interface SearchBarProps {
     value: string;
     onChange: (value: string) => void;
-    onSearch: (value: string) => void;
+    onSearch?: (value: string) => void;
     autoSearch?: boolean;
     debounceMs?: number;
     placeholder?: string;
+    className?: string;
+    inputClassName?: string;
 }
+
+const noop = () => {};
 
 export default function SearchBar({
     value,
     onChange,
-    onSearch,
+    onSearch = noop,
     autoSearch = true,
     debounceMs = 300,
     placeholder = "Cari data...",
+    className = "",
+    inputClassName = "",
 }: SearchBarProps) {
     const [prevValue, setPrevValue] = useState(value);
     const [localValue, setLocalValue] = useState(value);
@@ -34,15 +40,23 @@ export default function SearchBar({
         onSearchRef.current = onSearch;
     }, [onSearch]);
 
+    const isInitialMount = useRef(true);
+
     useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
         if (autoSearch) {
             onSearchRef.current(debouncedValue);
         }
     }, [debouncedValue, autoSearch]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSearchRef.current(localValue);
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            onSearchRef.current(localValue);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,22 +70,23 @@ export default function SearchBar({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
+        <div role="search" className={`flex items-center gap-2 w-full ${className}`}>
             <div className="relative w-full">
-                <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-inactive text-sm pointer-events-none" />
                 <input
                     type="text"
                     value={localValue}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    className="h-10 pl-10 pr-4 w-full border border-border rounded-xl text-[13px] font-medium font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 placeholder:text-text-inactive transition-all duration-150"
+                    className={`h-10 pl-10 pr-4 w-full border border-border rounded-xl text-[13px] font-medium font-inter text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 placeholder:text-text-inactive transition-all duration-150 ${inputClassName}`}
                 />
             </div>
             {!autoSearch && (
-                <Button type="submit" variant="ghost" size="sm">
+                <Button type="button" onClick={() => onSearchRef.current(localValue)} variant="ghost" size="sm">
                     Cari
                 </Button>
             )}
-        </form>
+        </div>
     );
 }

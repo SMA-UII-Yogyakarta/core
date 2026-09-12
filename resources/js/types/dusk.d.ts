@@ -1,6 +1,6 @@
-import 'react';
+import "react";
 
-declare module 'react' {
+declare module "react" {
     interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
         dusk?: string;
     }

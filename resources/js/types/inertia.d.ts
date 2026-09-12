@@ -5,8 +5,8 @@ declare module "@inertiajs/react" {
         auth: {
             user: User | null;
         };
+        locale?: "id" | "en";
+        translations?: Record<string, string>;
         [key: string]: unknown;
     }
 }
-
-export {};

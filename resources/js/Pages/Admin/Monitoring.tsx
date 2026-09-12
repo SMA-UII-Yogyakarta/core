@@ -1,11 +1,23 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
-import { StatCard, StatusBadge, Button, Table, Card, SelectInput, Input } from "@/Components";
+import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { FiBarChart2, FiFilter, FiSearch } from "react-icons/fi";
+import {
+    BottomSheet,
+    Button,
+    Card,
+    HeaderIconButton,
+    Input,
+    PageHeader,
+    SelectInput,
+    StatCard,
+    StatusBadge,
+    Table,
+} from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
-import { FiSearch, FiBarChart2 } from "react-icons/fi";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import type { Column } from "@/Components/ui/Table";
-import type { StatusVariant } from "@/types/component";
+import AppShell from "@/Layouts/AppShell";
 
 // ─── Types ───
 
@@ -49,24 +61,6 @@ interface MonitoringProps {
     students: AttendanceStudent[];
 }
 
-// ─── Helpers ───
-
-const statusToVariant: Record<string, StatusVariant> = {
-    Present: "present",
-    Late: "late",
-    Absent: "absent",
-    Sick: "sick",
-    Permission: "permission",
-};
-
-const statusLabels: Record<string, string> = {
-    Present: "Hadir",
-    Late: "Terlambat",
-    Absent: "Tidak Hadir",
-    Sick: "Sakit",
-    Permission: "Izin",
-};
-
 // ─── Page ───
 
 export default function Monitoring({
@@ -75,12 +69,36 @@ export default function Monitoring({
     stats: initialStats,
     students: initialStudents,
 }: MonitoringProps) {
+    const { t } = useLanguage();
     const [classId, setClassId] = useState<string>(selectedClassId?.toString() ?? "");
     const [studentsState, setStudentsState] = useState(initialStudents);
     const [statsState, setStatsState] = useState(initialStats);
 
+    // Debounced class filter - triggers router.get 350ms after user stops changing filter
+    const debouncedClassId = useDebounce(classId, 350);
+
+    // Effect to trigger router.get when debounced classId changes
+    useEffect(() => {
+        router.get("/monitoring", { class_id: debouncedClassId || undefined }, { preserveState: true });
+    }, [debouncedClassId]);
+
+    // Keep studentsState and statsState in sync when Inertia reloads props
+    useEffect(() => {
+        setStudentsState(initialStudents);
+    }, [initialStudents]);
+
+    useEffect(() => {
+        setStatsState(initialStats);
+    }, [initialStats]);
+
+    // Use a ref to always access latest studentsState in Echo callback without stale closure
+    const studentsRef = useRef(studentsState);
+    useEffect(() => {
+        studentsRef.current = studentsState;
+    }, [studentsState]);
+
     // Real-time monitoring with Laravel Echo
-    useState(() => {
+    useEffect(() => {
         if (typeof window !== "undefined" && window.Echo && classId) {
             window.Echo.channel(`monitoring.${classId}`).listen(
                 ".attendance.created",
@@ -93,6 +111,10 @@ export default function Monitoring({
                     latitude: string;
                     longitude: string;
                 }) => {
+                    const currentStudents = studentsRef.current;
+                    const existingStudent = currentStudents.find((s) => s.student.id === data.student_id);
+                    const oldStatus = existingStudent?.status;
+
                     setStudentsState((prev) =>
                         prev.map((s) =>
                             s.student.id === data.student_id
@@ -111,20 +133,31 @@ export default function Monitoring({
                                 : s,
                         ),
                     );
+
                     setStatsState((prev) => {
                         if (!prev) return prev;
                         const counts = { ...prev };
-                        const oldStatus = studentsState.find((s) => s.student.id === data.student_id)?.status;
-                        if (oldStatus && counts[oldStatus as keyof Stats] > 0) {
-                            counts[oldStatus as keyof Stats]--;
+
+                        const normalizeStatusKey = (st: string): keyof Stats | null => {
+                            const lower = st.toLowerCase();
+                            if (lower === "permission" || lower === "sick") return "sick_permission";
+                            if (lower === "present" || lower === "late" || lower === "absent")
+                                return lower as keyof Stats;
+                            return null;
+                        };
+
+                        if (oldStatus) {
+                            const oldKey = normalizeStatusKey(oldStatus);
+                            if (oldKey && counts[oldKey] > 0) {
+                                counts[oldKey]--;
+                            }
                         }
-                        const newKey =
-                            data.status === "Permission"
-                                ? "sick_permission"
-                                : (data.status.toLowerCase() as keyof Stats);
-                        if (newKey in counts) {
+
+                        const newKey = normalizeStatusKey(data.status);
+                        if (newKey && typeof counts[newKey] === "number") {
                             counts[newKey]++;
                         }
+
                         return counts;
                     });
                 },
@@ -135,84 +168,96 @@ export default function Monitoring({
                 window.Echo.leaveChannel(`monitoring.${classId}`);
             }
         };
-    });
-
-    const handleFilter = () => {
-        router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });
-    };
+    }, [classId]);
 
     const columns: Column<AttendanceStudent>[] = [
-        { key: "nisn", header: "NISN", render: (s) => s.student.nisn },
-        { key: "name", header: "Nama Siswa", render: (s) => s.student.name },
+        { key: "nisn", header: t("monitoring.colNisn"), render: (s) => s.student.nisn },
+        { key: "name", header: t("monitoring.colName"), render: (s) => s.student.name },
         {
             key: "class",
-            header: "Kelas",
+            header: t("monitoring.colClass"),
             render: (s) => s.student.class?.name ?? "-",
         },
         {
             key: "status",
-            header: "Status",
-            render: (s) => {
-                const variant = statusToVariant[s.status] ?? "absent";
-                const label = statusLabels[s.status] ?? s.status;
-                return <StatusBadge variant={variant} label={label} />;
-            },
+            header: t("monitoring.colStatus"),
+            render: (s) => <StatusBadge variant={s.status} />,
         },
         {
             key: "time",
-            header: "Waktu",
+            header: t("monitoring.colTime"),
             render: (s) => (s.attendance?.check_in_time ? `${s.attendance.check_in_time} WIB` : "-"),
         },
     ];
 
+    const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const hasActiveFilters = Boolean(classId);
+
+    const mobileHeaderActions = (
+        <div className="flex items-center gap-2 sm:hidden font-inter">
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label={t("monitoring.filterTitle")}
+                onClick={() => setIsMobileFilterOpen(true)}
+            />
+        </div>
+    );
+
     const today = new Date().toISOString().split("T")[0];
 
     return (
-        <AppShell title="Monitoring Presensi">
-            {/* Filter Section */}
-            <Card className="mb-6">
-                <Card.Body className="p-4 lg:p-6 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
+        <AppShell title={t("monitoring.title")} hasTopCard={true} headerActions={mobileHeaderActions}>
+            <PageHeader
+                title={t("monitoring.pageTitle")}
+                description={t("monitoring.pageDesc")}
+                className="hidden lg:flex shrink-0 mb-4"
+            />
+            {/* Filter Section (Desktop & Tablet) */}
+            <Card className="mb-6 hidden sm:block">
+                <Card.Body className="p-4 lg:p-5 flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
                     <SelectInput
-                        label="Filter Kelas"
+                        label={t("monitoring.filterClass")}
                         value={classId}
-                        onChange={(val) => setClassId(String(val))}
+                        onChange={(val) => {
+                            const newId = String(val);
+                            setClassId(newId);
+                            router.get("/monitoring", { class_id: newId || undefined }, { preserveState: true });
+                        }}
                         options={[
-                            { label: "-- Pilih Kelas --", value: "" },
+                            { label: t("monitoring.selectClassPlaceholder"), value: "" },
                             ...classes.map((c) => ({
                                 label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
                                 value: c.id.toString(),
                             })),
                         ]}
-                        className="w-full sm:w-[240px]"
+                        className="w-full sm:w-[280px]"
                     />
-                    <Input type="date" label="Tanggal" defaultValue={today} className="w-full sm:w-[200px]" />
-                    <Button variant="primary" size="md" onClick={handleFilter}>
-                        <FiSearch className="mr-2" />
-                        Tampilkan
-                    </Button>
                 </Card.Body>
             </Card>
 
             {/* Stats Cards */}
             {statsState && (
                 <section className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-                    <StatCard label="Total Siswa" value={statsState.total} color="grey" />
-                    <StatCard label="Hadir" value={statsState.present} color="green" />
-                    <StatCard label="Terlambat" value={statsState.late} color="amber" />
-                    <StatCard label="Sakit / Izin" value={statsState.sick_permission} color="blue" />
-                    <StatCard label="Tidak Hadir" value={statsState.absent} color="red" />
+                    <StatCard label={t("monitoring.studentCount")} value={statsState.total} color="grey" />
+                    <StatCard label={t("monitoring.present")} value={statsState.present} color="green" />
+                    <StatCard label={t("monitoring.late")} value={statsState.late} color="amber" />
+                    <StatCard label={t("monitoring.sickPermission")} value={statsState.sick_permission} color="blue" />
+                    <StatCard label={t("monitoring.absent")} value={statsState.absent} color="red" />
                 </section>
             )}
 
             {/* Students Table */}
             {selectedClassId && (
                 <section>
-                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">Daftar Kehadiran Siswa</h2>
+                    <h2 className="text-[16px] font-bold text-text-primary font-inter mb-4">
+                        {t("monitoring.listTitle")}
+                    </h2>
                     <Table
                         columns={columns}
                         data={studentsState}
                         keyExtractor={(s) => s.student.id}
-                        emptyMessage="Belum ada data untuk kelas ini."
+                        emptyMessage={t("monitoring.emptyClassData")}
                     />
                 </section>
             )}
@@ -222,12 +267,69 @@ export default function Monitoring({
                     <EmptyState
                         variant="no-data"
                         icon={<FiBarChart2 className="text-4xl text-text-inactive" />}
-                        title="Pilih Kelas"
-                        description="Silakan pilih kelas untuk menampilkan data monitoring."
+                        title={t("monitoring.noClassTitle")}
+                        description={t("monitoring.noClassDesc")}
                         className="py-4"
                     />
                 </Card>
             )}
+
+            {/* 📱 MOBILE FILTER BOTTOM SHEET */}
+            <BottomSheet
+                open={isMobileFilterOpen}
+                onClose={() => setIsMobileFilterOpen(false)}
+                title={t("monitoring.filterTitle")}
+                subtitle={t("monitoring.filterSubtitle")}
+            >
+                <div className="flex flex-col gap-4 font-inter pb-2">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">{t("monitoring.filterClass")}</label>
+                        <SelectInput
+                            value={classId}
+                            onChange={(val) => setClassId(String(val))}
+                            options={[
+                                { label: t("monitoring.selectClassPlaceholder"), value: "" },
+                                ...classes.map((c) => ({
+                                    label: `${c.name} ${c.teacher ? `(${c.teacher.name})` : ""}`,
+                                    value: c.id.toString(),
+                                })),
+                            ]}
+                            className="h-10 text-[13px]"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-[12px] font-bold text-text-secondary">{t("monitoring.labelDate")}</label>
+                        <Input type="date" defaultValue={today} className="h-10 text-[13px]" />
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                        {hasActiveFilters && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setClassId("");
+                                    router.get("/monitoring", {}, { preserveState: true });
+                                    setIsMobileFilterOpen(false);
+                                }}
+                                className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                            >
+                                {t("monitoring.resetFilter")}
+                            </Button>
+                        )}
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                router.get("/monitoring", { class_id: classId || undefined }, { preserveState: true });
+                                setIsMobileFilterOpen(false);
+                            }}
+                            className="flex-1 h-10 text-[13px] font-bold rounded-xl"
+                        >
+                            {t("monitoring.show")}
+                        </Button>
+                    </div>
+                </div>
+            </BottomSheet>
         </AppShell>
     );
 }

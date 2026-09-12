@@ -127,6 +127,31 @@ class ApiAuthControlTest extends TestCase
             ->assertStatus(201);
     }
 
+    public function test_student_can_submit_leave_request_with_file_and_description(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('s3');
+        $user = $this->createUser('student');
+        $student = $this->createStudent();
+        $file = \Illuminate\Http\UploadedFile::fake()->create('surat_dokter.pdf', 200, 'application/pdf');
+
+        $response = $this->actingAs($user)
+            ->post('/api/v1/leave-requests', [
+                'student_id' => $student->id,
+                'guardian_id' => $this->createGuardian()->id,
+                'category' => 'Sick',
+                'start_date' => '2026-01-05',
+                'end_date' => '2026-01-07',
+                'description' => 'Sakit demam',
+                'document' => $file,
+            ], ['Accept' => 'application/json']);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('leave_requests', [
+            'student_id' => $student->id,
+            'description' => 'Sakit demam',
+        ]);
+    }
+
     public function test_teacher_can_view_attendances(): void
     {
         $user = $this->createUser('teacher');

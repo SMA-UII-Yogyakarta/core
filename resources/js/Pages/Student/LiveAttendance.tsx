@@ -1,28 +1,18 @@
-import { useEffect, useRef, useState, useMemo } from "react";
 import { router, usePage } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FiCheck, FiCheckCircle, FiClock, FiMapPin, FiSend } from "react-icons/fi";
+import { LiveBadge, PageHeader } from "@/Components";
+import { toast } from "@/Components/common/Toast";
+import { FaceLivenessOverlay } from "@/Components/student/FaceLivenessOverlay";
+import { LiveAttendanceMap } from "@/Components/student/LiveAttendanceMap";
 import Button from "@/Components/ui/Button";
-import { LiveBadge } from "@/Components";
-import ErrorAlert from "@/Components/common/ErrorAlert";
-import {
-    FiCheck,
-    FiCheckCircle,
-    FiClock,
-    FiInfo,
-    FiLoader,
-    FiMapPin,
-    FiSend,
-    FiUser,
-} from "react-icons/fi";
+import { useFaceLiveness } from "@/hooks/useFaceLiveness";
+import { useLanguage } from "@/Contexts/LanguageContext";
+import AppShell from "@/Layouts/AppShell";
 import { attendanceCheckInSchema } from "@/schemas/attendanceCheckIn.schema";
-import { validateForm } from "@/utils/zodHelper";
-import {
-    calculateDistance,
-    formatDistance,
-    isWithinSchoolGeofence,
-    SMA_UII_LOCATION,
-} from "@/utils/geoHelper";
+import { calculateDistance, formatDistance, isWithinSchoolGeofence } from "@/utils/geoHelper";
 import { compressImageFromVideo } from "@/utils/imageCompressor";
+import { validateForm } from "@/utils/zodHelper";
 
 interface Student {
     id: number;
@@ -38,14 +28,62 @@ interface TodayAttendance {
     attendance_date: string;
 }
 
+interface SchoolLocation {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    radius_meters: number;
+}
+
 interface PageProps {
     student: Student;
     todayAttendance: TodayAttendance | null;
+    schoolLocation?: SchoolLocation | null;
 }
 
 type GpsStatus = "idle" | "acquiring" | "locked" | "error";
 
-export default function LiveAttendance({ todayAttendance }: PageProps) {
+export default function LiveAttendance({ todayAttendance, schoolLocation }: PageProps) {
+    if (!schoolLocation) {
+        return <MissingSchoolLocation />;
+    }
+
+    return <ConfiguredLiveAttendance todayAttendance={todayAttendance} schoolLocation={schoolLocation} />;
+}
+
+function MissingSchoolLocation() {
+    const { t } = useLanguage();
+
+    return (
+        <AppShell
+            title={t("attendance.title")}
+            onBack={() => router.get("/student/dashboard")}
+            showBottomNav={false}
+            showSearch={false}
+            showNotificationBellOnMobile={false}
+            mainClassName="h-full flex-1 overflow-auto p-3 sm:p-4 lg:px-6 lg:py-5"
+        >
+            <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-center rounded-2xl border border-border bg-surface p-6 text-center shadow-card sm:p-10">
+                <PageHeader
+                    title={t("attendance.locationUnavailableTitle")}
+                    description={t("attendance.locationUnavailableDescription")}
+                    className="mb-0"
+                />
+            </div>
+        </AppShell>
+    );
+}
+
+function ConfiguredLiveAttendance({
+    todayAttendance,
+    schoolLocation,
+}: {
+    todayAttendance: TodayAttendance | null;
+    schoolLocation: SchoolLocation;
+}) {
+    const activeLocation = schoolLocation;
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -54,10 +92,36 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [currentTime, setCurrentTime] = useState<string>("");
 
-    const videoRef = useRef<HTMLVideoElement>(null);
+    const desktopVideoRef = useRef<HTMLVideoElement>(null);
+    const mobileVideoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    const videoRefs = useMemo(() => [desktopVideoRef, mobileVideoRef], []);
+
+    // Face Recognition & Liveness Detection Hook
+    const {
+        status: livenessStatus,
+        isModelLoaded,
+        isHeadAligned,
+        hasBlinked,
+        isLivenessVerified,
+        feedbackMessage,
+    } = useFaceLiveness(videoRefs, cameraReady);
+
     const { errors } = usePage().props as { errors?: Record<string, string> };
+
+    // Toast notifications for errors to avoid pushing layout down
+    useEffect(() => {
+        if (error) {
+            toast.error(error, { id: "attendance-error", duration: 5000 });
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (errors?.message) {
+            toast.error(errors.message, { id: "attendance-server-error", duration: 5000 });
+        }
+    }, [errors]);
 
     // Live clock
     useEffect(() => {
@@ -76,6 +140,19 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
         return () => clearInterval(timer);
     }, []);
 
+    // Sync stream to both desktop and mobile video elements whenever stream is ready
+    useEffect(() => {
+        if (!stream) return;
+        if (desktopVideoRef.current && desktopVideoRef.current.srcObject !== stream) {
+            desktopVideoRef.current.srcObject = stream;
+            desktopVideoRef.current.play().catch(() => {});
+        }
+        if (mobileVideoRef.current && mobileVideoRef.current.srcObject !== stream) {
+            mobileVideoRef.current.srcObject = stream;
+            mobileVideoRef.current.play().catch(() => {});
+        }
+    }, [stream, cameraReady]);
+
     // Auto-start camera & GPS on mount
     useEffect(() => {
         let isMounted = true;
@@ -87,12 +164,19 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     audio: false,
                 });
                 if (!isMounted) {
-                    mediaStream.getTracks().forEach((t) => t.stop());
+                    mediaStream.getTracks().forEach((t) => {
+                        t.stop();
+                    });
                     return;
                 }
                 setStream(mediaStream);
-                if (videoRef.current) {
-                    videoRef.current.srcObject = mediaStream;
+                if (desktopVideoRef.current) {
+                    desktopVideoRef.current.srcObject = mediaStream;
+                    desktopVideoRef.current.play().catch(() => {});
+                }
+                if (mobileVideoRef.current) {
+                    mobileVideoRef.current.srcObject = mediaStream;
+                    mobileVideoRef.current.play().catch(() => {});
                 }
                 setCameraReady(true);
             } catch {
@@ -131,28 +215,49 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
 
     useEffect(() => {
         return () => {
-            if (stream) stream.getTracks().forEach((t) => t.stop());
+            if (stream) {
+                stream.getTracks().forEach((t) => {
+                    t.stop();
+                });
+            }
         };
     }, [stream]);
 
     // Distance calculation
     const distanceMeters = useMemo(() => {
         if (!coords) return null;
-        return calculateDistance(coords.lat, coords.lng);
-    }, [coords]);
+        return calculateDistance(coords.lat, coords.lng, activeLocation.latitude, activeLocation.longitude);
+    }, [coords, activeLocation]);
 
     const isInsideRadius = useMemo(() => {
         if (!coords) return false;
-        return isWithinSchoolGeofence(coords.lat, coords.lng);
-    }, [coords]);
+        return isWithinSchoolGeofence(
+            coords.lat,
+            coords.lng,
+            activeLocation.radius_meters,
+            activeLocation.latitude,
+            activeLocation.longitude,
+        );
+    }, [coords, activeLocation]);
+
+    const canSubmit = cameraReady && (isLivenessVerified || livenessStatus === "unsupported" || !isModelLoaded);
 
     const handleSubmit = () => {
         setError(null);
 
-        const video = videoRef.current;
+        const video =
+            desktopVideoRef.current && desktopVideoRef.current.videoWidth > 0
+                ? desktopVideoRef.current
+                : mobileVideoRef.current || desktopVideoRef.current;
         const canvas = canvasRef.current;
         if (!video || !canvas) {
             setError("Kamera belum siap. Mohon tunggu sejenak.");
+            return;
+        }
+
+        // Liveness verification check
+        if (cameraReady && isModelLoaded && !isLivenessVerified && livenessStatus !== "unsupported") {
+            setError(feedbackMessage || "Harap posisikan wajah di dalam lingkaran dan kedipkan mata 1x.");
             return;
         }
 
@@ -169,6 +274,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
             latitude: coords ? coords.lat : 0,
             longitude: coords ? coords.lng : 0,
             photo_blob: photoBase64,
+            is_liveness_verified: isLivenessVerified,
         };
 
         const validation = validateForm(attendanceCheckInSchema, payload);
@@ -184,6 +290,7 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
         formData.append("latitude", payload.latitude.toString());
         formData.append("longitude", payload.longitude.toString());
         formData.append("photo_blob", photoBase64);
+        formData.append("is_liveness_verified", isLivenessVerified ? "1" : "0");
 
         router.post("/student/attendance/check-in", formData, {
             preserveState: true,
@@ -191,7 +298,9 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
             onSuccess: () => {
                 setLoading(false);
                 if (stream) {
-                    stream.getTracks().forEach((t) => t.stop());
+                    stream.getTracks().forEach((t) => {
+                        t.stop();
+                    });
                     setStream(null);
                 }
             },
@@ -208,249 +317,272 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
         if (todayAttendance) {
             return (
                 <div
-                    className="flex items-center justify-center gap-2 px-5 py-3.5 bg-success-bg border border-success-light rounded-xl text-success font-bold text-[13px]"
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-success-bg border border-success-light rounded-xl text-success font-bold text-[13px] shadow-xs w-full"
                     dusk="attendance-status-success"
                     data-testid="attendance-status-success"
                 >
-                    <FiCheckCircle className="text-[16px]" />
-                    <span>Sudah presensi pukul {todayAttendance.check_in_time} WIB</span>
+                    <FiCheckCircle className="text-[16px] shrink-0" />
+                    <span>Sudah presensi masuk pukul {todayAttendance.check_in_time} WIB</span>
                 </div>
             );
         }
         return (
             <Button
                 type="button"
-                variant="success"
+                variant={canSubmit ? "success" : "secondary"}
                 size={isMobile ? "md" : "lg"}
                 onClick={handleSubmit}
                 disabled={loading || !cameraReady}
                 loading={loading}
-                className="w-full font-bold shadow-md"
+                className={`w-full font-extrabold text-[14px] sm:text-[15px] py-3 sm:py-3.5 shadow-md rounded-xl justify-center transition-all ${
+                    canSubmit
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.99]"
+                        : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-border"
+                }`}
                 dusk={isMobile ? "btn-submit-mobile" : "btn-submit-attendance"}
                 data-testid={isMobile ? "btn-submit-mobile" : "btn-submit-attendance"}
                 icon={<FiSend className="w-4 h-4" />}
             >
-                {label}
+                <span>
+                    {isLivenessVerified || !isModelLoaded || livenessStatus === "unsupported"
+                        ? label
+                        : "VERIFIKASI WAJAH DULU"}
+                </span>
             </Button>
         );
     };
 
+    // GPS status pill — injected into the mobile blue header bar via headerActions
+    const mobileGpsPill = (
+        <div
+            className={`md:hidden inline-flex items-center gap-1.5 px-2.5 h-7 rounded-lg border text-[11px] font-semibold transition-colors shrink-0 ${
+                coords
+                    ? isInsideRadius
+                        ? "bg-emerald-500/20 text-emerald-200 border-emerald-400/40"
+                        : "bg-amber-500/20 text-amber-200 border-amber-400/40"
+                    : "bg-white/10 text-white/60 border-white/20"
+            }`}
+            dusk="mobile-header-gps-pill"
+        >
+            <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    coords ? (isInsideRadius ? "bg-emerald-400" : "bg-amber-400") : "bg-white/40 animate-pulse"
+                }`}
+            />
+            <FiMapPin className="text-[11px] shrink-0" />
+            <span className="font-mono">
+                {coords && distanceMeters !== null
+                    ? isInsideRadius
+                        ? `${distanceMeters}m ✓`
+                        : `-${distanceMeters - activeLocation.radius_meters}m`
+                    : gpsStatus === "error"
+                      ? "GPS ✗"
+                      : "GPS..."}
+            </span>
+        </div>
+    );
+
     return (
-        <AppShell title="Live Presensi Siswa">
-            {/* Page header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                <div>
-                    <h1 className="text-[22px] font-bold text-text-primary font-inter">Live Presensi Masuk</h1>
-                    <p className="text-[13px] text-text-muted font-inter mt-0.5">
-                        Posisikan wajah Anda di dalam lingkaran panduan dan pastikan GPS terkunci.
-                    </p>
-                </div>
-
-                {currentTime && (
-                    <div
-                        className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[13px] font-bold font-mono self-start sm:self-auto"
-                        dusk="live-clock-badge"
-                    >
-                        <FiClock className="text-[12px]" />
-                        <span>{currentTime}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Error banner */}
+        <AppShell
+            title="AMBIL PRESENSI"
+            onBack={() => router.get("/student/dashboard")}
+            showBottomNav={false}
+            showSearch={false}
+            showNotificationBellOnMobile={false}
+            mobileTopSpacing="auto"
+            mainClassName="h-full flex-1 overflow-hidden p-3 sm:p-4 lg:px-6 lg:py-5 flex flex-col"
+            headerActions={mobileGpsPill}
+        >
+            {/* Hidden live region for accessibility & dusk test selector */}
             {(error || errors?.message) && (
-                <div className="mb-5" dusk="attendance-error-alert" data-testid="attendance-error-alert">
-                    <ErrorAlert message={error || errors?.message || "Terjadi kesalahan presensi."} />
+                <div
+                    className="sr-only"
+                    role="alert"
+                    aria-live="assertive"
+                    dusk="attendance-error-alert"
+                    data-testid="attendance-error-alert"
+                >
+                    {error || errors?.message}
                 </div>
             )}
 
-            {/* ══ DESKTOP: 2 kolom webcam & peta geofence ════════════════════ */}
-            <div className="hidden lg:grid lg:grid-cols-2 gap-6">
-                {/* Kiri — Webcam container */}
-                <div
-                    className="relative rounded-2xl overflow-hidden bg-black aspect-video shadow-card border border-border flex items-center justify-center"
-                    dusk="webcam-container"
-                    data-testid="webcam-container"
+            {/* ══ DESKTOP & TABLET: 2 kolom webcam & peta geofence (Figma Gambar 1) ══ */}
+            <div className="hidden md:flex flex-col flex-1 min-h-0 h-full font-inter">
+                {/* Header row using standard PageHeader */}
+                <PageHeader
+                    title="Ambil Foto & Lokasi Presensi"
+                    description="Pastikan wajah Anda berada di dalam lingkaran dan GPS aktif."
+                    className="mb-3 lg:mb-4"
                 >
-                    {/* LIVE badge */}
+                    {/* Label Di Luar Radius – hanya muncul jika pengguna berada di luar radius geofence */}
+                    {coords && !isInsideRadius && (
+                        <div
+                            className="inline-flex items-center gap-1.5 px-3 h-9 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-[12px] font-semibold shrink-0 animate-in fade-in"
+                            dusk="user-coords-radius-badge"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                            <FiMapPin className="text-[12px] text-amber-600 shrink-0" />
+                            <span>Di Luar Radius</span>
+                        </div>
+                    )}
+
+                    {currentTime && (
+                        <div
+                            className="inline-flex items-center gap-2 px-3.5 h-9 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[13px] font-bold font-mono shrink-0"
+                            dusk="live-clock-badge"
+                        >
+                            <FiClock className="text-[13px]" />
+                            <span>{currentTime}</span>
+                        </div>
+                    )}
+                </PageHeader>
+
+                {/* 2-Column Grid filling the remaining height (No Scroll) */}
+                <div className="grid grid-cols-2 gap-4 lg:gap-6 flex-1 min-h-0 h-full">
+                    {/* Kolom Kiri: Webcam Preview */}
+                    <div
+                        className="relative rounded-2xl overflow-hidden bg-black shadow-card border border-border flex items-center justify-center h-full min-h-0"
+                        dusk="webcam-container"
+                        data-testid="webcam-container"
+                    >
+                        {/* LIVE WEBCAM badge */}
+                        {cameraReady && !todayAttendance && (
+                            <div className="absolute top-3.5 left-3.5 z-10">
+                                <LiveBadge
+                                    label="LIVE WEBCAM"
+                                    variant="dark"
+                                    pulse
+                                    size="md"
+                                    dusk="webcam-live-badge"
+                                />
+                            </div>
+                        )}
+
+                        {/* Video stream */}
+                        <video
+                            ref={desktopVideoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            dusk="video-preview"
+                            data-testid="video-preview"
+                            className={`w-full h-full object-cover transition-opacity duration-300 ${cameraReady ? "opacity-100" : "opacity-0"}`}
+                        />
+
+                        {/* Face Liveness AI Overlay */}
+                        <FaceLivenessOverlay
+                            cameraReady={cameraReady}
+                            status={livenessStatus}
+                            isHeadAligned={isHeadAligned}
+                            hasBlinked={hasBlinked}
+                            isLivenessVerified={isLivenessVerified}
+                            feedbackMessage={feedbackMessage}
+                            todayAttendance={todayAttendance}
+                        />
+
+                        {/* Success overlay */}
+                        {todayAttendance && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm z-20">
+                                <div className="w-16 h-16 rounded-full bg-success text-white flex items-center justify-center text-[28px] mb-3 shadow-lg">
+                                    <FiCheck />
+                                </div>
+                                <p className="text-white font-bold text-[18px]">Presensi Berhasil</p>
+                                <p className="text-white/80 text-[13px] mt-1 font-mono">
+                                    {todayAttendance.check_in_time} WIB
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Kolom Kanan: Peta Visual & Info Lokasi & Tombol Presensi */}
+                    <div className="flex flex-col h-full min-h-0 justify-between gap-3">
+                        {/* Visual Map Card (Figma Gambar 1) */}
+                        <div className="flex-1 min-h-0 rounded-2xl bg-surface border border-border shadow-card overflow-hidden flex flex-col">
+                            {/* Real Geographical Map Area */}
+                            <div className="relative flex-1 min-h-[160px] overflow-hidden">
+                                <LiveAttendanceMap
+                                    schoolLat={activeLocation.latitude}
+                                    schoolLng={activeLocation.longitude}
+                                    schoolName={activeLocation.name}
+                                    radiusMeters={activeLocation.radius_meters}
+                                    userCoords={coords}
+                                    isInsideRadius={isInsideRadius}
+                                    gpsStatus={gpsStatus}
+                                />
+                            </div>
+
+                            {/* Location Info Footer Bar (matching Gambar 1) */}
+                            <div className="px-4 py-3 bg-surface border-t border-border flex items-center justify-between shrink-0">
+                                <div className="min-w-0 pr-2">
+                                    <h2 className="text-[13px] font-bold text-text-primary leading-tight truncate">
+                                        Lokasi Terkunci: {activeLocation.name}
+                                    </h2>
+                                    <p className="text-[11px] text-text-muted mt-0.5 font-mono truncate">
+                                        {coords
+                                            ? `Lat: ${coords.lat.toFixed(5)} | Long: ${coords.lng.toFixed(5)}`
+                                            : gpsStatus === "error"
+                                              ? "GPS Tidak Aktif"
+                                              : "Menghubungkan ke satelit GPS..."}
+                                    </p>
+                                </div>
+
+                                <div className="text-right shrink-0">
+                                    <span
+                                        className={`text-[12px] font-bold block ${isInsideRadius ? "text-success" : "text-warning"}`}
+                                    >
+                                        {distanceMeters !== null
+                                            ? isInsideRadius
+                                                ? `Tepat di dalam (${formatDistance(distanceMeters)})`
+                                                : `Kurang ${distanceMeters - activeLocation.radius_meters}m (${formatDistance(distanceMeters)})`
+                                            : "—"}
+                                    </span>
+                                    <span className="text-[10px] text-text-muted">jarak ke sekolah</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom Submit Action */}
+                        <div className="shrink-0">{renderSubmitButton("KIRIM DATA PRESENSI", false)}</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ══ MOBILE: Full-screen native camera layout (Figma Gambar 3) ═══════ */}
+            <div className="md:hidden flex flex-col flex-1 min-h-0 h-full gap-2.5 font-inter">
+                {/* Upper Camera Preview Container (Figma Gambar 3) */}
+                <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden bg-black shadow-card flex items-center justify-center">
+                    {/* LIVE badge on top-left */}
                     {cameraReady && !todayAttendance && (
-                        <div className="absolute top-3.5 left-3.5 z-10">
-                            <LiveBadge label="LIVE WEBCAM" variant="dark" pulse size="md" dusk="webcam-live-badge" />
+                        <div className="absolute top-3 left-3 z-10">
+                            <LiveBadge label="LIVE" variant="dark" pulse size="sm" dusk="mobile-live-badge" />
                         </div>
                     )}
 
                     {/* Video stream */}
                     <video
-                        ref={videoRef}
+                        ref={mobileVideoRef}
                         autoPlay
                         playsInline
                         muted
-                        dusk="video-preview"
-                        data-testid="video-preview"
+                        dusk="video-preview-mobile"
+                        data-testid="video-preview-mobile"
                         className={`w-full h-full object-cover transition-opacity duration-300 ${cameraReady ? "opacity-100" : "opacity-0"}`}
                     />
 
-                    {/* Guide circle */}
-                    {!todayAttendance && (
-                        <div
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                            aria-hidden="true"
-                        >
-                            <div className="w-[210px] h-[210px] rounded-full border-2 border-dashed border-accent opacity-80 animate-pulse" />
-                        </div>
-                    )}
-
-                    {/* Placeholder */}
-                    {!cameraReady && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted/40">
-                            <FiUser className="text-[80px] mb-3" />
-                            <p className="text-[13px] font-medium text-white/60">Mengaktifkan kamera selfie...</p>
-                        </div>
-                    )}
-
-                    {/* Success overlay */}
-                    {todayAttendance && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm">
-                            <div className="w-16 h-16 rounded-full bg-success text-white flex items-center justify-center text-[28px] mb-3 shadow-lg">
-                                <FiCheck />
-                            </div>
-                            <p className="text-white font-bold text-[18px]">Presensi Berhasil</p>
-                            <p className="text-white/80 text-[13px] mt-1 font-mono">
-                                {todayAttendance.check_in_time} WIB
-                            </p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Kanan — Geofence & Submit */}
-                <div className="flex flex-col">
-                    <div className="flex-1 rounded-2xl bg-surface border border-border p-6 shadow-card flex flex-col justify-between mb-4">
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                                        <FiMapPin className="text-[15px]" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-[15px] font-bold text-text-primary">
-                                            {SMA_UII_LOCATION.name}
-                                        </h2>
-                                        <p className="text-[12px] text-text-muted">{SMA_UII_LOCATION.address}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Geofence Status Card */}
-                            <div className="p-4 rounded-xl bg-muted border border-border/80 mb-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[12px] font-bold text-text-muted uppercase tracking-wider">
-                                        Status Geofence Radius
-                                    </span>
-                                    {gpsStatus === "locked" ? (
-                                        <LiveBadge
-                                            label={isInsideRadius ? "DI DALAM RADIUS" : "DI LUAR RADIUS"}
-                                            variant={isInsideRadius ? "success" : "warning"}
-                                            size="sm"
-                                        />
-                                    ) : (
-                                        <LiveBadge label="GPS ACQUIRING" variant="primary" size="sm" />
-                                    )}
-                                </div>
-
-                                {coords ? (
-                                    <div className="space-y-1.5 font-inter">
-                                        <p className="text-[13px] font-bold text-text-primary flex items-center gap-2">
-                                <FiMapPin
-                                    className={
-                                        isInsideRadius ? "text-success" : "text-warning"
-                                    }
-                                />
-                                            <span>
-                                                Jarak ke sekolah:{" "}
-                                                <strong className="text-primary">
-                                                    {distanceMeters !== null ? formatDistance(distanceMeters) : "-"}
-                                                </strong>
-                                            </span>
-                                        </p>
-                                        <p className="text-[11px] text-text-muted font-mono">
-                                            Koordinat: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <p className="text-[12px] text-text-muted flex items-center gap-2">
-                                        <FiLoader className="animate-spin text-primary" />
-                                        <span>Menghubungkan ke satelit GPS...</span>
-                                    </p>
-                                )}
-                            </div>
-
-                            <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/10 text-[12px] text-text-secondary leading-relaxed">
-                                    <FiInfo className="text-primary mr-1.5" />
-                                Presensi wajib dilakukan dari lingkungan sekolah dengan toleransi radius maksimal{" "}
-                                <strong>{SMA_UII_LOCATION.maxRadiusMeters} meter</strong>.
-                            </div>
-                        </div>
-
-                        <div className="mt-6">{renderSubmitButton("KIRIM DATA PRESENSI")}</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* ══ MOBILE: Full-screen stream layout ══════════════════════════ */}
-            <div className="lg:hidden flex flex-col gap-4">
-                {/* Video container */}
-                <div className="relative w-full rounded-2xl overflow-hidden bg-black min-h-[350px] shadow-card flex items-center justify-center">
-                    {cameraReady && !todayAttendance && (
-                        <div className="absolute top-3.5 left-3.5 z-10">
-                            <LiveBadge label="LIVE" variant="dark" pulse size="sm" dusk="mobile-live-badge" />
-                        </div>
-                    )}
-
-                    <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className={`w-full object-cover min-h-[350px] transition-opacity duration-300 ${cameraReady ? "opacity-100" : "opacity-0"}`}
+                    {/* Face Liveness AI Overlay */}
+                    <FaceLivenessOverlay
+                        cameraReady={cameraReady}
+                        status={livenessStatus}
+                        isHeadAligned={isHeadAligned}
+                        hasBlinked={hasBlinked}
+                        isLivenessVerified={isLivenessVerified}
+                        feedbackMessage={feedbackMessage}
+                        todayAttendance={todayAttendance}
                     />
 
-                    {/* Guide circle */}
-                    {!todayAttendance && (
-                        <div
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                            aria-hidden="true"
-                        >
-                            <div className="w-[190px] h-[190px] rounded-full border-2 border-accent opacity-80 animate-pulse" />
-                        </div>
-                    )}
-
-                    {/* Placeholder */}
-                    {!cameraReady && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-text-muted/40">
-                            <FiUser className="text-[70px] mb-2" />
-                            <p className="text-[12px] text-white/60">Mengaktifkan kamera...</p>
-                        </div>
-                    )}
-
-                    {/* Geofence status on mobile */}
-                    {gpsStatus === "locked" && !todayAttendance && (
-                        <div className="absolute bottom-[calc(6.25rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-10 sm:bottom-3.5">
-                            <LiveBadge
-                                label={
-                                    isInsideRadius
-                                        ? `DALAM RADIUS (${distanceMeters !== null ? formatDistance(distanceMeters) : ""})`
-                                        : `LUAR RADIUS (${distanceMeters !== null ? formatDistance(distanceMeters) : ""})`
-                                }
-                                variant={isInsideRadius ? "success" : "warning"}
-                                size="sm"
-                                dusk="mobile-gps-badge"
-                            />
-                        </div>
-                    )}
-
                     {/* Success overlay */}
                     {todayAttendance && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm z-20">
                             <div className="w-14 h-14 rounded-full bg-success text-white flex items-center justify-center text-[24px] mb-2 shadow-lg">
                                 <FiCheck />
                             </div>
@@ -462,25 +594,32 @@ export default function LiveAttendance({ todayAttendance }: PageProps) {
                     )}
                 </div>
 
-                {/* Location card & action button */}
-                <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col gap-3.5 shadow-card">
+                {/* Bottom Sheet Card: Compact Location & Action Button (Figma Gambar 3) */}
+                <div className="bg-surface border border-border rounded-2xl p-3 sm:p-3.5 flex flex-col gap-2.5 shadow-card shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <FiMapPin className="text-[16px]" />
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[16px]">
+                            <FiMapPin />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-text-primary truncate">
-                                {SMA_UII_LOCATION.name}
+                            <p className="text-[13px] font-bold text-text-primary leading-tight truncate">
+                                {activeLocation.name}
                             </p>
-                            <p className="text-[11px] text-text-muted">
-                                {gpsStatus === "locked"
-                                    ? `Jarak: ${distanceMeters !== null ? formatDistance(distanceMeters) : "-"}`
-                                    : "Mendeteksi posisi satelit..."}
+                            <p className="text-[11px] text-text-muted mt-0.5 truncate">
+                                {coords && distanceMeters !== null
+                                    ? `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)} • ${
+                                          isInsideRadius
+                                              ? `Tepat di dalam (${distanceMeters}m)`
+                                              : `Kurang ${distanceMeters - activeLocation.radius_meters}m (${distanceMeters}m)`
+                                      }`
+                                    : gpsStatus === "error"
+                                      ? "GPS Tidak Terdeteksi"
+                                      : "Mendeteksi posisi satelit..."}
                             </p>
                         </div>
+                        {isInsideRadius && <span className="w-2 h-2 rounded-full bg-success shrink-0" />}
                     </div>
 
-                    {renderSubmitButton("KIRIM KEHADIRAN SEKARANG", true)}
+                    {renderSubmitButton("KIRIM KEHADIRAN", true)}
                 </div>
             </div>
 

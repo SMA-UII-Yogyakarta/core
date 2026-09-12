@@ -1,20 +1,7 @@
-export const SMA_UII_LOCATION = {
-    name: "SMA UII Yogyakarta",
-    address: "Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151",
-    latitude: -7.814257,
-    longitude: 110.375944,
-    maxRadiusMeters: 100, // 100 meter radius geofence
-};
-
 /**
  * Calculates distance in meters between two GPS coordinates using the Haversine formula
  */
-export function calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number = SMA_UII_LOCATION.latitude,
-    lon2: number = SMA_UII_LOCATION.longitude,
-): number {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371e3; // Earth radius in meters
     const phi1 = (lat1 * Math.PI) / 180;
     const phi2 = (lat2 * Math.PI) / 180;
@@ -36,9 +23,11 @@ export function calculateDistance(
 export function isWithinSchoolGeofence(
     lat: number,
     lon: number,
-    maxRadiusMeters: number = SMA_UII_LOCATION.maxRadiusMeters,
+    maxRadiusMeters: number,
+    targetLat: number,
+    targetLon: number,
 ): boolean {
-    const distance = calculateDistance(lat, lon);
+    const distance = calculateDistance(lat, lon, targetLat, targetLon);
     return distance <= maxRadiusMeters;
 }
 

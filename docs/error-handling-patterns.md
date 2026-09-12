@@ -40,13 +40,13 @@ Dokumen ini menjawab pertanyaan: **"Apa yang terjadi ketika error terjadi di run
 
 ### 1.2. Target Pembaca
 
-| Peran | Nama | Fokus |
-|---|---|---|
-| Project Manager & Lead Developer | sandikodev | Arsitektur error handling, review pattern |
-| Learning Mentor | Azis | Review implementasi, mentoring |
-| Junior Frontend Developer | Fathan Mubina | React Error Boundary, Inertia errors, flash messages |
-| Junior Backend Developer | Ihsan | Exception handler, HTTP error pages, API format |
-| Junior Frontend Developer | Hanif | Toast, form validation UI, error boundary |
+| Peran | Nama | GitHub Username | Fokus |
+|---|---|---|---|
+| Project Manager & Lead Developer | Sandiko | [@Sandikodev](https://github.com/Sandikodev) | Arsitektur error handling, review pattern |
+| Learning Mentor | Azis | [@ziz-mubasyir](https://github.com/ziz-mubasyir) | Review implementasi, mentoring |
+| Junior Frontend Developer | Fathan Mubina | [@Hans02-Neo](https://github.com/Hans02-Neo) | React Error Boundary, Inertia errors, flash messages |
+| Junior Backend Developer | Ihsan | [@Odauna](https://github.com/Odauna) | Exception handler, HTTP error pages, API format |
+| Product Analyst / UI/UX | Ahmad Hanif | [@Rosyiii](https://github.com/Rosyiii) | Toast, form validation UI, error boundary |
 
 ### 1.3. Prasyarat
 

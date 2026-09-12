@@ -1,9 +1,13 @@
 export interface SchoolClass {
     id: number;
     name: string;
+    full_name: string;
     level: string;
+    academic_year?: string;
     capacity: number;
     teacher: { id: number; name: string } | null;
+    homeroom_teacher_id?: number | null;
+    teacher_id?: number | null;
     students_count: number;
 }
 
@@ -17,6 +21,7 @@ export interface Student {
     address?: string | null;
     enrollment_year?: number;
     guardian_id?: number | null;
+    class_id?: number | null;
     class: { id: number; name: string } | null;
     status: string;
     user?: { email?: string; username?: string } | null;
@@ -40,13 +45,9 @@ export interface Guardian {
     students?: Student[];
 }
 
-export interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-}
+import type { PaginatedData } from "@/types";
+
+export type { PaginatedData };
 
 export interface SearchConfig {
     mode: "client" | "server";
@@ -69,4 +70,7 @@ export interface MasterDataProps {
     searchConfig?: SearchConfig;
     activeTab?: string;
     filters?: Record<string, string | undefined>;
+    initialCreateTab?: "students" | "teachers" | "class" | "guardians" | null;
+    initialEditItem?: Student | Teacher | SchoolClass | Guardian | null;
+    initialEditMode?: "edit" | "detail" | null;
 }

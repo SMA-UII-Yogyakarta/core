@@ -1,37 +1,77 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FiBookOpen, FiEye, FiMail, FiTrash2, FiUserCheck } from "react-icons/fi";
 import {
+    ActionButton,
+    Avatar,
+    Checkbox,
+    MasterDataCard,
+    MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
     Table,
     TableFooter,
-    Pagination,
-    Avatar,
-    FAB,
+    TableSection,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
-import { useScrollFabTrigger } from "@/hooks/useScrollFabTrigger";
-import type { Teacher, PaginatedData } from "./types";
 import TeacherDrawerForm from "./TeacherDrawerForm";
+import type { PaginatedData, Teacher } from "./types";
 
 interface TeachersTabProps {
     teachers?: PaginatedData<Teacher>;
     filters?: Record<string, string | undefined>;
+    onSearchChange?: (val: string) => void;
+    onFilterChange?: (key: string, val: string) => void;
     createOpen?: boolean;
     onCloseCreate?: () => void;
+    editItem?: Teacher | null;
+    editMode?: "edit" | "detail" | null;
+    onCloseDrawer?: () => void;
+    selectedIds?: number[];
+    onSelectedIdsChange?: (ids: number[]) => void;
     onRequestDelete: (entity: string, ids: number | number[], label: string) => void;
 }
 
 export default function TeachersTab({
     teachers,
     filters = {},
+    onSearchChange,
     createOpen = false,
     onCloseCreate,
+    editItem = null,
+    editMode = null,
+    onCloseDrawer,
+    selectedIds: propsSelectedIds,
+    onSelectedIdsChange,
     onRequestDelete,
 }: TeachersTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(null);
-    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-    const { triggerRef, showFab } = useScrollFabTrigger();
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(editItem ?? null);
+
+    useEffect(() => {
+        if (editItem && editMode) {
+            setSelectedTeacher(editItem);
+            setDrawerMode(editMode);
+        }
+    }, [editItem, editMode]);
+    const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
+
     const teacherList = teachers?.data || [];
+    const selectedIds = propsSelectedIds !== undefined ? propsSelectedIds : internalSelectedIds;
+
+    const handleSelectAll = (checked: boolean) => {
+        const next = checked ? teacherList.map((t) => t.id) : [];
+        setInternalSelectedIds(next);
+        onSelectedIdsChange?.(next);
+    };
+
+    const handleSelectOne = (id: number, checked: boolean) => {
+        const next = checked ? [...selectedIds, id] : selectedIds.filter((item) => item !== id);
+        setInternalSelectedIds(next);
+        onSelectedIdsChange?.(next);
+    };
+
+    const isAllSelected = teacherList.length > 0 && selectedIds.length === teacherList.length;
 
     const formatTeacherType = (t: Teacher) => {
         const types = Array.isArray(t.teacher_type) ? t.teacher_type : [String(t.teacher_type || "duty")];
@@ -65,6 +105,23 @@ export default function TeachersTab({
     };
 
     const columns: Column<Teacher>[] = [
+        {
+            key: "selection",
+            header: (
+                <div className="flex items-center justify-center">
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
+                </div>
+            ),
+            render: (t) => (
+                <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                        checked={selectedIds.includes(t.id)}
+                        onChange={(e) => handleSelectOne(t.id, e.target.checked)}
+                    />
+                </div>
+            ),
+            className: "w-12 text-center",
+        },
         {
             key: "teacher",
             header: "Nama Pendidik",
@@ -118,98 +175,217 @@ export default function TeachersTab({
         },
         {
             key: "actions",
-            header: "Aksi",
-            className: "text-center w-24",
+            header: <div className="text-center w-full">Aksi</div>,
+            className: "text-center w-36 whitespace-nowrap",
             render: (t) => (
                 <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
+                    <ActionButton
+                        variant="detail"
+                        label="Detail"
+                        icon={<FiEye className="w-3.5 h-3.5" />}
                         onClick={() => {
                             setSelectedTeacher(t);
                             setDrawerMode("detail");
                         }}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-primary hover:bg-primary-light border border-border transition-colors cursor-pointer"
                         title="Lihat / Edit Detail Guru"
                         aria-label="Lihat / Edit Detail Guru"
-                    >
-                        <FiEye className="w-4 h-4" />
-                    </button>
-                    <button
-                        type="button"
+                    />
+                    <ActionButton
+                        variant="delete"
+                        label="Hapus"
+                        icon={<FiTrash2 className="w-3.5 h-3.5" />}
                         onClick={() => onRequestDelete("teachers", t.id, t.name)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-danger hover:bg-danger-bg border border-danger/20 transition-colors cursor-pointer"
                         title="Hapus Guru"
                         aria-label="Hapus Guru"
-                    >
-                        <FiTrash2 className="w-4 h-4" />
-                    </button>
+                    />
                 </div>
             ),
         },
     ];
 
+    const handlePagination = (p: number) => {
+        router.get(
+            "/master-data",
+            {
+                tab: "teachers",
+                page: p,
+                search: filters?.search || undefined,
+            },
+            { preserveState: true },
+        );
+    };
+
     return (
-        <div className="relative flex-1 min-h-0 flex flex-col justify-between gap-3 overflow-hidden">
-            <div ref={triggerRef} className="absolute top-0 left-0 w-px h-px pointer-events-none -z-10" />
+        <div className="relative flex-1 min-h-0 flex flex-col justify-between overflow-hidden font-inter">
+            {/* ───────────────────────────────────────────────────────────── */}
+            {/* DESKTOP TABLE VIEW (>= sm) */}
+            {/* ───────────────────────────────────────────────────────────── */}
+            <TableSection desktopOnly>
+                <Table
+                    columns={columns}
+                    data={teacherList}
+                    keyExtractor={(t) => t.id}
+                    dense
+                    fill
+                />
 
-            {/* Table */}
-            <Table
-                columns={columns}
-                data={teacherList}
-                keyExtractor={(t) => t.id}
-                containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
-                dense
-            />
+                <TableFooter
+                    currentPage={teachers?.current_page}
+                    totalPages={teachers?.last_page}
+                    totalItems={teachers?.total}
+                    perPage={teachers?.per_page}
+                    onPageChange={handlePagination}
+                    itemLabel="guru terdaftar"
+                    emptyInfo="Menampilkan data tenaga pendidik SMA UII Yogyakarta."
+                />
+            </TableSection>
 
-            {/* Standardized Reusable Symmetrical Table Footer */}
-            <TableFooter
-                info="Direktori data guru pengajar, guru piket, dan wali kelas."
-                pagination={
-                    teachers && teachers.total > 0 ? (
-                        <Pagination
-                            currentPage={teachers.current_page}
-                            totalPages={teachers.last_page}
-                            totalItems={teachers.total}
-                            perPage={teachers.per_page}
-                            onPageChange={(p) =>
-                                router.get(
-                                    "/master-data",
-                                    {
-                                        tab: "teachers",
-                                        page: p,
-                                        search: filters?.search || undefined,
-                                    },
-                                    { preserveState: true }
-                                )
+            {/* ───────────────────────────────────────────────────────────── */}
+            {/* MOBILE-NATIVE CARD STACK VIEW (< sm) */}
+            {/* ───────────────────────────────────────────────────────────── */}
+            <div className="sm:hidden flex flex-col gap-3">
+                {teacherList.length === 0 ? (
+                    <MasterDataEmptyState
+                        icon={<FiUserCheck className="w-7 h-7" />}
+                        iconContainerClassName="bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                        title="Belum Ada Data Guru"
+                        description="Mulai daftarkan tenaga pendidik baru atau gunakan import CSV untuk memasukkan daftar guru sekolah."
+                        actionLabel="Tambah Guru Baru"
+                        onAction={() => {
+                            if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                router.visit("/master-data/create?tab=teachers");
+                            } else {
+                                setSelectedTeacher(null);
+                                setDrawerMode("create");
                             }
-                            className="!w-auto !gap-3"
+                        }}
+                    />
+                ) : (
+                    <>
+                        {/* Mobile Filter & Select All Bar */}
+                        <MobileFilterSelectBar
+                            selectedCount={selectedIds.length}
+                            totalCount={teacherList.length}
+                            allSelected={isAllSelected}
+                            indeterminate={selectedIds.length > 0 && !isAllSelected}
+                            onToggleSelectAll={handleSelectAll}
+                            searchValue={filters?.search ?? ""}
+                            onSearchChange={(val) => onSearchChange?.(val)}
+                            searchPlaceholder="Cari NIP, kode, nama guru..."
                         />
-                    ) : undefined
-                }
-            />
 
-            {/* Form Drawer */}
+                        {teacherList.map((t) => {
+                            const isSelected = selectedIds.includes(t.id);
+                            const types = Array.isArray(t.teacher_type)
+                                ? t.teacher_type
+                                : [String(t.teacher_type || "duty")];
+                            const hasDuty = types.includes("duty") || types.includes("piket");
+                            const hasHome = types.includes("homeroom") || types.includes("wali");
+
+                            return (
+                                <MasterDataCard
+                                    key={t.id}
+                                    isSelected={isSelected}
+                                    onSelect={(checked) => handleSelectOne(t.id, checked)}
+                                    onOpenDetail={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/teachers/${t.id}/detail`);
+                                        } else {
+                                            setSelectedTeacher(t);
+                                            setDrawerMode("detail");
+                                        }
+                                    }}
+                                    onEdit={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/teachers/${t.id}/edit`);
+                                        } else {
+                                            setSelectedTeacher(t);
+                                            setDrawerMode("edit");
+                                        }
+                                    }}
+                                    onDelete={() => onRequestDelete("teachers", t.id, t.name)}
+                                    selectLabel="Pilih Guru"
+                                    deleteAriaLabel="Hapus Guru"
+                                    avatarName={t.name}
+                                    title={t.name}
+                                    subtitle={
+                                        <div className="flex items-center gap-1.5 text-[10.5px] text-text-muted">
+                                            <span className="font-mono font-medium">Kode: {t.teacher_code}</span>
+                                            {t.user?.email && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="truncate max-w-[130px] inline-flex items-center gap-0.5">
+                                                        <FiMail className="text-[10px]" />
+                                                        {t.user.email}
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    }
+                                    rightBadge={
+                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-muted font-bold text-text-secondary border border-border">
+                                            ID #{t.id}
+                                        </span>
+                                    }
+                                >
+                                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                        {hasDuty && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                                Guru Piket
+                                            </span>
+                                        )}
+                                        {hasHome && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                                                Wali Kelas
+                                            </span>
+                                        )}
+
+                                        {t.school_classes && t.school_classes.length > 0 && (
+                                            <div className="flex flex-wrap items-center gap-1 ml-auto">
+                                                {t.school_classes.map((c) => (
+                                                    <span
+                                                        key={c.id}
+                                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-muted text-text-primary border border-border/80"
+                                                    >
+                                                        <FiBookOpen className="text-[10px] text-primary" />
+                                                        {c.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </MasterDataCard>
+                            );
+                        })}
+                    </>
+                )}
+
+                {/* Mobile Native Pagination */}
+                {teachers && teachers.last_page > 1 && (
+                    <MobileNativePagination
+                        currentPage={teachers.current_page}
+                        totalPages={teachers.last_page}
+                        totalItems={teachers.total}
+                        perPage={teachers.per_page}
+                        onPageChange={handlePagination}
+                        itemLabel="guru"
+                        className="shrink-0 mt-auto"
+                    />
+                )}
+            </div>
+
+            {/* Form Drawer (Standardized Mobile Bottom Sheet + Desktop Side Drawer) */}
             <TeacherDrawerForm
                 open={createOpen || drawerMode !== null}
                 mode={createOpen ? "create" : drawerMode}
                 teacher={createOpen ? null : selectedTeacher}
                 onClose={() => {
                     setDrawerMode(null);
+                    setSelectedTeacher(null);
                     onCloseCreate?.();
+                    onCloseDrawer?.();
                 }}
                 onRequestDelete={onRequestDelete}
-            />
-
-            {/* Mobile / Scroll FAB for Fast Add */}
-            <FAB
-                show={showFab}
-                onClick={() => {
-                    setSelectedTeacher(null);
-                    setDrawerMode("create");
-                }}
-                label="Tambah Guru"
-                icon={<FiPlus size={20} />}
-                dusk="fab-create-teacher"
             />
         </div>
     );

@@ -17,10 +17,24 @@ class SetLocaleMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->cookie('app_locale', config('app.locale'));
+        $acceptLanguage = $request->header('Accept-Language');
 
-        if (in_array($locale, ['id', 'en'])) {
-            App::setLocale($locale);
+        $candidate = $request->header('X-Locale')
+            ?: $request->cookie('app_locale')
+            ?: ($request->hasSession() ? $request->session()->get('locale') : null)
+            ?: ($acceptLanguage ? $request->getPreferredLanguage(['id', 'en']) : null);
+
+        $defaultLocale = \App\Models\AppSetting::get('default_locale', config('app.locale', 'id'));
+        $locale = in_array($candidate, ['id', 'en'], true) ? $candidate : $defaultLocale;
+
+        if (! in_array($locale, ['id', 'en'], true)) {
+            $locale = 'id';
+        }
+
+        App::setLocale($locale);
+
+        if ($request->hasSession() && $request->session()->get('locale') !== $locale) {
+            $request->session()->put('locale', $locale);
         }
 
         return $next($request);

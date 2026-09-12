@@ -94,4 +94,51 @@ class AttendanceSettingWebTest extends TestCase
             'id' => $holiday->id,
         ]);
     }
+
+    public function test_admin_can_update_and_persist_system_settings(): void
+    {
+        $payload = [
+            'schoolName' => 'SMA UII Unggulan Yogyakarta',
+            'npsn' => '20403999',
+            'accreditation' => 'A (Paripurna)',
+            'academicYear' => '2026/2027 - Genap',
+            'principalName' => 'Dr. H. Bambang Irawan, M.Pd.',
+            'address' => 'Jl. Kaliurang KM 14.5, Sleman, DIY',
+            'phone' => '(0274) 898444',
+            'email' => 'contact@smauii.sch.id',
+            'defaultPageLimit' => 25,
+            'sessionTimeoutMinutes' => 60,
+            'maintenanceMode' => false,
+            'mfaEnforced' => true,
+        ];
+
+        $response = $this->actingAs($this->admin)->post(route('settings.update'), $payload);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'school_name',
+            'value' => 'SMA UII Unggulan Yogyakarta',
+        ]);
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'npsn',
+            'value' => '20403999',
+        ]);
+        $this->assertDatabaseHas('app_settings', [
+            'key' => 'principal_name',
+            'value' => 'Dr. H. Bambang Irawan, M.Pd.',
+        ]);
+
+        $getPage = $this->actingAs($this->admin)->get(route('settings'));
+        $getPage->assertOk();
+        $getPage->assertInertia(
+            fn ($page) => $page
+            ->component('Admin/SystemSettings')
+            ->where('systemInfo.schoolName', 'SMA UII Unggulan Yogyakarta')
+            ->where('systemInfo.npsn', '20403999')
+            ->where('systemInfo.principalName', 'Dr. H. Bambang Irawan, M.Pd.')
+            ->where('systemInfo.defaultPageLimit', 25)
+            ->where('systemInfo.sessionTimeoutMinutes', 60),
+        );
+    }
 }

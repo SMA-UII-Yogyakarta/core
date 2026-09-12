@@ -1,28 +1,28 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import StatusBadge from '../Components/ui/StatusBadge';
+import type { Meta, StoryObj } from "@storybook/react";
+import StatusBadge from "../Components/ui/StatusBadge";
 
 const meta: Meta<typeof StatusBadge> = {
-    title: 'UI/StatusBadge',
+    title: "UI/StatusBadge",
     component: StatusBadge,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
     argTypes: {
         variant: {
-            control: 'select',
+            control: "select",
             options: [
-                'present',
-                'late',
-                'absent',
-                'sick',
-                'permission',
-                'active',
-                'inactive',
-                'pending',
-                'approved',
-                'rejected',
+                "present",
+                "late",
+                "absent",
+                "sick",
+                "permission",
+                "active",
+                "inactive",
+                "pending",
+                "approved",
+                "rejected",
             ],
         },
         label: {
-            control: 'text',
+            control: "text",
         },
     },
 };
@@ -32,30 +32,30 @@ type Story = StoryObj<typeof StatusBadge>;
 
 export const Present: Story = {
     args: {
-        variant: 'present',
+        variant: "present",
     },
 };
 
 export const Late: Story = {
     args: {
-        variant: 'late',
+        variant: "late",
     },
 };
 
 export const Absent: Story = {
     args: {
-        variant: 'absent',
+        variant: "absent",
     },
 };
 
 export const Sick: Story = {
     args: {
-        variant: 'sick',
+        variant: "sick",
     },
 };
 
 export const Approved: Story = {
     args: {
-        variant: 'approved',
+        variant: "approved",
     },
 };

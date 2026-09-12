@@ -1,12 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('Responsive Admin Flow QA Audit', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login');
-        await page.fill('input[name="username"]', 'admin');
-        await page.fill('input[name="password"]', 'password');
-        await page.locator('input[name="password"]').press('Enter');
-        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await loginAs(page, 'admin');
     });
 
     test('admin master data adapts correctly across viewports', async ({ page }, testInfo) => {
@@ -22,8 +19,7 @@ test.describe('Responsive Admin Flow QA Audit', () => {
     });
 
     test('admin can view reports page responsively', async ({ page }, testInfo) => {
-        await page.goto('/reports/daily');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/reports/daily', { waitUntil: 'domcontentloaded' });
         await expect(page.locator('main')).toBeVisible();
 
         // Take QA Audit Screenshot

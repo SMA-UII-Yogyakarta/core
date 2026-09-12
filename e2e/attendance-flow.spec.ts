@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('Student Portal & Attendance End-to-End Flow', () => {
     test.beforeEach(async ({ page, context }) => {
@@ -9,11 +10,7 @@ test.describe('Student Portal & Attendance End-to-End Flow', () => {
             longitude: 110.399583,
         });
 
-        await page.goto('/login');
-        await page.fill('input[name="username"]', 'ahmad');
-        await page.fill('input[name="password"]', 'password');
-        await page.locator('input[name="password"]').press('Enter');
-        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await loginAs(page, 'ahmad');
     });
 
     test('student lands on dashboard and views profile greeting and stats', async ({ page }) => {
@@ -22,14 +19,12 @@ test.describe('Student Portal & Attendance End-to-End Flow', () => {
     });
 
     test('student can navigate to live attendance page with camera and geofence status', async ({ page }) => {
-        await page.goto('/student/attendance');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/attendance', { waitUntil: 'domcontentloaded' });
         await expect(page.locator('body')).toContainText(/Presensi|Kamera|Lokasi|Hadir/i);
     });
 
     test('student can view attendance history with composable calendar and table', async ({ page }) => {
-        await page.goto('/student/history');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/history', { waitUntil: 'domcontentloaded' });
         await expect(page.locator('body')).toContainText(/Riwayat|Presensi|Bulan|Tahun/i);
     });
 });

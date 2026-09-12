@@ -29,7 +29,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [
@@ -100,12 +100,12 @@ class GuardianPortalController extends Controller
         ]);
     }
 
-    public function leaveApplication()
+    public function leaveApplication(Request $request)
     {
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->get()->map(fn ($s) => [
@@ -113,7 +113,10 @@ class GuardianPortalController extends Controller
             'name' => $s->name,
         ]);
 
-        $leaveRequests = $this->leaveRequestService->paginate(['guardian_id' => $guardian->id]);
+        $filters = $request->only(['status', 'category', 'student_id']);
+        $queryFilters = array_merge(['guardian_id' => $guardian->id], array_filter($filters));
+
+        $leaveRequests = $this->leaveRequestService->paginate($queryFilters);
 
         return Inertia::render('Guardian/LeaveApplication', [
             'guardian' => [
@@ -123,6 +126,7 @@ class GuardianPortalController extends Controller
             ],
             'students' => $students,
             'leaveRequests' => $leaveRequests->toArray(),
+            'filters' => $filters,
         ]);
     }
 
@@ -131,7 +135,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->back()->with('error', 'Guardian data not found.');
+            return redirect()->back()->with('error', __('messages.guardian_not_found'));
         }
 
         $validated = $request->validate([
@@ -168,7 +172,7 @@ class GuardianPortalController extends Controller
         ]);
 
         return redirect()->route('guardian.leave-application')
-            ->with('success', 'Leave application submitted successfully.');
+            ->with('success', __('messages.leave_submitted'));
     }
 
     public function history(Request $request)
@@ -176,7 +180,7 @@ class GuardianPortalController extends Controller
         $guardian = $this->guardianService->findByUserId(auth()->id());
 
         if (! $guardian) {
-            return redirect()->route('dashboard')->with('error', 'Guardian data not found.');
+            return redirect()->route('dashboard')->with('error', __('messages.guardian_not_found'));
         }
 
         $students = $guardian->students()->with('class')->get()->map(fn ($s) => [

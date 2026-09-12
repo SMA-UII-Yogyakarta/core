@@ -57,9 +57,9 @@ Perintah utama:
 ```bash
 make dev          # dev: up base+dev
 make down
-make prod-up      # prod: rm public/hot → bun run build → up base+prod --build
-make prod-down
-make prod-logs    # tail app worker schedule
+make prod:up      # prod: rm public/hot → bun run build → up base+prod --build
+make prod:down
+make prod:logs    # tail app worker schedule
 ```
 
 ### 3.1. Strategi Object Storage (S3 / RustFS / MinIO / Cloudflare R2)
@@ -100,7 +100,7 @@ Fungsional untuk development **setara** — tidak wajib keduanya. Aturan umum: *
    ```
 4. **Up stack**:
    ```bash
-   make prod-up
+   make prod:up
    ```
 
 Data DB dipertahankan antar-mode karena memakai volume `core_pgsql_data`.
@@ -114,7 +114,7 @@ Saat fullstack siap production:
    - `docker-compose.prod.yml` → `APP_URL: https://app.smauiiyk.sch.id`
    - `env/.env.production` → `APP_URL=https://app.smauiiyk.sch.id`
 3. Buat nginx conf `conf.d/smauii/app.conf` (copy `preview.conf`, ganti `server_name` + path cert).
-4. DNS `app.smauiiyk.sch.id` → VPS IP, certbot, `aws nginx reload`, `make prod-up`.
+4. DNS `app.smauiiyk.sch.id` → VPS IP, certbot, `aws nginx reload`, `make prod:up`.
 
 ## 6. Migrasi ke Backend Terpisah (masa depan)
 
@@ -126,6 +126,6 @@ Saat fullstack siap production:
 ## 7. Catatan Penting
 
 - **Jangan pakai `${APP_URL:-...}` di compose** — `APP_URL` di root `.env` akan di-interpolasi compose (nilai `localhost:8800`) dan menimpa default. Di `docker-compose.prod.yml` nilai APP_URL di-**hardcode**.
-- **`public/hot` harus dihapus sebelum mode production** — kalau ada, Laravel menyangka mode dev dan memuat aset dari `:5173`. `make prod-up` sudah otomatis menghapusnya.
+- **`public/hot` harus dihapus sebelum mode production** — kalau ada, Laravel menyangka mode dev dan memuat aset dari `:5173`. `make prod:up` sudah otomatis menghapusnya.
 - Semua port host di-bind ke `127.0.0.1` saja; akses publik hanya lewat nginx-proxy.
 - Aplikasi non-root (`USER app`, uid 1000) di container; `ulimits core: 0` mencegah core dump.

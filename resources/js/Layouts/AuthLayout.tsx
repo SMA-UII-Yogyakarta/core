@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { Head } from "@inertiajs/react";
+import type { ReactNode } from "react";
 
 interface AuthLayoutProps {
     title?: string;

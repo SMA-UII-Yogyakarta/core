@@ -34,27 +34,48 @@ class StudentService
     public function create(array $data): Student
     {
         return DB::transaction(function () use ($data) {
+            $nis = trim((string) $data['nis']);
+            $name = trim((string) $data['name']);
+            $email = ! empty($data['email']) ? trim((string) $data['email']) : null;
+
+            if (! $email && ! empty($nis)) {
+                $parts = explode(' ', $name);
+                $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
+                $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'siswa';
+                $candidate = "{$cleanFirst}{$nis}@smauiiyk.sch.id";
+                $counter = 1;
+                while (User::where('email', $candidate)->exists()) {
+                    $counter++;
+                    $candidate = "{$cleanFirst}{$nis}.{$counter}@smauiiyk.sch.id";
+                }
+                $email = $candidate;
+            }
+
             // Create user account
             $user = User::create([
-                'username' => $data['nis'],
-                'name' => $data['name'],
-                'email' => $data['email'] ?? null,
-                'password' => Hash::make($data['password'] ?? 'password'),
+                'username' => $nis,
+                'name' => $name,
+                'email' => $email,
+                'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'student',
             ]);
-            $user->assignRole('student');
+
+            $enrollmentYear = (int) ($data['enrollment_year'] ?? date('Y'));
+            $birthDate = ! empty($data['birth_date'])
+                ? $data['birth_date']
+                : ($enrollmentYear - 15) . '-01-01';
 
             // Create student profile
             $student = Student::create([
                 'user_id' => $user->id,
-                'class_id' => $data['class_id'],
-                'nis' => $data['nis'],
-                'nisn' => $data['nisn'],
-                'name' => $data['name'],
-                'birth_date' => $data['birth_date'],
+                'class_id' => $data['class_id'] ?? null,
+                'nis' => $nis,
+                'nisn' => trim((string) $data['nisn']),
+                'name' => $name,
+                'birth_date' => $birthDate,
                 'phone' => $data['phone'] ?? null,
                 'address' => $data['address'] ?? null,
-                'enrollment_year' => $data['enrollment_year'],
+                'enrollment_year' => $enrollmentYear,
                 'status' => $data['status'] ?? 'Active',
                 'guardian_id' => $data['guardian_id'] ?? null,
             ]);
@@ -70,8 +91,22 @@ class StudentService
         DB::transaction(function () use ($student, $data) {
             $student->update($data);
 
+            $userUpdates = [];
             if (isset($data['name'])) {
-                $student->user->update(['name' => $data['name']]);
+                $userUpdates['name'] = trim((string) $data['name']);
+            }
+            if (isset($data['nis'])) {
+                $userUpdates['username'] = trim((string) $data['nis']);
+            }
+            if (array_key_exists('email', $data) && ! empty($data['email'])) {
+                $userUpdates['email'] = trim((string) $data['email']);
+            }
+            if (! empty($data['password'])) {
+                $userUpdates['password'] = Hash::make($data['password']);
+            }
+
+            if (! empty($userUpdates)) {
+                $student->user->update($userUpdates);
             }
         });
 

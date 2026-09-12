@@ -15,6 +15,11 @@ class GuardiansImport
 
     private array $success = [];
 
+    public function __construct(
+        protected ?string $defaultPassword = null,
+    ) {
+    }
+
     public function import(string $filePath): array
     {
         $reader = ReaderFactory::createFromFile($filePath);
@@ -24,47 +29,49 @@ class GuardiansImport
         $headers = [];
         $currentRowIndex = 0;
 
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $currentRowIndex++;
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $currentRowIndex++;
 
-                $cells = [];
-                foreach ($row->getCells() as $cell) {
-                    $cells[] = trim((string) $cell->getValue());
-                }
-
-                if ($isFirstRow) {
-                    $headers = $cells;
-                    $isFirstRow = false;
-
-                    continue;
-                }
-
-                if (empty(array_filter($cells))) {
-                    continue;
-                }
-
-                $data = array_combine($headers, $cells);
-
-                try {
-                    $this->importRow($data);
-                } catch (\Exception $e) {
-                    $msg = $e->getMessage();
-                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
-                        if (str_contains($msg, 'users_email_unique')) {
-                            $msg = 'Email wali murid sudah terdaftar untuk akun lain.';
-                        } elseif (str_contains($msg, 'users_username_unique')) {
-                            $msg = 'Username wali murid sudah terdaftar di sistem.';
-                        } else {
-                            $msg = 'Data wali murid sudah terdaftar di sistem (duplicate entry).';
-                        }
+                    $cells = [];
+                    foreach ($row->getCells() as $cell) {
+                        $cells[] = trim((string) $cell->getValue());
                     }
-                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+
+                    if ($isFirstRow) {
+                        $headers = $cells;
+                        $isFirstRow = false;
+
+                        continue;
+                    }
+
+                    if (empty(array_filter($cells))) {
+                        continue;
+                    }
+
+                    $data = array_combine($headers, $cells);
+
+                    try {
+                        $this->importRow($data);
+                    } catch (\Exception $e) {
+                        $msg = $e->getMessage();
+                        if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                            if (str_contains($msg, 'users_email_unique')) {
+                                $msg = 'Email wali murid sudah terdaftar untuk akun lain.';
+                            } elseif (str_contains($msg, 'users_username_unique')) {
+                                $msg = 'Username wali murid sudah terdaftar di sistem.';
+                            } else {
+                                $msg = 'Data wali murid sudah terdaftar di sistem (duplicate entry).';
+                            }
+                        }
+                        $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+                    }
                 }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
 
         return [
             'success_count' => count($this->success),
@@ -82,13 +89,14 @@ class GuardiansImport
             $address = trim($data['address'] ?? $data['Alamat'] ?? $data['alamat'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? '');
             $username = trim($data['username'] ?? $data['Username'] ?? '');
+            $password = trim($data['password'] ?? $data['Password'] ?? $data['Kata Sandi'] ?? $data['kata_sandi'] ?? '');
 
             if (empty($name)) {
                 throw new \RuntimeException('Nama wali murid wajib diisi.');
             }
 
             if (empty($username)) {
-                $username = ! empty($phone) ? 'wali_' . preg_replace('/[^0-9]/', '', $phone) : 'wali_' . fake()->unique()->numerify('#####');
+                $username = ! empty($phone) ? 'wali_' . preg_replace('/[^0-9]/', '', $phone) : 'wali_' . str_pad((string) random_int(10000, 99999), 5, '0', STR_PAD_LEFT);
             }
 
             $existingUser = User::where('username', $username)->first();
@@ -102,10 +110,15 @@ class GuardiansImport
             }
 
             if ($existingUser && $existingUser->guardian) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 $existingUser->guardian->update([
                     'name' => $name,
                     'phone' => ! empty($phone) ? $phone : $existingUser->guardian->phone,
@@ -117,10 +130,15 @@ class GuardiansImport
             }
 
             if ($existingUser) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 Guardian::create([
                     'user_id' => $existingUser->id,
                     'name' => $name,
@@ -132,14 +150,17 @@ class GuardiansImport
                 return;
             }
 
+            $initialPassword = ! empty($password)
+                ? $password
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : \App\Models\AppSetting::get('default_guardian_password', config('auth.defaults.user_password', 'SmaUii@' . date('Y'))));
+
             $user = User::create([
                 'username' => $username,
                 'name' => $name,
                 'email' => ! empty($email) ? $email : null,
-                'password' => Hash::make('password'),
+                'password' => Hash::make($initialPassword),
                 'role' => 'guardian',
             ]);
-            $user->assignRole('guardian');
 
             Guardian::create([
                 'user_id' => $user->id,

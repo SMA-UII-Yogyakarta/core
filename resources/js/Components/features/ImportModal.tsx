@@ -1,7 +1,9 @@
-import { useState, useRef } from "react";
-import { FaFileUpload, FaCheckCircle, FaExclamationCircle, FaDownload } from "react-icons/fa";
+import { router } from "@inertiajs/react";
+import { useRef, useState } from "react";
+import { FiAlertCircle, FiCheckCircle, FiDownload, FiKey, FiUploadCloud } from "react-icons/fi";
 import Modal from "@/Components/common/Modal";
 import Button from "@/Components/ui/Button";
+import Input from "@/Components/ui/Input";
 
 interface ImportResult {
     success_count: number;
@@ -20,6 +22,7 @@ interface ImportModalProps {
 
 export default function ImportModal({ open, onClose, entity }: ImportModalProps) {
     const [file, setFile] = useState<File | null>(null);
+    const [defaultPassword, setDefaultPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<ImportResult | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +35,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
     };
 
     const entityLabel = entityLabels[entity] ?? "Data";
+    const supportsPassword = entity !== "classes";
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
@@ -60,6 +64,9 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
 
         const formData = new FormData();
         formData.append("file", file);
+        if (supportsPassword && defaultPassword.trim()) {
+            formData.append("default_password", defaultPassword.trim());
+        }
 
         const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
 
@@ -101,6 +108,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
 
     const reset = () => {
         setFile(null);
+        setDefaultPassword("");
         setResult(null);
         setLoading(false);
     };
@@ -125,7 +133,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                             download
                             className="inline-flex items-center gap-1.5 text-[12px] font-bold text-primary hover:underline"
                         >
-                            <FaDownload className="text-[11px]" />
+                            <FiDownload className="text-[11px]" />
                             Unduh Template
                         </a>
                     </div>
@@ -138,23 +146,23 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                     >
                         {file ? (
                             <div className="flex flex-col items-center gap-2">
-                                <FaFileUpload className="w-8 h-8 text-primary" />
+                                <FiUploadCloud className="w-8 h-8 text-primary" />
                                 <p className="text-[14px] font-medium text-text-primary">{file.name}</p>
                                 <p className="text-[12px] text-text-inactive">{(file.size / 1024).toFixed(1)} KB</p>
                                 <button
+                                    type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setFile(null);
                                     }}
                                     className="text-[12px] text-danger hover:underline mt-1 cursor-pointer"
-                                    type="button"
                                 >
                                     Hapus file
                                 </button>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center gap-2">
-                                <FaFileUpload className="w-10 h-10 text-text-inactive" />
+                                <FiUploadCloud className="w-10 h-10 text-text-inactive" />
                                 <p className="text-[14px] font-medium text-text-primary">
                                     Seret file ke sini atau klik untuk memilih
                                 </p>
@@ -170,26 +178,48 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                         />
                     </div>
 
-                    <div className="mt-4 p-3.5 bg-surface-raised border border-border rounded-lg text-[12px] text-text-secondary">
+                    {supportsPassword && (
+                        <div className="mt-4 p-3.5 bg-muted/20 border border-border rounded-xl space-y-1.5 font-inter">
+                            <label className="text-[12px] font-bold text-text-primary flex items-center gap-1.5">
+                                <FiKey className="text-primary text-[11px]" />
+                                Default Kata Sandi Akun Baru (Opsional)
+                            </label>
+                            <Input
+                                type="text"
+                                value={defaultPassword}
+                                onChange={(e) => setDefaultPassword(e.target.value)}
+                                placeholder="Biarkan kosong untuk default sistem (cth: SmaUii@2024)"
+                                className="h-9 text-[13px]"
+                            />
+                            <p className="text-[11px] text-text-muted">
+                                Kolom kata sandi pada file spreadsheet akan diprioritaskan. Jika kosong, kata sandi ini
+                                yang akan diterapkan.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="mt-4 p-3.5 bg-surface-raised border border-border rounded-xl text-[12px] text-text-secondary font-inter">
                         <p className="font-bold text-text-primary mb-1">Format kolom yang didukung:</p>
                         {entity === "students" && (
                             <p>
-                                <code>nis, nisn, name, class, birth_date, phone, address, enrollment_year, email</code>
+                                <code>
+                                    nis, nisn, name, class, birth_date, phone, address, enrollment_year, email, password
+                                </code>
                             </p>
                         )}
                         {entity === "teachers" && (
                             <p>
-                                <code>teacher_code, name, email</code>
+                                <code>teacher_code, name, email, teacher_type, password</code>
                             </p>
                         )}
                         {entity === "classes" && (
                             <p>
-                                <code>name, level, capacity, teacher_code</code>
+                                <code>name, level, academic_year, capacity, teacher_code</code>
                             </p>
                         )}
                         {entity === "guardians" && (
                             <p>
-                                <code>name, phone, address, email</code>
+                                <code>name, phone, address, email, username, password</code>
                             </p>
                         )}
                         <p className="mt-1.5 text-[11px] text-text-inactive">
@@ -207,11 +237,11 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                     </div>
                 </>
             ) : (
-                <div className="text-center py-4">
+                <div className="text-center py-4 font-inter">
                     {result.error_count === 0 ? (
-                        <FaCheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
+                        <FiCheckCircle className="w-12 h-12 text-success mx-auto mb-3" />
                     ) : (
-                        <FaExclamationCircle className="w-12 h-12 text-warning mx-auto mb-3" />
+                        <FiAlertCircle className="w-12 h-12 text-warning mx-auto mb-3" />
                     )}
                     <p className="text-[16px] font-bold text-text-primary">
                         {result.success_count} data berhasil diimport
@@ -248,7 +278,7 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                             onClick={() => {
                                 reset();
                                 onClose();
-                                window.location.reload();
+                                router.reload();
                             }}
                         >
                             Selesai & Muat Ulang

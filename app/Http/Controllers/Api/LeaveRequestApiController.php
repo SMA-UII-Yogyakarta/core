@@ -9,6 +9,7 @@ use App\Http\Requests\Api\VerifyLeaveRequestRequest;
 use App\Http\Resources\LeaveRequestResource;
 use App\Models\LeaveRequest;
 use App\Services\LeaveRequestService;
+use App\Services\StorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,7 @@ class LeaveRequestApiController extends Controller
 {
     public function __construct(
         protected LeaveRequestService $leaveRequestService,
+        protected StorageService $storageService,
     ) {
     }
 
@@ -34,7 +36,16 @@ class LeaveRequestApiController extends Controller
     {
         $this->authorize('create', LeaveRequest::class);
 
-        $leaveRequest = $this->leaveRequestService->create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('document')) {
+            $data['document_url'] = $this->storageService->uploadDocument(
+                $request->file('document'),
+                'leave-documents',
+            );
+        }
+
+        $leaveRequest = $this->leaveRequestService->create($data);
 
         return ApiResponse::success(
             new LeaveRequestResource($leaveRequest),

@@ -9,22 +9,12 @@ export interface UseClientPaginationResult<T> {
     pageSize: number;
 }
 
-export function useClientPagination<T>(
-    data: T[],
-    initialPage = 1,
-    pageSize = 10
-): UseClientPaginationResult<T> {
+export function useClientPagination<T>(data: T[], initialPage = 1, pageSize = 10): UseClientPaginationResult<T> {
     const [currentPage, setCurrentPage] = useState(initialPage);
 
-    const totalPages = useMemo(
-        () => Math.max(1, Math.ceil(data.length / pageSize)),
-        [data.length, pageSize]
-    );
+    const totalPages = useMemo(() => Math.max(1, Math.ceil(data.length / pageSize)), [data.length, pageSize]);
 
-    const safePage = useMemo(
-        () => Math.min(Math.max(1, currentPage), totalPages),
-        [currentPage, totalPages]
-    );
+    const safePage = useMemo(() => Math.min(Math.max(1, currentPage), totalPages), [currentPage, totalPages]);
 
     const paginatedData = useMemo(() => {
         const start = (safePage - 1) * pageSize;

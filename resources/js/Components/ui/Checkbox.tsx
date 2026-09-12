@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from "react";
-import { FaCheck } from "react-icons/fa";
+import { FiCheck } from "react-icons/fi";
 import FormError from "./FormError";
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "size"> {
@@ -51,7 +51,7 @@ export default function Checkbox({
                     {indeterminate ? (
                         <span className={`${barWidth} bg-white rounded`} />
                     ) : checked ? (
-                        <FaCheck className={iconSize} />
+                        <FiCheck className={iconSize} />
                     ) : null}
                 </span>
                 {label && <span className="text-[13px] text-text-primary font-inter font-medium">{label}</span>}

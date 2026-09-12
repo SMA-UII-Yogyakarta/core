@@ -7,7 +7,8 @@ describe("Attendance Check-In Zod Schema", () => {
         const payload = {
             latitude: -7.797061,
             longitude: 110.399583,
-            photo_blob: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
+            photo_blob:
+                "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
         };
 
         const result = validateForm(attendanceCheckInSchema, payload);

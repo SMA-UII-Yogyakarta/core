@@ -36,7 +36,7 @@ export function useBottomNavItems({ role, teacherType, navSections = [] }: UseBo
                 return [
                     { label: "Home", icon: "fa-home", href: "/teacher/duty" },
                     { label: "Pantauan", icon: "fa-clipboard-list", href: "/leave-requests" },
-                { label: "Rekap", icon: "fa-chart-bar", href: "/reports?tab=daily" },
+                    { label: "Rekap", icon: "fa-chart-bar", href: "/reports?tab=daily" },
                 ];
             }
             return [

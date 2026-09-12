@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import StatCard from '../Components/ui/StatCard';
+import type { Meta, StoryObj } from "@storybook/react";
+import StatCard from "../Components/ui/StatCard";
 
 const meta: Meta<typeof StatCard> = {
-    title: 'UI/StatCard',
+    title: "UI/StatCard",
     component: StatCard,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
     argTypes: {
         color: {
-            control: 'select',
-            options: ['green', 'amber', 'blue', 'red', 'grey'],
+            control: "select",
+            options: ["green", "amber", "blue", "red", "grey"],
         },
     },
 };
@@ -18,36 +18,36 @@ type Story = StoryObj<typeof StatCard>;
 
 export const TotalStudents: Story = {
     args: {
-        label: 'Total Siswa Terdaftar',
+        label: "Total Siswa Terdaftar",
         value: 360,
-        subtitle: '10 Rombel Aktif',
-        color: 'blue',
+        subtitle: "10 Rombel Aktif",
+        color: "blue",
     },
 };
 
 export const PresentToday: Story = {
     args: {
-        label: 'Hadir Hari Ini',
+        label: "Hadir Hari Ini",
         value: 342,
-        subtitle: '95% Kehadiran',
-        color: 'green',
+        subtitle: "95% Kehadiran",
+        color: "green",
     },
 };
 
 export const LateToday: Story = {
     args: {
-        label: 'Terlambat',
+        label: "Terlambat",
         value: 12,
-        subtitle: 'Batas 07:00 WIB',
-        color: 'amber',
+        subtitle: "Batas 07:00 WIB",
+        color: "amber",
     },
 };
 
 export const AbsentToday: Story = {
     args: {
-        label: 'Tanpa Keterangan',
+        label: "Tanpa Keterangan",
         value: 6,
-        subtitle: 'Perlu konfirmasi wali',
-        color: 'red',
+        subtitle: "Perlu konfirmasi wali",
+        color: "red",
     },
 };

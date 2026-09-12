@@ -27,14 +27,33 @@ class StorageServiceTest extends TestCase
         $this->assertCount(1, [$compressed]);
     }
 
-    public function test_upload_attendance_photo_stores_file_and_returns_url(): void
+    public function test_upload_attendance_photo_stores_file_and_returns_relative_path(): void
     {
         $file = UploadedFile::fake()->create('attendance.jpg', 640, 'image/jpeg');
-        $url = $this->storageService->uploadAttendancePhoto($file, 123);
+        $path = $this->storageService->uploadAttendancePhoto($file, 123);
 
-        $this->assertNotEmpty($url);
+        $this->assertNotEmpty($path);
+        $this->assertStringStartsWith('attendance/', $path);
         Storage::disk('s3')->assertExists(
             'attendance/' . now()->toDateString() . '/',
         );
+    }
+
+    public function test_url_handles_null_and_empty(): void
+    {
+        $this->assertNull(StorageService::url(null));
+        $this->assertNull(StorageService::url(''));
+    }
+
+    public function test_url_passes_through_external_http_urls(): void
+    {
+        $externalUrl = 'https://example.com/avatar.jpg';
+        $this->assertSame($externalUrl, StorageService::url($externalUrl));
+    }
+
+    public function test_url_converts_relative_paths_to_media_route(): void
+    {
+        $result = StorageService::url('avatars/2026-09-10/user_1.jpg');
+        $this->assertSame(route('media.show', ['path' => 'avatars/2026-09-10/user_1.jpg']), $result);
     }
 }

@@ -1,14 +1,19 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
+    AttendanceCalendar,
     Avatar,
     Button,
+    Drawer,
+    ExportButtonGroup,
+    HeaderIconButton,
+    IconButton,
     LiveBadge,
     MetricPill,
-    StatusBadge,
+    SearchBar,
     StatCard,
-    AttendanceCalendar,
-    ExportButtonGroup,
+    StatusBadge,
+    Table,
 } from "@/Components";
 
 describe("Design System Component Tests", () => {
@@ -46,34 +51,94 @@ describe("Design System Component Tests", () => {
             </Button>,
         );
         expect(screen.getByText("Simpan Perubahan")).toBeDefined();
+        expect(screen.getByRole("button", { name: "Simpan Perubahan" })).toHaveAttribute("type", "button");
+    });
+
+    it("renders IconButton with an accessible name and button type", () => {
+        render(<IconButton icon={<span aria-hidden="true">×</span>} label="Tutup dialog" />);
+        const button = screen.getByRole("button", { name: "Tutup dialog" });
+        expect(button).toHaveAttribute("type", "button");
+        expect(button).toHaveAttribute("title", "Tutup dialog");
+    });
+
+    it("renders HeaderIconButton with active filter semantics", () => {
+        render(
+            <HeaderIconButton
+                icon={<span aria-hidden="true">⌕</span>}
+                label="Filter data"
+                active
+            />,
+        );
+        const button = screen.getByRole("button", { name: "Filter data" });
+        expect(button).toHaveAttribute("type", "button");
+        expect(button).toHaveAttribute("aria-pressed", "true");
+        expect(button).toHaveAttribute("title", "Filter data");
     });
 
     it("renders AttendanceCalendar and navigates month", () => {
-        render(
-            <AttendanceCalendar
-                month={8}
-                year={2026}
-                attendances={[]}
-                holidays={[]}
-            />,
-        );
+        render(<AttendanceCalendar month={8} year={2026} attendances={[]} holidays={[]} />);
         expect(screen.getByText(/Agustus/i)).toBeDefined();
         expect(screen.getByText("14")).toBeDefined();
     });
 
     it("renders ExportButtonGroup with export options in modal", () => {
-        render(
-            <ExportButtonGroup
-                onExportExcel={() => {}}
-                onExportPdf={() => {}}
-                onPrint={() => {}}
-            />,
-        );
+        render(<ExportButtonGroup onExportExcel={() => {}} onExportPdf={() => {}} onPrint={() => {}} />);
         expect(screen.getByText("Unduh Laporan")).toBeDefined();
         fireEvent.click(screen.getByText("Unduh Laporan"));
         expect(screen.getByText("Pilih Format Unduhan")).toBeDefined();
         expect(screen.getByText("Unduh Excel")).toBeDefined();
         expect(screen.getByText("Unduh PDF")).toBeDefined();
         expect(screen.getByText("Cetak")).toBeDefined();
+    });
+
+    it("renders SearchBar with role='search' and without <form> wrapper", () => {
+        let searchedVal = "";
+        const { container } = render(
+            <SearchBar
+                value="siswa"
+                onChange={() => {}}
+                onSearch={(val) => {
+                    searchedVal = val;
+                }}
+            />,
+        );
+
+        // Must NOT render a <form> tag to prevent invalid HTML nested forms
+        expect(container.querySelector("form")).toBeNull();
+        expect(screen.getByRole("search")).toBeDefined();
+
+        const input = screen.getByPlaceholderText("Cari data...");
+        expect(input).toBeDefined();
+
+        // Pressing Enter must trigger onSearch
+        fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+        expect(searchedVal).toBe("siswa");
+    });
+
+    it("keeps table overflow on the table viewport", () => {
+        const { container } = render(
+            <Table
+                columns={[{ key: "name", header: "Nama" }]}
+                data={[{ name: "Siswa" }]}
+                keyExtractor={(row) => row.name}
+                fill
+            />,
+        );
+        const viewport = container.firstElementChild as HTMLElement;
+        expect(viewport.className).toContain("min-w-0");
+        expect(viewport.className).toContain("overflow-auto");
+        expect(viewport.className).toContain("flex-1 min-h-0");
+    });
+
+    it("renders Drawer as div when asForm={false} and allows embedding SearchBar safely", () => {
+        const { container } = render(
+            <Drawer open={true} onClose={() => {}} title="Pilih Siswa" onSubmit={() => {}} asForm={false}>
+                <SearchBar value="" onChange={() => {}} placeholder="Cari di modal..." />
+            </Drawer>,
+        );
+
+        // Ensures there are ZERO form elements, completely avoiding nested form violation
+        expect(container.querySelector("form")).toBeNull();
+        expect(screen.getByPlaceholderText("Cari di modal...")).toBeDefined();
     });
 });

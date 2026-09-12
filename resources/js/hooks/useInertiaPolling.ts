@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
 import { router } from "@inertiajs/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface InertiaPollingOptions {
     /**

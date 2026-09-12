@@ -12,7 +12,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        if ($this->app->environment(['local', 'testing']) && class_exists(\Spatie\LaravelTypeScriptTransformer\TypeScriptTransformerApplicationServiceProvider::class)) {
+            $this->app->register(\App\Providers\TypeScriptTransformerServiceProvider::class);
+        }
     }
 
     public function boot(): void

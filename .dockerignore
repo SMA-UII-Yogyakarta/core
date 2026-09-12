@@ -1,11 +1,40 @@
-/vendor
-/node_modules
-/.env
-/storage/framework/sessions
-/storage/framework/views
-/storage/framework/cache
-/storage/logs
-.git
-.github
+# Dependencies — di-install ulang di dalam Docker (composer --no-dev, bun install)
+vendor/
+node_modules/
+
+# Env files — di-mount via volume saat runtime, BUKAN di-bake ke image
+.env
+.env.*
+!env/
+
+# Storage runtime — di-mount via named volume
+storage/framework/
+storage/logs/
+storage/app/
+
+# Runtime cache — dibangkitkan ulang saat container start (package:discover, config:cache, dst)
+# Mencegah manifest stale hasil develop di host masuk ke production image.
+bootstrap/cache/*.php
+
+# Dev artifacts — JANGAN masuk ke production image
+public/hot
+public/build
+
+# Git & CI
+.git/
+.github/
+.gitignore
+
+# Docker config sendiri
 .dockerignore
-docker-compose.yml
+docker-compose*.yml
+
+# Dev & editor tools
+.agents/
+.claude/
+.cursorrules
+.editorconfig
+e2e/
+*.md
+biome.json
+commitlint.config.mjs

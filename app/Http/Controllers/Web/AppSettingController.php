@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\SchoolLocationSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,45 +14,35 @@ class AppSettingController extends Controller
 {
     public function index(): Response
     {
-        $locationSetting = SchoolLocationSetting::firstOrCreate(
-            ['id' => 1],
-            [
-                'name' => 'SMA UII Yogyakarta',
-                'address' => 'Jl. Taman Siswa No.158, Wirogunan, Kec. Mergangsan, Kota Yogyakarta, D.I. Yogyakarta 55151',
-                'latitude' => -7.814257,
-                'longitude' => 110.375944,
-                'radius_meters' => 100,
-                'is_active' => true,
-            ],
-        );
+        $locationSetting = SchoolLocationSetting::find(1);
 
         return Inertia::render('Admin/SystemSettings', [
             'locationSetting' => $locationSetting,
             'systemInfo' => [
-                'appName' => 'SMA UII Core Backend',
-                'version' => '1.2.0-stable',
-                'schoolName' => config('app.school_name', 'SMA UII Yogyakarta'),
-                'npsn' => '20403178',
-                'accreditation' => 'A (Unggul)',
-                'academicYear' => '2025/2026 - Ganjil',
-                'principalName' => 'Drs. H. M. Suparno, M.Pd.',
-                'address' => 'Jl. Sorowajan Baru No. 12, Banguntapan, Bantul, DIY',
-                'phone' => '(0274) 555-1234',
-                'email' => 'info@smauii.sch.id',
+                'appName' => AppSetting::get('app_name', config('app.name', 'SMA UII Core Backend')),
+                'version' => AppSetting::get('version', '1.2.0-stable'),
+                'schoolName' => AppSetting::get('school_name', config('app.school_name', '')),
+                'npsn' => AppSetting::get('npsn', ''),
+                'accreditation' => AppSetting::get('accreditation', ''),
+                'academicYear' => AppSetting::get('academic_year', ''),
+                'principalName' => AppSetting::get('principal_name', ''),
+                'address' => AppSetting::get('address', ''),
+                'phone' => AppSetting::get('phone', ''),
+                'email' => AppSetting::get('email', ''),
                 'environment' => config('app.env', 'production'),
-                'storageDriver' => config('filesystems.default', 's3'),
-                'waGatewayStatus' => 'Active',
-                'maintenanceMode' => false,
-                'mfaEnforced' => true,
-                'defaultPageLimit' => 10,
-                'sessionTimeoutMinutes' => 120,
+                'storageDriver' => config('filesystems.default', 'local'),
+                'waGatewayStatus' => AppSetting::get('wa_gateway_status', 'Inactive'),
+                'maintenanceMode' => (bool) AppSetting::get('maintenance_mode', false),
+                'mfaEnforced' => (bool) AppSetting::get('mfa_enforced', false),
+                'defaultPageLimit' => (int) AppSetting::get('default_page_limit', 10),
+                'sessionTimeoutMinutes' => (int) AppSetting::get('session_timeout_minutes', 120),
             ],
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'schoolName' => 'required|string|max:255',
             'npsn' => 'required|string|max:50',
             'accreditation' => 'required|string|max:50',
@@ -62,9 +53,26 @@ class AppSettingController extends Controller
             'email' => 'nullable|email|max:255',
             'defaultPageLimit' => 'required|integer|min:5|max:100',
             'sessionTimeoutMinutes' => 'required|integer|min:15|max:1440',
+            'maintenanceMode' => 'sometimes|boolean',
+            'mfaEnforced' => 'sometimes|boolean',
         ]);
 
-        return redirect()->back()->with('success', 'Pengaturan Sistem SMA UII Core berhasil diperbarui.');
+        AppSetting::setMany([
+            'school_name' => $validated['schoolName'],
+            'npsn' => $validated['npsn'],
+            'accreditation' => $validated['accreditation'],
+            'academic_year' => $validated['academicYear'],
+            'principal_name' => $validated['principalName'],
+            'address' => $validated['address'] ?? '',
+            'phone' => $validated['phone'] ?? '',
+            'email' => $validated['email'] ?? '',
+            'default_page_limit' => (string) $validated['defaultPageLimit'],
+            'session_timeout_minutes' => (string) $validated['sessionTimeoutMinutes'],
+            'maintenance_mode' => $request->boolean('maintenanceMode') ? '1' : '0',
+            'mfa_enforced' => $request->boolean('mfaEnforced') ? '1' : '0',
+        ]);
+
+        return redirect()->back()->with('success', __('messages.settings_updated'));
     }
 
     public function updateLocation(Request $request): RedirectResponse
@@ -83,6 +91,6 @@ class AppSettingController extends Controller
             $validated,
         );
 
-        return redirect()->back()->with('success', 'Pengaturan titik lokasi presensi & geofence berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.location_updated'));
     }
 }

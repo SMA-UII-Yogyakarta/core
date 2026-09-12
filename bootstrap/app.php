@@ -13,6 +13,7 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -42,6 +43,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
         ]);
 
+        // API middleware group
+        $middleware->api(append: [
+            SetLocaleMiddleware::class,
+        ]);
+
         // Alias middleware untuk route role guard
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
@@ -50,6 +56,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
@@ -146,6 +154,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*')) {
                 return ApiResponse::error('Terjadi kesalahan server.', 500);
             }
+
+            // Full-page load (bukan Inertia, bukan API) — render halaman 500 branded
+            // agar tidak menampilkan halaman error default framework (anti-OSINT).
+            return response()->view('errors.500', [], 500);
         });
 
         // 422 — Validation (API)

@@ -1,16 +1,24 @@
-import { useState, useMemo } from "react";
-import { Link } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useMemo, useState } from "react";
+import { FiAlertCircle, FiCalendar, FiFileText, FiUsers, FiUserX } from "react-icons/fi";
 import {
-    PageHeader,
-    Table,
-    Pagination,
-    SearchBar,
+    Avatar,
     EmptyState,
-    Button,
+    MobileNativePagination,
+    PageHeader,
+    SearchBar,
+    SectionHeader,
+    StatusBadge,
+    Table,
+    TableFooter,
+    TableSection,
+    TeacherAttendanceStats,
+    TeacherInlineAction,
+    TeacherOverviewHero,
+    TeacherQuickAction,
 } from "@/Components";
-import { FiUserX } from "react-icons/fi";
 import type { Column } from "@/Components/ui/Table";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
 
 interface Teacher {
     id: number;
@@ -64,63 +72,71 @@ interface PageProps {
     pendingLeaveCount?: number;
 }
 
-type RowStatus = "alpa" | "absent" | "terlambat" | "late" | "pending" | "diizinkan" | "approved_leave" | "hadir" | "present";
+type RowStatus =
+    | "alpa"
+    | "absent"
+    | "terlambat"
+    | "late"
+    | "pending"
+    | "diizinkan"
+    | "approved_leave"
+    | "hadir"
+    | "present";
 
-function getRowStatus(s: Student): RowStatus {
-    const att = s.attendances[0];
-    if (s.pendingLeave?.approval_status === "Approved") return "diizinkan";
-    if (s.pendingLeave?.approval_status === "Pending") return "pending";
-    if (!att) return "alpa";
-    if (att.status.toLowerCase() === "late" || att.status.toLowerCase() === "terlambat") return "terlambat";
+function getRowStatus(student: Student): RowStatus {
+    const attendance = student.attendances[0];
+    if (student.pendingLeave?.approval_status === "Approved") return "diizinkan";
+    if (student.pendingLeave?.approval_status === "Pending") return "pending";
+    if (!attendance) return "alpa";
+    if (attendance.status.toLowerCase() === "late" || attendance.status.toLowerCase() === "terlambat") {
+        return "terlambat";
+    }
     return "hadir";
 }
 
-function rowNote(s: Student): string {
-    const att = s.attendances[0];
-    const status = getRowStatus(s);
+function rowNote(student: Student): string {
+    const attendance = student.attendances[0];
+    const status = getRowStatus(student);
     if (status === "alpa" || status === "absent") return "Belum ada kabar";
-    if (status === "terlambat" || status === "late") return att?.check_in_time ? `${att.check_in_time} WIB` : "07:15 WIB";
-    if (status === "pending") return "Pengajuan Izin " + (s.pendingLeave?.category ?? "Sakit");
-    if (status === "diizinkan" || status === "approved_leave") return "Pengajuan Izin Diterima";
-    return att?.check_in_time ? `${att.check_in_time} WIB` : "-";
+    if (status === "terlambat" || status === "late") {
+        return attendance?.check_in_time ? `${attendance.check_in_time} WIB` : "Terlambat";
+    }
+    if (status === "pending") {
+        return student.pendingLeave?.category ? `Pengajuan Izin ${student.pendingLeave.category}` : "Pengajuan Izin";
+    }
+    if (status === "diizinkan" || status === "approved_leave") return "Pengajuan izin diterima";
+    return attendance?.check_in_time ? `${attendance.check_in_time} WIB` : "-";
 }
 
-const statusBadgeConfig: Record<RowStatus, { bg: string; text: string; border: string }> = {
-    alpa: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
-    absent: { bg: "bg-danger-bg", text: "text-danger", border: "border-danger-light" },
-    terlambat: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
-    late: { bg: "bg-warning-bg", text: "text-warning", border: "border-warning-light" },
-    pending: { bg: "bg-primary/10", text: "text-primary", border: "border-primary-light" },
-    diizinkan: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    approved_leave: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    hadir: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-    present: { bg: "bg-success-bg", text: "text-success", border: "border-success-light" },
-};
-
 export default function HomeroomDashboard({
-    teacher: _teacher,
+    teacher,
     class: kelas,
     students,
     stats,
-    pendingLeaveCount: _pendingLeaveCount = 0,
+    pendingLeaveCount = 0,
 }: PageProps) {
     const [search, setSearch] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const pageSize = 10;
 
     const attentionStudents = useMemo(() => {
-        const raw = students.filter((s) => getRowStatus(s) !== "present");
+        const raw = students.filter((student) => {
+            const status = getRowStatus(student);
+            return status !== "hadir" && status !== "present";
+        });
+
         if (!search.trim()) return raw;
-        const q = search.toLowerCase();
-        return raw.filter((s) => s.name.toLowerCase().includes(q) || s.nis.toLowerCase().includes(q));
+        const query = search.toLowerCase().trim();
+        return raw.filter(
+            (student) => student.name.toLowerCase().includes(query) || student.nis.toLowerCase().includes(query),
+        );
     }, [students, search]);
 
-    const totalPages = Math.ceil(attentionStudents.length / pageSize) || 1;
-    const safePage = Math.min(Math.max(1, currentPage), totalPages);
-    const paginatedAttention = useMemo(() => {
-        const start = (safePage - 1) * pageSize;
-        return attentionStudents.slice(start, start + pageSize);
-    }, [attentionStudents, safePage, pageSize]);
+    const {
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedAttention,
+        pageSize,
+    } = useClientPagination(attentionStudents, 1, 10);
 
     if (!kelas) {
         return (
@@ -136,181 +152,204 @@ export default function HomeroomDashboard({
     }
 
     const shortClassName = kelas.name ? kelas.name.split(" (")[0] : "-";
+    const summary = stats ?? {
+        total: students.length,
+        present: students.length - attentionStudents.length,
+        late: students.filter((student) => getRowStatus(student) === "terlambat").length,
+        sick_permission: students.filter(
+            (student) => getRowStatus(student) === "pending" || getRowStatus(student) === "diizinkan",
+        ).length,
+        absent: students.filter((student) => getRowStatus(student) === "alpa").length,
+    };
+    const attentionCount = attentionStudents.length;
 
     const columns: Column<Student>[] = [
         {
             key: "nis",
             header: "NISN",
             className: "w-32",
-            render: (s: Student) => <span className="font-bold text-text-primary text-[13px]">{s.nis}</span>,
+            render: (student) => <span className="font-bold text-[13px] text-text-primary">{student.nis}</span>,
         },
         {
             key: "name",
             header: "Nama Siswa",
-            className: "min-w-[180px]",
-            render: (s: Student) => (
-                <span className="font-semibold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px]" title={s.name}>
-                    {s.name}
-                </span>
+            className: "min-w-[190px]",
+            render: (student) => (
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <Avatar name={student.name} size="sm" variant="primary" />
+                    <span
+                        className="block max-w-[240px] truncate whitespace-nowrap text-[13px] font-semibold text-text-primary"
+                        title={student.name}
+                    >
+                        {student.name}
+                    </span>
+                </div>
             ),
         },
         {
             key: "status",
             header: "Status Hari Ini",
             className: "w-40 text-center",
-            render: (s: Student) => {
-                const st = getRowStatus(s);
-                const config = statusBadgeConfig[st];
-                return (
-                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${config.bg} ${config.text} ${config.border}`}>
-                        {st.toUpperCase()}
-                    </span>
-                );
-            },
+            render: (student) => <StatusBadge variant={getRowStatus(student)} />,
         },
         {
             key: "note",
             header: "Waktu / Keterangan",
-            className: "text-[13px]",
-            render: (s: Student) => {
-                const st = getRowStatus(s);
-                if (st === "terlambat" || st === "late") {
-                    return <span className="font-bold text-warning text-[13px]">{rowNote(s)}</span>;
-                }
-                return <span className="text-text-secondary font-medium text-[13px]">{rowNote(s)}</span>;
+            className: "min-w-[170px] text-[13px]",
+            render: (student) => {
+                const status = getRowStatus(student);
+                return (
+                    <span
+                        className={`text-[13px] ${
+                            status === "terlambat" || status === "late"
+                                ? "font-bold text-warning"
+                                : "font-medium text-text-secondary"
+                        }`}
+                    >
+                        {rowNote(student)}
+                    </span>
+                );
             },
         },
         {
             key: "actions",
             header: "Tindakan",
             className: "w-36 text-center",
-            render: (s: Student) => {
-                const st = getRowStatus(s);
-                if (st === "alpa" || st === "absent") {
-                    return <span className="text-text-muted text-[13px]">-</span>;
-                }
-                if (st === "pending") {
-                    return (
-                        <Link
-                            href="/leave-requests"
-                            className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-[12px] font-bold inline-flex items-center justify-center gap-1.5 shadow-xs transition-all mx-auto cursor-pointer"
-                        >
-                            Verifikasi Izin
-                        </Link>
-                    );
-                }
-                return (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="mx-auto text-[12px]"
-                    >
-                        Lihat Detail
-                    </Button>
-                );
-            },
+            render: (student) =>
+                getRowStatus(student) === "pending" ? (
+                    <TeacherInlineAction href="/leave-requests/verification">Verifikasi</TeacherInlineAction>
+                ) : (
+                    <span className="text-[13px] text-text-inactive">—</span>
+                ),
         },
     ];
 
-    const summary = stats ?? {
-        total: students.length,
-        present: Math.max(0, students.length - attentionStudents.length),
-        late: students.filter((s) => getRowStatus(s) === "terlambat").length,
-        sick_permission: students.filter((s) => getRowStatus(s) === "pending" || getRowStatus(s) === "diizinkan").length,
-        absent: students.filter((s) => getRowStatus(s) === "alpa").length,
-    };
-
     return (
-        <AppShell title="Overview Wali Kelas">
-            <PageHeader
-                title={`Overview Wali Kelas — ${shortClassName}`}
-                description="Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda."
-            />
+        <AppShell
+            title="Overview Wali Kelas"
+            hasTopCard
+            searchValue={search}
+            onSearchChange={(value) => {
+                setSearch(value);
+                setCurrentPage(1);
+            }}
+            searchPlaceholder="Cari nama atau NISN..."
+        >
+            <div className="flex min-w-0 flex-col gap-4 font-inter sm:gap-5 lg:gap-6">
+                <PageHeader
+                    title={`Overview Wali Kelas — ${shortClassName}`}
+                    description="Pantau presensi dan aktivitas harian siswa di kelas bimbingan Anda."
+                    className="hidden shrink-0 lg:flex"
+                />
 
-            {/* Desktop Layout without outer Card wrapper */}
-            <div className="space-y-6 font-inter">
-                {/* 5 Color-Bordered Stat Cards Grid using Semantic Tokens */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="bg-surface rounded-xl border border-border p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-text-primary leading-none">
-                            {summary.total}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            TOTAL SISWA
-                        </span>
-                    </div>
+                <TeacherOverviewHero
+                    eyebrow="WALI KELAS • OVERVIEW"
+                    title={`Kelas ${shortClassName}`}
+                    description={`Halo, ${teacher.name}. Berikut ringkasan presensi kelas Anda hari ini.`}
+                    statusLabel={pendingLeaveCount > 0 ? `${pendingLeaveCount} izin menunggu` : "Kelas terpantau"}
+                    statusDetail={
+                        attentionCount > 0
+                            ? `${attentionCount} siswa perlu perhatian`
+                            : "Tidak ada anomali yang perlu ditindaklanjuti"
+                    }
+                    statusTone={pendingLeaveCount > 0 ? "warning" : attentionCount > 0 ? "primary" : "success"}
+                    badges={[
+                        {
+                            icon: <FiUsers className="h-3.5 w-3.5 text-accent" />,
+                            label: `${summary.total} siswa aktif`,
+                        },
+                        { icon: <FiCalendar className="h-3.5 w-3.5 text-white/70" />, label: "Presensi hari ini" },
+                    ]}
+                    action={
+                        pendingLeaveCount > 0 ? (
+                            <TeacherInlineAction
+                                href="/leave-requests/verification"
+                                className="min-h-8 bg-accent px-3 text-primary hover:bg-accent hover:brightness-95"
+                            >
+                                Verifikasi izin
+                            </TeacherInlineAction>
+                        ) : undefined
+                    }
+                />
 
-                    <div className="bg-surface rounded-xl border-2 border-success/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-success leading-none">
-                            {summary.present}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            HADIR TERDATA
-                        </span>
-                    </div>
+                <TeacherAttendanceStats
+                    summary={{
+                        total: summary.total,
+                        present: summary.present,
+                        late: summary.late,
+                        sick_permission: summary.sick_permission ?? 0,
+                        absent: summary.absent,
+                    }}
+                />
 
-                    <div className="bg-surface rounded-xl border-2 border-warning/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-warning leading-none">
-                            {summary.late}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            TERLAMBAT
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-primary/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-primary leading-none">
-                            {summary.sick_permission ?? 0}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            SAKIT / IZIN
-                        </span>
-                    </div>
-
-                    <div className="bg-surface rounded-xl border-2 border-danger/40 p-4 flex flex-col justify-between shadow-xs">
-                        <span className="text-[28px] font-extrabold text-danger leading-none">
-                            {summary.absent}
-                        </span>
-                        <span className="text-[11px] font-bold text-text-muted uppercase tracking-wide mt-2">
-                            ALPA (KOSONG)
-                        </span>
-                    </div>
-                </div>
-
-                {/* Standalone Table Section */}
-                <div className="space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <h3 className="text-[16px] font-bold text-text-primary font-inter">
-                            Perhatian Khusus Hari Ini
-                        </h3>
-                        <div className="w-full sm:w-72">
-                            <SearchBar
-                                value={search}
-                                onChange={(val) => {
-                                    setSearch(val);
-                                    setCurrentPage(1);
-                                }}
-                                onSearch={() => setCurrentPage(1)}
-                                placeholder="Cari nama atau NISN..."
-                            />
-                        </div>
-                    </div>
-
-                    <Table<Student>
-                        columns={columns}
-                        data={paginatedAttention}
-                        keyExtractor={(s) => s.id}
-                        emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
+                <section className="min-w-0 space-y-3" aria-label="Perhatian khusus hari ini">
+                    <SectionHeader
+                        title="Perhatian Khusus Hari Ini"
+                        description={`${attentionStudents.length} siswa memerlukan perhatian atau tindak lanjut.`}
+                        icon={<FiAlertCircle />}
+                        action={
+                            <div className="w-full sm:hidden lg:block lg:w-64">
+                                <SearchBar
+                                    value={search}
+                                    onChange={(value) => {
+                                        setSearch(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    onSearch={() => setCurrentPage(1)}
+                                    placeholder="Cari nama atau NISN..."
+                                />
+                            </div>
+                        }
+                        className="flex-col items-stretch sm:flex-row sm:items-center"
                     />
 
-                    {/* Symmetrical Footer Info & Full-Width Pagination Bar */}
-                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <div className="flex items-center gap-2 text-[12px] text-text-muted font-medium">
-                            <i className="fas fa-info-circle text-primary text-[14px] shrink-0" />
-                            <span>Menampilkan daftar siswa kelas {shortClassName} yang memerlukan perhatian khusus.</span>
-                        </div>
+                    <div className="space-y-3 sm:hidden">
+                        {paginatedAttention.length === 0 ? (
+                            <div className="rounded-2xl border border-success/20 bg-success-bg p-6 text-center text-[13px] font-medium text-success">
+                                Semua siswa di kelas ini hadir tepat waktu hari ini.
+                            </div>
+                        ) : (
+                            paginatedAttention.map((student) => {
+                                const status = getRowStatus(student);
+                                return (
+                                    <article
+                                        key={student.id}
+                                        className="rounded-2xl border border-border bg-surface p-3.5 shadow-card"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                <Avatar name={student.name} size="md" variant="primary" />
+                                                <div className="min-w-0">
+                                                    <h3 className="truncate text-[14px] font-bold text-text-primary">
+                                                        {student.name}
+                                                    </h3>
+                                                    <p className="mt-0.5 text-[11px] text-text-muted">
+                                                        NISN: {student.nis}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <StatusBadge variant={status} />
+                                        </div>
+                                        <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+                                            <span className="truncate text-[12px] font-medium text-text-secondary">
+                                                {rowNote(student)}
+                                            </span>
+                                            {status === "pending" && (
+                                                <TeacherInlineAction
+                                                    href="/leave-requests/verification"
+                                                    className="shrink-0 px-2.5 py-1 text-[11px]"
+                                                >
+                                                    Verifikasi
+                                                </TeacherInlineAction>
+                                            )}
+                                        </div>
+                                    </article>
+                                );
+                            })
+                        )}
+
                         {attentionStudents.length > pageSize && (
-                            <Pagination
+                            <MobileNativePagination
                                 currentPage={safePage}
                                 totalPages={totalPages}
                                 totalItems={attentionStudents.length}
@@ -319,7 +358,64 @@ export default function HomeroomDashboard({
                             />
                         )}
                     </div>
-                </div>
+
+                    <TableSection desktopOnly className="h-[360px] sm:h-[380px] lg:h-[420px]">
+                        <Table<Student>
+                            columns={columns}
+                            data={paginatedAttention}
+                            keyExtractor={(student) => student.id}
+                            emptyMessage="Semua siswa di kelas ini hadir tepat waktu hari ini."
+                            minWidthClassName="min-w-[760px]"
+                            dense
+                            fill
+                        />
+                        <TableFooter
+                            info={`Menampilkan siswa kelas ${shortClassName} yang memerlukan perhatian khusus.`}
+                            currentPage={safePage}
+                            totalPages={totalPages}
+                            totalItems={attentionStudents.length}
+                            perPage={pageSize}
+                            onPageChange={setCurrentPage}
+                        />
+                    </TableSection>
+                </section>
+
+                <section aria-labelledby="homeroom-actions-title" className="space-y-3">
+                    <h2
+                        id="homeroom-actions-title"
+                        className="flex items-center gap-2 px-0.5 text-[12px] font-bold uppercase tracking-wider text-text-muted"
+                    >
+                        <FiFileText className="text-primary" />
+                        Akses Cepat
+                    </h2>
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                        <TeacherQuickAction
+                            href="/leave-requests/verification"
+                            title="Verifikasi Izin"
+                            description={
+                                pendingLeaveCount > 0
+                                    ? `${pendingLeaveCount} pengajuan menunggu`
+                                    : "Lihat semua pengajuan"
+                            }
+                            icon={<FiAlertCircle />}
+                            tone={pendingLeaveCount > 0 ? "warning" : "primary"}
+                        />
+                        <TeacherQuickAction
+                            href="/reports"
+                            title="Rekap Kelas"
+                            description="Harian, bulanan, dan semester"
+                            icon={<FiCalendar />}
+                            tone="success"
+                        />
+                        <TeacherQuickAction
+                            href="/export"
+                            title="Ekspor Data"
+                            description="Unduh rekap presensi kelas"
+                            icon={<FiFileText />}
+                            tone="info"
+                        />
+                    </div>
+                </section>
             </div>
         </AppShell>
     );

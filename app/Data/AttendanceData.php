@@ -10,6 +10,7 @@ class AttendanceData
     public int $id;
     public int $student_id;
     public string $date;
+    public ?string $attendance_date;
     public string $status;
     public ?string $check_in_time;
     public ?string $photo_url;

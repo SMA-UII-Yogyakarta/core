@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Label from "./Label";
 import FormError from "./FormError";
+import Label from "./Label";
 
 interface SelectOption {
     value: string | number;
@@ -17,6 +17,8 @@ interface SelectInputProps {
     onChange?: (value: string | number | null) => void;
     className?: string;
     disabled?: boolean;
+    clearable?: boolean;
+    searchable?: boolean;
 }
 
 export default function SelectInput({
@@ -29,7 +31,10 @@ export default function SelectInput({
     onChange,
     className = "",
     disabled = false,
+    clearable = false,
+    searchable,
 }: SelectInputProps) {
+    const showSearch = searchable ?? options.length > 7;
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -68,10 +73,10 @@ export default function SelectInput({
     }, [close]);
 
     useEffect(() => {
-        if (isOpen) {
-            searchInputRef.current?.focus();
+        if (isOpen && showSearch) {
+            searchInputRef.current?.focus({ preventScroll: true });
         }
-    }, [isOpen]);
+    }, [isOpen, showSearch]);
 
     useEffect(() => {
         if (optionsRef.current) {
@@ -127,14 +132,16 @@ export default function SelectInput({
         <div className={`w-full ${className}`} ref={containerRef}>
             {label && <Label>{label}</Label>}
             <div className="relative">
-                <button
-                    type="button"
-                    disabled={disabled}
+                <div
+                    role="combobox"
+                    aria-expanded={isOpen}
+                    aria-haspopup="listbox"
+                    tabIndex={disabled ? -1 : 0}
                     onClick={() => !disabled && (isOpen ? close() : openDropdown())}
                     onKeyDown={handleKeyDown}
-                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-xl text-[13px] font-medium font-inter text-left bg-surface
+                    className={`w-full h-10 flex items-center justify-between px-3.5 border rounded-xl text-[13px] font-medium font-inter text-left bg-surface cursor-pointer select-none
                         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-150
-                        disabled:opacity-50 disabled:cursor-not-allowed
+                        ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
                         ${error ? "border-danger ring-1 ring-danger/40" : "border-border"}
                         ${isOpen ? "ring-2 ring-primary/20 border-primary/40" : ""}`}
                 >
@@ -142,18 +149,27 @@ export default function SelectInput({
                         {selectedOption?.label || placeholder}
                     </span>
                     <div className="flex items-center gap-1">
-                        {selectedOption && !disabled && (
-                            <button
-                                type="button"
-                                onClick={handleClear}
-                                aria-label="Hapus pilihan"
-                                className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded-full hover:bg-muted flex items-center justify-center cursor-pointer"
-                            >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        )}
+                        {clearable &&
+                            selectedOption &&
+                            value !== "" &&
+                            value !== null &&
+                            value !== undefined &&
+                            !disabled && (
+                                <button
+                                    type="button"
+                                    onClick={handleClear}
+                                    aria-label="Hapus pilihan"
+                                    className="text-text-muted hover:text-text-primary transition-colors p-0.5 rounded-full hover:bg-muted flex items-center justify-center cursor-pointer"
+                                >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
                         <svg
                             className={`w-4 h-4 text-text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
                             fill="none"
@@ -163,27 +179,29 @@ export default function SelectInput({
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </div>
-                </button>
+                </div>
 
                 {isOpen && (
-                    <div className="absolute min-w-full w-max mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">
-                        <div className="px-3 py-2 border-b border-border">
-                            <input
-                                ref={searchInputRef}
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setHighlightedIndex(0);
-                                }}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Cari..."
-                                className="w-full bg-transparent text-[14px] text-text-primary placeholder:text-text-inactive focus:outline-none font-inter"
-                            />
-                        </div>
-                        <div ref={optionsRef} className="max-h-60 overflow-auto py-1">
+                    <div className="absolute left-0 right-0 w-full mt-1 bg-surface border border-border rounded-xl shadow-dropdown z-50 overflow-hidden">
+                        {showSearch && (
+                            <div className="px-3 py-2 border-b border-border">
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setHighlightedIndex(0);
+                                    }}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Cari..."
+                                    className="w-full bg-transparent text-[13px] text-text-primary placeholder:text-text-inactive focus:outline-none font-inter"
+                                />
+                            </div>
+                        )}
+                        <div ref={optionsRef} className="max-h-60 overflow-y-auto overflow-x-hidden py-1">
                             {filteredOptions.length === 0 ? (
-                                <div className="px-3 py-2 text-[14px] text-text-inactive font-inter">
+                                <div className="px-3 py-2 text-[13px] text-text-inactive font-inter">
                                     Tidak ada data
                                 </div>
                             ) : (
@@ -192,11 +210,12 @@ export default function SelectInput({
                                         key={opt.value}
                                         onClick={() => handleSelect(opt.value)}
                                         onMouseEnter={() => setHighlightedIndex(index)}
-                                        className={`px-3 py-2 text-[14px] font-inter cursor-pointer whitespace-nowrap ${
+                                        className={`px-3 py-2 text-[13px] font-inter cursor-pointer truncate ${
                                             opt.value === value
                                                 ? "bg-primary/20 text-primary font-medium"
                                                 : "text-text-primary hover:bg-primary/10"
                                         } ${index === highlightedIndex ? "ring-2 ring-primary/40 ring-inset" : ""}`}
+                                        title={opt.label}
                                     >
                                         {opt.label}
                                     </div>

@@ -13,7 +13,15 @@ export interface NavSection {
     items: NavItem[];
 }
 
-export type ButtonVariant = "primary" | "secondary" | "outline" | "danger" | "danger-outline" | "success" | "ghost";
+export type ButtonVariant =
+    | "primary"
+    | "secondary"
+    | "accent"
+    | "outline"
+    | "danger"
+    | "danger-outline"
+    | "success"
+    | "ghost";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export type StatColor = "green" | "amber" | "blue" | "red" | "grey";
@@ -28,4 +36,8 @@ export type StatusVariant =
     | "inactive"
     | "pending"
     | "approved"
-    | "rejected";
+    | "rejected"
+    | "no_update"
+    | "no_check_in"
+    | "not_open"
+    | "unknown";

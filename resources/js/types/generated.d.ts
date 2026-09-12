@@ -12,6 +12,7 @@ declare namespace App {
             id: number;
             student_id: number;
             date: string;
+            attendance_date?: string;
             status: string;
             check_in_time: string | null;
             photo_url: string | null;

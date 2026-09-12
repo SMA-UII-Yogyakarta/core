@@ -9,7 +9,7 @@ export default defineConfig({
     testDir: './e2e',
     timeout: 30 * 1000,
     expect: {
-        timeout: 5000,
+        timeout: 10000,
     },
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
@@ -31,6 +31,9 @@ export default defineConfig({
             args: [
                 '--use-fake-ui-for-media-stream',
                 '--use-fake-device-for-media-stream',
+                // Vite dev server (core-dev-bun-1) exposes 5173 on host loopback but
+                // `public/hot` advertises the in-network hostname "smauii-core.remote".
+                '--host-resolver-rules=MAP smauii-core.remote 127.0.0.1',
             ],
         },
     },

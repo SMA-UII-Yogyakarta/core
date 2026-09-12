@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { useLanguage } from "@/Contexts/LanguageContext";
-import { FiCamera, FiFileText } from "react-icons/fi";
+import { FiCalendar, FiCamera, FiClock, FiFileText } from "react-icons/fi";
+import { Button, MobileNativePagination, StatusBadge, Table, TableFooter, TableSection } from "@/Components";
+import type { Column } from "@/Components/ui/Table";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
+import { useLanguage } from "@/Contexts/LanguageContext";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 interface Student {
     id: number;
@@ -17,9 +20,19 @@ interface Student {
 
 interface DailyTableProps {
     students: Student[];
+    isHoliday?: boolean;
 }
 
-type RowStatus = "present" | "late" | "sick" | "permission" | "absent" | "pending" | "no_update" | "no_check_in" | "not_open";
+type RowStatus =
+    | "present"
+    | "late"
+    | "sick"
+    | "permission"
+    | "absent"
+    | "pending"
+    | "no_update"
+    | "no_check_in"
+    | "not_open";
 
 function normalizeStatus(status: string): RowStatus {
     const s = status.toLowerCase();
@@ -34,27 +47,40 @@ function normalizeStatus(status: string): RowStatus {
     return "absent";
 }
 
-function getBadgeStyle(status: RowStatus, t: (key: string) => string) {
-    const styles: Record<RowStatus, { label: string; classes: string }> = {
-        present: { label: t("reports.statusPresent"), classes: "bg-success-light text-success" },
-        late: { label: t("reports.statusLate"), classes: "bg-warning-light text-warning" },
-        sick: { label: t("reports.statusSick"), classes: "bg-danger-light text-danger" },
-        permission: { label: t("reports.statusPermission"), classes: "bg-primary/10 text-primary" },
-        absent: { label: t("reports.statusAbsent"), classes: "bg-danger-light text-danger" },
-        pending: { label: t("reports.statusPending"), classes: "bg-info-light text-info" },
-        no_update: { label: "-", classes: "bg-transparent text-text-muted" },
-        no_check_in: { label: t("reports.noteNotCheckedIn"), classes: "bg-background text-text-muted border border-border" },
-        not_open: { label: t("reports.statusNotOpen"), classes: "bg-background text-text-muted border border-border" },
-    };
-    return styles[status];
+function getBadgeLabel(status: RowStatus, t: (key: string) => string): string {
+    switch (status) {
+        case "present":
+            return t("reports.statusPresent");
+        case "late":
+            return t("reports.statusLate");
+        case "sick":
+            return t("reports.statusSick");
+        case "permission":
+            return t("reports.statusPermission");
+        case "absent":
+            return t("reports.statusAbsent");
+        case "pending":
+            return t("reports.statusPending");
+        case "no_update":
+            return "-";
+        case "no_check_in":
+            return t("reports.noteNotCheckedIn");
+        case "not_open":
+            return t("reports.statusNotOpen");
+    }
 }
 
-function getButtonConfig(status: RowStatus, photoUrl?: string | null, docUrl?: string | null, t?: (key: string) => string) {
+function getButtonConfig(
+    status: RowStatus,
+    t: (key: string) => string,
+    photoUrl?: string | null,
+    docUrl?: string | null,
+) {
     if ((status === "present" || status === "late") && photoUrl) {
-        return { label: t?.("reports.btnViewSelfie") ?? "Lihat Swafoto", icon: "camera" as const, url: photoUrl };
+        return { label: t("reports.btnViewSelfie"), icon: "camera" as const, url: photoUrl };
     }
     if ((status === "sick" || status === "permission" || status === "pending") && docUrl) {
-        return { label: t?.("reports.btnViewProof") ?? "Lihat Bukti", icon: "file" as const, url: docUrl };
+        return { label: t("reports.btnViewProof"), icon: "file" as const, url: docUrl };
     }
     return null;
 }
@@ -64,8 +90,8 @@ function TimeDisplay({ time, t }: { time: string; t: (key: string) => string }) 
     const parts = t("reports.noteCheckIn").split("{time}");
     return (
         <>
-            {parts[0]}{h}:{m}:
-            <span className="text-[10px] font-normal">{s}</span>
+            {parts[0]}
+            {h}:{m}:<span className="text-[10px] font-normal">{s}</span>
             {parts[1]}
         </>
     );
@@ -83,7 +109,13 @@ function LeaveNote({ text }: { text: string }) {
     );
 }
 
-function rowNote(status: RowStatus, checkInTime: string | null, t: (key: string) => string, message?: string | null, leaveReason?: string | null): React.ReactNode {
+function rowNote(
+    status: RowStatus,
+    checkInTime: string | null,
+    t: (key: string) => string,
+    message?: string | null,
+    leaveReason?: string | null,
+): React.ReactNode {
     if (status === "absent") return t("reports.noteNoUpdate");
     if (status === "sick" || status === "permission") {
         const reason = leaveReason?.trim();
@@ -96,168 +128,199 @@ function rowNote(status: RowStatus, checkInTime: string | null, t: (key: string)
     return "-";
 }
 
-const BORDER_COLORS: Record<RowStatus, string> = {
-    present: "var(--color-success)",
-    late: "var(--color-warning)",
-    sick: "var(--color-medical)",
-    permission: "var(--color-primary)",
-    absent: "var(--color-danger)",
-    pending: "var(--color-info)",
-    no_update: "var(--color-text-muted)",
-    no_check_in: "var(--color-text-muted)",
-    not_open: "var(--color-text-muted)",
-};
-
-export default function DailyTable({ students }: DailyTableProps) {
+export default function DailyTable({ students, isHoliday = false }: DailyTableProps) {
     const { t } = useLanguage();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const {
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedStudents,
+        pageSize,
+    } = useClientPagination(students, 1, 10);
 
-    const HEADERS = [
-        { label: t("reports.headerNo"), align: "left" as const },
-        { label: t("reports.headerName"), align: "left" as const, sticky: true },
-        { label: t("reports.headerNis"), align: "left" as const },
-        { label: t("reports.headerStatus"), align: "center" as const },
-        { label: t("reports.headerTimeNote"), align: "center" as const },
-        { label: t("reports.headerPhoto"), align: "center" as const },
+    const tableData = paginatedStudents.map((student, index) => ({
+        ...student,
+        displayNumber: (safePage - 1) * pageSize + index + 1,
+    }));
+
+    const columns: Column<(typeof tableData)[number]>[] = [
+        {
+            key: "displayNumber",
+            header: t("reports.headerNo"),
+            className: "w-12 text-center",
+            render: (student) => <span className="font-bold text-text-secondary text-[13px]">{student.displayNumber}</span>,
+        },
+        {
+            key: "name",
+            header: t("reports.headerName"),
+            className: "font-bold text-text-primary text-[14px] min-w-[180px]",
+            render: (student) => (
+                <span className="font-bold text-text-primary text-[14px] whitespace-nowrap truncate block max-w-[240px] sm:max-w-[320px]" title={student.name}>
+                    {student.name}
+                </span>
+            ),
+        },
+        {
+            key: "nis",
+            header: t("reports.headerNis"),
+            className: "font-semibold text-text-primary text-[13px] min-w-[90px]",
+        },
+        {
+            key: "status",
+            header: t("reports.headerStatus"),
+            className: "w-40 text-center",
+            render: (student) => {
+                const status = normalizeStatus(student.status);
+                return (
+                    <StatusBadge
+                        variant={status}
+                        label={getBadgeLabel(status, t)}
+                        className="text-[11px] font-bold px-2.5 py-1 uppercase"
+                    />
+                );
+            },
+        },
+        {
+            key: "check_in_time",
+            header: t("reports.headerTimeNote"),
+            className: "text-[13px]",
+            render: (student) => {
+                const status = normalizeStatus(student.status);
+                return (
+                    <span
+                        className="font-bold text-text-primary"
+                        style={{ color: status === "late" ? "var(--color-warning)" : undefined }}
+                    >
+                        {rowNote(status, student.check_in_time, t, student.status_message, student.leave_reason)}
+                    </span>
+                );
+            },
+        },
+        {
+            key: "photo_url",
+            header: t("reports.headerPhoto"),
+            className: "w-36 text-center",
+            render: (student) => {
+                const status = normalizeStatus(student.status);
+                const button = getButtonConfig(status, t, student.photo_url, student.document_url);
+                return button ? (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={button.icon === "camera" ? <FiCamera className="text-[12px]" /> : <FiFileText className="text-[12px]" />}
+                        onClick={() => setPreviewUrl(button.url)}
+                        className="text-[12px] font-bold text-primary hover:bg-primary-light h-8 px-3 rounded-lg"
+                    >
+                        {button.label}
+                    </Button>
+                ) : (
+                    <span className="text-text-muted text-[13px]">-</span>
+                );
+            },
+        },
     ];
 
     return (
         <>
-            {/* Desktop */}
-            <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full border-collapse font-inter min-w-[640px]">
-                    <thead>
-                        <tr className="bg-background border-b border-border">
-                            {HEADERS.map((h) => (
-                                <th
-                                    key={h.label}
-                                    className={`px-4 py-3 text-${h.align} text-[12px] font-semibold text-text-muted uppercase tracking-wide ${
-                                        h.sticky ? "max-xl:sticky max-xl:left-0 max-xl:z-10 max-xl:bg-background" : ""
-                                    }`}
-                                >
-                                    {h.label}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {students.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="text-center text-text-muted text-[13px] py-10">
-                                    {t("reports.emptyDaily")}
-                                </td>
-                            </tr>
-                        ) : (
-                            students.map((s, i) => {
-                                const status = normalizeStatus(s.status);
-                                const badge = getBadgeStyle(status, t);
-                                const btn = getButtonConfig(status, s.photo_url, s.document_url, t);
-                                return (
-                                    <tr
-                                        key={s.id}
-                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
-                                    >
-                                        <td className="px-4 py-3 text-[13px] text-text-muted">{i + 1}</td>
-                                        <td className="px-4 py-3 text-[13px] font-bold text-text-primary max-xl:sticky max-xl:left-0 max-xl:bg-white max-xl:z-5">
-                                            {s.name}
-                                        </td>
-                                        <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
-                                        <td className="px-4 py-3 text-center">
-                                            {status === "no_update" ? (
-                                                <span className="text-[13px] font-bold text-text-muted">-</span>
-                                            ) : (
-                                                <span
-                                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full uppercase ${badge.classes}`}
-                                                >
-                                                    {badge.label}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center"
-                                            style={{ color: status === "late" ? "var(--color-warning)" : "var(--color-text-muted)" }}
-                                        >
-                                            {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            {btn ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setPreviewUrl(btn.url)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold border border-border text-text-primary hover:bg-background transition-colors"
-                                                >
-                                                    {btn.icon === "camera" ? (
-                                                        <FiCamera className="text-[11px]" />
-                                                    ) : (
-                                                        <FiFileText className="text-[11px]" />
-                                                    )}
-                                                    {btn.label}
-                                                </button>
-                                            ) : (
-                                                <span className="text-text-muted text-[13px]">-</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            {/* Tablet & Desktop */}
+            <TableSection desktopOnly className="w-full font-inter">
+                {isHoliday && (
+                    <div className="px-4 py-3 text-[13px] font-bold text-warning bg-warning-light flex items-center gap-2 shrink-0">
+                        <FiCalendar className="text-[12px]" />
+                        {t("reports.holidayNotice")}
+                    </div>
+                )}
+                <Table
+                    columns={columns}
+                    data={tableData}
+                    keyExtractor={(student) => student.id}
+                    emptyMessage={t("reports.emptyDaily")}
+                    minWidthClassName="min-w-[640px]"
+                    fill
+                />
+
+                <TableFooter
+                    info={t("reports.footerNote")}
+                    currentPage={safePage}
+                    totalPages={totalPages}
+                    totalItems={students.length}
+                    perPage={pageSize}
+                    onPageChange={setCurrentPage}
+                />
+            </TableSection>
 
             {/* Mobile */}
-            <div className="lg:hidden">
-                {students.length === 0 ? (
-                    <div className="py-12 text-center text-text-muted text-[13px]">
-                        {t("reports.emptyDaily")}
+            <div className="sm:hidden">
+                {isHoliday && (
+                    <div className="mb-2 px-4 py-3 text-[13px] font-bold text-warning bg-warning-light flex items-center gap-2 rounded-xl">
+                        <FiCalendar className="text-[12px]" />
+                        {t("reports.holidayNotice")}
                     </div>
+                )}
+                {students.length === 0 ? (
+                    <div className="py-12 text-center text-text-muted text-[13px]">{t("reports.emptyDaily")}</div>
                 ) : (
-                    <div className="space-y-2">
-                        {students.map((s) => {
+                    <div className="flex flex-col gap-2.5">
+                        {paginatedStudents.map((s) => {
                             const status = normalizeStatus(s.status);
-                            const badge = getBadgeStyle(status, t);
-                            const btn = getButtonConfig(status, s.photo_url, s.document_url, t);
+                            const label = getBadgeLabel(status, t);
+                            const btn = getButtonConfig(status, t, s.photo_url, s.document_url);
                             return (
                                 <div
                                     key={s.id}
-                                    className="bg-surface border border-border border-l-4 rounded-xl p-3"
-                                    style={{ borderLeftColor: BORDER_COLORS[status] }}
+                                    className="p-4 rounded-2xl border border-border bg-surface shadow-xs flex flex-col gap-2.5 transition-all"
                                 >
-                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                        <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
-                                        {status === "no_update" ? (
-                                            <span className="text-[13px] font-bold text-text-muted shrink-0">-</span>
-                                        ) : (
-                                            <span
-                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase ${badge.classes}`}
-                                            >
-                                                {badge.label}
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-[14px] font-bold text-text-primary truncate">{s.name}</p>
+                                            <p className="text-[12px] text-text-muted mt-0.5">NIS: {s.nis}</p>
+                                        </div>
+                                        <StatusBadge
+                                            variant={status}
+                                            label={label}
+                                            className="text-[12px] font-semibold px-2.5 py-0.5 shrink-0"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[12.5px]">
+                                        <div className="flex items-center gap-1.5 text-text-secondary min-w-0 flex-1 mr-2">
+                                            <span className="flex items-center gap-1.5 font-semibold text-text-primary">
+                                                <FiClock className="text-[13px] text-emerald-600 shrink-0" />
+                                                <span className="truncate">
+                                                    {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
+                                                </span>
                                             </span>
+                                        </div>
+                                        {btn && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setPreviewUrl(btn.url)}
+                                                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/25 bg-primary/5 text-primary text-[11px] font-bold hover:bg-primary/10 active:scale-95 transition-all cursor-pointer"
+                                            >
+                                                {btn.icon === "camera" ? (
+                                                    <FiCamera className="text-[11px]" />
+                                                ) : (
+                                                    <FiFileText className="text-[11px]" />
+                                                )}
+                                                {btn.label}
+                                            </button>
                                         )}
                                     </div>
-                                    <p className="text-[12px] text-text-muted mb-2">NIS: {s.nis}</p>
-                                    <div className="bg-background rounded-lg px-3 py-2 mb-2">
-                                        <p className="text-[13px] text-text-secondary">
-                                            {rowNote(status, s.check_in_time, t, s.status_message, s.leave_reason)}
-                                        </p>
-                                    </div>
-                                    {btn && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setPreviewUrl(btn.url)}
-                                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[13px] font-medium border border-border text-text-primary hover:bg-background transition-colors"
-                                        >
-                                            {btn.icon === "camera" ? (
-                                                <FiCamera className="text-[12px]" />
-                                            ) : (
-                                                <FiFileText className="text-[12px]" />
-                                            )}
-                                            {btn.label}
-                                        </button>
-                                    )}
                                 </div>
                             );
                         })}
+
+                        {students.length > pageSize && (
+                            <div className="pt-2 font-inter">
+                                <MobileNativePagination
+                                    currentPage={safePage}
+                                    totalPages={totalPages}
+                                    totalItems={students.length}
+                                    perPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

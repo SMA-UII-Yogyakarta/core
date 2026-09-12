@@ -79,6 +79,28 @@ class GuardianAssignmentTest extends TestCase
         $this->assertNull($this->student->guardian_id);
     }
 
+    public function test_admin_cannot_assign_already_assigned_student(): void
+    {
+        $this->student->update(['guardian_id' => $this->guardian->id]);
+
+        $otherGuardianUser = User::factory()->create(['role' => 'guardian']);
+        $otherGuardian = Guardian::create([
+            'user_id' => $otherGuardianUser->id,
+            'name' => 'Wali Lain',
+            'phone' => '08999999999',
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('guardian-assignment.assign'), [
+            'guardian_id' => $otherGuardian->id,
+            'student_id' => $this->student->id,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->student->refresh();
+        $this->assertEquals($this->guardian->id, $this->student->guardian_id);
+    }
+
     public function test_non_admin_cannot_assign_student_to_guardian(): void
     {
         $studentUser = User::factory()->create(['role' => 'student']);

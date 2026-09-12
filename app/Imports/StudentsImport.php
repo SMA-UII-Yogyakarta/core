@@ -16,6 +16,11 @@ class StudentsImport
 
     private array $success = [];
 
+    public function __construct(
+        protected ?string $defaultPassword = null,
+    ) {
+    }
+
     public function import(string $filePath): array
     {
         $reader = ReaderFactory::createFromFile($filePath);
@@ -25,51 +30,53 @@ class StudentsImport
         $headers = [];
         $currentRowIndex = 0;
 
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $currentRowIndex++;
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $currentRowIndex++;
 
-                $cells = [];
-                foreach ($row->getCells() as $cell) {
-                    $cells[] = trim((string) $cell->getValue());
-                }
-
-                if ($isFirstRow) {
-                    $headers = $cells;
-                    $isFirstRow = false;
-
-                    continue;
-                }
-
-                if (empty(array_filter($cells))) {
-                    continue;
-                }
-
-                $data = array_combine($headers, $cells);
-
-                try {
-                    $this->importRow($data);
-                } catch (\Exception $e) {
-                    $msg = $e->getMessage();
-                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
-                        if (str_contains($msg, 'students_nis_unique')) {
-                            $msg = 'NIS siswa sudah terdaftar di sistem.';
-                        } elseif (str_contains($msg, 'students_nisn_unique')) {
-                            $msg = 'NISN siswa sudah terdaftar di sistem.';
-                        } elseif (str_contains($msg, 'users_email_unique')) {
-                            $msg = 'Email siswa sudah terdaftar untuk akun lain.';
-                        } elseif (str_contains($msg, 'users_username_unique')) {
-                            $msg = 'Username (NIS) siswa sudah terdaftar di sistem.';
-                        } else {
-                            $msg = 'Data siswa sudah terdaftar di sistem (duplicate entry).';
-                        }
+                    $cells = [];
+                    foreach ($row->getCells() as $cell) {
+                        $cells[] = trim((string) $cell->getValue());
                     }
-                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+
+                    if ($isFirstRow) {
+                        $headers = $cells;
+                        $isFirstRow = false;
+
+                        continue;
+                    }
+
+                    if (empty(array_filter($cells))) {
+                        continue;
+                    }
+
+                    $data = array_combine($headers, $cells);
+
+                    try {
+                        $this->importRow($data);
+                    } catch (\Exception $e) {
+                        $msg = $e->getMessage();
+                        if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                            if (str_contains($msg, 'students_nis_unique')) {
+                                $msg = 'NIS siswa sudah terdaftar di sistem.';
+                            } elseif (str_contains($msg, 'students_nisn_unique')) {
+                                $msg = 'NISN siswa sudah terdaftar di sistem.';
+                            } elseif (str_contains($msg, 'users_email_unique')) {
+                                $msg = 'Email siswa sudah terdaftar untuk akun lain.';
+                            } elseif (str_contains($msg, 'users_username_unique')) {
+                                $msg = 'Username (NIS) siswa sudah terdaftar di sistem.';
+                            } else {
+                                $msg = 'Data siswa sudah terdaftar di sistem (duplicate entry).';
+                            }
+                        }
+                        $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+                    }
                 }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
 
         return [
             'success_count' => count($this->success),
@@ -89,24 +96,33 @@ class StudentsImport
             $birthDate = trim($data['birth_date'] ?? $data['Tanggal Lahir'] ?? '');
             $email = trim($data['email'] ?? $data['Email'] ?? '');
             $enrollmentYear = trim($data['enrollment_year'] ?? $data['Tahun Masuk'] ?? '');
+            $password = trim($data['password'] ?? $data['Password'] ?? $data['Kata Sandi'] ?? $data['kata_sandi'] ?? '');
 
             if (empty($nis) || empty($name)) {
                 throw new \RuntimeException('NIS dan nama siswa wajib diisi.');
             }
 
-            if (empty($birthDate)) {
-                throw new \RuntimeException("Tanggal lahir wajib diisi untuk siswa {$name}.");
+            $enrollmentYear = $enrollmentYear !== '' && preg_match('/^\d{4}$/', $enrollmentYear)
+                ? (int) $enrollmentYear
+                : (int) date('Y');
+
+            if ($birthDate === '') {
+                $birthDate = ($enrollmentYear - 15) . '-01-01';
             }
 
-            if ($enrollmentYear !== '' && ! preg_match('/^\d{4}$/', $enrollmentYear)) {
-                throw new \RuntimeException("Tahun masuk tidak valid untuk siswa {$name}.");
+            $generatedEmail = $email;
+            if ($generatedEmail === '') {
+                $parts = explode(' ', $name);
+                $cleanFirst = (string) preg_replace('/[^a-z0-9]/', '', strtolower($parts[0]));
+                $cleanFirst = $cleanFirst !== '' ? $cleanFirst : 'siswa';
+                $generatedEmail = "{$cleanFirst}{$nis}@smauiiyk.sch.id";
             }
-
-            $enrollmentYear = $enrollmentYear !== '' ? $enrollmentYear : date('Y');
 
             $classId = null;
             if (! empty($className)) {
-                $class = SchoolClass::where('name', $className)->first();
+                $class = SchoolClass::where('name', $className)
+                    ->orWhere('name', 'LIKE', "{$className}%")
+                    ->first();
                 if ($class) {
                     $classId = $class->id;
                 }
@@ -130,10 +146,15 @@ class StudentsImport
 
             if ($existingStudent) {
                 $user = $existingStudent->user;
-                $user->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $user->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $user->update($userUpdateData);
+
                 $existingStudent->update([
                     'name' => $name,
                     'nisn' => ! empty($nisn) ? $nisn : $existingStudent->nisn,
@@ -149,10 +170,15 @@ class StudentsImport
             }
 
             if ($existingUser) {
-                $existingUser->update([
+                $userUpdateData = [
                     'name' => $name,
                     'email' => ! empty($email) ? $email : $existingUser->email,
-                ]);
+                ];
+                if (! empty($password)) {
+                    $userUpdateData['password'] = Hash::make($password);
+                }
+                $existingUser->update($userUpdateData);
+
                 Student::create([
                     'user_id' => $existingUser->id,
                     'class_id' => $classId,
@@ -170,14 +196,17 @@ class StudentsImport
                 return;
             }
 
+            $initialPassword = ! empty($password)
+                ? $password
+                : (! empty($this->defaultPassword) ? $this->defaultPassword : \App\Models\AppSetting::get('default_student_password', config('auth.defaults.user_password', 'SmaUii@' . $enrollmentYear)));
+
             $user = User::create([
                 'username' => $nis,
                 'name' => $name,
-                'email' => ! empty($email) ? $email : null,
-                'password' => Hash::make('password'),
+                'email' => ! empty($email) ? $email : (! empty($generatedEmail) ? $generatedEmail : null),
+                'password' => Hash::make($initialPassword),
                 'role' => 'student',
             ]);
-            $user->assignRole('student');
 
             Student::create([
                 'user_id' => $user->id,

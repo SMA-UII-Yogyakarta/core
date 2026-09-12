@@ -27,6 +27,7 @@ class PermissionRegistry
             'settings' => ['admin'],
             'settings.*' => ['admin'],
             'attendance-correction' => ['admin'],
+            'attendance-correction.*' => ['admin'],
 
             // Leave
             'leave-requests' => ['admin', 'teacher:duty', 'teacher:homeroom'],

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Permissions\PermissionRegistry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -51,9 +52,16 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        $settings = \App\Models\AppSetting::allCached();
+
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
+            'translations' => Lang::get('ui'),
+            'appName' => $settings['app_name'] ?? config('app.name'),
+            'schoolName' => $settings['school_name'] ?? config('app.school_name'),
+            'schoolEmail' => $settings['email'] ?? config('app.school_email'),
+            'academicYear' => $settings['academic_year'] ?? config('app.academic_year'),
             'auth' => [
                 'user' => $user
                     ? array_merge($user->only('id', 'name', 'email', 'role', 'teacher'), [

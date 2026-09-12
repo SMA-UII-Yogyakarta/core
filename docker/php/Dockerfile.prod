@@ -1,0 +1,155 @@
+# =============================================================
+# Dockerfile.prod — Production Multi-Stage Build
+#
+# Stage 1 (frontend): Bun + Vite → public/build/
+# Stage 2 (composer): composer --no-dev → vendor/ (CLEAN, no dev packages)
+# Stage 3 (production): PHP runtime only — no Node, no Vite, no dev tools
+#
+# Host vendor/ TIDAK pernah masuk ke production image.
+# Semua dependencies di-resolve dari scratch di dalam Docker.
+# =============================================================
+
+
+# ─────────────────────────────────────────────────────────────
+# Stage 1: Frontend Build
+# Bun + Vite build → /app/public/build/
+# public/hot TIDAK ada → Vite dev server tidak pernah aktif
+# ─────────────────────────────────────────────────────────────
+FROM oven/bun:1-alpine AS frontend
+
+WORKDIR /app
+
+# ── VITE BUILD-TIME VARIABLES ────────────────────────────────
+# Di-bake statis ke dalam JS bundle. Nilai tidak bisa diubah saat runtime.
+# Untuk mengubah → harus rebuild image.
+
+# [SHOULD BE SET] App name di browser tab. Fallback: "SMAUII Core"
+ARG VITE_APP_NAME="SMAUII Core"
+
+# [OPTIONAL] Sentry DSN. Kosong = Sentry tidak aktif.
+ARG VITE_SENTRY_DSN=""
+
+# [OPTIONAL] Pusher/WebSocket untuk Live Monitoring (Admin).
+# Kosong = real-time tidak berfungsi, semua fitur lain tetap normal.
+ARG VITE_PUSHER_APP_KEY=""
+ARG VITE_PUSHER_APP_CLUSTER="ap1"
+ARG VITE_PUSHER_HOST=""
+ARG VITE_PUSHER_PORT="443"
+ARG VITE_PUSHER_SCHEME="https"
+
+ENV VITE_APP_NAME=$VITE_APP_NAME \
+    VITE_SENTRY_DSN=$VITE_SENTRY_DSN \
+    VITE_PUSHER_APP_KEY=$VITE_PUSHER_APP_KEY \
+    VITE_PUSHER_APP_CLUSTER=$VITE_PUSHER_APP_CLUSTER \
+    VITE_PUSHER_HOST=$VITE_PUSHER_HOST \
+    VITE_PUSHER_PORT=$VITE_PUSHER_PORT \
+    VITE_PUSHER_SCHEME=$VITE_PUSHER_SCHEME
+
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
+
+COPY vite.config.js tsconfig.json ./
+COPY resources/ ./resources/
+COPY public/ ./public/
+
+# rm -f public/hot: paksa production mode — dev server TIDAK pernah aktif
+RUN rm -f public/hot && bun run build
+
+
+# ─────────────────────────────────────────────────────────────
+# Stage 2: Composer — Production Dependencies Only
+#
+# Stage ini HANYA menginstall PHP packages production (--no-dev).
+# Hasilnya adalah /app/vendor yang 100% bersih dari dev packages:
+#   ✗ laravel/pail, laravel/sail, laravel/telescope (auto-discovered)
+#   ✗ laravel/pao, laravel/pint, laravel/telescope
+#   ✗ barryvdh/laravel-ide-helper
+#   ✗ spatie/laravel-typescript-transformer
+#   ✗ nunomaduro/collision, phpunit/phpunit, mockery
+#
+# Host vendor/ dari mesin developer TIDAK PERNAH menyentuh stage ini.
+# ─────────────────────────────────────────────────────────────
+FROM composer:2 AS composer-deps
+
+WORKDIR /app
+
+# Hanya copy file yang dibutuhkan composer — TIDAK ada vendor dari host
+COPY composer.json composer.lock ./
+
+# Install production-only packages dari composer.lock
+# --no-dev         : jangan install require-dev sama sekali
+# --no-scripts     : skip post-autoload-dump (package:discover dilakukan saat entrypoint)
+# --no-interaction : non-interactive
+# --no-progress    : output bersih
+RUN composer install \
+        --no-dev \
+        --optimize-autoloader \
+        --no-interaction \
+        --no-progress \
+        --no-scripts
+
+
+# ─────────────────────────────────────────────────────────────
+# Stage 3: PHP Production Runtime (Final Image)
+#
+# Yang masuk ke image ini:
+#   ✅ Source code Laravel (tanpa vendor host, tanpa .env, tanpa storage)
+#   ✅ vendor/ dari Stage 2 (100% production-only)
+#   ✅ public/build/ dari Stage 1 (Vite built assets)
+#   ✅ PHP extensions yang dibutuhkan
+#
+# Yang TIDAK ada di image ini:
+#   ✗ Vite / Node / Bun
+#   ✗ Dev packages (pail, sail, telescope-auto, ide-helper, dll)
+#   ✗ Source code frontend mentah (resources/js, resources/css)
+#   ✗ .env (di-mount via volume saat runtime)
+#   ✗ storage/ runtime (di-mount via named volume)
+# ─────────────────────────────────────────────────────────────
+FROM php:8.4-cli-alpine AS production
+
+RUN apk add --no-cache \
+        postgresql-dev \
+        autoconf \
+        g++ \
+        make \
+        libzip-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
+        libwebp-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo pdo_pgsql pgsql bcmath zip gd opcache \
+    && pecl install redis excimer \
+    && docker-php-ext-enable redis excimer \
+    && apk del autoconf g++ make
+
+COPY docker/php/php.ini    /usr/local/etc/php/conf.d/app.ini
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+# Entrypoint: bootstrap cache saat container start (butuh .env yang di-mount)
+COPY docker/php/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -D app
+
+WORKDIR /var/www/html
+
+# Copy source Laravel dari host (vendor dan storage dikecualikan via .dockerignore)
+COPY --chown=app:app . .
+
+# REPLACE vendor/ dengan vendor BERSIH dari Stage 2 (composer --no-dev)
+# Ini yang menjamin tidak ada dev package di production image
+COPY --from=composer-deps --chown=app:app /app/vendor ./vendor
+
+# Copy built frontend assets dari Stage 1 (menggantikan Vite dev server)
+COPY --from=frontend --chown=app:app /app/public/build ./public/build
+
+# Hapus sisa file dev yang mungkin terbawa dari COPY source
+RUN rm -f public/hot
+
+USER app
+
+EXPOSE 8000
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

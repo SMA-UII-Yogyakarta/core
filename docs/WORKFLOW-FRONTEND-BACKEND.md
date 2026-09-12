@@ -1386,7 +1386,7 @@ bun run build           # Cek TypeScript error
 # Manual cek di browser
 
 # Sandiko — review PR
-# Cek di local: git checkout branch, composer install, npm install
+# Cek di local: git checkout branch, composer install, bun install
 # php artisan migrate:fresh --seed
 # bun run dev → buka browser
 ```

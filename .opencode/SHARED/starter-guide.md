@@ -2,7 +2,7 @@
 
 > Dokumen pendamping `team-playbook.md` — berisi langkah konkret pertama yang harus dilakukan
 
-## 📌 Untuk Ihsan (Junior Backend)
+## 📌 Untuk Ihsan (@Odauna - Junior Backend)
 
 **Misi pertama:** Pahami Service Layer, bikin test, dan jadi "quality gate" untuk kode backend.
 
@@ -55,7 +55,7 @@ Ambil alih tanggung jawab:
 
 ---
 
-## 📌 Untuk Fathan (Junior Frontend)
+## 📌 Untuk Fathan (@Hans02-Neo - Junior Frontend)
 
 **Misi pertama:** Pahami Inertia + React + TypeScript, pastikan semua halaman berfungsi dengan baik.
 
@@ -103,7 +103,7 @@ Ambil alih tanggung jawab:
 
 ---
 
-## 📌 Untuk Hanif (UI/UX / Documentation)
+## 📌 Untuk Hanif (@Rosyiii - UI/UX / Documentation)
 
 **Misi pertama:** Verifikasi visual consistency dan bikin dokumentasi yang membantu tim.
 
@@ -145,7 +145,7 @@ Ambil alih tanggung jawab:
 
 ---
 
-## 📌 Untuk Azis (Mentor)
+## 📌 Untuk Azis (@ziz-mubasyir - Mentor)
 
 **Misi pertama:** Pastikan Ihsan dan Fathan naik level.
 

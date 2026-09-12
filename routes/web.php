@@ -7,18 +7,19 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\ClassEnrolmentController;
 use App\Http\Controllers\Web\DailyReportController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\ErrorSimulatorController;
 use App\Http\Controllers\Web\ExportController;
 use App\Http\Controllers\Web\GuardianController;
 use App\Http\Controllers\Web\GuardianPortalController;
 use App\Http\Controllers\Web\HomeroomReportController;
 use App\Http\Controllers\Web\LeaveRequestController;
+use App\Http\Controllers\Web\MediaController;
 use App\Http\Controllers\Web\MonthlyReportController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OverviewController;
 use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\SchoolClassController;
 use App\Http\Controllers\Web\SemesterReportController;
-use App\Http\Controllers\Web\StorageProxyController;
 use App\Http\Controllers\Web\StudentController;
 use App\Http\Controllers\Web\StudentPortalController;
 use App\Http\Controllers\Web\TeacherController;
@@ -35,10 +36,18 @@ Route::post('/login', [AuthController::class, 'authenticate'])->name('login.auth
     ->middleware('throttle:web-login');
 Route::get('/health', fn () => response()->json(['status' => 'ok']))->name('health');
 
+// ─── DEV ERROR SIMULATOR (non-production only) ───
+if (! app()->isProduction()) {
+    Route::get('/dev/errors', [ErrorSimulatorController::class, 'index'])->name('dev.errors');
+    Route::get('/dev/errors/{code}', ErrorSimulatorController::class)
+        ->where('code', '401|402|403|404|419|429|500|503')
+        ->name('dev.errors.show');
+}
+
 Route::middleware('auth')->group(function () {
-    Route::get('/storage-s3/{path}', [StorageProxyController::class, 'show'])
+    Route::get('/media/{path}', [MediaController::class, 'show'])
         ->where('path', '.*')
-        ->name('storage-s3');
+        ->name('media.show');
 });
 
 // ─── AUTHENTICATED + AUTHORIZED ───
@@ -52,29 +61,58 @@ Route::middleware(['auth', 'authorize'])->group(function () {
     // Monitoring
     Route::get('/monitoring', [AttendanceController::class, 'monitoring'])->name('monitoring');
 
-    // Master Data
-    Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
-    Route::post('/master-data', [StudentController::class, 'store'])->name('master-data.store');
-    Route::patch('/master-data/students/{id}', [StudentController::class, 'update'])->name('master-data.students.update');
-    Route::post('/master-data/students/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('master-data.students.bulk-destroy');
-    Route::patch('/master-data/students/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('master-data.students.toggle');
-    Route::get('/master-data/teachers', fn () => redirect()->route('master-data', ['tab' => 'teachers']));
-    Route::post('/master-data/teachers', [TeacherController::class, 'store'])->name('master-data.teachers.store');
-    Route::patch('/master-data/teachers/{id}', [TeacherController::class, 'update'])->name('master-data.teachers.update');
-    Route::get('/master-data/classes', fn () => redirect()->route('master-data', ['tab' => 'class']));
-    Route::post('/master-data/classes', [SchoolClassController::class, 'store'])->name('master-data.classes.store');
-    Route::patch('/master-data/classes/{id}', [SchoolClassController::class, 'update'])->name('master-data.classes.update');
-    Route::get('/master-data/guardians', fn () => redirect()->route('master-data', ['tab' => 'guardians']));
-    Route::post('/master-data/guardians', [GuardianController::class, 'store'])->name('master-data.guardians.store');
-    Route::patch('/master-data/guardians/{id}', [GuardianController::class, 'update'])->name('master-data.guardians.update');
-    Route::delete('/master-data/students/{id}', [StudentController::class, 'destroy'])->name('master-data.students.destroy');
-    Route::delete('/master-data/teachers/{id}', [TeacherController::class, 'destroy'])->name('master-data.teachers.destroy');
-    Route::delete('/master-data/classes/{id}', [SchoolClassController::class, 'destroy'])->name('master-data.classes.destroy');
-    Route::delete('/master-data/guardians/{id}', [GuardianController::class, 'destroy'])->name('master-data.guardians.destroy');
+    // Master Data Grouped Routes
+    Route::prefix('master-data')->name('master-data.')->group(function () {
+        // Main Hub View & Mobile Subpages (Create / Detail / Edit)
+        Route::get('/', [StudentController::class, 'index'])->name('index');
+        Route::get('/create', [StudentController::class, 'create'])->name('create');
+        Route::get('/import-page', [StudentController::class, 'importForm'])->name('import-page');
+        Route::get('/{entity}/{id}/detail', [StudentController::class, 'editForm'])->name('detail');
+        Route::get('/{entity}/{id}/edit', [StudentController::class, 'editForm'])->name('edit');
 
-    // Master Data Import & Templates
-    Route::post('/master-data/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('master-data.import');
-    Route::get('/master-data/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('master-data.import.template');
+        // Students RESTful CRUD
+        Route::prefix('students')->name('students.')->group(function () {
+            Route::post('/', [StudentController::class, 'store'])->name('store');
+            Route::patch('/{id}', [StudentController::class, 'update'])->name('update');
+            Route::delete('/{id}', [StudentController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [StudentController::class, 'bulkDestroy'])->name('bulk-destroy');
+            Route::patch('/{id}/toggle-status', [StudentController::class, 'toggleStatus'])->name('toggle');
+        });
+
+        // Teachers RESTful CRUD & Shortcut Redirect
+        Route::prefix('teachers')->name('teachers.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'teachers']))->name('index');
+            Route::post('/', [TeacherController::class, 'store'])->name('store');
+            Route::patch('/{id}', [TeacherController::class, 'update'])->name('update');
+            Route::delete('/{id}', [TeacherController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [TeacherController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Classes RESTful CRUD & Shortcut Redirect
+        Route::prefix('classes')->name('classes.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'class']))->name('index');
+            Route::post('/', [SchoolClassController::class, 'store'])->name('store');
+            Route::patch('/{id}', [SchoolClassController::class, 'update'])->name('update');
+            Route::delete('/{id}', [SchoolClassController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [SchoolClassController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Guardians RESTful CRUD & Shortcut Redirect
+        Route::prefix('guardians')->name('guardians.')->group(function () {
+            Route::get('/', fn () => redirect()->route('master-data', ['tab' => 'guardians']))->name('index');
+            Route::post('/', [GuardianController::class, 'store'])->name('store');
+            Route::patch('/{id}', [GuardianController::class, 'update'])->name('update');
+            Route::delete('/{id}', [GuardianController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-destroy', [GuardianController::class, 'bulkDestroy'])->name('bulk-destroy');
+        });
+
+        // Master Data Import & Templates
+        Route::post('/import/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'import'])->name('import');
+        Route::get('/import/template/{entity}', [\App\Http\Controllers\Web\ImportWebController::class, 'template'])->name('import.template');
+    });
+
+    // Route alias for 'master-data'
+    Route::get('/master-data', [StudentController::class, 'index'])->name('master-data');
 
     // Class Enrolment
     Route::get('/class-enrolment', [ClassEnrolmentController::class, 'index'])->name('class-enrolment');
@@ -85,15 +123,12 @@ Route::middleware(['auth', 'authorize'])->group(function () {
 
     // Guardian Assignment (Hubungkan Wali Murid dengan Murid)
     Route::get('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'index'])->name('guardian-assignment');
-    Route::post('/guardian-assignment', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent']);
     Route::post('/guardian-assignment/assign', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'assignStudent'])->name('guardian-assignment.assign');
-    Route::delete('/guardian-assignment/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent']);
     Route::delete('/guardian-assignment/remove/{studentId}', [\App\Http\Controllers\Web\GuardianAssignmentController::class, 'removeStudent'])->name('guardian-assignment.remove');
 
-    // Operational Settings (Atur Waktu, Lokasi & Libur)
+    // Operational Settings (Atur Waktu & Libur)
     Route::get('/operational-settings', [AttendanceSettingController::class, 'index'])->name('operational-settings');
     Route::post('/operational-settings/time-settings', [AttendanceSettingController::class, 'updateTimeSettings'])->name('operational-settings.time-settings');
-    Route::post('/operational-settings/location-settings', [AttendanceSettingController::class, 'updateLocationSettings'])->name('operational-settings.location-settings');
     Route::post('/operational-settings/holidays', [AttendanceSettingController::class, 'storeHoliday'])->name('operational-settings.holidays');
     Route::delete('/operational-settings/holidays/{id}', [AttendanceSettingController::class, 'deleteHoliday'])->name('operational-settings.holidays.destroy');
 

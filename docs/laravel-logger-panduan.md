@@ -4,7 +4,7 @@
 >
 > Ini **bukan** dokumentasi ulang dari `development-workflow.md` atau `error-handling-patterns.md`. Dokumen ini fokus pada **satu hal**: bagaimana menulis, mengelola, dan memonitor log secara profesional di Laravel.
 >
-> Target pembaca: sandikodev, Fathan, Hanif, Ihsan, Azis.
+> Target pembaca: Sandikodev (@Sandikodev), Fathan (@Hans02-Neo), Hanif (@Rosyiii), Ihsan (@Odauna), Azis (@ziz-mubasyir).
 
 ---
 

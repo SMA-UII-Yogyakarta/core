@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { FiX, FiRefreshCw, FiRepeat, FiRotateCcw, FiSearch, FiZoomOut } from "react-icons/fi";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FiRefreshCw, FiRepeat, FiRotateCcw, FiSearch, FiX, FiZoomOut } from "react-icons/fi";
 import { useLanguage } from "@/Contexts/LanguageContext";
 
 interface PreviewImageModalProps {
@@ -98,14 +98,15 @@ export default function PreviewImageModal({ url, onClose }: PreviewImageModalPro
         >
             {/* Mobile Header */}
             <div className="flex items-center justify-between p-3 md:hidden shrink-0 bg-surface border-b border-border">
-                <h3 className="text-base font-bold text-text-primary">
-                    {t("reports.documentPreview")}
-                </h3>
+                <h3 className="text-base font-bold text-text-primary">{t("reports.documentPreview")}</h3>
                 <div className="flex items-center gap-2">
                     {rotateLevel % 360 !== 0 && (
                         <button
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); setRotateLevel(0); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setRotateLevel(0);
+                            }}
                             className="w-11 h-11 flex items-center justify-center rounded-full bg-muted hover:bg-border text-text-muted hover:text-text-primary transition-colors"
                         >
                             <FiRefreshCw className="text-sm" />
@@ -130,7 +131,11 @@ export default function PreviewImageModal({ url, onClose }: PreviewImageModalPro
                 <div className="flex items-center justify-center p-4 h-full">
                     <div
                         className="w-full h-full flex items-center justify-center"
-                        style={{ transform: `scale(${zoomLevel / 100}) rotate(${rotateLevel}deg)`, transformOrigin: "center center", transition: "transform 150ms ease-out" }}
+                        style={{
+                            transform: `scale(${zoomLevel / 100}) rotate(${rotateLevel}deg)`,
+                            transformOrigin: "center center",
+                            transition: "transform 150ms ease-out",
+                        }}
                     >
                         {url.toLowerCase().endsWith(".pdf") ? (
                             <div className="w-full h-full max-w-4xl aspect-[7/10] bg-surface rounded-lg border border-border overflow-hidden">
@@ -156,7 +161,10 @@ export default function PreviewImageModal({ url, onClose }: PreviewImageModalPro
                 <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
                     <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); setZoomLevel(100); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setZoomLevel(100);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-surface/90 backdrop-blur-sm rounded-full shadow-lg border border-border text-sm font-medium text-text-primary"
                     >
                         <FiZoomOut className="text-xs" />
@@ -171,9 +179,7 @@ export default function PreviewImageModal({ url, onClose }: PreviewImageModalPro
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 shrink-0">
-                    <h3 className="text-base font-bold text-text-primary">
-                        {t("reports.documentPreview")}
-                    </h3>
+                    <h3 className="text-base font-bold text-text-primary">{t("reports.documentPreview")}</h3>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-muted/40 p-1.5 sm:p-2 rounded-xl border border-border/40">
                         <div className="flex items-center gap-2">
                             <FiSearch className="text-text-muted text-xs" />
@@ -244,7 +250,11 @@ export default function PreviewImageModal({ url, onClose }: PreviewImageModalPro
                     <div className="flex items-center justify-center p-6 h-full">
                         <div
                             className="w-full h-full flex items-center justify-center"
-                            style={{ transform: `scale(${zoomLevel / 100}) rotate(${rotateLevel}deg)`, transformOrigin: "center center", transition: "transform 150ms ease-out" }}
+                            style={{
+                                transform: `scale(${zoomLevel / 100}) rotate(${rotateLevel}deg)`,
+                                transformOrigin: "center center",
+                                transition: "transform 150ms ease-out",
+                            }}
                         >
                             {url.toLowerCase().endsWith(".pdf") ? (
                                 <div className="w-full h-full max-w-4xl aspect-[7/10] bg-surface rounded-lg border border-border overflow-hidden">

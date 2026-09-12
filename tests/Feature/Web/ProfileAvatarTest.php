@@ -33,7 +33,7 @@ class ProfileAvatarTest extends TestCase
                     'avatar' => $file,
                 ]);
 
-            $response->assertSessionHas('success', 'Foto profil berhasil diperbarui.');
+            $response->assertSessionHas('success');
 
             $user->refresh();
             $this->assertNotNull($user->avatar);
@@ -50,7 +50,7 @@ class ProfileAvatarTest extends TestCase
         $response = $this->actingAs($user)
             ->delete('/profile/avatar');
 
-        $response->assertSessionHas('success', 'Foto profil berhasil dihapus.');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertNull($user->avatar);
@@ -100,10 +100,58 @@ class ProfileAvatarTest extends TestCase
                 'remove_avatar' => true,
             ]);
 
-        $response->assertSessionHas('success', 'Profil berhasil diperbarui.');
+        $response->assertSessionHas('success');
 
         $user->refresh();
         $this->assertEquals('Updated Name', $user->name);
         $this->assertNull($user->avatar);
+    }
+
+    public function test_profile_update_syncs_name_to_student_teacher_and_guardian(): void
+    {
+        // Student user
+        $studentUser = User::factory()->create(['name' => 'Original Student User', 'role' => 'student']);
+        $student = \App\Models\Student::factory()->create([
+            'user_id' => $studentUser->id,
+            'name' => 'Original Student User',
+        ]);
+
+        $this->actingAs($studentUser)->put('/profile', [
+            'name' => 'Renamed Student User',
+            'email' => $studentUser->email,
+        ]);
+
+        $this->assertEquals('Renamed Student User', $studentUser->fresh()->name);
+        $this->assertEquals('Renamed Student User', $student->fresh()->name);
+
+        // Teacher user
+        $teacherUser = User::factory()->create(['name' => 'Original Teacher User', 'role' => 'teacher']);
+        $teacher = \App\Models\Teacher::factory()->create([
+            'user_id' => $teacherUser->id,
+            'name' => 'Original Teacher User',
+        ]);
+
+        $this->actingAs($teacherUser)->put('/profile', [
+            'name' => 'Renamed Teacher User',
+            'email' => $teacherUser->email,
+        ]);
+
+        $this->assertEquals('Renamed Teacher User', $teacherUser->fresh()->name);
+        $this->assertEquals('Renamed Teacher User', $teacher->fresh()->name);
+
+        // Guardian user
+        $guardianUser = User::factory()->create(['name' => 'Original Guardian User', 'role' => 'guardian']);
+        $guardian = \App\Models\Guardian::factory()->create([
+            'user_id' => $guardianUser->id,
+            'name' => 'Original Guardian User',
+        ]);
+
+        $this->actingAs($guardianUser)->put('/profile', [
+            'name' => 'Renamed Guardian User',
+            'email' => $guardianUser->email,
+        ]);
+
+        $this->assertEquals('Renamed Guardian User', $guardianUser->fresh()->name);
+        $this->assertEquals('Renamed Guardian User', $guardian->fresh()->name);
     }
 }

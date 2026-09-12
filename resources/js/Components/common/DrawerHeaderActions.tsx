@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { FiCopy, FiTrash2, FiEdit3, FiLock, FiCheck, FiChevronDown } from "react-icons/fi";
+import { useEffect, useRef, useState } from "react";
+import { FiCheck, FiChevronDown, FiCopy, FiEdit2, FiLock, FiTrash2 } from "react-icons/fi";
 import { toast } from "sonner";
+import Tooltip from "@/Components/ui/Tooltip";
+import { copyToClipboard } from "@/utils/helpers";
 
 export interface CopyField {
     label: string;
@@ -8,6 +10,8 @@ export interface CopyField {
 }
 
 interface DrawerHeaderActionsProps {
+    mode?: "create" | "edit" | "detail" | null;
+    isCreate?: boolean;
     isUnlocked?: boolean;
     onToggleUnlock?: () => void;
     onDelete?: () => void;
@@ -16,9 +20,12 @@ interface DrawerHeaderActionsProps {
     hideUnlock?: boolean;
     hideDelete?: boolean;
     hideCopy?: boolean;
+    variant?: "default" | "header";
 }
 
 export default function DrawerHeaderActions({
+    mode = "detail",
+    isCreate = false,
     isUnlocked = false,
     onToggleUnlock,
     onDelete,
@@ -27,14 +34,18 @@ export default function DrawerHeaderActions({
     hideUnlock = false,
     hideDelete = false,
     hideCopy = false,
+    variant = "default",
 }: DrawerHeaderActionsProps) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [copiedType, setCopiedType] = useState<"csv" | "md" | null>(null);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const isInCreateMode = mode === "create" || isCreate;
+    const isHeaderVariant = variant === "header";
 
     useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setMenuOpen(false);
             }
         };
@@ -57,7 +68,7 @@ export default function DrawerHeaderActions({
             .join(",");
         const csvContent = `${headers}\n${values}`;
 
-        navigator.clipboard.writeText(csvContent).then(() => {
+        copyToClipboard(csvContent).then(() => {
             setCopiedType("csv");
             toast.success(`${entityTitle} tersalin dalam format CSV!`);
             setTimeout(() => {
@@ -72,7 +83,7 @@ export default function DrawerHeaderActions({
         const rows = copyFields.map((f) => `| ${f.label} | ${f.value ?? "-"} |`).join("\n");
         const mdContent = `### ${entityTitle}\n\n| Kolom / Field | Nilai |\n| :--- | :--- |\n${rows}`;
 
-        navigator.clipboard.writeText(mdContent).then(() => {
+        copyToClipboard(mdContent).then(() => {
             setCopiedType("md");
             toast.success(`${entityTitle} tersalin dalam format Tabel Markdown!`);
             setTimeout(() => {
@@ -82,61 +93,87 @@ export default function DrawerHeaderActions({
         });
     };
 
+    if (isInCreateMode) {
+        if (isHeaderVariant) return null;
+        return (
+            <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
+                <span
+                    className="inline-flex h-8 items-center px-2.5 rounded-lg text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20"
+                    data-testid="drawer-mode-badge"
+                >
+                    Mode Tambah
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div className="flex items-center gap-1.5 font-inter">
             {/* Copy Dropdown */}
             {!hideCopy && copyFields.length > 0 && (
-                <div className="relative" ref={menuRef}>
+                <div className="relative" ref={dropdownRef}>
                     <button
                         type="button"
                         onClick={() => setMenuOpen((prev) => !prev)}
-                        className={`h-8 px-2 rounded-lg border text-[12px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
-                            menuOpen
-                                ? "bg-muted border-primary text-primary"
-                                : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
-                        }`}
-                        title="Salin semua data (CSV / Markdown)"
+                        className={
+                            isHeaderVariant
+                                ? `w-8 h-8 rounded-xl border text-[12px] font-semibold transition-all flex items-center justify-center cursor-pointer backdrop-blur-xs ${
+                                      menuOpen
+                                          ? "bg-white/25 border-white/40 text-white shadow-xs"
+                                          : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
+                                  }`
+                                : `h-8 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                                      menuOpen
+                                          ? "bg-muted border-primary text-primary"
+                                          : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
+                                  }`
+                        }
                         aria-label="Salin data"
+                        title="Salin data"
                     >
                         {copiedType ? (
-                            <FiCheck className="w-3.5 h-3.5 text-success" />
+                            <FiCheck className="w-3.5 h-3.5 text-emerald-400" />
                         ) : (
                             <FiCopy className="w-3.5 h-3.5" />
                         )}
-                        <span className="hidden sm:inline">Salin</span>
-                        <FiChevronDown className="w-3 h-3 text-text-muted" />
+                        {!isHeaderVariant && (
+                            <>
+                                <span>Salin</span>
+                                <FiChevronDown className="w-3 h-3 opacity-80" />
+                            </>
+                        )}
                     </button>
 
                     {menuOpen && (
-                        <div className="absolute right-0 top-full mt-1.5 w-52 bg-surface rounded-xl shadow-xl border border-border py-1.5 z-50 text-[13px] animate-in fade-in slide-in-from-top-1">
-                            <div className="px-3 py-1 text-[11px] font-semibold text-text-muted uppercase tracking-wider border-b border-border/50 mb-1">
+                        <div className="absolute right-0 top-full mt-1.5 w-52 bg-surface rounded-xl shadow-xl border border-border py-1.5 z-50 text-[12px] animate-in fade-in slide-in-from-top-1">
+                            <div className="px-3 py-1 text-[10px] font-semibold text-text-muted uppercase tracking-wider border-b border-border/50 mb-1">
                                 Opsi Format Salin
                             </div>
                             <button
                                 type="button"
                                 onClick={handleCopyCsv}
-                                className="w-full text-left px-3 py-2 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
                             >
                                 <span className="flex items-center gap-2">
-                                    <span className="font-semibold text-xs px-1.5 py-0.5 rounded bg-muted border border-border">
+                                    <span className="font-semibold text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border">
                                         CSV
                                     </span>
                                     Format Spreadsheet
                                 </span>
-                                {copiedType === "csv" && <FiCheck className="w-4 h-4 text-success" />}
+                                {copiedType === "csv" && <FiCheck className="w-3.5 h-3.5 text-success" />}
                             </button>
                             <button
                                 type="button"
                                 onClick={handleCopyMarkdown}
-                                className="w-full text-left px-3 py-2 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
+                                className="w-full text-left px-3 py-1.5 text-text-primary hover:bg-muted flex items-center justify-between transition-colors cursor-pointer"
                             >
                                 <span className="flex items-center gap-2">
-                                    <span className="font-semibold text-xs px-1.5 py-0.5 rounded bg-muted border border-border">
+                                    <span className="font-semibold text-[10px] px-1.5 py-0.5 rounded bg-muted border border-border">
                                         MD
                                     </span>
                                     Tabel Markdown
                                 </span>
-                                {copiedType === "md" && <FiCheck className="w-4 h-4 text-success" />}
+                                {copiedType === "md" && <FiCheck className="w-3.5 h-3.5 text-success" />}
                             </button>
                         </div>
                     )}
@@ -145,42 +182,62 @@ export default function DrawerHeaderActions({
 
             {/* Unlock / Edit Mode Toggle Button */}
             {!hideUnlock && onToggleUnlock && (
-                <button
-                    type="button"
-                    onClick={onToggleUnlock}
-                    className={`h-8 px-2.5 rounded-lg border text-[12px] font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        isUnlocked
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
-                            : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
-                    }`}
-                    title={isUnlocked ? "Kunci Kembali Form (Batal Edit)" : "Buka Kunci untuk Edit Data"}
-                    aria-label={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                <Tooltip
+                    content={isUnlocked ? "Kunci Form (Batal Edit)" : "Buka Kunci untuk Mengubah Data"}
+                    position="bottom"
                 >
-                    {isUnlocked ? (
-                        <>
-                            <FiLock className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Kunci</span>
-                        </>
-                    ) : (
-                        <>
-                            <FiEdit3 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Edit</span>
-                        </>
-                    )}
-                </button>
+                    <button
+                        type="button"
+                        onClick={onToggleUnlock}
+                        className={
+                            isHeaderVariant
+                                ? `w-8 h-8 rounded-xl border text-[12px] font-semibold transition-all flex items-center justify-center cursor-pointer backdrop-blur-xs ${
+                                      isUnlocked
+                                          ? "bg-amber-400/20 text-amber-200 border-amber-300/40 hover:bg-amber-400/30"
+                                          : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
+                                  }`
+                                : `h-8 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                                      isUnlocked
+                                          ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
+                                          : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
+                                  }`
+                        }
+                        aria-label={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                        title={isUnlocked ? "Kunci form" : "Buka kunci edit"}
+                    >
+                        {isUnlocked ? (
+                            <>
+                                <FiLock className="w-3.5 h-3.5" />
+                                {!isHeaderVariant && <span>Kunci</span>}
+                            </>
+                        ) : (
+                            <>
+                                <FiEdit2 className="w-3.5 h-3.5" />
+                                {!isHeaderVariant && <span>Edit</span>}
+                            </>
+                        )}
+                    </button>
+                </Tooltip>
             )}
 
             {/* Shortcut Delete Button */}
             {!hideDelete && onDelete && (
-                <button
-                    type="button"
-                    onClick={onDelete}
-                    className="h-8 w-8 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center justify-center cursor-pointer"
-                    title="Hapus Data Ini"
-                    aria-label="Hapus data"
-                >
-                    <FiTrash2 className="w-3.5 h-3.5" />
-                </button>
+                <Tooltip content="Hapus Data Ini" position="bottom">
+                    <button
+                        type="button"
+                        onClick={onDelete}
+                        className={
+                            isHeaderVariant
+                                ? "w-8 h-8 rounded-xl border border-white/20 bg-white/10 text-white/90 hover:bg-danger hover:border-danger hover:text-white transition-all flex items-center justify-center cursor-pointer shrink-0 backdrop-blur-xs"
+                                : "h-8 px-2.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 text-[11.5px] font-semibold"
+                        }
+                        aria-label="Hapus data"
+                        data-testid="drawer-delete-btn"
+                    >
+                        <FiTrash2 className="w-3.5 h-3.5" />
+                        {!isHeaderVariant && <span>Hapus</span>}
+                    </button>
+                </Tooltip>
             )}
         </div>
     );

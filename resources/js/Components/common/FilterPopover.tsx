@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState, type ReactNode } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 interface FilterPopoverProps {
     open: boolean;

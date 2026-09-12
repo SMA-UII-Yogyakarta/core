@@ -38,12 +38,12 @@ export default function DashboardStats({ present = 0, absent = 0, sick = 0, late
             <div className="flex gap-2 mb-4">
                 {tabs.map((t) => (
                     <button
+                        type="button"
                         key={t.key}
                         onClick={() => setPeriod(t.key)}
                         className={`px-4 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${
                             period === t.key ? "bg-border text-primary" : "bg-muted text-text-muted hover:bg-border"
                         }`}
-                        type="button"
                     >
                         {t.label}
                     </button>

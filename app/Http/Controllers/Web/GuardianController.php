@@ -21,13 +21,13 @@ class GuardianController extends Controller
         $this->authorize('viewAny', Guardian::class);
 
         $guardians = $this->guardianService->paginate(
-            request()->only(['search']),
+            request()->only(['search', 'has_student']),
         );
 
         return Inertia::render('Admin/MasterData', [
             'activeTab' => 'guardians',
             'guardians' => $guardians,
-            'filters' => request()->only(['search']),
+            'filters' => request()->only(['search', 'has_student']),
         ]);
     }
 
@@ -36,7 +36,7 @@ class GuardianController extends Controller
         $this->authorize('create', Guardian::class);
 
         $this->guardianService->create($request->validated());
-        return redirect()->back()->with('success', 'Guardian added successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_added'));
     }
 
     public function update(UpdateGuardianRequest $request, int $id)
@@ -44,7 +44,7 @@ class GuardianController extends Controller
         $this->authorize('update', Guardian::class);
 
         $this->guardianService->update($id, $request->validated());
-        return redirect()->back()->with('success', 'Guardian data updated successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_updated'));
     }
 
     public function destroy(int $id)
@@ -52,6 +52,23 @@ class GuardianController extends Controller
         $this->authorize('delete', Guardian::class);
 
         $this->guardianService->delete($id);
-        return redirect()->back()->with('success', 'Guardian deleted successfully.');
+        return redirect()->back()->with('success', __('messages.guardian_deleted'));
+    }
+
+    public function bulkDestroy(\Illuminate\Http\Request $request)
+    {
+        $this->authorize('delete', Guardian::class);
+
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:guardians,id',
+        ]);
+
+        $count = $this->guardianService->bulkDelete($validated['ids']);
+
+        return redirect()->back()->with(
+            'success',
+            $count . ' wali murid terpilih berhasil dihapus.',
+        );
     }
 }

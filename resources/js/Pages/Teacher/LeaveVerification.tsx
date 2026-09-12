@@ -1,26 +1,34 @@
 import { router } from "@inertiajs/react";
-import { useState, useMemo } from "react";
-import AppShell from "@/Layouts/AppShell";
-import { SearchBar, Button, EmptyState } from "@/Components";
+import { useMemo, useState } from "react";
+import { FiCheckSquare, FiFilter } from "react-icons/fi";
+import {
+    EmptyState,
+    FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
+    MobileNativePagination,
+    SearchBar,
+    TableFooter,
+    TableSection,
+} from "@/Components";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { toast } from "@/Components/common/Toast";
-import { FiFilter, FiCheckSquare } from "react-icons/fi";
-import type { PageProps, LeaveRequest } from "./LeaveVerification/types";
-import { daysUntil } from "./LeaveVerification/types";
-import LeaveVerificationHeader from "./LeaveVerification/LeaveVerificationHeader";
-import LeaveVerificationTabs, { type LeaveTabKey } from "./LeaveVerification/LeaveVerificationTabs";
-import LeaveRequestCard from "./LeaveVerification/LeaveRequestCard";
+import { useClientPagination } from "@/hooks/useClientPagination";
+import AppShell from "@/Layouts/AppShell";
 import LeaveDecisionModal from "./LeaveVerification/LeaveDecisionModal";
+import LeaveRequestCard from "./LeaveVerification/LeaveRequestCard";
 import LeaveVerificationFilterModal, {
     type DateMode,
+    LeaveVerificationFilterContent,
     type SortMode,
 } from "./LeaveVerification/LeaveVerificationFilterModal";
+import LeaveVerificationHeader from "./LeaveVerification/LeaveVerificationHeader";
+import LeaveVerificationTabs, { type LeaveTabKey } from "./LeaveVerification/LeaveVerificationTabs";
+import TeacherLeaveVerificationTable from "./LeaveVerification/TeacherLeaveVerificationTable";
+import type { LeaveRequest, PageProps } from "./LeaveVerification/types";
+import { daysUntil } from "./LeaveVerification/types";
 
-export default function LeaveVerification({
-    teacher: _teacher,
-    class: schoolClass,
-    leaveRequests = [],
-}: PageProps) {
+export default function LeaveVerification({ teacher: _teacher, class: schoolClass, leaveRequests = [] }: PageProps) {
     const [activeTab, setActiveTab] = useState<LeaveTabKey>("pending");
     const [searchQuery, setSearchQuery] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
@@ -29,6 +37,7 @@ export default function LeaveVerification({
     const [startDateFilter, setStartDateFilter] = useState("");
     const [endDateFilter, setEndDateFilter] = useState("");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
+    const [desktopFilterOpen, setDesktopFilterOpen] = useState(false);
 
     // Decision Modal
     const [decisionModal, setDecisionModal] = useState<{
@@ -44,15 +53,15 @@ export default function LeaveVerification({
     // Counts
     const pendingCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Pending").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const approvedCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Approved").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const rejectedCount = useMemo(
         () => leaveRequests.filter((r) => r.approval_status === "Rejected").length,
-        [leaveRequests]
+        [leaveRequests],
     );
     const totalHistoryCount = approvedCount + rejectedCount;
 
@@ -127,15 +136,17 @@ export default function LeaveVerification({
             }
             return 0;
         });
-    }, [
-        leaveRequests,
-        activeTab,
-        searchQuery,
-        categoryFilter,
-        startBound,
-        endBound,
-        sortMode,
-    ]);
+    }, [leaveRequests, activeTab, searchQuery, categoryFilter, startBound, endBound, sortMode]);
+
+    // Client-side pagination (10 items per page)
+    const {
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedRequests,
+        pageSize,
+    } = useClientPagination(filteredRequests, 1, 10);
+    const hasPagination = filteredRequests.length > pageSize;
 
     // Action handlers
     const handleApprove = (leave: LeaveRequest) => {
@@ -159,15 +170,11 @@ export default function LeaveVerification({
                 onSuccess: () => {
                     toast.warning("Status izin dikembalikan ke Menunggu Verifikasi.");
                 },
-            }
+            },
         );
     };
 
-    const handleConfirmDecision = (
-        leaveId: number,
-        type: "approve" | "reject" | "revert",
-        reason?: string
-    ) => {
+    const handleConfirmDecision = (leaveId: number, type: "approve" | "reject" | "revert", reason?: string) => {
         setIsSubmitting(true);
         const targetLeave = leaveRequests.find((r) => r.id === leaveId);
 
@@ -189,7 +196,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         } else if (type === "reject") {
             router.patch(
@@ -209,7 +216,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         } else if (type === "revert") {
             router.patch(
@@ -224,7 +231,7 @@ export default function LeaveVerification({
                         setIsSubmitting(false);
                         setDecisionModal({ open: false, type: null, leave: null });
                     },
-                }
+                },
             );
         }
     };
@@ -236,63 +243,172 @@ export default function LeaveVerification({
         Boolean(startDateFilter) ||
         Boolean(endDateFilter);
 
+    const mobileFilterAction = (
+        <HeaderIconButton
+            icon={<FiFilter className="text-[15px]" />}
+            active={hasActiveFilters}
+            label="Filter & Urutkan"
+            onClick={() => setFilterModalOpen(true)}
+            className="sm:hidden"
+        />
+    );
+
+    const filterControl = (
+        <FilterPopover
+            open={desktopFilterOpen}
+            onClose={() => setDesktopFilterOpen(false)}
+            align="right"
+            trigger={
+                <FilterTriggerButton
+                    label="Filter & Urutkan"
+                    active={hasActiveFilters}
+                    onClick={() => setDesktopFilterOpen((previous) => !previous)}
+                />
+            }
+        >
+            <LeaveVerificationFilterContent
+                category={categoryFilter}
+                dateMode={dateMode}
+                sortMode={sortMode}
+                startDate={startDateFilter}
+                endDate={endDateFilter}
+                onCategoryChange={(category) => {
+                    setCategoryFilter(category);
+                    setCurrentPage(1);
+                }}
+                onDateModeChange={(mode) => {
+                    setDateMode(mode);
+                    setCurrentPage(1);
+                }}
+                onSortModeChange={(sort) => {
+                    setSortMode(sort);
+                    setCurrentPage(1);
+                }}
+                onStartDateChange={(date) => {
+                    setStartDateFilter(date);
+                    setCurrentPage(1);
+                }}
+                onEndDateChange={(date) => {
+                    setEndDateFilter(date);
+                    setCurrentPage(1);
+                }}
+                onReset={() => {
+                    setCategoryFilter("all");
+                    setDateMode("all");
+                    setSortMode("urgency");
+                    setStartDateFilter("");
+                    setEndDateFilter("");
+                    setCurrentPage(1);
+                    setDesktopFilterOpen(false);
+                }}
+                onClose={() => setDesktopFilterOpen(false)}
+                showHeader
+                showActions={false}
+            />
+        </FilterPopover>
+    );
+
     return (
-        <AppShell title="Verifikasi Izin Siswa">
-            <div className="space-y-6">
+        <AppShell
+            title="Verifikasi Izin Siswa"
+            hasTopTabs={true}
+            hasTopCard={true}
+            headerActions={mobileFilterAction}
+            headerActionsMobileOnly
+            showNotificationBellOnMobile={false}
+            searchValue={searchQuery}
+            onSearchChange={(query) => {
+                setSearchQuery(query);
+                setCurrentPage(1);
+            }}
+            searchPlaceholder="Cari nama siswa, NIS, atau keterangan..."
+            mainClassName="overflow-x-hidden sm:overflow-hidden"
+        >
+            <div className="flex min-w-0 max-w-full flex-1 min-h-0 flex-col font-inter">
                 {/* Header */}
                 <LeaveVerificationHeader
                     classNameStr={schoolClass?.name || "Kelas Binaan"}
-                    pendingCount={pendingCount}
-                    approvedCount={approvedCount}
-                    rejectedCount={rejectedCount}
+                    desktopAction={
+                        <div className="w-72 xl:w-80">
+                            <SearchBar
+                                value={searchQuery}
+                                onChange={(query) => {
+                                    setSearchQuery(query);
+                                    setCurrentPage(1);
+                                }}
+                                onSearch={(query) => {
+                                    setSearchQuery(query);
+                                    setCurrentPage(1);
+                                }}
+                                placeholder="Cari nama siswa, NIS, atau keterangan..."
+                            />
+                        </div>
+                    }
                 />
 
-                {/* Tabs */}
-                <LeaveVerificationTabs
-                    activeTab={activeTab}
-                    pendingCount={pendingCount}
-                    approvedCount={approvedCount}
-                    rejectedCount={rejectedCount}
-                    totalHistoryCount={totalHistoryCount}
-                    onChange={setActiveTab}
-                />
-
-                {/* Filter Toolbar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div className="max-w-md w-full">
-                        <SearchBar
-                            value={searchQuery}
-                            onChange={setSearchQuery}
-                            onSearch={setSearchQuery}
-                            placeholder="Cari nama siswa, NIS, atau keterangan..."
+                {/* Canonical page toolbar: tabs, search, and filter share one row on desktop. */}
+                <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+                        <LeaveVerificationTabs
+                            activeTab={activeTab}
+                            pendingCount={pendingCount}
+                            approvedCount={approvedCount}
+                            rejectedCount={rejectedCount}
+                            totalHistoryCount={totalHistoryCount}
+                            onChange={(tab) => {
+                                setActiveTab(tab);
+                                setCurrentPage(1);
+                            }}
                         />
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant={hasActiveFilters ? "primary" : "secondary"}
-                            onClick={() => setFilterModalOpen(true)}
-                            icon={<FiFilter size={16} />}
-                        >
-                            Filter & Urutkan {hasActiveFilters && "(Aktif)"}
-                        </Button>
-                    </div>
+                    <div className="hidden shrink-0 lg:block">{filterControl}</div>
+                    <div className="hidden shrink-0 sm:block lg:hidden">{filterControl}</div>
                 </div>
 
-                {/* Card List */}
+                {/* Results: table on tablet/desktop, cards on mobile. */}
                 {filteredRequests.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                        {filteredRequests.map((leave) => (
-                            <LeaveRequestCard
-                                key={leave.id}
-                                leave={leave}
-                                isPending={leave.approval_status === "Pending"}
-                                onPreviewImage={(url) => setPreviewImageUrl(url)}
+                    <div className="flex min-w-0 max-w-full flex-1 min-h-0 flex-col overflow-hidden">
+                        <TableSection desktopOnly>
+                            <TeacherLeaveVerificationTable
+                                requests={paginatedRequests}
+                                onPreviewImage={setPreviewImageUrl}
                                 onApprove={handleApprove}
                                 onReject={handleReject}
                                 onRevert={handleRevert}
                             />
-                        ))}
+                            <TableFooter
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredRequests.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                                itemLabel="data"
+                            />
+                        </TableSection>
+                        <div className="sm:hidden space-y-4">
+                            {paginatedRequests.map((leave) => (
+                                <LeaveRequestCard
+                                    key={leave.id}
+                                    leave={leave}
+                                    isPending={leave.approval_status === "Pending"}
+                                    onPreviewImage={(url) => setPreviewImageUrl(url)}
+                                    onApprove={handleApprove}
+                                    onReject={handleReject}
+                                    onRevert={handleRevert}
+                                />
+                            ))}
+                            {hasPagination && (
+                                <div className="pt-2 font-inter">
+                                    <MobileNativePagination
+                                        currentPage={safePage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredRequests.length}
+                                        perPage={pageSize}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <EmptyState
@@ -329,26 +445,39 @@ export default function LeaveVerification({
                 sortMode={sortMode}
                 startDate={startDateFilter}
                 endDate={endDateFilter}
-                onCategoryChange={setCategoryFilter}
-                onDateModeChange={setDateMode}
-                onSortModeChange={setSortMode}
-                onStartDateChange={setStartDateFilter}
-                onEndDateChange={setEndDateFilter}
+                onCategoryChange={(c) => {
+                    setCategoryFilter(c);
+                    setCurrentPage(1);
+                }}
+                onDateModeChange={(m) => {
+                    setDateMode(m);
+                    setCurrentPage(1);
+                }}
+                onSortModeChange={(s) => {
+                    setSortMode(s);
+                    setCurrentPage(1);
+                }}
+                onStartDateChange={(d) => {
+                    setStartDateFilter(d);
+                    setCurrentPage(1);
+                }}
+                onEndDateChange={(d) => {
+                    setEndDateFilter(d);
+                    setCurrentPage(1);
+                }}
                 onReset={() => {
                     setCategoryFilter("all");
                     setDateMode("all");
                     setSortMode("urgency");
                     setStartDateFilter("");
                     setEndDateFilter("");
+                    setCurrentPage(1);
                 }}
                 onClose={() => setFilterModalOpen(false)}
             />
 
             {/* Preview Image Modal */}
-            <PreviewImageModal
-                url={previewImageUrl}
-                onClose={() => setPreviewImageUrl(null)}
-            />
+            <PreviewImageModal url={previewImageUrl} onClose={() => setPreviewImageUrl(null)} />
         </AppShell>
     );
 }

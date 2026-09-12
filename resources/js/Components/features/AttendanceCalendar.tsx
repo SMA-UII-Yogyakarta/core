@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import StatusDot from "@/Components/ui/StatusDot";
+import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 export interface AttendanceRecord {
     id?: number;
@@ -23,22 +25,10 @@ export interface AttendanceCalendarProps {
     onSelectDay?: (day: number, record?: AttendanceRecord, holiday?: HolidayRecord) => void;
     className?: string;
     dusk?: string;
+    compact?: boolean;
 }
 
-const MONTH_NAMES = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-];
+const MONTH_NAMES = INDONESIAN_MONTHS;
 
 const DAY_LABELS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
@@ -51,6 +41,7 @@ export default function AttendanceCalendar({
     onSelectDay,
     className = "",
     dusk = "attendance-calendar",
+    compact = false,
 }: AttendanceCalendarProps) {
     const today = new Date();
 
@@ -93,34 +84,26 @@ export default function AttendanceCalendar({
         return grid;
     }, [month, year]);
 
-    const getStatusDotColor = (status: string): string => {
-        const s = status.toLowerCase();
-        if (s === "present" || s === "hadir") return "bg-success";
-        if (s === "late" || s === "terlambat") return "bg-warning";
-        if (s === "sick" || s === "sakit") return "bg-blue-500";
-        if (s === "leave" || s === "izin" || s === "permit") return "bg-indigo-500";
-        if (s === "absent" || s === "alpa") return "bg-danger";
-        return "bg-slate-300";
-    };
-
     return (
         <div
-            className={`bg-surface border border-border rounded-xl p-5 shadow-card font-inter ${className}`}
+            className={`w-full min-w-0 bg-surface border border-border rounded-2xl shadow-card font-inter ${
+                compact ? "p-3.5 sm:p-4" : "p-4 sm:p-5"
+            } ${className}`}
             dusk={dusk}
             data-testid={dusk}
         >
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[15px] font-bold text-text-primary font-inter">
+            <div className={`flex items-center justify-between ${compact ? "mb-2.5" : "mb-4"}`}>
+                <h2 className="text-[14px] sm:text-[15px] font-bold text-text-primary font-inter">
                     Kalender {MONTH_NAMES[month - 1]} {year}
                 </h2>
             </div>
 
             {/* Day headers */}
-            <div className="grid grid-cols-7 mb-2">
+            <div className={`grid grid-cols-7 w-full gap-1 ${compact ? "mb-1.5" : "mb-2.5"}`}>
                 {DAY_LABELS.map((d, i) => (
                     <div
                         key={d}
-                        className={`flex items-center justify-center text-[11px] font-bold py-1 select-none ${
+                        className={`text-center text-[11px] sm:text-[12px] font-bold py-0.5 select-none truncate ${
                             i === 0 ? "text-danger" : "text-text-muted"
                         }`}
                     >
@@ -130,16 +113,14 @@ export default function AttendanceCalendar({
             </div>
 
             {/* Date cells */}
-            <div className="grid grid-cols-7 gap-y-1.5">
+            <div className={`grid grid-cols-7 w-full gap-1 ${compact ? "gap-y-1" : "gap-y-2"}`}>
                 {cells.map((day, idx) => {
-                    if (!day) return <div key={`empty-${idx}`} className="h-9" />;
+                    if (!day) return <div key={`empty-${idx}`} className={compact ? "h-7 w-full" : "h-9 w-full"} />;
 
                     const att = attendanceMap.get(day);
                     const holiday = holidayMap.get(day);
                     const isToday =
-                        day === today.getDate() &&
-                        month === today.getMonth() + 1 &&
-                        year === today.getFullYear();
+                        day === today.getDate() && month === today.getMonth() + 1 && year === today.getFullYear();
                     const isSelected = selectedDay === day;
 
                     return (
@@ -147,31 +128,33 @@ export default function AttendanceCalendar({
                             key={day}
                             type="button"
                             onClick={() => onSelectDay?.(day, att, holiday)}
-                            className={`flex flex-col items-center justify-center gap-0.5 py-1 rounded-lg transition-all cursor-pointer hover:bg-muted focus:outline-none focus:ring-1 focus:ring-primary/40
-                                ${isSelected ? "ring-2 ring-primary bg-primary/5" : ""}
-                            `}
+                            className={`w-full flex flex-col items-center justify-center gap-0.5 ${
+                                compact ? "py-0.5" : "py-1"
+                            } rounded-xl transition-all cursor-pointer hover:bg-muted/70 focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                                isSelected ? "ring-2 ring-primary bg-primary/10 shadow-2xs" : ""
+                            }`}
                             aria-label={`Tanggal ${day} ${MONTH_NAMES[month - 1]} ${year}${
                                 att ? `, Status: ${att.status}` : ""
                             }${holiday ? `, Libur: ${holiday.description}` : ""}`}
                         >
                             <span
-                                className={`text-[12px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+                                className={`text-[12px] font-semibold flex items-center justify-center rounded-full transition-colors ${
+                                    compact ? "w-7 h-7 sm:w-8 sm:h-8" : "w-8 h-8 sm:w-9 sm:h-9"
+                                } ${
                                     isToday
-                                        ? "bg-primary text-white font-bold shadow-sm"
+                                        ? "bg-primary text-white font-bold shadow-xs"
                                         : holiday
-                                          ? "text-danger font-bold"
+                                          ? "text-danger font-bold bg-danger/10"
                                           : "text-text-primary"
                                 }`}
                             >
                                 {day}
                             </span>
-                            <div className="h-1.5 flex items-center justify-center">
+                            <div className="h-1 flex items-center justify-center">
                                 {holiday ? (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+                                    <StatusDot status="absent" size="xs" pulse />
                                 ) : att ? (
-                                    <span
-                                        className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(att.status)}`}
-                                    />
+                                    <StatusDot status={att.status} size="xs" />
                                 ) : null}
                             </div>
                         </button>
@@ -180,22 +163,26 @@ export default function AttendanceCalendar({
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-3.5 mt-5 pt-4 border-t border-border flex-wrap">
+            <div
+                className={`flex items-center border-t border-border flex-wrap ${
+                    compact ? "gap-2.5 sm:gap-3 mt-3 pt-3" : "gap-3 sm:gap-4 mt-5 pt-4"
+                }`}
+            >
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-success" />
-                    <span className="text-[11px] text-text-muted">Hadir</span>
+                    <StatusDot status="present" size="sm" />
+                    <span className="text-[11px] text-text-muted font-medium">Hadir</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-warning" />
-                    <span className="text-[11px] text-text-muted">Terlambat</span>
+                    <StatusDot status="late" size="sm" />
+                    <span className="text-[11px] text-text-muted font-medium">Terlambat</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="text-[11px] text-text-muted">Sakit/Izin</span>
+                    <StatusDot status="sick" size="sm" />
+                    <span className="text-[11px] text-text-muted font-medium">Sakit/Izin</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-danger" />
-                    <span className="text-[11px] text-text-muted">Alpa / Libur</span>
+                    <StatusDot status="absent" size="sm" />
+                    <span className="text-[11px] text-text-muted font-medium">Alpa / Libur</span>
                 </div>
             </div>
         </div>

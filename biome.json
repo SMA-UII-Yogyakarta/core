@@ -25,7 +25,8 @@
         "useValidAnchor": "warn",
         "useButtonType": "warn",
         "noSvgWithoutTitle": "off",
-        "noLabelWithoutControl": "off"
+        "noLabelWithoutControl": "off",
+        "useSemanticElements": "off"
       },
       "suspicious": {
         "noExplicitAny": "warn",

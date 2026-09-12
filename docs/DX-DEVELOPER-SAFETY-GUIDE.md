@@ -2,7 +2,7 @@
 
 Dokumen ini menjelaskan sistem pengamanan standar pengembang (**Developer Experience & Safety Gate**) pada proyek **SMA UII Yogyakarta**.
 
-Sistem ini dirancang untuk memastikan bahwa setiap pengembang (**Ihsan, Azis, Sandikodev, Fathan, Hanif, dan seluruh tim dev**) secara otomatis menjalankan validasi tipe, pengujian, dan analisis statis **sebelum melalukan Commit, Push, dan Pull Request (PR)/Merge**.
+Sistem ini dirancang untuk memastikan bahwa setiap pengembang (**Ihsan (@Odauna), Azis (@ziz-mubasyir), Sandikodev (@Sandikodev), Fathan (@Hans02-Neo), Hanif (@Rosyiii), dan seluruh tim dev**) secara otomatis menjalankan validasi tipe, pengujian, dan analisis statis **sebelum melalukan Commit, Push, dan Pull Request (PR)/Merge**.
 
 ---
 
@@ -77,4 +77,4 @@ Setiap tindakan skip akan dicatat secara otomatis dalam format log audit:
 [2026-08-18 13:25:00] DEVELOPER: Ihsan (ihsan@smauii.sch.id) | STAGE: PRE-PUSH | REASON: "Hotfix darurat terverifikasi manual"
 ```
 
-Log ini memastikan seluruh tim (**Ihsan, Azis, Sandikodev, Fathan, Hanif**) tetap saling menyadari (*aware*), transparan, dan bertanggung jawab atas kualitas basis kode bersama.
+Log ini memastikan seluruh tim (**Ihsan (@Odauna), Azis (@ziz-mubasyir), Sandikodev (@Sandikodev), Fathan (@Hans02-Neo), Hanif (@Rosyiii)**) tetap saling menyadari (*aware*), transparan, dan bertanggung jawab atas kualitas basis kode bersama.

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -34,26 +35,36 @@ class ProfileController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-
-        if ($request->boolean('remove_avatar')) {
-            $user->avatar = null;
-        } elseif ($request->hasFile('avatar')) {
-            $storageService = app(\App\Services\StorageService::class);
-            $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
-        }
-
         if ($request->filled('password')) {
             if (! Hash::check($request->current_password, $user->password)) {
-                return redirect()->back()->with('error', 'Password saat ini tidak sesuai.');
+                return redirect()->back()->with('error', __('messages.invalid_current_password'));
             }
             $user->password = Hash::make($request->password);
         }
 
-        $user->save();
+        DB::transaction(function () use ($user, $request) {
+            $nameChanged = $user->name !== $request->name;
 
-        return redirect()->back()->with('success', 'Profil berhasil diperbarui.');
+            $user->name = $request->name;
+            $user->email = $request->email;
+
+            if ($request->boolean('remove_avatar')) {
+                $user->avatar = null;
+            } elseif ($request->hasFile('avatar')) {
+                $storageService = app(\App\Services\StorageService::class);
+                $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
+            }
+
+            $user->save();
+
+            if ($nameChanged) {
+                $user->student?->update(['name' => $user->name]);
+                $user->teacher?->update(['name' => $user->name]);
+                $user->guardian?->update(['name' => $user->name]);
+            }
+        });
+
+        return redirect()->back()->with('success', __('messages.profile_updated'));
     }
 
     public function updateAvatar(Request $request)
@@ -68,7 +79,7 @@ class ProfileController extends Controller
         $user->avatar = $storageService->uploadAvatar($request->file('avatar'), $user->id);
         $user->save();
 
-        return redirect()->back()->with('success', 'Foto profil berhasil diperbarui.');
+        return redirect()->back()->with('success', __('messages.avatar_updated'));
     }
 
     public function deleteAvatar(Request $request)
@@ -77,7 +88,7 @@ class ProfileController extends Controller
         $user->avatar = null;
         $user->save();
 
-        return redirect()->back()->with('success', 'Foto profil berhasil dihapus.');
+        return redirect()->back()->with('success', __('messages.avatar_deleted'));
     }
 
     public function revokeSession(Request $request, string $id)
@@ -85,7 +96,7 @@ class ProfileController extends Controller
         $user = Auth::user();
         $user->tokens()->where('id', $id)->delete();
 
-        return redirect()->back()->with('success', 'Sesi berhasil dicabut.');
+        return redirect()->back()->with('success', __('messages.session_revoked'));
     }
 
     public function switchRole(Request $request)
@@ -96,12 +107,12 @@ class ProfileController extends Controller
 
         $user = Auth::user();
         if ($user->role !== 'teacher') {
-            return redirect()->back()->with('error', 'Hanya guru yang dapat mengubah peran aktif.');
+            return redirect()->back()->with('error', __('messages.role_switch_forbidden'));
         }
 
         $teacherTypes = $user->teacher->teacher_type?->map(fn ($t) => $t->value)->toArray() ?? [];
         if (! in_array($request->role, $teacherTypes, true)) {
-            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk peran tersebut.');
+            return redirect()->back()->with('error', __('messages.role_not_assigned'));
         }
 
         session(['active_teacher_role' => $request->role]);
@@ -113,10 +124,10 @@ class ProfileController extends Controller
 
         if ($isTeacherDashboard) {
             $targetRoute = $request->role === 'duty' ? 'teacher.duty' : 'teacher.homeroom';
-            return redirect()->route($targetRoute)->with('success', 'Peran berhasil diubah menjadi ' . $roleLabel . '.');
+            return redirect()->route($targetRoute)->with('success', __('messages.role_switched', ['role' => $roleLabel]));
         }
 
-        return redirect()->back()->with('success', 'Peran berhasil diubah menjadi ' . $roleLabel . '.');
+        return redirect()->back()->with('success', __('messages.role_switched', ['role' => $roleLabel]));
     }
 
     private function getSessions($user): array

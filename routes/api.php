@@ -12,14 +12,15 @@ use App\Http\Controllers\Api\LeaveRequestApiController;
 use App\Http\Controllers\Api\SchoolClassController;
 use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\UniversalAgentController;
 use Illuminate\Support\Facades\Route;
 
 // ─── API v1 ───
 Route::prefix('v1')->group(function () {
-    // ─── Client Log (no auth — throttled) ───
-    Route::post('/log-client-error', ClientLogController::class)->middleware(
-        'throttle:60,1',
-    );
+    // ─── Client Log & AI Agent Telemetry ───
+    Route::post('/log-client-error', ClientLogController::class)->middleware('throttle:60,1');
+    Route::post('/agent/report-error', [UniversalAgentController::class, 'reportError'])->middleware('throttle:60,1');
+    Route::post('/agent/ping', [UniversalAgentController::class, 'ping'])->middleware('throttle:60,1');
 
     // ─── Public ───
     Route::post('/login', [AuthController::class, 'login'])->name('api.login')

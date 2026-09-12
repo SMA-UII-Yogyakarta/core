@@ -112,9 +112,9 @@ Open `http://smauii-core.test` (or `http://localhost:8800`) in your browser.
 > 📖 **Testing & QA Reference Guide:**  
 > Untuk kredensial akun uji coba (Admin, Guru Piket, Wali Kelas, Wali Murid, Siswa) dan skenario UAT lengkap, baca **[Panduan Data Seeding & Kredensial Pengujian (QA & UAT Testing Guide)](docs/SEED-DATA-TESTING-GUIDE.md)**.
 
-### Docker (recommended on Linux/VPS)
+### Docker & Laravel Sail (recommended for development)
 
-Docker is the recommended way to run the stack on Linux/VPS. Compose is split into a base file plus environment overlays:
+**Laravel Sail** is the dedicated interface for local development — on Linux, `lerd` (podman), or Windows/Laragon. All day-to-day commands go through `./vendor/bin/sail`, so the whole team runs the exact same workflow regardless of OS. Compose is split into a base file plus environment overlays:
 
 | File | Purpose |
 |---|---|
@@ -122,12 +122,56 @@ Docker is the recommended way to run the stack on Linux/VPS. Compose is split in
 | `docker-compose.dev.yml` | Dev overlay — host port + Vite HMR (`bun`) |
 | `docker-compose.prod.yml` | Prod overlay — production env, queue `worker` + `schedule` |
 
+> `docker-compose.yml` has a top-level `name: core-dev`, so `./vendor/bin/sail up -d` brings up the same dev stack with no extra flags. Service/container names differ from Sail defaults, hence these required `.env` values: `APP_SERVICE=app`, `APP_USER=app`, `WWWUSER=1000`, `WWWGROUP=1000`.
+
+**Quick start (fresh clone):**
+
 ```bash
-make dev       # development (http://localhost:8800, HMR :5173)
-make prod-up   # production (build assets, then up base+prod)
+# Host is on PHP 8.4 (e.g. Laragon/Windows with Git Bash or WSL2):
+composer install
+cp .env.example .env   # pilih konfigurasi SAIL (lihat komentar di file)
+php artisan key:generate
+./vendor/bin/sail up -d
+
+# Host without PHP 8.4 (Linux): bootstrap vendor/ + node_modules inside the containers
+make setup               # = compose up --build → composer install → bun install → key → migrate --seed
 ```
 
-> Docker Compose is an **alternative** to [`lerd`](https://github.com/lerd/lerd) (the team's Podman-based dev environment — `composer setup` / `composer dev`). Both are containerized and functionally equivalent for development; lerd is the team/CI standard, Docker Compose is convenient on hosts that already run Docker and is required for production via the `prod` overlay.
+**Day-to-day (via the `Makefile` — single DX entry point):**
+
+```bash
+make dev                     # start stack (http://localhost:8800, HMR :5173)
+make test                    # PHPUnit (316 tests / 1509 assertions, sqlite :memory:)
+make migrate                 # Laravel artisan
+make frontend:test           # Vitest + axe (di dalam container bun)
+make frontend:lint           # ESLint (di dalam container bun)
+make frontend:build          # Vite build (di dalam container bun)
+make psql                    # psql ke pgsql:smauii_core
+```
+
+Backend commands go through Sail (`./vendor/bin/sail ...` — aliased by `make`). Frontend tooling lives on a dedicated `bun` service (Vite HMR runs automatically on `up`); there is no node/bun inside the PHP image, so frontend commands are executed inside the `bun` container via `make frontend:*` — no host `bun`/`npm` required:
+
+| Makefile target | Runs (inside `bun` container) |
+|---|---|
+| `frontend:build` | `bun run build` |
+| `frontend:typecheck` | `bun run typecheck` |
+| `frontend:lint` | `bun run lint` |
+| `frontend:test` | `bun run test` (Vitest + axe) |
+| `frontend:test:bun` | `bun run test:bun` |
+| `frontend:format` | `bun run format` (Biome) |
+
+> Playwright e2e (`bun run test:e2e`) is host-only — the `bun` container has no browser binaries. Vite HMR is already auto-started by `make dev`, so there is no `frontend:dev` target.
+
+> Bootstrap `vendor/` happens once via `make setup` (container-only, no host PHP required). `composer run dev` / `composer run setup` remain available as a host/Laragon-only alternative, not the primary workflow.
+
+**Production** does NOT use Sail — it uses the prod overlay directly:
+
+```bash
+make prod:up       # production (build assets, then up base+prod)
+make prod:migrate  # migrate tanpa hapus data
+```
+
+> Docker/lerd: development is containerized regardless of environment (`lerd` = the team's Podman dev environment: `composer setup` / `composer dev`). On Linux, Sail runs on top of Docker and is functionally equivalent; production always deploys via the `prod` overlay above.
 
 Subdomain strategy, deploy steps (DNS/certbot/nginx), and the roadmap to a split backend (`app.` frontend / `api.smauiiyk.sch.id/{v0,v1,…}` backend) are documented in **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
@@ -243,6 +287,8 @@ git push origin feature/feature-name
 ```
 
 ### Running Tests & Quality Assurance
+
+> Commands below are the raw scripts (host). The equivalent container-first commands are `make test` (back #1) and `make frontend:*` (back #2–5) — prefer `make` unless you deliberately run on the host.
 
 ```bash
 # 1. Backend PHPUnit Tests (160 tests)

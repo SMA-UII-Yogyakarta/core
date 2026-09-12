@@ -9,6 +9,8 @@ interface LeaveVerificationTabsProps {
     rejectedCount: number;
     totalHistoryCount: number;
     onChange: (key: LeaveTabKey) => void;
+    fullWidth?: boolean | "mobile-only";
+    className?: string;
 }
 
 export default function LeaveVerificationTabs({
@@ -18,6 +20,8 @@ export default function LeaveVerificationTabs({
     rejectedCount,
     totalHistoryCount,
     onChange,
+    fullWidth = "mobile-only",
+    className,
 }: LeaveVerificationTabsProps) {
     const tabs = [
         {
@@ -47,6 +51,8 @@ export default function LeaveVerificationTabs({
             tabs={tabs}
             activeKey={activeTab}
             onChange={(key) => onChange(key as LeaveTabKey)}
+            fullWidth={fullWidth}
+            className={className}
         />
     );
 }

@@ -1,7 +1,8 @@
+import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
-import { motion, AnimatePresence } from "framer-motion";
+import IconButton from "@/Components/ui/IconButton";
 import { useLanguage } from "@/Contexts/LanguageContext";
 
 interface BottomSheetProps {
@@ -12,13 +13,7 @@ interface BottomSheetProps {
     children: ReactNode;
 }
 
-export default function BottomSheet({
-    open,
-    onClose,
-    title,
-    subtitle,
-    children,
-}: BottomSheetProps) {
+export default function BottomSheet({ open, onClose, title, subtitle, children }: BottomSheetProps) {
     const { t } = useLanguage();
     useEffect(() => {
         if (open) {
@@ -70,18 +65,15 @@ export default function BottomSheet({
                             <div className="flex items-center justify-between px-5 pb-3 border-b border-border select-none shrink-0">
                                 <div>
                                     <h2 className="text-[16px] font-bold text-text-primary font-inter">{title}</h2>
-                                    {subtitle && (
-                                        <p className="text-[12px] text-text-muted mt-0.5">{subtitle}</p>
-                                    )}
+                                    {subtitle && <p className="text-[12px] text-text-muted mt-0.5">{subtitle}</p>}
                                 </div>
-                                <button
+                                <IconButton
+                                    size="sm"
+                                    variant="ghost"
+                                    icon={<FiX className="w-4 h-4" />}
+                                    label={t("common.close")}
                                     onClick={onClose}
-                                    className="text-text-muted hover:text-text-primary p-1.5 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-                                    type="button"
-                                    aria-label={t("common.close")}
-                                >
-                                    <FiX className="w-4 h-4" />
-                                </button>
+                                />
                             </div>
                         )}
 

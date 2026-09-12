@@ -1,26 +1,21 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
-import AppShell from "@/Layouts/AppShell";
+import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { FiExternalLink } from "react-icons/fi";
 import {
-    Pagination,
     Drawer,
     EmptyState,
     FilterBar,
-    TabSwitcher,
-    StickyContainer,
+    MobileNativePagination,
     PageHeader,
+    StatusBadge,
+    StickyContainer,
+    TableFooter,
+    TabSwitcher,
 } from "@/Components";
 import { LeaveRequestCard } from "@/Components/ui/LeaveRequestCard";
-import { FiExternalLink } from "react-icons/fi";
-import type { LeaveRequest } from "@/types";
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    total: number;
-    per_page: number;
-}
+import AppShell from "@/Layouts/AppShell";
+import type { LeaveRequest, PaginatedData } from "@/types";
 
 interface Filters {
     status?: string;
@@ -42,18 +37,17 @@ const statusTabs = [
 
 const categoryLabels: Record<string, string> = {
     Sick: "Sakit",
-    Event: "Kegiatan",
+    Event: "Izin Acara",
     Competition: "Lomba",
     Other: "Lainnya",
 };
 
-export default function LeaveRequestsIndex({
-    leaveRequests,
-    filters,
-}: LeaveRequestsIndexProps) {
+export default function LeaveRequestsIndex({ leaveRequests, filters }: LeaveRequestsIndexProps) {
     const [statusTab, setStatusTab] = useState(filters.status ?? "");
     const [categoryFilter, setCategoryFilter] = useState(filters.category ?? "");
     const [search, setSearch] = useState(filters.search ?? "");
+    const debouncedSearch = useDebounce(search, 350);
+    const isFirstRender = useRef(true);
     const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
 
     const handleFilter = (extra?: Record<string, string | undefined>) => {
@@ -69,18 +63,32 @@ export default function LeaveRequestsIndex({
         );
     };
 
-    const statusBadgeClass = (status: string) => {
-        if (status === "Pending") return "bg-warning-bg text-warning";
-        if (status === "Approved") return "bg-success-bg text-success";
-        if (status === "Rejected") return "bg-danger-bg text-danger";
-        return "bg-muted text-text-muted";
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        router.get(
+            "/leave-requests",
+            {
+                status: statusTab || undefined,
+                category: categoryFilter || undefined,
+                search: debouncedSearch || undefined,
+            },
+            { preserveState: true },
+        );
+    }, [debouncedSearch]);
+
+    const handlePageChange = (page: number) => {
+        handleFilter({ page: String(page) });
     };
 
     return (
-        <AppShell title="Pengajuan Izin">
+        <AppShell title="Pengajuan Izin" hasTopTabs={true}>
             <PageHeader
                 title="Pengajuan Izin"
                 description="Kelola permohonan dispensasi dan ketidakhadiran siswa."
+                className="hidden lg:flex shrink-0 mb-4"
             />
 
             <StickyContainer>
@@ -91,6 +99,7 @@ export default function LeaveRequestsIndex({
                         setStatusTab(key);
                         handleFilter({ status: key || undefined });
                     }}
+                    fullWidth="mobile-only"
                 />
             </StickyContainer>
 
@@ -126,11 +135,7 @@ export default function LeaveRequestsIndex({
                 <div className="space-y-4">
                     {leaveRequests.data.length > 0 ? (
                         leaveRequests.data.map((lr) => (
-                            <LeaveRequestCard
-                                key={lr.id}
-                                leaveRequest={lr}
-                                onDetailClick={setSelectedRequest}
-                            />
+                            <LeaveRequestCard key={lr.id} leaveRequest={lr} onDetailClick={setSelectedRequest} />
                         ))
                     ) : (
                         <EmptyState variant="no-leaves" />
@@ -138,26 +143,30 @@ export default function LeaveRequestsIndex({
                 </div>
 
                 {/* Symmetrical Footer & Pagination */}
-                {leaveRequests.last_page > 1 && (
-                    <div className="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0 mt-auto font-inter min-h-[36px]">
-                        <Pagination
-                            currentPage={leaveRequests.current_page}
-                            totalPages={leaveRequests.last_page}
-                            totalItems={leaveRequests.total}
-                            perPage={leaveRequests.per_page}
-                            onPageChange={(page) =>
-                                router.get(
-                                    "/leave-requests",
-                                    {
-                                        page,
-                                        status: statusTab || undefined,
-                                        category: categoryFilter || undefined,
-                                        search: search || undefined,
-                                    },
-                                    { preserveState: true },
-                                )
-                            }
-                        />
+                {leaveRequests.total > 0 && (
+                    <div className="pt-2 shrink-0 mt-auto font-inter min-h-[36px]">
+                        <div className="hidden sm:block">
+                            <TableFooter
+                                currentPage={leaveRequests.current_page}
+                                totalPages={leaveRequests.last_page}
+                                totalItems={leaveRequests.total}
+                                perPage={leaveRequests.per_page}
+                                onPageChange={handlePageChange}
+                                itemLabel="pengajuan izin"
+                            />
+                        </div>
+                        {leaveRequests.last_page > 1 && (
+                            <div className="sm:hidden">
+                                <MobileNativePagination
+                                    currentPage={leaveRequests.current_page}
+                                    totalPages={leaveRequests.last_page}
+                                    totalItems={leaveRequests.total}
+                                    perPage={leaveRequests.per_page}
+                                    onPageChange={handlePageChange}
+                                    itemLabel="pengajuan izin"
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -174,12 +183,10 @@ export default function LeaveRequestsIndex({
                         {/* Status Badge header */}
                         <div className="flex items-center justify-between p-3 bg-muted/40 rounded-xl">
                             <div>
-                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block">
+                                <span className="text-[11px] font-bold text-text-inactive uppercase tracking-wider block mb-1">
                                     Status Pengajuan
                                 </span>
-                                <span className={`font-bold text-[15px] ${statusBadgeClass(selectedRequest.approval_status)}`}>
-                                    {selectedRequest.approval_status === "Pending" ? "MENUNGGU" : selectedRequest.approval_status === "Approved" ? "DISETUJUI" : "DITOLAK"}
-                                </span>
+                                <StatusBadge variant={selectedRequest.approval_status} />
                             </div>
                         </div>
 
@@ -230,10 +237,14 @@ export default function LeaveRequestsIndex({
                                     <span className="text-text-muted">Durasi</span>
                                     <span className="font-semibold text-text-primary">
                                         {(() => {
-                                            if (!selectedRequest.start_date || !selectedRequest.end_date) return "1 Hari";
+                                            if (!selectedRequest.start_date || !selectedRequest.end_date)
+                                                return "1 Hari";
                                             const start = new Date(selectedRequest.start_date);
                                             const end = new Date(selectedRequest.end_date);
-                                            const diff = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1);
+                                            const diff = Math.max(
+                                                1,
+                                                Math.round((end.getTime() - start.getTime()) / (1000 * 3600 * 24)) + 1,
+                                            );
                                             return `${diff} Hari`;
                                         })()}
                                     </span>
@@ -258,8 +269,11 @@ export default function LeaveRequestsIndex({
                                     Berkas Pendukung
                                 </h3>
                                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
-                                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[200px]" title={selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}>
-                                        {selectedRequest.document_url.split('/').pop() || "Dokumen Lampiran Izin"}
+                                    <span
+                                        className="text-[13px] font-medium text-text-primary truncate max-w-[200px]"
+                                        title={selectedRequest.document_url.split("/").pop() || "Dokumen Lampiran Izin"}
+                                    >
+                                        {selectedRequest.document_url.split("/").pop() || "Dokumen Lampiran Izin"}
                                     </span>
                                     <a
                                         href={selectedRequest.document_url}

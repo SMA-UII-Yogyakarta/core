@@ -149,8 +149,8 @@ Database seeder `DatabaseSeeder.php` telah menyusun data komprehensif yang siap 
 Untuk menyegarkan database lokal / VPS dengan seluruh dataset realistis di atas:
 
 ```bash
-# Melalui Docker Container app
-docker exec core-app-1 php artisan migrate:fresh --seed
+# Melalui Laravel Sail (local dev)
+./vendor/bin/sail artisan migrate:fresh --seed
 
 # Atau via Makefile
 make fresh

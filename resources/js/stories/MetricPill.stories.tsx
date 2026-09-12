@@ -1,18 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import MetricPill from '../Components/ui/MetricPill';
+import type { Meta, StoryObj } from "@storybook/react";
+import MetricPill from "../Components/ui/MetricPill";
 
 const meta: Meta<typeof MetricPill> = {
-    title: 'UI/MetricPill',
+    title: "UI/MetricPill",
     component: MetricPill,
-    tags: ['autodocs'],
+    tags: ["autodocs"],
     argTypes: {
         variant: {
-            control: 'select',
-            options: ['success', 'warning', 'danger', 'primary', 'neutral'],
+            control: "select",
+            options: ["success", "warning", "danger", "primary", "neutral"],
         },
         size: {
-            control: 'select',
-            options: ['sm', 'md'],
+            control: "select",
+            options: ["sm", "md"],
         },
     },
 };
@@ -22,25 +22,25 @@ type Story = StoryObj<typeof MetricPill>;
 
 export const SuccessHadir: Story = {
     args: {
-        label: 'HADIR',
+        label: "HADIR",
         value: 28,
-        variant: 'success',
+        variant: "success",
     },
 };
 
 export const WarningTelat: Story = {
     args: {
-        label: 'TELAT',
+        label: "TELAT",
         value: 3,
-        variant: 'warning',
+        variant: "warning",
     },
 };
 
 export const DangerAlpa: Story = {
     args: {
-        label: 'ALPA',
+        label: "ALPA",
         value: 1,
-        variant: 'danger',
+        variant: "danger",
     },
 };
 

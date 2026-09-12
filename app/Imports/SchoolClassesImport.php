@@ -23,41 +23,43 @@ class SchoolClassesImport
         $headers = [];
         $currentRowIndex = 0;
 
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $currentRowIndex++;
+        try {
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    $currentRowIndex++;
 
-                $cells = [];
-                foreach ($row->getCells() as $cell) {
-                    $cells[] = trim((string) $cell->getValue());
-                }
-
-                if ($isFirstRow) {
-                    $headers = $cells;
-                    $isFirstRow = false;
-
-                    continue;
-                }
-
-                if (empty(array_filter($cells))) {
-                    continue;
-                }
-
-                $data = array_combine($headers, $cells);
-
-                try {
-                    $this->importRow($data);
-                } catch (\Exception $e) {
-                    $msg = $e->getMessage();
-                    if ($e instanceof QueryException && str_contains($msg, '23505')) {
-                        $msg = 'Nama kelas sudah terdaftar di sistem.';
+                    $cells = [];
+                    foreach ($row->getCells() as $cell) {
+                        $cells[] = trim((string) $cell->getValue());
                     }
-                    $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+
+                    if ($isFirstRow) {
+                        $headers = $cells;
+                        $isFirstRow = false;
+
+                        continue;
+                    }
+
+                    if (empty(array_filter($cells))) {
+                        continue;
+                    }
+
+                    $data = array_combine($headers, $cells);
+
+                    try {
+                        $this->importRow($data);
+                    } catch (\Exception $e) {
+                        $msg = $e->getMessage();
+                        if ($e instanceof QueryException && str_contains($msg, '23505')) {
+                            $msg = 'Nama kelas dan tahun ajaran sudah terdaftar di sistem.';
+                        }
+                        $this->errors[] = "Baris {$currentRowIndex}: {$msg}";
+                    }
                 }
             }
+        } finally {
+            $reader->close();
         }
-
-        $reader->close();
 
         return [
             'success_count' => count($this->success),
@@ -71,7 +73,12 @@ class SchoolClassesImport
     {
         DB::transaction(function () use ($data) {
             $name = trim($data['name'] ?? $data['Nama Kelas'] ?? $data['nama_kelas'] ?? $data['Nama'] ?? '');
-            $level = trim($data['level'] ?? $data['Tingkat'] ?? $data['tingkat'] ?? 'X');
+            $level = trim((string) ($data['level'] ?? $data['Tingkat'] ?? $data['tingkat'] ?? 'X'));
+            $currentYear = SchoolClass::currentAcademicYear();
+            $academicYear = trim($data['academic_year'] ?? $data['Tahun Ajaran'] ?? $data['tahun_ajaran'] ?? $data['Angkatan'] ?? $data['angkatan'] ?? $currentYear);
+            if ($academicYear === '') {
+                $academicYear = $currentYear;
+            }
             $capacity = (int) ($data['capacity'] ?? $data['Kapasitas'] ?? $data['kapasitas'] ?? 36);
             $teacherCode = trim($data['teacher_code'] ?? $data['Kode Guru'] ?? $data['wali_kelas'] ?? '');
 
@@ -89,15 +96,18 @@ class SchoolClassesImport
                 }
             }
 
-            $existingClass = SchoolClass::where('name', $name)->first();
+            $existingClass = SchoolClass::where('name', $name)
+                ->where('academic_year', $academicYear)
+                ->first();
 
             if ($existingClass) {
                 $existingClass->update([
                     'level' => in_array($level, ['X', 'XI', 'XII']) ? $level : $existingClass->level,
+                    'academic_year' => ! empty($academicYear) ? $academicYear : $existingClass->academic_year,
                     'capacity' => $capacity > 0 ? $capacity : $existingClass->capacity,
                     'teacher_id' => $teacherId ?? $existingClass->teacher_id,
                 ]);
-                $this->success[] = "Kelas {$name} - Diperbarui";
+                $this->success[] = "Kelas {$name} ({$academicYear}) - Diperbarui";
 
                 return;
             }
@@ -105,11 +115,12 @@ class SchoolClassesImport
             SchoolClass::create([
                 'name' => $name,
                 'level' => in_array($level, ['X', 'XI', 'XII']) ? $level : 'X',
+                'academic_year' => $academicYear,
                 'capacity' => $capacity > 0 ? $capacity : 36,
                 'teacher_id' => $teacherId,
             ]);
 
-            $this->success[] = "Kelas {$name} (Tingkat {$level})";
+            $this->success[] = "Kelas {$name} (Tingkat {$level}, {$academicYear})";
         });
     }
 }

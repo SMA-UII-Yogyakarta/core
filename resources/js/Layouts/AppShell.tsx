@@ -1,27 +1,39 @@
-import { useState, useMemo, useEffect } from "react";
-import type { ReactNode } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
-import Navbar from "@/Components/layout/Navbar";
-import MobileHeader from "@/Components/layout/MobileHeader";
-import MobileSidebarDrawer from "@/Components/layout/MobileSidebarDrawer";
-import MobileBottomNav from "@/Components/layout/MobileBottomNav";
-import DesktopSidebar from "@/Components/layout/DesktopSidebar";
-import TabletIconSidebar from "@/Components/layout/TabletIconSidebar";
-import RoleSwitcherModal from "@/Components/layout/RoleSwitcherModal";
-import { CommandPalette } from "@/Components";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ErrorBoundary from "@/Components/common/ErrorBoundary";
 import Toast from "@/Components/common/Toast";
-import type { NavItem, NavSection } from "@/types/component";
-import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import DesktopSidebar from "@/Components/layout/DesktopSidebar";
+import MobileBottomNav from "@/Components/layout/MobileBottomNav";
+import MobileHeader from "@/Components/layout/MobileHeader";
+import MobileSidebarDrawer from "@/Components/layout/MobileSidebarDrawer";
+import Navbar from "@/Components/layout/Navbar";
+import RoleSwitcherModal from "@/Components/layout/RoleSwitcherModal";
+import TabletIconSidebar from "@/Components/layout/TabletIconSidebar";
 import { useBottomNavItems } from "@/hooks/useBottomNavItems";
+import { useInertiaPolling } from "@/hooks/useInertiaPolling";
+import type { NavItem, NavSection } from "@/types/component";
 
 export interface AppShellProps {
     title?: string;
     onBack?: () => void;
     headerActions?: ReactNode;
+    /** Render page-specific header actions only on mobile, while preserving the tablet header search. */
+    headerActionsMobileOnly?: boolean;
     showBottomNav?: boolean;
     showSearch?: boolean;
     showNotificationBell?: boolean;
+    showNotificationBellOnMobile?: boolean;
+    noMobileTopPadding?: boolean;
+    hasTopTabs?: boolean;
+    hasTopCard?: boolean;
+    /** Unified spacing prop for mobile top padding ("none" = pt-0, "compact" = pt-2, "normal" = pt-4, "auto" = no pt injected — let mainClassName control all padding) */
+    mobileTopSpacing?: "none" | "compact" | "normal" | "auto";
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+    searchPlaceholder?: string;
+    /** Extra classes applied to the main scroll container (e.g. extra pb for FAB) */
+    mainClassName?: string;
     children: ReactNode;
 }
 
@@ -40,13 +52,22 @@ export default function AppShell({
     title,
     onBack,
     headerActions,
+    headerActionsMobileOnly = false,
     showBottomNav = true,
     showSearch = true,
     showNotificationBell,
+    showNotificationBellOnMobile = false,
+    noMobileTopPadding = false,
+    hasTopTabs = false,
+    hasTopCard = false,
+    mobileTopSpacing,
+    searchValue,
+    onSearchChange,
+    searchPlaceholder,
+    mainClassName,
     children,
 }: AppShellProps) {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
     const [roleSwitcherOpen, setRoleSwitcherOpen] = useState(false);
 
     const { url, props: pageProps } = usePage<{
@@ -76,19 +97,10 @@ export default function AppShell({
     const resolvedShowNotificationBell = showNotificationBell ?? !isNotificationPage;
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                setCommandPaletteOpen((open) => !open);
-            }
-        };
-        
         const openRoleSwitcher = () => setRoleSwitcherOpen(true);
-        window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("open-role-switcher", openRoleSwitcher);
-        
+
         return () => {
-            window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("open-role-switcher", openRoleSwitcher);
         };
     }, []);
@@ -107,16 +119,18 @@ export default function AppShell({
     const userAvatar = user?.avatar || user?.avatar_url || null;
     const userRole = user?.role;
     const teacherType = user?.active_teacher_role ?? "duty";
+    const schoolName = (pageProps as unknown as { schoolName?: string }).schoolName || "SMA UII Yogyakarta";
+    const brandName = schoolName.toUpperCase();
     const mobileBrand =
         userRole === "admin"
-            ? "ADMIN SMA UII"
+            ? `ADMIN ${brandName}`
             : userRole === "student"
-              ? "SISWA SMA UII"
+              ? `SISWA ${brandName}`
               : userRole === "guardian"
                 ? "WALI MURID"
                 : userRole === "teacher"
-                  ? "GURU SMA UII"
-                  : "SMA UII YOGYAKARTA";
+                  ? `GURU ${brandName}`
+                  : brandName;
 
     const handleLogout = () => router.post("/logout");
 
@@ -157,7 +171,7 @@ export default function AppShell({
                 {/* Desktop Navbar (lg:block - full width top bar matching Figma Dekstop Dashboard.png & Siswa Dashboard.png) */}
                 <div className="hidden lg:block shrink-0">
                     <Navbar
-                        brand="SMA UII YOGYAKARTA"
+                        brand={brandName}
                         username={userName}
                         userInitial={userInitial}
                         userAvatar={userAvatar}
@@ -167,7 +181,6 @@ export default function AppShell({
                         showSearch={showSearch}
                         showNotificationBell={resolvedShowNotificationBell}
                         onLogout={handleLogout}
-                        onSearchClick={() => setCommandPaletteOpen(true)}
                         unreadCount={pageProps.auth?.unreadCount ?? 0}
                         notifications={pageProps.auth?.recentNotifications ?? []}
                     />
@@ -176,13 +189,17 @@ export default function AppShell({
                 {/* Main Body Layout Below Desktop Header / Mobile Header Container */}
                 <div className="flex flex-1 min-h-0">
                     {/* Tablet Icon Sidebar (visible sm to lg) */}
-                    <TabletIconSidebar navSections={navSections} activeItemKey={activeItem?.key} />
+                    <TabletIconSidebar
+                        navSections={navSections}
+                        activeItemKey={activeItem?.key}
+                        onLogout={handleLogout}
+                    />
 
                     {/* Desktop Sidebar (visible lg+) */}
                     <DesktopSidebar navSections={navSections} activeItemKey={activeItem?.key} />
 
                     {/* Right Column: Mobile Header (lg:hidden) + Main Content Area */}
-                    <div className="flex-1 flex flex-col min-w-0 min-h-0">
+                    <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-primary">
                         {/* Mobile Header (lg:hidden) */}
                         <MobileHeader
                             title={title}
@@ -191,17 +208,36 @@ export default function AppShell({
                             userInitial={userInitial}
                             userAvatar={userAvatar}
                             unreadCount={pageProps.auth?.unreadCount ?? 0}
-                            headerActions={headerActions}
+                            headerActions={
+                                headerActionsMobileOnly ? (
+                                    <span className="sm:hidden">{headerActions}</span>
+                                ) : (
+                                    headerActions
+                                )
+                            }
                             showSearch={showSearch}
                             showNotificationBell={resolvedShowNotificationBell}
+                            showNotificationBellOnMobile={showNotificationBellOnMobile}
                             onBack={onBack}
                             onOpenSidebar={() => setMobileSidebarOpen(true)}
-                            onOpenSearch={() => setCommandPaletteOpen(true)}
+                            searchValue={searchValue}
+                            onSearchChange={onSearchChange}
+                            searchPlaceholder={searchPlaceholder}
                         />
 
                         {/* Main Content Card Container */}
-                        <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-[16px] overflow-hidden">
-                            <main className={`flex-1 min-h-0 overflow-y-auto flex flex-col p-4 ${showBottomNav ? "pb-24" : ""}`}>
+                        <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-2xl overflow-hidden">
+                            <main
+                                className={`flex-1 min-w-0 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
+                                    mobileTopSpacing === "auto"
+                                        ? ""
+                                        : noMobileTopPadding || mobileTopSpacing === "none"
+                                          ? "pt-0"
+                                          : hasTopTabs || hasTopCard || mobileTopSpacing === "compact"
+                                            ? "pt-2"
+                                            : "pt-4"
+                                } ${showBottomNav ? "max-sm:pb-28" : ""} ${mainClassName ?? ""}`}
+                            >
                                 <ErrorBoundary>{children}</ErrorBoundary>
                             </main>
                         </div>
@@ -233,7 +269,6 @@ export default function AppShell({
                 activeRole={teacherType}
                 availableRoles={user?.teacher?.teacher_type || []}
             />
-            <CommandPalette isOpen={commandPaletteOpen} onClose={() => setCommandPaletteOpen(false)} />
         </>
     );
 }

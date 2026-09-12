@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $teacher_id
  * @property string $name
  * @property string $level
+ * @property string $academic_year
  * @property int $capacity
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass whereAcademicYear($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SchoolClass whereLevel($value)
@@ -37,7 +39,33 @@ class SchoolClass extends Model
 
     protected $table = 'school_classes';
 
-    protected $fillable = ['name', 'level', 'teacher_id', 'capacity'];
+    protected $fillable = ['name', 'level', 'academic_year', 'teacher_id', 'capacity'];
+
+    protected $appends = ['full_name'];
+
+    public function getFullNameAttribute(): string
+    {
+        $level = trim((string) ($this->level ?? ''));
+        $name = trim((string) ($this->name ?? ''));
+
+        if ($level === '') {
+            return $name;
+        }
+
+        if (str_starts_with(strtoupper($name), strtoupper($level) . '-')) {
+            return $name;
+        }
+
+        return "{$level}-{$name}";
+    }
+
+    public static function currentAcademicYear(): string
+    {
+        $now = now();
+        $year = $now->year;
+
+        return $now->month >= 7 ? "{$year}/" . ($year + 1) : ($year - 1) . "/{$year}";
+    }
 
     public function teacher(): BelongsTo
     {

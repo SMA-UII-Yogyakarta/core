@@ -1,40 +1,96 @@
 import { router } from "@inertiajs/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FiEye, FiMapPin, FiPhone, FiShield, FiTrash2, FiUsers } from "react-icons/fi";
 import {
+    Avatar,
+    ActionButton,
+    Checkbox,
+    MasterDataCard,
+    MasterDataEmptyState,
+    MobileFilterSelectBar,
+    MobileNativePagination,
     Table,
     TableFooter,
-    Pagination,
-    Avatar,
-    FAB,
+    TableSection,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
-import { FiPlus, FiEye, FiTrash2 } from "react-icons/fi";
-import { useScrollFabTrigger } from "@/hooks/useScrollFabTrigger";
-import type { Guardian, PaginatedData } from "./types";
 import GuardianDrawerForm from "./GuardianDrawerForm";
+import type { Guardian, PaginatedData } from "./types";
 
 interface GuardiansTabProps {
     guardians?: PaginatedData<Guardian>;
     filters?: Record<string, string | undefined>;
+    onSearchChange?: (val: string) => void;
+    onFilterChange?: (key: string, val: string) => void;
     createOpen?: boolean;
     onCloseCreate?: () => void;
+    editItem?: Guardian | null;
+    editMode?: "edit" | "detail" | null;
+    onCloseDrawer?: () => void;
+    selectedIds?: number[];
+    onSelectedIdsChange?: (ids: number[]) => void;
     onRequestDelete: (entity: string, ids: number | number[], label: string) => void;
 }
 
 export default function GuardiansTab({
     guardians,
     filters = {},
+    onSearchChange,
     createOpen = false,
     onCloseCreate,
+    editItem = null,
+    editMode = null,
+    onCloseDrawer,
+    selectedIds: propsSelectedIds,
+    onSelectedIdsChange,
     onRequestDelete,
 }: GuardiansTabProps) {
-    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(null);
-    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(null);
+    const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "detail" | null>(editMode ?? null);
+    const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(editItem ?? null);
 
-    const { triggerRef, showFab } = useScrollFabTrigger();
+    useEffect(() => {
+        if (editItem && editMode) {
+            setSelectedGuardian(editItem);
+            setDrawerMode(editMode);
+        }
+    }, [editItem, editMode]);
+    const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
+
     const guardianList = guardians?.data || [];
+    const selectedIds = propsSelectedIds !== undefined ? propsSelectedIds : internalSelectedIds;
+
+    const handleSelectAll = (checked: boolean) => {
+        const next = checked ? guardianList.map((g) => g.id) : [];
+        setInternalSelectedIds(next);
+        onSelectedIdsChange?.(next);
+    };
+
+    const handleSelectOne = (id: number, checked: boolean) => {
+        const next = checked ? [...selectedIds, id] : selectedIds.filter((item) => item !== id);
+        setInternalSelectedIds(next);
+        onSelectedIdsChange?.(next);
+    };
+
+    const isAllSelected = guardianList.length > 0 && selectedIds.length === guardianList.length;
 
     const columns: Column<Guardian>[] = [
+        {
+            key: "selection",
+            header: (
+                <div className="flex items-center justify-center">
+                    <Checkbox checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} />
+                </div>
+            ),
+            render: (g) => (
+                <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                        checked={selectedIds.includes(g.id)}
+                        onChange={(e) => handleSelectOne(g.id, e.target.checked)}
+                    />
+                </div>
+            ),
+            className: "w-12 text-center",
+        },
         {
             key: "guardian",
             header: "Nama Orang Tua / Wali",
@@ -62,11 +118,7 @@ export default function GuardiansTab({
         {
             key: "address",
             header: "Alamat Domisili",
-            render: (g) => (
-                <span className="text-[13px] text-text-secondary">
-                    {g.address || "—"}
-                </span>
-            ),
+            render: (g) => <span className="text-[13px] text-text-secondary">{g.address || "—"}</span>,
         },
         {
             key: "students",
@@ -96,98 +148,218 @@ export default function GuardiansTab({
         },
         {
             key: "actions",
-            header: "Aksi",
-            className: "text-center w-24",
+            header: <div className="text-center w-full">Aksi</div>,
+            className: "text-center w-36 whitespace-nowrap",
             render: (g) => (
                 <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
+                    <ActionButton
+                        variant="detail"
+                        label="Detail"
+                        icon={<FiEye className="w-3.5 h-3.5" />}
                         onClick={() => {
                             setSelectedGuardian(g);
                             setDrawerMode("detail");
                         }}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-primary hover:bg-primary-light border border-border transition-colors cursor-pointer"
                         title="Lihat / Edit Detail Wali"
                         aria-label="Lihat / Edit Detail Wali"
-                    >
-                        <FiEye className="w-4 h-4" />
-                    </button>
-                    <button
-                        type="button"
+                    />
+                    <ActionButton
+                        variant="delete"
+                        label="Hapus"
+                        icon={<FiTrash2 className="w-3.5 h-3.5" />}
                         onClick={() => onRequestDelete("guardians", g.id, g.name)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-danger hover:bg-danger-bg border border-danger/20 transition-colors cursor-pointer"
                         title="Hapus Wali"
                         aria-label="Hapus Wali"
-                    >
-                        <FiTrash2 className="w-4 h-4" />
-                    </button>
+                    />
                 </div>
             ),
         },
     ];
 
+    const handlePagination = (p: number) => {
+        router.get(
+            "/master-data",
+            {
+                tab: "guardians",
+                page: p,
+                search: filters?.search || undefined,
+            },
+            { preserveState: true },
+        );
+    };
+
     return (
-        <div className="relative flex-1 min-h-0 flex flex-col justify-between gap-3 overflow-hidden">
-            <div ref={triggerRef} className="absolute top-0 left-0 w-px h-px pointer-events-none -z-10" />
+        <div className="relative flex-1 min-h-0 flex flex-col justify-between overflow-hidden font-inter">
+            {/* ───────────────────────────────────────────────────────────── */}
+            {/* DESKTOP TABLE VIEW (>= sm) */}
+            {/* ───────────────────────────────────────────────────────────── */}
+            <TableSection desktopOnly>
+                <Table
+                    columns={columns}
+                    data={guardianList}
+                    keyExtractor={(g) => g.id}
+                    dense
+                    fill
+                />
 
-            {/* Table */}
-            <Table
-                columns={columns}
-                data={guardianList}
-                keyExtractor={(g) => g.id}
-                containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
-                dense
-            />
+                <TableFooter
+                    currentPage={guardians?.current_page}
+                    totalPages={guardians?.last_page}
+                    totalItems={guardians?.total}
+                    perPage={guardians?.per_page}
+                    onPageChange={handlePagination}
+                    itemLabel="wali murid"
+                    emptyInfo="Menampilkan data wali murid terdaftar di SMA UII Yogyakarta."
+                />
+            </TableSection>
 
-            {/* Standardized Reusable Symmetrical Table Footer */}
-            <TableFooter
-                info="Direktori kontak dan relasi orang tua/wali murid terdaftar."
-                pagination={
-                    guardians && guardians.total > 0 ? (
-                        <Pagination
-                            currentPage={guardians.current_page}
-                            totalPages={guardians.last_page}
-                            totalItems={guardians.total}
-                            perPage={guardians.per_page}
-                            onPageChange={(p) =>
-                                router.get(
-                                    "/master-data",
-                                    {
-                                        tab: "guardians",
-                                        page: p,
-                                        search: filters?.search || undefined,
-                                    },
-                                    { preserveState: true }
-                                )
+            {/* ───────────────────────────────────────────────────────────── */}
+            {/* MOBILE-NATIVE CARD STACK VIEW (< sm) */}
+            {/* ───────────────────────────────────────────────────────────── */}
+            <div className="sm:hidden flex flex-col gap-3">
+                {guardianList.length === 0 ? (
+                    <MasterDataEmptyState
+                        icon={<FiShield className="w-7 h-7" />}
+                        iconContainerClassName="bg-amber-500/10 border-amber-500/20 text-amber-600"
+                        title="Belum Ada Data Wali Murid"
+                        description="Mulai tambahkan wali murid atau gunakan fitur import CSV untuk menghubungkan akun orang tua."
+                        actionLabel="Tambah Wali Baru"
+                        onAction={() => {
+                            if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                router.visit("/master-data/create?tab=guardians");
+                            } else {
+                                setSelectedGuardian(null);
+                                setDrawerMode("create");
                             }
-                            className="!w-auto !gap-3"
+                        }}
+                    />
+                ) : (
+                    <>
+                        {/* Mobile Filter & Select All Bar */}
+                        <MobileFilterSelectBar
+                            selectedCount={selectedIds.length}
+                            totalCount={guardianList.length}
+                            allSelected={isAllSelected}
+                            indeterminate={selectedIds.length > 0 && !isAllSelected}
+                            onToggleSelectAll={handleSelectAll}
+                            searchValue={filters?.search ?? ""}
+                            onSearchChange={(val) => onSearchChange?.(val)}
+                            searchPlaceholder="Cari NIK, nama wali..."
                         />
-                    ) : undefined
-                }
-            />
 
-            {/* Form Drawer */}
+                        {guardianList.map((g) => {
+                            const isSelected = selectedIds.includes(g.id);
+                            const linked = g.students || [];
+
+                            return (
+                                <MasterDataCard
+                                    key={g.id}
+                                    isSelected={isSelected}
+                                    onSelect={(checked) => handleSelectOne(g.id, checked)}
+                                    onOpenDetail={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/guardians/${g.id}/detail`);
+                                        } else {
+                                            setSelectedGuardian(g);
+                                            setDrawerMode("detail");
+                                        }
+                                    }}
+                                    onEdit={() => {
+                                        if (typeof window !== "undefined" && window.innerWidth < 640) {
+                                            router.visit(`/master-data/guardians/${g.id}/edit`);
+                                        } else {
+                                            setSelectedGuardian(g);
+                                            setDrawerMode("edit");
+                                        }
+                                    }}
+                                    onDelete={() => onRequestDelete("guardians", g.id, g.name)}
+                                    selectLabel="Pilih Wali"
+                                    deleteAriaLabel="Hapus Wali"
+                                    avatarName={g.name}
+                                    title={g.name}
+                                    subtitle={
+                                        <div className="flex items-center gap-2 text-[10.5px] text-text-muted">
+                                            {g.phone ? (
+                                                <a
+                                                    href={`tel:${g.phone}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="inline-flex items-center gap-1 font-mono text-primary font-medium hover:underline"
+                                                >
+                                                    <FiPhone className="text-[10px]" />
+                                                    <span>{g.phone}</span>
+                                                </a>
+                                            ) : (
+                                                <span className="italic">No. Telp Belum Diisi</span>
+                                            )}
+                                        </div>
+                                    }
+                                    rightBadge={
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 border border-amber-500/20">
+                                            {linked.length} Siswa
+                                        </span>
+                                    }
+                                >
+                                    <div className="space-y-1 pt-0.5">
+                                        <div className="flex items-center gap-1 text-[10.5px] text-text-muted">
+                                            <FiUsers className="text-[10px] text-primary" />
+                                            <span>Siswa Binaan:</span>
+                                        </div>
+                                        {linked.length > 0 ? (
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                {linked.map((s) => (
+                                                    <span
+                                                        key={s.id}
+                                                        className="px-2 py-0.5 rounded-lg text-[10.5px] font-medium bg-muted text-text-primary border border-border/80"
+                                                    >
+                                                        {s.name} ({s.class?.name || "No Class"})
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10.5px] text-text-muted italic">
+                                                Belum terhubung dengan siswa manapun.
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {g.address && (
+                                        <div className="flex items-start gap-1 text-[10.5px] text-text-secondary pt-0.5 truncate">
+                                            <FiMapPin className="text-[10px] shrink-0 mt-0.5 text-text-muted" />
+                                            <span className="truncate">{g.address}</span>
+                                        </div>
+                                    )}
+                                </MasterDataCard>
+                            );
+                        })}
+                    </>
+                )}
+
+                {/* Mobile Native Pagination */}
+                {guardians && guardians.last_page > 1 && (
+                    <MobileNativePagination
+                        currentPage={guardians.current_page}
+                        totalPages={guardians.last_page}
+                        totalItems={guardians.total}
+                        perPage={guardians.per_page}
+                        onPageChange={handlePagination}
+                        itemLabel="wali murid"
+                        className="shrink-0 mt-auto"
+                    />
+                )}
+            </div>
+
+            {/* Form Drawer (Standardized Mobile Bottom Sheet + Desktop Side Drawer) */}
             <GuardianDrawerForm
                 open={createOpen || drawerMode !== null}
                 mode={createOpen ? "create" : drawerMode}
                 guardian={createOpen ? null : selectedGuardian}
                 onClose={() => {
                     setDrawerMode(null);
+                    setSelectedGuardian(null);
                     onCloseCreate?.();
+                    onCloseDrawer?.();
                 }}
                 onRequestDelete={onRequestDelete}
-            />
-
-            {/* Mobile / Scroll FAB for Fast Add */}
-            <FAB
-                show={showFab}
-                onClick={() => {
-                    setSelectedGuardian(null);
-                    setDrawerMode("create");
-                }}
-                label="Tambah Wali"
-                icon={<FiPlus size={20} />}
-                dusk="fab-create-guardian"
             />
         </div>
     );

@@ -21,6 +21,8 @@ export interface RecapStudent {
     attendance_rate: number;
 }
 
+export type StudentRecap = RecapStudent;
+
 export interface Summary {
     on_time: number;
     late: number;
@@ -29,6 +31,7 @@ export interface Summary {
     pending: number;
     absent: number;
     attendance_rate: number;
+    total_students?: number;
     school_days?: number;
     discipline_rate?: number;
 }
@@ -42,6 +45,9 @@ export interface DailyBreakdown {
     sick: number;
     pending: number;
     absent: number;
+    is_non_school?: boolean;
+    is_past?: boolean;
+    note?: string;
 }
 
 export interface MonthlyBreakdown {
