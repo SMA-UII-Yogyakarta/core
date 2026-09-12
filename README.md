@@ -133,23 +133,36 @@ cp .env.example .env   # pilih konfigurasi SAIL (lihat komentar di file)
 php artisan key:generate
 ./vendor/bin/sail up -d
 
-# Host without PHP 8.4 (Linux): bootstrap vendor/ inside the container first
-make setup               # = compose up --build → composer install → key → migrate --seed
+# Host without PHP 8.4 (Linux): bootstrap vendor/ + node_modules inside the containers
+make setup               # = compose up --build → composer install → bun install → key → migrate --seed
 ```
 
-**Day-to-day (via Sail):**
+**Day-to-day (via the `Makefile` — single DX entry point):**
 
 ```bash
-./vendor/bin/sail up -d               # start stack (http://localhost:8800, HMR :5173)
-./vendor/bin/sail test                # PHPUnit (316 tests / 1509 assertions, sqlite :memory:)
-./vendor/bin/sail artisan migrate     # Laravel artisan
-./vendor/bin/sail pint --test         # PSR-12
-./vendor/bin/sail bin phpstan analyse --memory-limit=2G
-./vendor/bin/sail psql                # psql ke pgsql:smauii_core
-./vendor/bin/sail redis redis-cli ping
+make dev                     # start stack (http://localhost:8800, HMR :5173)
+make test                    # PHPUnit (316 tests / 1509 assertions, sqlite :memory:)
+make migrate                 # Laravel artisan
+make frontend:test           # Vitest + axe (di dalam container bun)
+make frontend:lint           # ESLint (di dalam container bun)
+make frontend:build          # Vite build (di dalam container bun)
+make psql                    # psql ke pgsql:smauii_core
 ```
 
-Frontend tooling stays on its dedicated `bun` service (Vite HMR runs automatically on `up`); there is no node/bun inside the PHP image, so use the host `bun` CLI (or `docker compose exec bun ...`) for frontend tasks.
+Backend commands go through Sail (`./vendor/bin/sail ...` — aliased by `make`). Frontend tooling lives on a dedicated `bun` service (Vite HMR runs automatically on `up`); there is no node/bun inside the PHP image, so frontend commands are executed inside the `bun` container via `make frontend:*` — no host `bun`/`npm` required:
+
+| Makefile target | Runs (inside `bun` container) |
+|---|---|
+| `frontend:build` | `bun run build` |
+| `frontend:typecheck` | `bun run typecheck` |
+| `frontend:lint` | `bun run lint` |
+| `frontend:test` | `bun run test` (Vitest + axe) |
+| `frontend:test:bun` | `bun run test:bun` |
+| `frontend:format` | `bun run format` (Biome) |
+
+> Playwright e2e (`bun run test:e2e`) is host-only — the `bun` container has no browser binaries. Vite HMR is already auto-started by `make dev`, so there is no `frontend:dev` target.
+
+> Bootstrap `vendor/` happens once via `make setup` (container-only, no host PHP required). `composer run dev` / `composer run setup` remain available as a host/Laragon-only alternative, not the primary workflow.
 
 **Production** does NOT use Sail — it uses the prod overlay directly:
 
@@ -274,6 +287,8 @@ git push origin feature/feature-name
 ```
 
 ### Running Tests & Quality Assurance
+
+> Commands below are the raw scripts (host). The equivalent container-first commands are `make test` (back #1) and `make frontend:*` (back #2–5) — prefer `make` unless you deliberately run on the host.
 
 ```bash
 # 1. Backend PHPUnit Tests (160 tests)

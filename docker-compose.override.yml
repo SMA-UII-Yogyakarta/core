@@ -13,6 +13,10 @@ services:
       context: .
       dockerfile: docker/bun/Dockerfile
     command: bun run dev
+    environment:
+      VITE_DEV_HOST: ${VITE_DEV_HOST:-smauii-core.remote}
+      VITE_HMR_HOST: ${VITE_HMR_HOST:-smauii-core.remote}
+      VITE_ENABLE_CHECKER: ${VITE_ENABLE_CHECKER:-false}
     volumes:
       - .:/var/www/html
     ports:
