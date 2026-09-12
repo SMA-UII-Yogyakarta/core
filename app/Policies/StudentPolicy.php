@@ -13,7 +13,7 @@ class StudentPolicy
 
     public function view(User $user): bool
     {
-        return in_array($user->role, ['admin', 'teacher', 'student', 'guardian']);
+        return in_array($user->role, ['admin', 'teacher']);
     }
 
     public function create(User $user): bool

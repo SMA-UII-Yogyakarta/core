@@ -29,6 +29,9 @@ class UniversalAgentController extends Controller
             'provider' => 'nullable|string',
         ]);
 
+        /** @var \App\Models\User|null $authenticatedUser */
+        $authenticatedUser = $request->user();
+
         $incidentId = 'INC-' . now()->format('Ymd') . '-' . strtoupper(Str::random(5));
 
         // 1. Catat ke Log Laravel dengan Tag Telemetri Universal
@@ -38,7 +41,7 @@ class UniversalAgentController extends Controller
             'url' => $validated['url'] ?? '',
             'stack' => $validated['stack'] ?? '',
             'component_stack' => $validated['componentStack'] ?? '',
-            'user_id' => auth()->id() ?? 'guest',
+            'user_id' => data_get($authenticatedUser, 'id') ?? 'guest',
         ]);
 
         // 2. Transmit ke Sentry Laravel SDK jika aktif
@@ -53,7 +56,8 @@ class UniversalAgentController extends Controller
         }
 
         // 3. Tentukan URL Target Webhook Agent (Prioritas: Config)
-        $agentUrl = config('services.agent.url') ?: 'http://localhost:18789';
+        /** @var string|null $agentUrl */
+        $agentUrl = config('services.agent.url');
         $agentSecret = config('services.agent.secret', '');
         $agentProvider = config('services.agent.provider', 'auto');
 
@@ -79,9 +83,9 @@ class UniversalAgentController extends Controller
                     'url' => $validated['url'] ?? '',
                     'timestamp' => $validated['timestamp'] ?? now()->toIso8601String(),
                     'user' => [
-                        'id' => auth()->id(),
-                        'name' => auth()->user()?->name ?? 'Guest',
-                        'email' => auth()->user()?->email ?? 'Guest',
+                        'id' => data_get($authenticatedUser, 'id'),
+                        'name' => data_get($authenticatedUser, 'name') ?? 'Guest',
+                        'email' => data_get($authenticatedUser, 'email') ?? 'Guest',
                     ],
                 ]);
 
@@ -194,7 +198,8 @@ class UniversalAgentController extends Controller
         }
 
         $latencyMs = round((microtime(true) - $startTime) * 1000, 2);
-        $errMsg = $lastException ? $lastException->getMessage() : 'Timeout / Connection refused';
+        /** @var \Throwable $lastException */
+        $errMsg = $lastException->getMessage();
 
         return response()->json([
             'success' => false,

@@ -59,7 +59,6 @@ class StudentService
                 'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'student',
             ]);
-            $user->assignRole('student');
 
             $enrollmentYear = (int) ($data['enrollment_year'] ?? date('Y'));
             $birthDate = ! empty($data['birth_date'])

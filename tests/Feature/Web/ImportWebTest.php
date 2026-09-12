@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Writer\Common\Creator\WriterFactory;
 use Tests\TestCase;
 
 class ImportWebTest extends TestCase
@@ -107,6 +109,40 @@ class ImportWebTest extends TestCase
         $this->assertEquals(2, SchoolClass::where('name', 'X-A')->count());
         $this->assertDatabaseHas('school_classes', ['name' => 'X-A', 'academic_year' => '2024/2025']);
         $this->assertDatabaseHas('school_classes', ['name' => 'X-A', 'academic_year' => '2025/2026']);
+    }
+
+    public function test_admin_can_import_students_via_xlsx_with_partial_failure(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'import-') . '.xlsx';
+        $writer = WriterFactory::createFromFile($path);
+        $writer->openToFile($path);
+        $writer->addRow(Row::fromValues(['nis', 'nisn', 'name', 'class', 'birth_date', 'phone', 'address', 'enrollment_year', 'email', 'password']));
+        $writer->addRow(Row::fromValues(['888111', '00888111', 'Siswa Xlsx Valid', '', '2009-01-01', '08123456789', 'Jl. Xlsx No. 1', '2024', 'sisexlsx@smauii.sch.id', 'XlsxPass123']));
+        $writer->addRow(Row::fromValues(['888111', '00888113', 'Siswa Duplikat NIS', '', '2009-01-01', '', '', '2024', '', '']));
+        $writer->addRow(Row::fromValues(['', '00888112', 'Siswa Tanpa NIS', '', '2009-01-01', '', '', '2024', '', '']));
+        $writer->close();
+
+        $response = $this->actingAs($this->admin)->post(route('master-data.import', ['entity' => 'students']), [
+            'file' => UploadedFile::fake()->createWithContent('students.xlsx', (string) file_get_contents($path)),
+        ]);
+
+        @unlink($path);
+
+        // Row 1 = created; Row 2 = updated (duplicate NIS re-import); Row 3 = missing NIS -> per-row error.
+        $response->assertOk();
+        $response->assertJson(['success_count' => 2, 'error_count' => 1]);
+        $this->assertCount(2, $response->json('success'));
+        $this->assertCount(1, $response->json('errors'));
+        $this->assertStringContainsString('Baris 4', $response->json('errors')[0]);
+
+        $student = \App\Models\Student::where('nis', '888111')->first();
+        $this->assertNotNull($student);
+        $this->assertTrue(Hash::check('XlsxPass123', $student->user->password));
+        $this->assertSame('Siswa Duplikat NIS', $student->user->name);
+        $this->assertSame('00888113', $student->nisn);
+        $this->assertTrue($student->user->hasRole('student'));
+        $this->assertSame('web', $student->user->roles->first()->guard_name);
+        $this->assertFalse(\App\Models\Student::whereIn('nisn', ['00888112'])->exists());
     }
 
     public function test_non_admin_cannot_access_import(): void

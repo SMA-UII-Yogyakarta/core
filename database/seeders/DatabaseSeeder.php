@@ -372,7 +372,7 @@ class DatabaseSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'name' => $user->name,
-                    'phone' => '08' . (11 + ($gIdx % 8)) . fake()->numerify('########'),
+                    'phone' => $this->seededPhone('08' . (11 + ($gIdx % 8)), $gIdx + 1),
                     'address' => $diyLocations[$gIdx % count($diyLocations)],
                 ],
             );
@@ -516,7 +516,7 @@ class DatabaseSeeder extends Seeder
                         'nisn' => $nisn,
                         'name' => $fullName,
                         'birth_date' => $birthDate,
-                        'phone' => '088' . fake()->numerify('########'),
+                        'phone' => $this->seededPhone('088', $studentCounter),
                         'address' => $hasGuardian ? $guardian->address : 'Jl. Taman Siswa No. 158, Mergangsan, Kota Yogyakarta',
                         'enrollment_year' => $enrollmentYear,
                         'status' => 'Active',
@@ -564,7 +564,7 @@ class DatabaseSeeder extends Seeder
                     'nisn' => $nisn,
                     'name' => $fullName,
                     'birth_date' => $birthDate,
-                    'phone' => '088' . fake()->numerify('########'),
+                    'phone' => $this->seededPhone('088', $studentCounter),
                     'address' => $hasGuardian ? $guardian->address : 'Jl. Taman Siswa No. 158, Mergangsan, Kota Yogyakarta',
                     'enrollment_year' => 2024,
                     'status' => 'Active',
@@ -1214,5 +1214,10 @@ class DatabaseSeeder extends Seeder
         return ! AcademicCalendar::whereDate('holiday_date', $date->toDateString())
             ->where('is_holiday', true)
             ->exists();
+    }
+
+    private function seededPhone(string $prefix, int $sequence): string
+    {
+        return $prefix . str_pad((string) $sequence, 8, '0', STR_PAD_LEFT);
     }
 }

@@ -207,7 +207,6 @@ class StudentsImport
                 'password' => Hash::make($initialPassword),
                 'role' => 'student',
             ]);
-            $user->assignRole('student');
 
             Student::create([
                 'user_id' => $user->id,

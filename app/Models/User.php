@@ -78,6 +78,16 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Resolve all role/permission lookups against the "web" guard.
+     *
+     * Without this, Spatie derives the guard from `auth.defaults.guard`, which
+     * Laravel rewrites to "sanctum" for the duration of any `auth:sanctum`
+     * request (see AuthManager::shouldUse). Roles are stored under "web", so
+     * assigning a role from an API request used to throw GuardDoesNotMatch.
+     */
+    protected string $guard_name = 'web';
+
     public function getAvatarAttribute(?string $value): ?string
     {
         return StorageService::url($value);
@@ -95,10 +105,23 @@ class User extends Authenticatable
                 return;
             }
 
-            if (! $user->hasRole($user->role)) {
-                $user->syncRoles([Role::findOrCreate($user->role)]);
-            }
+            $user->syncRoleFromColumn();
         });
+    }
+
+    /**
+     * Single source of truth for role assignment: mirrors the `role` column
+     * into the Spatie role model, always under an explicit guard.
+     */
+    public function syncRoleFromColumn(): void
+    {
+        $guard = $this->getDefaultGuardName();
+
+        $role = Role::findOrCreate($this->role, $guard);
+
+        if (! $this->hasRole($this->role, $guard)) {
+            $this->syncRoles([$role]);
+        }
     }
 
     public function student(): HasOne

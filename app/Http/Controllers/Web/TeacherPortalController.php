@@ -11,6 +11,8 @@ use App\Models\Student;
 use App\Services\AttendanceService;
 use App\Services\DutyScheduleService;
 use App\Services\TeacherService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class TeacherPortalController extends Controller
@@ -22,7 +24,7 @@ class TeacherPortalController extends Controller
     ) {
     }
 
-    public function dutyDashboard()
+    public function dutyDashboard(Request $request)
     {
         $teacher = $this->teacherService->findByUserId(auth()->id());
 
@@ -30,44 +32,54 @@ class TeacherPortalController extends Controller
             return redirect()->route('dashboard')->with('error', __('messages.teacher_not_found'));
         }
 
-        $today = now()->toDateString();
-        $dayName = now()->format('l');
+        $filters = $request->validate([
+            'class_id' => ['nullable', 'integer', 'exists:school_classes,id'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+        $selectedDate = $filters['date'] ?? now()->toDateString();
+        $selectedClassId = isset($filters['class_id']) ? (int) $filters['class_id'] : null;
+        $dayName = Carbon::parse($selectedDate)->format('l');
         $isScheduled = DutySchedule::where('teacher_id', $teacher->id)
             ->where('duty_day', $dayName)
             ->exists();
 
-        $classes = SchoolClass::with(['students' => fn ($q) => $q->where('status', 'Active')])->get();
+        $allClasses = SchoolClass::with(['students' => fn ($q) => $q->where('status', 'Active')])->get();
+        $classes = $selectedClassId
+            ? $allClasses->where('id', $selectedClassId)->values()
+            : $allClasses;
         $studentIds = $classes->flatMap(fn ($c) => $c->students->pluck('id'))->all();
 
-        $attendances = Attendance::whereDate('attendance_date', $today)
+        $attendances = Attendance::whereDate('attendance_date', $selectedDate)
             ->whereIn('student_id', $studentIds)
             ->get();
 
-        $sickPermits = LeaveRequest::where('approval_status', 'Approved')
-            ->where('category', 'Sick')
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+        $approvedLeaves = LeaveRequest::where('approval_status', 'Approved')
+            ->whereDate('start_date', '<=', $selectedDate)
+            ->whereDate('end_date', '>=', $selectedDate)
             ->whereIn('student_id', $studentIds)
             ->get();
 
-        $classStats = $classes->map(function ($class) use ($attendances, $sickPermits) {
+        $classStats = $classes->map(function ($class) use ($attendances, $approvedLeaves) {
             $ids = $class->students->pluck('id');
             $classAttendances = $attendances->whereIn('student_id', $ids);
+            $present = $classAttendances->where('status', 'Present')->count();
+            $late = $classAttendances->where('status', 'Late')->count();
+            $sickPermission = $approvedLeaves->whereIn('student_id', $ids)->count();
 
             return [
                 'class_id' => $class->id,
                 'class' => $class->name,
                 'total' => $class->students->count(),
-                'present' => $classAttendances->where('status', 'Present')->count(),
-                'late' => $classAttendances->where('status', 'Late')->count(),
-                'absent' => max(0, $class->students->count() - $classAttendances->count()),
-                'sick_permission' => $sickPermits->whereIn('student_id', $ids)->count(),
+                'present' => $present,
+                'late' => $late,
+                'absent' => max(0, $class->students->count() - $present - $late - $sickPermission),
+                'sick_permission' => $sickPermission,
             ];
         })->values()->all();
 
         $allLeaves = LeaveRequest::whereIn('approval_status', ['Pending', 'Approved'])
-            ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->whereDate('start_date', '<=', $selectedDate)
+            ->whereDate('end_date', '>=', $selectedDate)
             ->whereIn('student_id', $studentIds)
             ->get();
 
@@ -101,7 +113,18 @@ class TeacherPortalController extends Controller
             }
         }
 
-        $classesList = $classes->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->all();
+        $totals = collect($classStats)->reduce(
+            fn (array $carry, array $classStat) => [
+                'total' => $carry['total'] + $classStat['total'],
+                'present' => $carry['present'] + $classStat['present'],
+                'late' => $carry['late'] + $classStat['late'],
+                'sick_permission' => $carry['sick_permission'] + $classStat['sick_permission'],
+                'absent' => $carry['absent'] + $classStat['absent'],
+            ],
+            ['total' => 0, 'present' => 0, 'late' => 0, 'sick_permission' => 0, 'absent' => 0],
+        );
+
+        $classesList = $allClasses->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->all();
 
         return Inertia::render('Teacher/DutyDashboard', [
             'teacher' => [
@@ -109,10 +132,13 @@ class TeacherPortalController extends Controller
                 'name' => $teacher->name,
             ],
             'isScheduled' => $isScheduled,
-            'today' => now()->translatedFormat('l, d F Y'),
+            'today' => Carbon::parse($selectedDate)->translatedFormat('l, d F Y'),
+            'selectedDate' => $selectedDate,
+            'selectedClassId' => $selectedClassId,
             'classStats' => $classStats,
             'attentionStudents' => $attentionStudents,
             'classes' => $classesList,
+            'totals' => $totals,
         ]);
     }
 

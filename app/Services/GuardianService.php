@@ -7,11 +7,13 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class GuardianService
 {
+    /** @return Collection<int, Guardian> */
     public function findAll(): Collection
     {
         return Guardian::select(['id', 'name'])->get();
@@ -63,7 +65,6 @@ class GuardianService
                 'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'guardian',
             ]);
-            $user->assignRole('guardian');
 
             $guardian = Guardian::create([
                 'user_id' => $user->id,
@@ -81,7 +82,7 @@ class GuardianService
         $guardian = Guardian::findOrFail($id);
 
         DB::transaction(function () use ($guardian, $data) {
-            $guardian->update($data);
+            $guardian->update(Arr::only($data, ['name', 'phone', 'address']));
 
             $userUpdates = [];
             if (isset($data['name'])) {
@@ -112,11 +113,7 @@ class GuardianService
     {
         DB::transaction(function () use ($id) {
             $guardian = Guardian::findOrFail($id);
-            if ($guardian->user) {
-                $guardian->user->delete();
-            } else {
-                $guardian->delete();
-            }
+            $guardian->user->delete();
         });
     }
 
@@ -133,11 +130,7 @@ class GuardianService
                 if (! $guardian) {
                     continue;
                 }
-                if ($guardian->user) {
-                    $guardian->user->delete();
-                } else {
-                    $guardian->delete();
-                }
+                $guardian->user->delete();
                 $deleted++;
             }
         });

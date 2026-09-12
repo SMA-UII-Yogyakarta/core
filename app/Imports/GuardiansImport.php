@@ -161,7 +161,6 @@ class GuardiansImport
                 'password' => Hash::make($initialPassword),
                 'role' => 'guardian',
             ]);
-            $user->assignRole('guardian');
 
             Guardian::create([
                 'user_id' => $user->id,

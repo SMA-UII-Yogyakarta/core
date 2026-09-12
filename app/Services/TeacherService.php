@@ -58,7 +58,6 @@ class TeacherService
                 'password' => Hash::make(! empty($data['password']) ? $data['password'] : config('auth.defaults.user_password', 'SmaUii@2026')),
                 'role' => 'teacher',
             ]);
-            $user->assignRole('teacher');
 
             $teacher = Teacher::create([
                 'user_id' => $user->id,
@@ -91,7 +90,7 @@ class TeacherService
                 $userUpdates['password'] = Hash::make($data['password']);
             }
 
-            if (! empty($userUpdates) && $teacher->user) {
+            if (! empty($userUpdates)) {
                 $teacher->user->update($userUpdates);
             }
 
@@ -103,11 +102,7 @@ class TeacherService
     {
         DB::transaction(function () use ($id) {
             $teacher = Teacher::findOrFail($id);
-            if ($teacher->user) {
-                $teacher->user->delete();
-            } else {
-                $teacher->delete();
-            }
+            $teacher->user->delete();
         });
     }
 
@@ -124,11 +119,7 @@ class TeacherService
                 if (! $teacher) {
                     continue;
                 }
-                if ($teacher->user) {
-                    $teacher->user->delete();
-                } else {
-                    $teacher->delete();
-                }
+                $teacher->user->delete();
                 $deleted++;
             }
         });

@@ -196,7 +196,6 @@ class TeachersImport
                 'password' => Hash::make($initialPassword),
                 'role' => 'teacher',
             ]);
-            $user->assignRole('teacher');
 
             Teacher::create([
                 'user_id' => $user->id,
