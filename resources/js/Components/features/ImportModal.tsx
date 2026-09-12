@@ -150,12 +150,12 @@ export default function ImportModal({ open, onClose, entity }: ImportModalProps)
                                 <p className="text-[14px] font-medium text-text-primary">{file.name}</p>
                                 <p className="text-[12px] text-text-inactive">{(file.size / 1024).toFixed(1)} KB</p>
                                 <button
+                                    type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setFile(null);
                                     }}
                                     className="text-[12px] text-danger hover:underline mt-1 cursor-pointer"
-                                    type="button"
                                 >
                                     Hapus file
                                 </button>

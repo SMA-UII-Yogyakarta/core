@@ -3,8 +3,13 @@ import type { ReactNode } from "react";
 export interface Column<T> {
     key: string;
     header: ReactNode;
-    render?: (item: T) => ReactNode;
+    render?: (item: T, index?: number) => ReactNode;
+    /** Classes applied to both the header and data cells. */
     className?: string;
+    /** Optional header-only classes for alignment, sticky columns, and sizing. */
+    headerClassName?: string;
+    /** Optional data-cell-only classes for content styling and sticky columns. */
+    cellClassName?: string;
 }
 
 export interface TableProps<T> {
@@ -15,9 +20,9 @@ export interface TableProps<T> {
     loading?: boolean;
     bare?: boolean;
     stickyHeader?: boolean;
-    containerClassName?: string;
-    tableClassName?: string;
+    minWidthClassName?: string;
     dense?: boolean;
+    fill?: boolean;
 }
 
 const getJustifyClass = (className?: string) => {
@@ -35,25 +40,25 @@ export default function Table<T>({
     loading = false,
     bare = false,
     stickyHeader = true,
-    containerClassName = "",
-    tableClassName = "",
+    minWidthClassName = "min-w-[600px]",
     dense = false,
+    fill = false,
 }: TableProps<T>) {
     return (
         <div
-            className={`w-full overflow-x-auto table-scroll-container ${bare ? "" : "border border-border rounded-xl shadow-xs"} ${containerClassName}`}
+            className={`w-full min-w-0 max-w-full ${fill ? "flex-1 min-h-0 bg-surface" : ""} overflow-auto table-scroll-container ${bare ? "" : "border border-border rounded-xl shadow-xs"}`}
         >
-            <table className={`w-full border-collapse font-inter min-w-[600px] ${tableClassName}`}>
+            <table className={`w-full border-collapse font-inter ${minWidthClassName}`}>
                 <thead className={stickyHeader ? "sticky top-0 z-10 bg-muted" : ""}>
                     <tr className="bg-muted border-b border-border">
                         {columns.map((col) => {
-                            const justify = getJustifyClass(col.className);
+                            const justify = getJustifyClass(`${col.className ?? ""} ${col.headerClassName ?? ""}`);
                             return (
                                 <th
                                     key={col.key}
                                     className={`${dense ? "px-3.5 py-2.5" : "px-4 py-2.5"} text-[12px] font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap align-middle bg-muted ${
                                         stickyHeader ? "sticky top-0 z-10 border-b border-border" : ""
-                                    } ${col.className ?? ""}`}
+                                    } ${col.className ?? ""} ${col.headerClassName ?? ""}`}
                                 >
                                     <div className={`flex items-center w-full min-h-[22px] gap-2 ${justify}`}>
                                         {col.header}
@@ -83,21 +88,21 @@ export default function Table<T>({
                             </td>
                         </tr>
                     ) : (
-                        data.map((item) => (
+                        data.map((item, index) => (
                             <tr
                                 key={keyExtractor(item)}
                                 className="border-b border-border last:border-b-0 hover:bg-muted transition-colors"
                             >
                                 {columns.map((col) => {
-                                    const justify = getJustifyClass(col.className);
+                                    const justify = getJustifyClass(`${col.className ?? ""} ${col.cellClassName ?? ""}`);
                                     return (
                                         <td
                                             key={col.key}
-                                            className={`${dense ? "px-3.5 py-2" : "px-4 py-2.5"} text-[13px] text-text-primary align-middle whitespace-nowrap ${col.className ?? ""}`}
+                                            className={`${dense ? "px-3.5 py-2" : "px-4 py-2.5"} text-[13px] text-text-primary align-middle whitespace-nowrap ${col.className ?? ""} ${col.cellClassName ?? ""}`}
                                         >
                                             <div className={`flex items-center w-full min-h-[22px] ${justify}`}>
                                                 {col.render
-                                                    ? col.render(item)
+                                                    ? col.render(item, index)
                                                     : (((item as Record<string, unknown>)[col.key] as ReactNode) ??
                                                       "-")}
                                             </div>

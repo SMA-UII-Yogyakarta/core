@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiCalendar, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
+import IconButton from "@/Components/ui/IconButton";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
 interface DatePickerProps {
@@ -277,25 +278,25 @@ export default function DatePicker({
 
                 <div className="absolute right-1 flex items-center gap-0.5">
                     {value && !disabled && (
-                        <button
-                            type="button"
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiX className="text-[12px]" />}
+                            label="Hapus tanggal"
                             onClick={clearValue}
-                            className="p-1 text-text-muted hover:text-text-primary transition-colors"
                             tabIndex={-1}
-                            aria-label="Hapus tanggal"
-                        >
-                            <FiX className="text-[12px]" />
-                        </button>
+                            className="w-6 h-6 rounded-md"
+                        />
                     )}
-                    <button
-                        type="button"
+                    <IconButton
+                        size="xs"
+                        variant="ghost"
+                        icon={<FiCalendar className="text-[14px]" />}
+                        label="Pilih tanggal"
                         onClick={() => !disabled && setIsOpen(!isOpen)}
-                        className="p-1 text-text-muted hover:text-text-primary transition-colors"
                         tabIndex={-1}
-                        aria-label="Pilih tanggal"
-                    >
-                        <FiCalendar className="text-[14px]" />
-                    </button>
+                        className="w-6 h-6 rounded-md"
+                    />
                 </div>
             </div>
 
@@ -304,25 +305,25 @@ export default function DatePicker({
             {isOpen && !disabled && (
                 <div className="absolute z-50 mt-1 bg-surface border border-border rounded-xl shadow-dropdown p-3 w-[280px]">
                     <div className="flex items-center justify-between mb-3">
-                        <button
-                            type="button"
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiChevronLeft className="text-[14px] text-text-muted" />}
+                            label="Bulan sebelumnya"
                             onClick={prevMonth}
-                            className="p-1 hover:bg-muted rounded-lg transition-colors"
-                            aria-label="Bulan sebelumnya"
-                        >
-                            <FiChevronLeft className="text-[14px] text-text-muted" />
-                        </button>
+                            className="w-7 h-7"
+                        />
                         <span className="text-[13px] font-bold text-text-primary">
                             {MONTH_NAMES[viewMonth.month - 1]} {viewMonth.year}
                         </span>
-                        <button
-                            type="button"
+                        <IconButton
+                            size="xs"
+                            variant="ghost"
+                            icon={<FiChevronRight className="text-[14px] text-text-muted" />}
+                            label="Bulan selanjutnya"
                             onClick={nextMonth}
-                            className="p-1 hover:bg-muted rounded-lg transition-colors"
-                            aria-label="Bulan selanjutnya"
-                        >
-                            <FiChevronRight className="text-[14px] text-text-muted" />
-                        </button>
+                            className="w-7 h-7"
+                        />
                     </div>
 
                     <div className="grid grid-cols-7 mb-1">

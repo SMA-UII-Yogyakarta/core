@@ -1,5 +1,4 @@
-import type { StatusInput } from "./StatusBadge";
-import { resolveStatusVariant } from "./StatusBadge";
+import { getStatusDotClass, type StatusInput } from "./StatusBadge";
 
 export interface StatusDotProps {
     status: StatusInput;
@@ -9,23 +8,6 @@ export interface StatusDotProps {
     title?: string;
 }
 
-const dotColors: Record<string, string> = {
-    present: "bg-success",
-    late: "bg-warning",
-    absent: "bg-danger",
-    sick: "bg-primary",
-    permission: "bg-info",
-    active: "bg-success",
-    inactive: "bg-danger",
-    pending: "bg-warning",
-    approved: "bg-success",
-    rejected: "bg-danger",
-    no_update: "bg-text-muted",
-    no_check_in: "bg-text-muted",
-    not_open: "bg-text-muted",
-    unknown: "bg-text-muted",
-};
-
 const sizeClasses: Record<string, string> = {
     xs: "w-1.5 h-1.5",
     sm: "w-2 h-2",
@@ -34,8 +16,7 @@ const sizeClasses: Record<string, string> = {
 };
 
 export default function StatusDot({ status, size = "sm", pulse = false, className = "", title }: StatusDotProps) {
-    const resolved = resolveStatusVariant(status);
-    const colorClass = dotColors[resolved] ?? "bg-text-muted";
+    const colorClass = getStatusDotClass(status);
     const sizeClass = sizeClasses[size] ?? sizeClasses.sm;
 
     return (

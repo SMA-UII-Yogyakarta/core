@@ -1,4 +1,5 @@
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { getPageNumbers, type PaginationItem } from "@/utils/helpers";
 
 export interface PaginationProps {
     currentPage: number;
@@ -10,55 +11,6 @@ export interface PaginationProps {
     showInfo?: boolean;
     align?: "auto" | "between" | "center" | "start" | "left";
     className?: string;
-}
-
-type PaginationItem = number | "...";
-
-function getPaginationRange(currentPage: number, totalPages: number, compact: boolean): PaginationItem[] {
-    if (compact || totalPages <= 5) {
-        if (totalPages <= 4) {
-            return Array.from({ length: totalPages }, (_, i) => i + 1);
-        }
-        if (currentPage <= 2) {
-            return [1, 2, "...", totalPages];
-        }
-        if (currentPage >= totalPages - 1) {
-            return [1, "...", totalPages - 1, totalPages];
-        }
-        return [1, "...", currentPage, "...", totalPages];
-    }
-
-    if (totalPages <= 7) {
-        return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    const range: PaginationItem[] = [];
-    const showLeftEllipsis = currentPage > 3;
-    const showRightEllipsis = currentPage < totalPages - 2;
-
-    if (!showLeftEllipsis && showRightEllipsis) {
-        for (let i = 1; i <= 4; i++) {
-            range.push(i);
-        }
-        range.push("...");
-        range.push(totalPages);
-    } else if (showLeftEllipsis && !showRightEllipsis) {
-        range.push(1);
-        range.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-            range.push(i);
-        }
-    } else {
-        range.push(1);
-        range.push("...");
-        range.push(currentPage - 1);
-        range.push(currentPage);
-        range.push(currentPage + 1);
-        range.push("...");
-        range.push(totalPages);
-    }
-
-    return range;
 }
 
 export default function Pagination({
@@ -76,7 +28,7 @@ export default function Pagination({
 
     const isCentered = align === "center";
     const isStart = align === "start" || align === "left";
-    const paginationRange = getPaginationRange(currentPage, totalPages, compact);
+    const paginationRange = getPageNumbers(currentPage, totalPages, compact);
     const startItem = totalItems > 0 ? (currentPage - 1) * perPage + 1 : 0;
     const endItem = Math.min(currentPage * perPage, totalItems);
 

@@ -2,7 +2,18 @@ import { router } from "@inertiajs/react";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { FiBarChart2, FiFilter, FiSearch } from "react-icons/fi";
-import { BottomSheet, Button, Card, Input, PageHeader, SelectInput, StatCard, StatusBadge, Table } from "@/Components";
+import {
+    BottomSheet,
+    Button,
+    Card,
+    HeaderIconButton,
+    Input,
+    PageHeader,
+    SelectInput,
+    StatCard,
+    StatusBadge,
+    Table,
+} from "@/Components";
 import EmptyState from "@/Components/common/EmptyState";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import type { Column } from "@/Components/ui/Table";
@@ -184,17 +195,12 @@ export default function Monitoring({
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label={t("monitoring.filterTitle")}
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title={t("monitoring.filterTitle")}
-                aria-label={t("monitoring.filterTitle")}
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 

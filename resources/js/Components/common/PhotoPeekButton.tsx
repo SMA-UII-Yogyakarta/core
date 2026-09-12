@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { FiCamera } from "react-icons/fi";
 import Button, { type ButtonProps } from "@/Components/ui/Button";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import PhotoPeekModal from "./PhotoPeekModal";
 
 export interface PhotoPeekButtonProps {
@@ -11,18 +13,22 @@ export interface PhotoPeekButtonProps {
     variant?: ButtonProps["variant"];
     size?: ButtonProps["size"];
     className?: string;
+    icon?: ReactNode;
 }
 
 export default function PhotoPeekButton({
     photoUrl,
-    title = "Foto Bukti Presensi",
+    title,
     subtitle,
-    label = "Cek Foto",
+    label,
     variant = "ghost",
     size = "sm",
     className = "text-[12px] font-semibold text-primary",
+    icon = <FiCamera className="text-[13px] shrink-0" />,
 }: PhotoPeekButtonProps) {
+    const { t } = useLanguage();
     const [open, setOpen] = useState(false);
+    const actionLabel = label ?? t("common.viewPhoto");
 
     if (!photoUrl) {
         return <span className="text-[12px] text-text-muted">—</span>;
@@ -38,15 +44,15 @@ export default function PhotoPeekButton({
                     setOpen(true);
                 }}
                 className={className}
-                icon={<FiCamera className="text-[13px] shrink-0" />}
+                icon={icon}
             >
-                {label}
+                {actionLabel}
             </Button>
             <PhotoPeekModal
                 open={open}
                 onClose={() => setOpen(false)}
                 url={photoUrl}
-                title={title}
+                title={title ?? t("common.viewPhoto")}
                 subtitle={subtitle}
             />
         </>

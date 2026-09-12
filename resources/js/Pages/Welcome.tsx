@@ -231,6 +231,7 @@ export default function Welcome() {
                             {/* Language Switcher — compact di mobile */}
                             <div className="flex items-center border border-slate-200 dark:border-neutral-800 rounded-lg p-0.5 sm:p-1 bg-slate-50 dark:bg-neutral-900">
                                 <button
+                                    type="button"
                                     onClick={() => setLanguage("id")}
                                     className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all ${
                                         locale === "id"
@@ -241,6 +242,7 @@ export default function Welcome() {
                                     ID
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => setLanguage("en")}
                                     className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold rounded-md transition-all ${
                                         locale === "en"
@@ -390,6 +392,7 @@ export default function Welcome() {
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10">
                     <div className="border border-dashed border-neutral-300 dark:border-neutral-800 rounded-xl p-4 bg-slate-50/50 dark:bg-neutral-900/20 text-center">
                         <button
+                            type="button"
                             onClick={() => setShowDevShortcuts(!showDevShortcuts)}
                             className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-primary dark:hover:text-white transition-colors"
                         >

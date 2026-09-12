@@ -40,6 +40,42 @@ export function getPaginationRange(page: number, perPage: number, total: number)
     return { from, to, total };
 }
 
+export type PaginationItem = number | "...";
+
+/**
+ * Shared page-number window used by desktop pagination and any future compact
+ * paginator. Keeping the range policy here prevents each paginator from
+ * drifting into a different first/last/ellipsis layout.
+ */
+export function getPageNumbers(currentPage: number, totalPages: number, compact = false): PaginationItem[] {
+    if (compact || totalPages <= 5) {
+        if (totalPages <= 4) {
+            return Array.from({ length: totalPages }, (_, index) => index + 1);
+        }
+        if (currentPage <= 2) return [1, 2, "...", totalPages];
+        if (currentPage >= totalPages - 1) return [1, "...", totalPages - 1, totalPages];
+        return [1, "...", currentPage, "...", totalPages];
+    }
+
+    if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const range: PaginationItem[] = [];
+    const showLeftEllipsis = currentPage > 3;
+    const showRightEllipsis = currentPage < totalPages - 2;
+
+    if (!showLeftEllipsis && showRightEllipsis) {
+        range.push(1, 2, 3, 4, "...", totalPages);
+    } else if (showLeftEllipsis && !showRightEllipsis) {
+        range.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+        range.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+    }
+
+    return range;
+}
+
 export const INDONESIAN_MONTHS = [
     "Januari",
     "Februari",

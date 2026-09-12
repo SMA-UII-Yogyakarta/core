@@ -21,12 +21,15 @@ import {
     Button,
     ConfirmDialog,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     ImportModal,
     MobileSelectionBar,
     Modal,
     NativeSelect,
     PageHeader,
     SelectInput,
+    SearchBar,
     TabSwitcher,
 } from "@/Components";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -388,23 +391,18 @@ export default function MasterData({
         <>
             {mobileSubPage && (
                 <div className="flex sm:hidden items-center gap-1.5 select-none font-inter">
-                    <button
-                        type="button"
+                    <HeaderIconButton
+                        icon={<FiFilter className="text-[14px]" />}
+                        active={hasActiveFilters}
+                        label="Filter Data"
                         onClick={() => setIsMobileFilterOpen(true)}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                            hasActiveFilters
-                                ? "bg-accent text-primary font-bold shadow-sm"
-                                : "bg-white/15 border border-white/20 text-white hover:bg-white/25 active:bg-white/30"
-                        }`}
-                        aria-label="Filter Data"
-                        title="Filter Data"
-                    >
-                        <FiFilter className="text-[14px]" />
-                    </button>
+                    />
 
                     {currentTab !== "class" && (
-                        <button
-                            type="button"
+                        <HeaderIconButton
+                            variant="neutral"
+                            icon={<FiUpload className="text-[15px]" />}
+                            label="Import CSV"
                             onClick={() => {
                                 if (typeof window !== "undefined" && window.innerWidth < 640) {
                                     router.visit(`/master-data/import-page?tab=${currentTab}`);
@@ -413,23 +411,16 @@ export default function MasterData({
                                     setImportModalOpen(true);
                                 }
                             }}
-                            className="w-8 h-8 rounded-full bg-white/15 border border-white/20 text-white hover:bg-white/25 active:bg-white/30 active:scale-90 text-[15px] transition-all flex items-center justify-center cursor-pointer"
-                            aria-label="Import CSV"
                             title={`Import Data ${getMobileHeaderTitle()}`}
-                        >
-                            <FiUpload className="text-[15px]" />
-                        </button>
+                        />
                     )}
 
-                    <button
-                        type="button"
+                    <HeaderIconButton
+                        variant="accent"
+                        icon={<FiPlus className="text-[15px]" />}
+                        label={getAddLabel()}
                         onClick={() => router.visit(`/master-data/create?tab=${currentTab}`)}
-                        className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                        title={getAddLabel()}
-                        aria-label={getAddLabel()}
-                    >
-                        <FiPlus className="text-[15px]" />
-                    </button>
+                    />
                 </div>
             )}
         </>
@@ -607,6 +598,14 @@ export default function MasterData({
 
                             {/* Filter Group: Yellow FilterPopover (variant=accent) & Bulk Delete */}
                             <div className="flex items-center gap-2.5 shrink-0 ml-auto font-inter">
+                                <div className="hidden lg:block w-56 xl:w-64 shrink-0">
+                                    <SearchBar
+                                        value={search}
+                                        onChange={handleSearch}
+                                        placeholder={getSearchPlaceholder()}
+                                    />
+                                </div>
+
                                 {selectedIds.length > 0 && (
                                     <button
                                         type="button"
@@ -629,22 +628,16 @@ export default function MasterData({
                                     onClose={() => setIsDesktopFilterOpen(false)}
                                     align="right"
                                     trigger={
-                                        <Button
-                                            variant="accent"
-                                            size="md"
+                                        <FilterTriggerButton
+                                            active={Boolean(
+                                                selectedClassId ||
+                                                    selectedStatus ||
+                                                    selectedTeacherType ||
+                                                    selectedLevel ||
+                                                    selectedHasStudent,
+                                            )}
                                             onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                            icon={<FiFilter className="text-[13px]" />}
-                                            className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                        >
-                                            Filter
-                                            {selectedClassId ||
-                                            selectedStatus ||
-                                            selectedTeacherType ||
-                                            selectedLevel ||
-                                            selectedHasStudent
-                                                ? " (Aktif)"
-                                                : ""}
-                                        </Button>
+                                        />
                                     }
                                 >
                                     <div className="flex flex-col gap-3 font-inter min-w-[220px]">

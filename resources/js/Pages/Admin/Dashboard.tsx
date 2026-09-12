@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import {
     FiActivity,
     FiAlertCircle,
-    FiCheckCircle,
     FiCheckSquare,
     FiChevronRight,
     FiClock,
@@ -16,18 +15,17 @@ import {
 } from "react-icons/fi";
 import {
     AttendanceChart,
-    Avatar,
     Button,
     Card,
     Drawer,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     PageHeader,
     SearchBar,
     StatCard,
     StatusBadge,
-    Table,
 } from "@/Components";
-import EmptyState from "@/Components/common/EmptyState";
 import TabSwitcher, { type TabItem } from "@/Components/common/TabSwitcher";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import Input from "@/Components/ui/Input";
@@ -211,19 +209,11 @@ export default function Dashboard({
             onClose={() => setIsFilterPopoverOpen(false)}
             align="right"
             trigger={
-                <Button
-                    variant="accent"
+                <FilterTriggerButton
                     onClick={() => setIsFilterPopoverOpen((prev) => !prev)}
-                    className="h-10 px-3.5 text-[13px] font-bold shadow-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border-transparent"
                     title="Filter Kelas & Tanggal"
                     aria-label="Filter Kelas & Tanggal"
-                >
-                    <FiFilter className="text-[14px] text-primary" />
-                    <span>Filter</span>
-                    {(selectedClassId || selectedDate !== today) && (
-                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    )}
-                </Button>
+                />
             }
         >
             <div className="flex flex-col gap-4 font-inter p-1">
@@ -363,18 +353,12 @@ export default function Dashboard({
     const mobileHeaderAction =
         activeTab === "attention" ? (
             <div className="sm:hidden flex items-center gap-2 select-none font-inter">
-                <button
-                    type="button"
+                <HeaderIconButton
+                    icon={<FiFilter className="text-[15px]" />}
+                    active={isFilterActive}
+                    label="Filter Data Presensi"
                     onClick={() => setMobileFilterOpen(true)}
-                    className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-95 transition-all relative cursor-pointer"
-                    title="Filter Data Presensi"
-                    aria-label="Filter Data Presensi"
-                >
-                    <FiFilter className="text-[15px]" />
-                    {isFilterActive && (
-                        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent ring-2 ring-primary" />
-                    )}
-                </button>
+                />
             </div>
         ) : undefined;
 
@@ -501,16 +485,14 @@ export default function Dashboard({
 
             {/* 🖥️ TABLET & DESKTOP (>= sm): Clean Light Toolbar Row */}
             <div className="hidden sm:flex items-center justify-between gap-2.5 mb-4 shrink-0 font-inter max-w-full min-w-0 w-full">
-                {/* Tab Switcher (Shrinkable & Truncated on tablet/desktop view) */}
-                <div className="shrink min-w-0">
+                {/* Keep the two primary dashboard destinations readable from tablet upward. */}
+                <div className="shrink-0 min-w-0">
                     <TabSwitcher
                         tabs={dashboardTabs}
                         activeKey={activeTab}
                         onChange={(k) => handleTabChange(k as "overview" | "attention")}
                         variant="segmented"
                         theme="light"
-                        shrinkable
-                        iconOnly="lg"
                     />
                 </div>
 

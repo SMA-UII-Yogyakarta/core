@@ -6,6 +6,7 @@ import {
     Avatar,
     Button,
     ExportButtonGroup,
+    IconButton,
     LiveBadge,
     MetricPill,
     MobileNativePagination,
@@ -21,6 +22,12 @@ expect.extend(toHaveNoViolations);
 describe("Accessibility (A11y) Tests", () => {
     test("Button component passes axe audit", async () => {
         const { container } = render(<Button variant="primary">Tombol Akses</Button>);
+        const results = await axe(container);
+        expect(results).toHaveNoViolations();
+    });
+
+    test("IconButton component passes axe audit", async () => {
+        const { container } = render(<IconButton icon={<span aria-hidden="true">×</span>} label="Tutup" />);
         const results = await axe(container);
         expect(results).toHaveNoViolations();
     });

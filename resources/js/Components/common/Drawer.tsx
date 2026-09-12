@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import Button from "@/Components/ui/Button";
+import IconButton from "@/Components/ui/IconButton";
 import Tooltip from "@/Components/ui/Tooltip";
 import TruncatedText from "@/Components/ui/TruncatedText";
 import { useLanguage } from "@/Contexts/LanguageContext";
@@ -177,14 +178,14 @@ export default function Drawer({
                         <div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-3 border-b border-border select-none shrink-0 bg-surface gap-2.5 min-h-[52px]">
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                 {fullScreenMobile && (
-                                    <button
-                                        type="button"
+                                    <IconButton
+                                        size="sm"
+                                        variant="ghost"
+                                        icon={<FiX className="w-5 h-5" />}
+                                        label="Kembali"
                                         onClick={handleCancelClick}
-                                        className="w-8 h-8 flex items-center justify-center text-text-muted hover:text-text-primary rounded-lg transition-colors cursor-pointer shrink-0"
-                                        aria-label="Kembali"
-                                    >
-                                        <FiX className="w-5 h-5" />
-                                    </button>
+                                        className="rounded-lg"
+                                    />
                                 )}
                                 <div className="min-w-0 flex-1">
                                     {typeof title === "string" ? (
@@ -216,7 +217,7 @@ export default function Drawer({
                                     <Tooltip content={t("common.close") || "Tutup"} position="bottom">
                                         <button
                                             onClick={onClose}
-                                            className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-text-muted hover:text-text-primary rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                                            className="w-8 h-8 flex items-center justify-center text-text-muted hover:text-text-primary rounded-lg hover:bg-muted transition-colors cursor-pointer"
                                             type="button"
                                             aria-label={t("common.close") || "Tutup"}
                                             dusk="drawer-close-btn"

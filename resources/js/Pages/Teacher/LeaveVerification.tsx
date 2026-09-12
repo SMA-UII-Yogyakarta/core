@@ -1,7 +1,16 @@
 import { router } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import { FiCheckSquare, FiFilter } from "react-icons/fi";
-import { Button, EmptyState, MobileNativePagination, Pagination, SearchBar } from "@/Components";
+import {
+    EmptyState,
+    FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
+    MobileNativePagination,
+    SearchBar,
+    TableFooter,
+    TableSection,
+} from "@/Components";
 import PreviewImageModal from "@/Components/common/PreviewImageModal";
 import { toast } from "@/Components/common/Toast";
 import { useClientPagination } from "@/hooks/useClientPagination";
@@ -10,10 +19,12 @@ import LeaveDecisionModal from "./LeaveVerification/LeaveDecisionModal";
 import LeaveRequestCard from "./LeaveVerification/LeaveRequestCard";
 import LeaveVerificationFilterModal, {
     type DateMode,
+    LeaveVerificationFilterContent,
     type SortMode,
 } from "./LeaveVerification/LeaveVerificationFilterModal";
 import LeaveVerificationHeader from "./LeaveVerification/LeaveVerificationHeader";
 import LeaveVerificationTabs, { type LeaveTabKey } from "./LeaveVerification/LeaveVerificationTabs";
+import TeacherLeaveVerificationTable from "./LeaveVerification/TeacherLeaveVerificationTable";
 import type { LeaveRequest, PageProps } from "./LeaveVerification/types";
 import { daysUntil } from "./LeaveVerification/types";
 
@@ -26,6 +37,7 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
     const [startDateFilter, setStartDateFilter] = useState("");
     const [endDateFilter, setEndDateFilter] = useState("");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
+    const [desktopFilterOpen, setDesktopFilterOpen] = useState(false);
 
     // Decision Modal
     const [decisionModal, setDecisionModal] = useState<{
@@ -128,13 +140,13 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
 
     // Client-side pagination (10 items per page)
     const {
-        currentPage,
         setCurrentPage,
         totalPages,
         safePage,
         paginatedData: paginatedRequests,
         pageSize,
     } = useClientPagination(filteredRequests, 1, 10);
+    const hasPagination = filteredRequests.length > pageSize;
 
     // Action handlers
     const handleApprove = (leave: LeaveRequest) => {
@@ -232,73 +244,148 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
         Boolean(endDateFilter);
 
     const mobileFilterAction = (
-        <button
-            type="button"
+        <HeaderIconButton
+            icon={<FiFilter className="text-[15px]" />}
+            active={hasActiveFilters}
+            label="Filter & Urutkan"
             onClick={() => setFilterModalOpen(true)}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all cursor-pointer active:scale-90 ${
-                hasActiveFilters
-                    ? "text-white bg-white/20 hover:bg-white/30"
-                    : "text-white/90 hover:text-white hover:bg-white/10"
-            }`}
-            title="Filter & Urutkan"
-            aria-label="Filter & Urutkan"
+            className="sm:hidden"
+        />
+    );
+
+    const filterControl = (
+        <FilterPopover
+            open={desktopFilterOpen}
+            onClose={() => setDesktopFilterOpen(false)}
+            align="right"
+            trigger={
+                <FilterTriggerButton
+                    label="Filter & Urutkan"
+                    active={hasActiveFilters}
+                    onClick={() => setDesktopFilterOpen((previous) => !previous)}
+                />
+            }
         >
-            <FiFilter className="text-[15px]" />
-        </button>
+            <LeaveVerificationFilterContent
+                category={categoryFilter}
+                dateMode={dateMode}
+                sortMode={sortMode}
+                startDate={startDateFilter}
+                endDate={endDateFilter}
+                onCategoryChange={(category) => {
+                    setCategoryFilter(category);
+                    setCurrentPage(1);
+                }}
+                onDateModeChange={(mode) => {
+                    setDateMode(mode);
+                    setCurrentPage(1);
+                }}
+                onSortModeChange={(sort) => {
+                    setSortMode(sort);
+                    setCurrentPage(1);
+                }}
+                onStartDateChange={(date) => {
+                    setStartDateFilter(date);
+                    setCurrentPage(1);
+                }}
+                onEndDateChange={(date) => {
+                    setEndDateFilter(date);
+                    setCurrentPage(1);
+                }}
+                onReset={() => {
+                    setCategoryFilter("all");
+                    setDateMode("all");
+                    setSortMode("urgency");
+                    setStartDateFilter("");
+                    setEndDateFilter("");
+                    setCurrentPage(1);
+                    setDesktopFilterOpen(false);
+                }}
+                onClose={() => setDesktopFilterOpen(false)}
+                showHeader
+                showActions={false}
+            />
+        </FilterPopover>
     );
 
     return (
-        <AppShell title="Verifikasi Izin Siswa" hasTopTabs={true} hasTopCard={true} headerActions={mobileFilterAction}>
-            <div className="space-y-6">
+        <AppShell
+            title="Verifikasi Izin Siswa"
+            hasTopTabs={true}
+            hasTopCard={true}
+            headerActions={mobileFilterAction}
+            headerActionsMobileOnly
+            showNotificationBellOnMobile={false}
+            searchValue={searchQuery}
+            onSearchChange={(query) => {
+                setSearchQuery(query);
+                setCurrentPage(1);
+            }}
+            searchPlaceholder="Cari nama siswa, NIS, atau keterangan..."
+            mainClassName="overflow-x-hidden sm:overflow-hidden"
+        >
+            <div className="flex min-w-0 max-w-full flex-1 min-h-0 flex-col font-inter">
                 {/* Header */}
                 <LeaveVerificationHeader
                     classNameStr={schoolClass?.name || "Kelas Binaan"}
-                    pendingCount={pendingCount}
-                    approvedCount={approvedCount}
-                    rejectedCount={rejectedCount}
+                    desktopAction={
+                        <div className="w-72 xl:w-80">
+                            <SearchBar
+                                value={searchQuery}
+                                onChange={(query) => {
+                                    setSearchQuery(query);
+                                    setCurrentPage(1);
+                                }}
+                                onSearch={(query) => {
+                                    setSearchQuery(query);
+                                    setCurrentPage(1);
+                                }}
+                                placeholder="Cari nama siswa, NIS, atau keterangan..."
+                            />
+                        </div>
+                    }
                 />
 
-                {/* Tabs */}
-                <LeaveVerificationTabs
-                    activeTab={activeTab}
-                    pendingCount={pendingCount}
-                    approvedCount={approvedCount}
-                    rejectedCount={rejectedCount}
-                    totalHistoryCount={totalHistoryCount}
-                    onChange={(tab) => {
-                        setActiveTab(tab);
-                        setCurrentPage(1);
-                    }}
-                />
-
-                {/* Filter Toolbar — hidden on mobile (handled via mobileHeaderActions filter icon) */}
-                <div className="hidden sm:flex items-center justify-between gap-3">
-                    <div className="max-w-md w-full">
-                        <SearchBar
-                            value={searchQuery}
-                            onChange={(q) => {
-                                setSearchQuery(q);
+                {/* Canonical page toolbar: tabs, search, and filter share one row on desktop. */}
+                <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1 overflow-x-auto no-scrollbar">
+                        <LeaveVerificationTabs
+                            activeTab={activeTab}
+                            pendingCount={pendingCount}
+                            approvedCount={approvedCount}
+                            rejectedCount={rejectedCount}
+                            totalHistoryCount={totalHistoryCount}
+                            onChange={(tab) => {
+                                setActiveTab(tab);
                                 setCurrentPage(1);
                             }}
-                            onSearch={(q) => {
-                                setSearchQuery(q);
-                                setCurrentPage(1);
-                            }}
-                            placeholder="Cari nama siswa, NIS, atau keterangan..."
                         />
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <Button variant="accent" onClick={() => setFilterModalOpen(true)} icon={<FiFilter size={16} />}>
-                            Filter & Urutkan {hasActiveFilters && "(Aktif)"}
-                        </Button>
-                    </div>
+                    <div className="hidden shrink-0 lg:block">{filterControl}</div>
+                    <div className="hidden shrink-0 sm:block lg:hidden">{filterControl}</div>
                 </div>
 
-                {/* Card List */}
+                {/* Results: table on tablet/desktop, cards on mobile. */}
                 {filteredRequests.length > 0 ? (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4">
+                    <div className="flex min-w-0 max-w-full flex-1 min-h-0 flex-col overflow-hidden">
+                        <TableSection desktopOnly>
+                            <TeacherLeaveVerificationTable
+                                requests={paginatedRequests}
+                                onPreviewImage={setPreviewImageUrl}
+                                onApprove={handleApprove}
+                                onReject={handleReject}
+                                onRevert={handleRevert}
+                            />
+                            <TableFooter
+                                currentPage={safePage}
+                                totalPages={totalPages}
+                                totalItems={filteredRequests.length}
+                                perPage={pageSize}
+                                onPageChange={setCurrentPage}
+                                itemLabel="data"
+                            />
+                        </TableSection>
+                        <div className="sm:hidden space-y-4">
                             {paginatedRequests.map((leave) => (
                                 <LeaveRequestCard
                                     key={leave.id}
@@ -310,20 +397,8 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
                                     onRevert={handleRevert}
                                 />
                             ))}
-                        </div>
-
-                        {filteredRequests.length > pageSize && (
-                            <div className="pt-2 font-inter">
-                                <div className="hidden sm:block">
-                                    <Pagination
-                                        currentPage={safePage}
-                                        totalPages={totalPages}
-                                        totalItems={filteredRequests.length}
-                                        perPage={pageSize}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                </div>
-                                <div className="sm:hidden">
+                            {hasPagination && (
+                                <div className="pt-2 font-inter">
                                     <MobileNativePagination
                                         currentPage={safePage}
                                         totalPages={totalPages}
@@ -332,8 +407,8 @@ export default function LeaveVerification({ teacher: _teacher, class: schoolClas
                                         onPageChange={setCurrentPage}
                                     />
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <EmptyState

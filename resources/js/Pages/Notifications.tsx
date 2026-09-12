@@ -2,10 +2,12 @@ import { router, useForm, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import { FiBell, FiCheckSquare, FiClock, FiInbox, FiSend, FiTrash2, FiUsers } from "react-icons/fi";
 import {
+    ActionButton,
     Button,
     Card,
     ConfirmDialog,
     EmptyState,
+    HeaderIconButton,
     Input,
     MobileNativePagination,
     Modal,
@@ -13,6 +15,7 @@ import {
     PageHeader,
     Table,
     TableFooter,
+    TableSection,
     TabSwitcher,
 } from "@/Components";
 import AppShell from "@/Layouts/AppShell";
@@ -196,26 +199,20 @@ export default function Notifications({ notifications, sentNotifications, unread
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
             {activeTab === "inbox" && unreadCount > 0 && (
-                <button
-                    type="button"
+                <HeaderIconButton
+                    variant="neutral"
+                    icon={<FiCheckSquare className="text-[14px]" />}
+                    label="Tandai Semua Dibaca"
                     onClick={handleMarkAllAsRead}
-                    className="w-8 h-8 rounded-full bg-muted/60 text-text-primary hover:bg-muted flex items-center justify-center transition-all cursor-pointer shadow-xs"
-                    title="Tandai Semua Dibaca"
-                    aria-label="Tandai Semua Dibaca"
-                >
-                    <FiCheckSquare className="text-[14px]" />
-                </button>
+                />
             )}
             {isAdmin && (
-                <button
-                    type="button"
+                <HeaderIconButton
+                    variant="accent"
+                    icon={<FiSend className="text-[14px]" />}
+                    label="Kirim Notifikasi"
                     onClick={() => setIsCreateOpen(true)}
-                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                    title="Kirim Notifikasi"
-                    aria-label="Kirim Notifikasi"
-                >
-                    <FiSend className="text-[14px]" />
-                </button>
+                />
             )}
         </div>
     );
@@ -403,7 +400,7 @@ export default function Notifications({ notifications, sentNotifications, unread
                 sentNotifications && (
                     <>
                         {/* Desktop View (>= sm) - Full height container with scrollable Table & TableFooter */}
-                        <div className="hidden sm:flex flex-1 min-h-0 flex-col justify-between gap-3 font-inter w-full">
+                        <TableSection desktopOnly className="w-full font-inter">
                             {sentNotifications.data.length === 0 ? (
                                 <Card className="flex flex-col items-center justify-center p-8 text-center bg-surface border border-border shadow-card rounded-2xl">
                                     <EmptyState
@@ -461,15 +458,13 @@ export default function Notifications({ notifications, sentNotifications, unread
                                                 header: <div className="text-right w-full">Aksi</div>,
                                                 render: (n) => (
                                                     <div className="flex justify-end">
-                                                        <button
+                                                        <ActionButton
+                                                            variant="delete"
+                                                            label="Hapus"
+                                                            icon={<FiTrash2 className="text-[13px]" />}
                                                             onClick={() => handleDeleteNotification(n.id)}
-                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 text-[11.5px] font-semibold transition-colors cursor-pointer"
-                                                            type="button"
                                                             aria-label="Hapus Notifikasi"
-                                                        >
-                                                            <FiTrash2 className="text-[13px]" />
-                                                            <span>Hapus</span>
-                                                        </button>
+                                                        />
                                                     </div>
                                                 ),
                                                 className: "text-right",
@@ -478,14 +473,14 @@ export default function Notifications({ notifications, sentNotifications, unread
                                         data={sentNotifications.data}
                                         keyExtractor={(n) => n.id}
                                         emptyMessage="Anda belum pernah mengirim notifikasi."
-                                        containerClassName="flex-1 min-h-0 overflow-auto bg-surface border border-border rounded-2xl"
                                         dense
+                                        fill
                                     />
                                 </div>
                             )}
 
                             {renderPagination(sentNotifications, "sent_page")}
-                        </div>
+                        </TableSection>
 
                         {/* Mobile View (< sm) - Natural flex container with mobile card stack & MobileNativePagination */}
                         <div className="sm:hidden flex flex-col gap-3 font-inter w-full">
@@ -518,14 +513,15 @@ export default function Notifications({ notifications, sentNotifications, unread
                                                         <FiClock className="text-[10px]" />
                                                         {formatDate(n.created_at)}
                                                     </span>
-                                                    <button
+                                                    <ActionButton
+                                                        variant="delete"
+                                                        label="Hapus"
+                                                        icon={<FiTrash2 className="text-[13px]" />}
+                                                        iconOnly
                                                         onClick={() => handleDeleteNotification(n.id)}
-                                                        className="w-7 h-7 flex items-center justify-center text-danger hover:bg-danger-bg rounded-lg transition-colors cursor-pointer ml-1"
-                                                        type="button"
                                                         aria-label="Hapus notifikasi"
-                                                    >
-                                                        <FiTrash2 className="text-[13px]" />
-                                                    </button>
+                                                        className="ml-1"
+                                                    />
                                                 </div>
                                             </div>
 

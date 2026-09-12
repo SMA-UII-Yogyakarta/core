@@ -1,10 +1,9 @@
 import { router } from "@inertiajs/react";
 import { useEffect, useState } from "react";
-import { FiEdit2, FiEye, FiMapPin, FiPhone, FiPlus, FiShield, FiTrash2, FiUsers } from "react-icons/fi";
+import { FiEye, FiMapPin, FiPhone, FiShield, FiTrash2, FiUsers } from "react-icons/fi";
 import {
     Avatar,
-    Button,
-    Card,
+    ActionButton,
     Checkbox,
     MasterDataCard,
     MasterDataEmptyState,
@@ -12,6 +11,7 @@ import {
     MobileNativePagination,
     Table,
     TableFooter,
+    TableSection,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import GuardianDrawerForm from "./GuardianDrawerForm";
@@ -152,29 +152,25 @@ export default function GuardiansTab({
             className: "text-center w-36 whitespace-nowrap",
             render: (g) => (
                 <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
+                    <ActionButton
+                        variant="detail"
+                        label="Detail"
+                        icon={<FiEye className="w-3.5 h-3.5" />}
                         onClick={() => {
                             setSelectedGuardian(g);
                             setDrawerMode("detail");
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-text-muted hover:text-primary hover:bg-primary-light border border-border transition-colors cursor-pointer text-[12px] font-semibold"
                         title="Lihat / Edit Detail Wali"
                         aria-label="Lihat / Edit Detail Wali"
-                    >
-                        <FiEye className="w-3.5 h-3.5" />
-                        <span>Detail</span>
-                    </button>
-                    <button
-                        type="button"
+                    />
+                    <ActionButton
+                        variant="delete"
+                        label="Hapus"
+                        icon={<FiTrash2 className="w-3.5 h-3.5" />}
                         onClick={() => onRequestDelete("guardians", g.id, g.name)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-danger hover:bg-danger-bg border border-danger/20 transition-colors cursor-pointer text-[12px] font-semibold"
                         title="Hapus Wali"
                         aria-label="Hapus Wali"
-                    >
-                        <FiTrash2 className="w-3.5 h-3.5" />
-                        <span>Hapus</span>
-                    </button>
+                    />
                 </div>
             ),
         },
@@ -197,13 +193,13 @@ export default function GuardiansTab({
             {/* ───────────────────────────────────────────────────────────── */}
             {/* DESKTOP TABLE VIEW (>= sm) */}
             {/* ───────────────────────────────────────────────────────────── */}
-            <div className="hidden sm:flex flex-col flex-1 min-h-0 overflow-hidden justify-between gap-3">
+            <TableSection desktopOnly>
                 <Table
                     columns={columns}
                     data={guardianList}
                     keyExtractor={(g) => g.id}
-                    containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
                     dense
+                    fill
                 />
 
                 <TableFooter
@@ -215,7 +211,7 @@ export default function GuardiansTab({
                     itemLabel="wali murid"
                     emptyInfo="Menampilkan data wali murid terdaftar di SMA UII Yogyakarta."
                 />
-            </div>
+            </TableSection>
 
             {/* ───────────────────────────────────────────────────────────── */}
             {/* MOBILE-NATIVE CARD STACK VIEW (< sm) */}

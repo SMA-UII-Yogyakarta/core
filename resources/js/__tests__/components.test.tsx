@@ -6,11 +6,14 @@ import {
     Button,
     Drawer,
     ExportButtonGroup,
+    HeaderIconButton,
+    IconButton,
     LiveBadge,
     MetricPill,
     SearchBar,
     StatCard,
     StatusBadge,
+    Table,
 } from "@/Components";
 
 describe("Design System Component Tests", () => {
@@ -48,6 +51,28 @@ describe("Design System Component Tests", () => {
             </Button>,
         );
         expect(screen.getByText("Simpan Perubahan")).toBeDefined();
+        expect(screen.getByRole("button", { name: "Simpan Perubahan" })).toHaveAttribute("type", "button");
+    });
+
+    it("renders IconButton with an accessible name and button type", () => {
+        render(<IconButton icon={<span aria-hidden="true">×</span>} label="Tutup dialog" />);
+        const button = screen.getByRole("button", { name: "Tutup dialog" });
+        expect(button).toHaveAttribute("type", "button");
+        expect(button).toHaveAttribute("title", "Tutup dialog");
+    });
+
+    it("renders HeaderIconButton with active filter semantics", () => {
+        render(
+            <HeaderIconButton
+                icon={<span aria-hidden="true">⌕</span>}
+                label="Filter data"
+                active
+            />,
+        );
+        const button = screen.getByRole("button", { name: "Filter data" });
+        expect(button).toHaveAttribute("type", "button");
+        expect(button).toHaveAttribute("aria-pressed", "true");
+        expect(button).toHaveAttribute("title", "Filter data");
     });
 
     it("renders AttendanceCalendar and navigates month", () => {
@@ -88,6 +113,21 @@ describe("Design System Component Tests", () => {
         // Pressing Enter must trigger onSearch
         fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
         expect(searchedVal).toBe("siswa");
+    });
+
+    it("keeps table overflow on the table viewport", () => {
+        const { container } = render(
+            <Table
+                columns={[{ key: "name", header: "Nama" }]}
+                data={[{ name: "Siswa" }]}
+                keyExtractor={(row) => row.name}
+                fill
+            />,
+        );
+        const viewport = container.firstElementChild as HTMLElement;
+        expect(viewport.className).toContain("min-w-0");
+        expect(viewport.className).toContain("overflow-auto");
+        expect(viewport.className).toContain("flex-1 min-h-0");
     });
 
     it("renders Drawer as div when asForm={false} and allows embedding SearchBar safely", () => {

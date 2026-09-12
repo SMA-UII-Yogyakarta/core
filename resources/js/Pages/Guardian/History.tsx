@@ -18,6 +18,8 @@ import {
     Card,
     EmptyState,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     MobileNativePagination,
     NativeSelect,
     PageHeader,
@@ -27,6 +29,7 @@ import {
     TabSwitcher,
     Table,
     TableFooter,
+    TableSection,
 } from "@/Components";
 import AttendanceChart from "@/Components/features/AttendanceChart";
 import type { Column } from "@/Components/ui/Table";
@@ -298,17 +301,12 @@ export default function History({
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Riwayat Anak"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Riwayat Anak"
-                aria-label="Filter Riwayat Anak"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 
@@ -449,15 +447,10 @@ export default function History({
                                         onClose={() => setIsDesktopFilterOpen(false)}
                                         align="right"
                                         trigger={
-                                            <Button
-                                                variant="accent"
-                                                size="sm"
+                                            <FilterTriggerButton
+                                                active={hasActiveFilters}
                                                 onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                                icon={<FiFilter className="text-[13px]" />}
-                                                className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                            >
-                                                Filter{hasActiveFilters ? " (Aktif)" : ""}
-                                            </Button>
+                                            />
                                         }
                                     >
                                         {filterPopoverContent}
@@ -678,11 +671,12 @@ export default function History({
                                         </div>
 
                                         {/* Tablet & Desktop View (>= sm) */}
-                                        <div className="hidden sm:block space-y-3">
+                                        <TableSection desktopOnly>
                                             <Table
                                                 columns={attendanceColumns}
                                                 data={paginatedAttendances}
                                                 keyExtractor={(item: AttendanceRecord) => item.id}
+                                                fill
                                             />
                                             {attendances.length > attPageSize && (
                                                 <TableFooter
@@ -694,7 +688,7 @@ export default function History({
                                                     itemLabel="hari presensi"
                                                 />
                                             )}
-                                        </div>
+                                        </TableSection>
                                     </>
                                 )}
                             </section>

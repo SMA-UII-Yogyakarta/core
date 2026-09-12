@@ -7,6 +7,8 @@ import {
     Button,
     EmptyState,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     MobileNativePagination,
     NativeSelect,
     PageHeader,
@@ -15,9 +17,11 @@ import {
     TabSwitcher,
     Table,
     TableFooter,
+    TableSection,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { useClientPagination } from "@/hooks/useClientPagination";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
 import { INDONESIAN_MONTHS } from "@/utils/helpers";
 
@@ -46,6 +50,7 @@ interface PageProps {
 const MONTH_NAMES = INDONESIAN_MONTHS;
 
 export default function AttendanceHistory({ student, attendances, month, year }: PageProps) {
+    const { t } = useLanguage();
     const [monthVal, setMonthVal] = useState(month.toString());
     const [yearVal, setYearVal] = useState(year.toString());
     const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
@@ -54,13 +59,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
     const [activeTab, setActiveTab] = useState<"calendar" | "list">("calendar");
     const [isDayDetailOpen, setIsDayDetailOpen] = useState(false);
 
-    const handleSelectDay = (day: number) => {
-        setSelectedDay(day);
-        setIsDayDetailOpen(true);
-    };
-
     const {
-        currentPage: attPage,
         setCurrentPage: setAttPage,
         totalPages: attTotalPages,
         safePage: attSafePage,
@@ -184,7 +183,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                         className="text-[12px] font-semibold text-primary"
                         icon={<FiCamera className="text-[12px]" />}
                     >
-                        Cek Foto
+                        {t("reports.btnViewSelfie")}
                     </Button>
                 ) : (
                     <span className="text-[12px] text-text-muted">—</span>
@@ -197,17 +196,12 @@ export default function AttendanceHistory({ student, attendances, month, year }:
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Riwayat"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Riwayat"
-                aria-label="Filter Riwayat"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 
@@ -348,15 +342,10 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                             onClose={() => setIsDesktopFilterOpen(false)}
                             align="right"
                             trigger={
-                                <Button
-                                    variant="accent"
-                                    size="sm"
+                                <FilterTriggerButton
+                                    active={hasActiveFilters}
                                     onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                    icon={<FiFilter className="text-[13px]" />}
-                                    className="h-10 px-3 sm:px-4 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                >
-                                    Filter{hasActiveFilters ? " (Aktif)" : ""}
-                                </Button>
+                                />
                             }
                         >
                             {filterPopoverContent}
@@ -397,7 +386,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                                 }
                                                 className="text-[11px] font-bold"
                                             >
-                                                Foto Selfie
+                                                {t("reports.btnViewSelfie")}
                                             </Button>
                                         )}
                                     </div>
@@ -431,27 +420,29 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                             </span>
                         </div>
 
-                        <Table<AttendanceRecord>
-                            columns={columns}
-                            data={paginatedAttendances}
-                            keyExtractor={(row) => row.id}
-                            emptyMessage="Belum ada data kehadiran untuk bulan yang dipilih."
-                            containerClassName="bg-surface border border-border rounded-xl shadow-xs overflow-x-auto"
-                            dense
-                        />
+                        <TableSection desktopOnly>
+                            <Table<AttendanceRecord>
+                                columns={columns}
+                                data={paginatedAttendances}
+                                keyExtractor={(row) => row.id}
+                                emptyMessage="Belum ada data kehadiran untuk bulan yang dipilih."
+                                dense
+                                fill
+                            />
 
-                        {attendances.length > attPageSize && (
-                            <div className="shrink-0 mt-auto pt-1">
-                                <TableFooter
-                                    info={`Menampilkan ${paginatedAttendances.length} dari ${attendances.length} log kehadiran`}
-                                    currentPage={attSafePage}
-                                    totalPages={attTotalPages}
-                                    totalItems={attendances.length}
-                                    perPage={attPageSize}
-                                    onPageChange={setAttPage}
-                                />
-                            </div>
-                        )}
+                            {attendances.length > attPageSize && (
+                                <div className="shrink-0 mt-auto pt-1">
+                                    <TableFooter
+                                        info={`Menampilkan ${paginatedAttendances.length} dari ${attendances.length} log kehadiran`}
+                                        currentPage={attSafePage}
+                                        totalPages={attTotalPages}
+                                        totalItems={attendances.length}
+                                        perPage={attPageSize}
+                                        onPageChange={setAttPage}
+                                    />
+                                </div>
+                            )}
+                        </TableSection>
                     </div>
                 </div>
 
@@ -488,7 +479,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                                     }
                                                     className="text-[11px] font-bold"
                                                 >
-                                                    Foto Selfie
+                                                    {t("reports.btnViewSelfie")}
                                                 </Button>
                                             )}
                                         </div>
@@ -563,7 +554,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                                         className="text-primary font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
                                                     >
                                                         <FiCamera className="text-[12px]" />
-                                                        <span>Foto</span>
+                                                        <span>{t("reports.btnViewSelfie")}</span>
                                                     </button>
                                                 )}
                                             </div>
@@ -632,7 +623,7 @@ export default function AttendanceHistory({ student, attendances, month, year }:
                                 icon={<FiCamera className="text-[14px]" />}
                                 className="w-full h-11 text-[13px] font-bold rounded-xl mt-1"
                             >
-                                Lihat Bukti Foto Selfie
+                                {t("reports.btnViewSelfie")}
                             </Button>
                         ) : (
                             <p className="text-[12px] text-text-muted text-center py-1">

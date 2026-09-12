@@ -2,14 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiAlertTriangle, FiBarChart2, FiFileText, FiGrid, FiInfo } from "react-icons/fi";
 import type { ChartDataPoint } from "@/Components/features/AttendanceChart";
 import AttendanceChart from "@/Components/features/AttendanceChart";
+import { Button, MobileNativePagination, Table, TableFooter, TableSection } from "@/Components";
 import { useLanguage } from "@/Contexts/LanguageContext";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 import type { DailyBreakdown, MonthlyBreakdown, StudentRecap, Summary } from "@/types/Report";
+import type { Column } from "@/Components/ui/Table";
 
 interface BaseRecapTableProps {
     students: StudentRecap[];
     summary?: Summary;
+    /** @deprecated Export actions belong to the page toolbar; kept for compatibility with existing callers. */
     onExportPdf?: () => void;
+    /** @deprecated Export actions belong to the page toolbar; kept for compatibility with existing callers. */
     onExportExcel?: () => void;
 }
 
@@ -42,15 +47,19 @@ const MONTH_KEYS = [
     "october",
     "november",
     "december",
-];
-
-function getMonthKey(month: number): string {
-    return MONTH_KEYS[month - 1] ?? "january";
-}
+] as const;
 
 export default function RecapTable(props: RecapTableProps) {
     const { students, summary, onExportPdf, onExportExcel } = props;
     const { t } = useLanguage();
+
+    const {
+        setCurrentPage,
+        totalPages,
+        safePage,
+        paginatedData: paginatedStudents,
+        pageSize,
+    } = useClientPagination(students, 1, 10);
 
     const isZero = (v: string | number) => Number(v) === 0;
 
@@ -99,20 +108,6 @@ export default function RecapTable(props: RecapTableProps) {
         }));
     }, [props, summary?.total_students]);
 
-    const title = useMemo(() => {
-        if (props.mode === "monthly") {
-            return t("reports.dataRecapMonthly", {
-                month: t(`month.${getMonthKey(props.month)}`),
-                year: props.year,
-            });
-        }
-        const semesterLabel =
-            props.semester === "1"
-                ? `${t("reports.odd")} ${props.year}/${props.year + 1}`
-                : `${t("reports.even")} ${props.year - 1}/${props.year}`;
-        return t("reports.dataRecapSemester", { label: semesterLabel });
-    }, [props, t]);
-
     interface StatCardEntry {
         label: string;
         value: string | number;
@@ -153,6 +148,22 @@ export default function RecapTable(props: RecapTableProps) {
 
     const ratiosZero = summary ? summary.attendance_rate === 0 && summary.discipline_rate === 0 : false;
 
+    const title = useMemo(() => {
+        if (props.mode === "monthly") {
+            const monthKey = MONTH_KEYS[props.month - 1] ?? MONTH_KEYS[0];
+            return t("reports.dataRecapMonthly", {
+                month: t(`month.${monthKey}`),
+                year: props.year,
+            });
+        }
+
+        const semesterLabel =
+            props.semester === "1"
+                ? `${t("reports.odd")} ${props.year}/${props.year + 1}`
+                : `${t("reports.even")} ${props.year - 1}/${props.year}`;
+        return t("reports.dataRecapSemester", { label: semesterLabel });
+    }, [props, t]);
+
     const mainStatCards: StatCardEntry[] = summary
         ? [
               {
@@ -184,11 +195,126 @@ export default function RecapTable(props: RecapTableProps) {
         { label: t("reports.headerDiscipline"), align: "center" as const },
     ];
 
+    const recapColumns: Column<StudentRecap>[] = [
+        {
+            key: "no",
+            header: HEADERS[0].label,
+            cellClassName: "text-text-secondary",
+            render: (_student, index = 0) => (
+                <span className="text-text-secondary">{(safePage - 1) * pageSize + index + 1}</span>
+            ),
+        },
+        {
+            key: "name",
+            header: HEADERS[1].label,
+            headerClassName: "min-w-[180px] max-xl:sticky max-xl:left-0 max-xl:z-20 max-xl:bg-muted",
+            cellClassName: "font-bold text-text-primary min-w-[180px] max-xl:sticky max-xl:left-0 max-xl:z-10 max-xl:bg-surface",
+            render: (student) => student.name,
+        },
+        {
+            key: "nis",
+            header: HEADERS[2].label,
+            render: (student) => student.nis,
+        },
+        {
+            key: "on_time",
+            header: HEADERS[3].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.on_time > 0 ? "font-semibold text-success" : "font-semibold text-text-muted"}>
+                    {student.on_time}
+                </span>
+            ),
+        },
+        {
+            key: "late",
+            header: HEADERS[4].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.late > 0 ? "font-semibold text-warning" : "font-semibold text-text-muted"}>
+                    {student.late}
+                </span>
+            ),
+        },
+        {
+            key: "permission",
+            header: HEADERS[5].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.permission > 0 ? "font-semibold text-primary" : "font-semibold text-text-muted"}>
+                    {student.permission}
+                </span>
+            ),
+        },
+        {
+            key: "sick",
+            header: HEADERS[6].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.sick > 0 ? "font-semibold text-medical" : "font-semibold text-text-muted"}>
+                    {student.sick}
+                </span>
+            ),
+        },
+        {
+            key: "pending",
+            header: HEADERS[7].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.pending > 0 ? "font-semibold text-info" : "font-semibold text-text-muted"}>
+                    {student.pending}
+                </span>
+            ),
+        },
+        {
+            key: "absent",
+            header: HEADERS[8].label,
+            className: "text-center",
+            render: (student) => (
+                <span className={student.absent > 0 ? "font-semibold text-danger" : "font-semibold text-text-muted"}>
+                    {student.absent}
+                </span>
+            ),
+        },
+        {
+            key: "attendance_rate",
+            header: HEADERS[9].label,
+            className: "text-center font-bold",
+            render: (student) => {
+                const isEmpty = student.attendance_rate === 0 && student.discipline_rate === 0;
+                return (
+                    <span className={isEmpty ? "text-text-muted" : student.attendance_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                        {student.attendance_rate}%
+                        {student.attendance_rate <= 75 && !isEmpty && (
+                            <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
+                        )}
+                    </span>
+                );
+            },
+        },
+        {
+            key: "discipline_rate",
+            header: HEADERS[10].label,
+            className: "text-center font-bold",
+            render: (student) => {
+                const isEmpty = student.discipline_rate === 0 && student.attendance_rate === 0;
+                return (
+                    <span className={isEmpty ? "text-text-muted" : student.discipline_rate <= 75 ? "text-warning" : "text-text-primary"}>
+                        {student.discipline_rate}%
+                        {student.discipline_rate <= 75 && !isEmpty && (
+                            <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
+                        )}
+                    </span>
+                );
+            },
+        },
+    ];
+
     return (
-        <div className="space-y-6">
-            {/* Desktop Chart + Stats */}
+        <div className="flex flex-1 min-h-0 flex-col gap-6">
+            {/* Tablet & Desktop Chart + Stats */}
             {summary && (
-                <div className="hidden lg:block bg-surface border border-border rounded-xl p-4">
+                <div className="hidden sm:block bg-surface border border-border rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-4">
                         <FiBarChart2 className="text-primary" />
                         <span className="text-[14px] font-semibold text-text-primary">{t("reports.summary")}</span>
@@ -242,7 +368,7 @@ export default function RecapTable(props: RecapTableProps) {
 
             {/* Mobile Ringkasan */}
             {summary && (
-                <div className="lg:hidden bg-surface border border-border rounded-xl p-4 space-y-3">
+                <div className="sm:hidden bg-surface border border-border rounded-xl p-4 space-y-3">
                     <div className="flex items-center gap-2">
                         <FiBarChart2 className="text-primary" />
                         <span className="text-[14px] font-semibold text-text-primary">{t("reports.summary")}</span>
@@ -341,155 +467,59 @@ export default function RecapTable(props: RecapTableProps) {
                 </div>
             )}
 
-            {/* Table (Desktop only) */}
-            <div className="hidden lg:block bg-surface border border-border rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-4">
-                    <h3 className="text-[14px] font-semibold text-text-primary">{title}</h3>
-                    <div className="flex items-center gap-3 shrink-0">
-                        <button
-                            type="button"
-                            onClick={onExportPdf}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-danger hover:bg-danger/90 transition-colors"
-                        >
-                            <FiFileText className="text-[12px]" /> PDF
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onExportExcel}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-white bg-success hover:bg-success/90 transition-colors"
-                        >
-                            <FiGrid className="text-[12px]" /> Excel
-                        </button>
-                    </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse font-inter min-w-[720px]">
-                        <thead>
-                            <tr className="bg-background border-b border-border">
-                                {HEADERS.map((h) => (
-                                    <th
-                                        key={h.label}
-                                        className={`px-4 py-3 text-${h.align} text-[12px] font-semibold text-text-muted uppercase tracking-wide ${
-                                            h.sticky
-                                                ? "max-xl:sticky max-xl:left-0 max-xl:z-10 max-xl:bg-background"
-                                                : ""
-                                        }`}
-                                    >
-                                        {h.label}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {students.length === 0 ? (
-                                <tr>
-                                    <td colSpan={11} className="text-center text-text-muted text-[13px] py-10">
-                                        {t("reports.emptyMonthly")}
-                                    </td>
-                                </tr>
-                            ) : (
-                                students.map((s, i) => (
-                                    <tr
-                                        key={s.id}
-                                        className="border-b border-border last:border-b-0 hover:bg-background transition-colors"
-                                    >
-                                        <td className="px-4 py-3 text-[13px] text-text-muted">{i + 1}</td>
-                                        <td className="px-4 py-3 text-[13px] font-bold text-text-primary max-xl:sticky max-xl:left-0 max-xl:bg-white max-xl:z-5">
-                                            {s.name}
-                                        </td>
-                                        <td className="px-4 py-3 text-[13px] text-text-primary">{s.nis}</td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{
-                                                color:
-                                                    s.on_time > 0 ? "var(--color-success)" : "var(--color-text-muted)",
-                                            }}
-                                        >
-                                            {s.on_time}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{
-                                                color:
-                                                    s.present - s.on_time > 0
-                                                        ? "var(--color-warning)"
-                                                        : "var(--color-text-muted)",
-                                            }}
-                                        >
-                                            {s.present - s.on_time}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.permission > 0 ? "var(--color-primary)" : "var(--color-text-muted)" }}
-                                        >
-                                            {s.permission}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.sick > 0 ? "var(--color-medical)" : "var(--color-text-muted)" }}
-                                        >
-                                            {s.sick}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.pending > 0 ? "var(--color-info)" : "var(--color-text-muted)" }}
-                                        >
-                                            {s.pending}
-                                        </td>
-                                        <td
-                                            className="px-4 py-3 text-[13px] text-center font-semibold"
-                                            style={{ color: s.absent > 0 ? "var(--color-danger)" : "var(--color-text-muted)" }}
-                                        >
-                                            {s.absent}
-                                        </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span
-                                                className={
-                                                    s.attendance_rate === 0 && s.discipline_rate === 0
-                                                        ? "text-text-muted"
-                                                        : s.attendance_rate <= 75
-                                                          ? "text-warning"
-                                                          : "text-text-primary"
-                                                }
-                                            >
-                                                {s.attendance_rate}%
-                                                {s.attendance_rate <= 75 &&
-                                                    !(s.attendance_rate === 0 && s.discipline_rate === 0) && (
-                                                        <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
-                                                    )}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-[13px] text-center font-bold">
-                                            <span
-                                                className={
-                                                    s.discipline_rate === 0 && s.attendance_rate === 0
-                                                        ? "text-text-muted"
-                                                        : s.discipline_rate <= 75
-                                                          ? "text-warning"
-                                                          : "text-text-primary"
-                                                }
-                                            >
-                                                {s.discipline_rate}%
-                                                {s.discipline_rate <= 75 &&
-                                                    !(s.discipline_rate === 0 && s.attendance_rate === 0) && (
-                                                        <FiAlertTriangle className="inline align-middle ml-0.5 text-[11px] relative -top-px" />
-                                                    )}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))
+            {/* Table (Tablet & Desktop) */}
+            <TableSection desktopOnly className="w-full font-inter">
+                <div className="flex items-center justify-between gap-3 shrink-0">
+                    <h3 className="text-[14px] font-semibold text-text-primary truncate">{title}</h3>
+                    {(onExportPdf || onExportExcel) && (
+                        <div className="flex items-center gap-2 shrink-0">
+                            {onExportPdf && (
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    icon={<FiFileText className="text-[12px]" />}
+                                    onClick={onExportPdf}
+                                >
+                                    PDF
+                                </Button>
                             )}
-                        </tbody>
-                    </table>
+                            {onExportExcel && (
+                                <Button
+                                    variant="success"
+                                    size="sm"
+                                    icon={<FiGrid className="text-[12px]" />}
+                                    onClick={onExportExcel}
+                                >
+                                    Excel
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </div>
-            </div>
+                <Table
+                    columns={recapColumns}
+                    data={paginatedStudents}
+                    keyExtractor={(student) => student.id}
+                    emptyMessage={t("reports.emptyMonthly")}
+                    minWidthClassName="min-w-[720px]"
+                    fill
+                />
+                <TableFooter
+                    info={t("reports.footerNote")}
+                    currentPage={safePage}
+                    totalPages={totalPages}
+                    totalItems={students.length}
+                    perPage={pageSize}
+                    onPageChange={setCurrentPage}
+                />
+            </TableSection>
 
             {/* Mobile Student Cards */}
-            <div className="lg:hidden space-y-2">
+            <div className="sm:hidden flex flex-col gap-2.5">
                 {students.length === 0 ? (
                     <div className="py-12 text-center text-text-muted text-[13px]">{t("reports.emptyMonthly")}</div>
                 ) : (
-                    students.map((s) => (
+                    paginatedStudents.map((s) => (
                         <div
                             key={s.id}
                             className="bg-surface border border-border rounded-xl p-3"
@@ -624,6 +654,17 @@ export default function RecapTable(props: RecapTableProps) {
                             </div>
                         </div>
                     ))
+                )}
+                {students.length > pageSize && (
+                    <div className="pt-2 font-inter">
+                        <MobileNativePagination
+                            currentPage={safePage}
+                            totalPages={totalPages}
+                            totalItems={students.length}
+                            perPage={pageSize}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
                 )}
             </div>
         </div>

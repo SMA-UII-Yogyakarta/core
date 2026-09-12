@@ -16,10 +16,12 @@ export type ButtonProps<E extends ElementType = "button"> = {
     "as" | "variant" | "size" | "loading" | "icon" | "disabled" | "className" | "children"
 >;
 
+const accentButtonStyle = "bg-accent text-primary hover:brightness-95 font-bold shadow-xs border border-transparent";
+
 const variantStyles: Record<ButtonVariant | "success", string> = {
     primary: "bg-primary text-white hover:bg-primary/90 shadow-xs",
-    secondary: "bg-accent text-primary hover:brightness-95 font-bold shadow-xs border border-transparent",
-    accent: "bg-accent text-primary hover:brightness-95 font-bold shadow-xs border border-transparent",
+    secondary: accentButtonStyle,
+    accent: accentButtonStyle,
     outline: "border border-primary text-primary hover:bg-primary hover:text-white",
     danger: "bg-danger text-white hover:bg-danger/90 shadow-xs",
     "danger-outline": "border border-danger text-danger hover:bg-danger hover:text-white",
@@ -50,11 +52,13 @@ export function Button<E extends ElementType = "button">({
     return (
         <Component
             className={`inline-flex items-center justify-center gap-2 font-inter transition-all duration-150 text-center select-none active:scale-[0.98]
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30
                 ${variantStyles[variant]}
                 ${sizeStyles[size]}
                 ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}
                 ${className}`}
             disabled={isDisabled && Component === "button" ? true : undefined}
+            type={Component === "button" ? "button" : undefined}
             {...props}
         >
             {loading ? (

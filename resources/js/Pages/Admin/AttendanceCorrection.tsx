@@ -9,6 +9,8 @@ import {
     ConfirmDialog,
     Drawer,
     EmptyState,
+    FilterTriggerButton,
+    HeaderIconButton,
     Input,
     MobileNativePagination,
     PageHeader,
@@ -17,6 +19,7 @@ import {
     StatusBadge,
     Table,
     TableFooter,
+    TableSection,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { useClientPagination } from "@/hooks/useClientPagination";
@@ -230,17 +233,12 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Koreksi Absensi"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Koreksi Absensi"
-                aria-label="Filter Koreksi Absensi"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 
@@ -281,10 +279,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                 ]}
                             />
                         </div>
-                        <Button variant="accent" onClick={applyFilter} className="h-10">
-                            <FiFilter className="mr-2 text-[12px]" />
-                            Terapkan Filter
-                        </Button>
+                        <FilterTriggerButton label="Terapkan Filter" onClick={applyFilter} />
                         <div className="w-full sm:w-64 sm:ml-auto">
                             <SearchBar
                                 value={search}
@@ -376,7 +371,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                 </div>
 
                 {/* Tablet & Desktop View (>= sm): Standard Table */}
-                <div className="hidden sm:flex flex-col gap-3">
+                <TableSection desktopOnly>
                     <Table
                         columns={columns}
                         data={paginatedStudents}
@@ -386,6 +381,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                                 ? "Tidak ditemukan siswa yang cocok dengan pencarian."
                                 : "Tidak ada data siswa untuk tanggal dan kelas yang dipilih."
                         }
+                        fill
                     />
                     <TableFooter
                         currentPage={safePage}
@@ -395,7 +391,7 @@ export default function KoreksiAbsensi({ students, classes, filters }: Props) {
                         onPageChange={setCurrentPage}
                         itemLabel="siswa"
                     />
-                </div>
+                </TableSection>
 
                 {/* Correction Drawer */}
                 <Drawer

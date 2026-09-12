@@ -12,7 +12,17 @@ import {
     FiSend,
     FiVideo,
 } from "react-icons/fi";
-import { AttendanceChart, BottomSheet, Button, Card, Input, PageHeader, StatCard, Table } from "@/Components";
+import {
+    AttendanceChart,
+    BottomSheet,
+    Button,
+    Card,
+    HeaderIconButton,
+    Input,
+    PageHeader,
+    StatCard,
+    Table,
+} from "@/Components";
 import type { Column } from "@/Components/ui/Table";
 import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
@@ -108,15 +118,12 @@ export default function Overview({ overview, monthlyTrend, weeklyTrend, selected
 
     const mobileHeaderActions = (
         <div className="flex sm:hidden items-center gap-1.5 font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                variant="neutral"
+                icon={<FiCalendar className="text-[14px]" />}
+                label="Pilih Tanggal Overview"
                 onClick={() => setIsMobileDateOpen(true)}
-                className="w-8 h-8 rounded-full bg-white/15 border border-white/20 text-white flex items-center justify-center cursor-pointer hover:bg-white/25 active:scale-95 transition-all shadow-xs"
-                title="Pilih Tanggal Overview"
-                aria-label="Pilih Tanggal Overview"
-            >
-                <FiCalendar className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 

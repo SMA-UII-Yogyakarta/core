@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { FiX } from "react-icons/fi";
 import Button from "@/Components/ui/Button";
+import IconButton from "@/Components/ui/IconButton";
 import Tooltip from "@/Components/ui/Tooltip";
 import TruncatedText from "@/Components/ui/TruncatedText";
 import type { ButtonVariant } from "@/types/component";
@@ -105,16 +106,16 @@ export default function Modal({
                     <div className="flex items-center gap-2 shrink-0">
                         {headerRight}
                         <Tooltip content="Tutup" position="bottom">
-                            <button
-                                type="button"
+                            <IconButton
+                                size="sm"
+                                variant="ghost"
+                                icon={<FiX className="w-4 h-4" />}
+                                label="Tutup modal"
                                 onClick={onClose}
-                                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-text-muted hover:text-text-primary hover:bg-muted flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                                aria-label="Tutup modal"
                                 dusk="modal-close-btn"
                                 data-testid="modal-close-btn"
-                            >
-                                <FiX className="w-4 h-4" />
-                            </button>
+                                className="sm:w-8 sm:h-8 rounded-lg"
+                            />
                         </Tooltip>
                     </div>
                 </div>

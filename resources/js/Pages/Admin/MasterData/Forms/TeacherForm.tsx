@@ -16,6 +16,28 @@ export interface TeacherFormProps {
     showSubmitButton?: boolean;
 }
 
+type TeacherRoleFlags = {
+    duty: boolean;
+    homeroom: boolean;
+};
+
+function resolveTeacherRoleFlags(teacher: Teacher | null | undefined, isCreate: boolean): TeacherRoleFlags {
+    if (isCreate) {
+        return { duty: false, homeroom: false };
+    }
+
+    const rawTypes = Array.isArray(teacher?.teacher_type)
+        ? teacher.teacher_type
+        : [String(teacher?.teacher_type ?? "")];
+    const types = rawTypes.map((type) => String(type).toLowerCase());
+    const duty = types.some((type) => type.includes("duty") || type.includes("piket") || type === "both");
+    const homeroom = types.some(
+        (type) => type.includes("homeroom") || type.includes("wali") || type === "both",
+    );
+
+    return duty || homeroom ? { duty, homeroom } : { duty: true, homeroom: false };
+}
+
 export default function TeacherForm({
     teacher,
     mode = "create",
@@ -29,56 +51,30 @@ export default function TeacherForm({
     const activeUnlocked = isUnlocked ?? isCreate;
     const isReadOnly = !activeUnlocked;
 
-    const [isHomeroom, setIsHomeroom] = useState(false);
-    const [isDuty, setIsDuty] = useState(true);
+    const initialRoleFlags = resolveTeacherRoleFlags(teacher, isCreate);
+    const [isHomeroom, setIsHomeroom] = useState(initialRoleFlags.homeroom);
+    const [isDuty, setIsDuty] = useState(initialRoleFlags.duty);
     const [roleError, setRoleError] = useState<string | null>(null);
 
     const { data, setData, post, patch, processing, reset, errors, clearErrors, setError } = useForm({
         teacher_code: "",
         name: "",
-        teacher_type: "duty" as string,
+        teacher_type: "" as string,
         email: "",
         password: "",
     });
 
-    const [prevTeacher, setPrevTeacher] = useState<Teacher | null | undefined>(teacher);
-    const [prevIsCreate, setPrevIsCreate] = useState(isCreate);
-
-    if (teacher !== prevTeacher || isCreate !== prevIsCreate) {
-        setPrevTeacher(teacher);
-        setPrevIsCreate(isCreate);
-        if (isCreate) {
-            setIsHomeroom(false);
-            setIsDuty(true);
-        } else if (teacher) {
-            let hasDuty = false;
-            let hasHome = false;
-
-            if (Array.isArray(teacher.teacher_type)) {
-                hasDuty = teacher.teacher_type.some((t) => String(t).includes("duty") || String(t).includes("piket"));
-                hasHome = teacher.teacher_type.some(
-                    (t) => String(t).includes("homeroom") || String(t).includes("wali"),
-                );
-            } else if (teacher.teacher_type) {
-                const str = String(teacher.teacher_type).toLowerCase();
-                hasDuty = str.includes("duty") || str.includes("piket") || str === "both";
-                hasHome = str.includes("homeroom") || str.includes("wali") || str === "both";
-            }
-
-            if (!hasDuty && !hasHome) hasDuty = true;
-
-            setIsDuty(hasDuty);
-            setIsHomeroom(hasHome);
-        }
-    }
-
     useEffect(() => {
+        const roleFlags = resolveTeacherRoleFlags(teacher, isCreate);
+        setIsDuty(roleFlags.duty);
+        setIsHomeroom(roleFlags.homeroom);
+
         if (isCreate) {
             reset();
             setData({
                 teacher_code: "",
                 name: "",
-                teacher_type: "duty",
+                teacher_type: "",
                 email: "",
                 password: "",
             });
@@ -202,6 +198,8 @@ export default function TeacherForm({
                 <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                     {/* Option 1: Wali Kelas */}
                     <div
+                        data-testid="teacher-role-homeroom"
+                        data-selected={isHomeroom ? "true" : "false"}
                         onClick={handleToggleHomeroom}
                         className={`p-2.5 sm:p-3 rounded-xl border flex items-start gap-2 sm:gap-3 transition-all ${
                             isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"
@@ -237,6 +235,8 @@ export default function TeacherForm({
 
                     {/* Option 2: Guru Piket */}
                     <div
+                        data-testid="teacher-role-duty"
+                        data-selected={isDuty ? "true" : "false"}
                         onClick={handleToggleDuty}
                         className={`p-2.5 sm:p-3 rounded-xl border flex items-start gap-2 sm:gap-3 transition-all ${
                             isReadOnly ? "opacity-75 cursor-default" : "cursor-pointer"

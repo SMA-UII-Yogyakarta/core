@@ -147,6 +147,7 @@ export default function EmptyState({
                     )}
                     {showRetry && (
                         <button
+                            type="button"
                             onClick={handleRetry}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
                         >

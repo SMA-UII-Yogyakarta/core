@@ -26,6 +26,11 @@ describe("StatusDot Component", () => {
         expect((cLg.firstElementChild as HTMLElement).className).toContain("bg-danger");
     });
 
+    it("uses the same semantic color family as the permission badge", () => {
+        const { container } = render(<StatusDot status="izin" />);
+        expect((container.firstElementChild as HTMLElement).className).toContain("bg-primary");
+    });
+
     it("applies pulse animation when pulse prop is true", () => {
         const { container } = render(<StatusDot status="absent" pulse />);
         const dot = container.firstElementChild as HTMLElement;

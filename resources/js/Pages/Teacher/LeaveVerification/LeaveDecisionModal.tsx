@@ -52,7 +52,7 @@ export default function LeaveDecisionModal({
         <Modal open={open} onClose={onClose} title={title}>
             <div className="space-y-4">
                 {/* Summary Box */}
-                <div className="p-3.5 rounded-xl bg-surface-hover border border-border-default space-y-2">
+                <div className="p-3.5 rounded-xl bg-muted border border-border space-y-2">
                     <div className="flex items-center justify-between">
                         <span className="text-[13px] font-semibold text-text-primary">{leave.student.name}</span>
                         <span className="text-[12px] text-text-muted">NIS: {leave.student.nis}</span>
@@ -95,8 +95,8 @@ export default function LeaveDecisionModal({
                                     }}
                                     className={`w-full text-left px-3 py-2 rounded-lg text-[13px] border transition-all ${
                                         selectedReason === r && !customReason
-                                            ? "border-brand-primary bg-brand-primary/10 text-brand-primary font-medium"
-                                            : "border-border-default hover:bg-surface-hover text-text-secondary"
+                                            ? "border-primary bg-primary/10 text-primary font-medium"
+                                            : "border-border hover:bg-muted text-text-secondary"
                                     }`}
                                 >
                                     {r}
@@ -121,7 +121,7 @@ export default function LeaveDecisionModal({
                 )}
 
                 {/* Buttons */}
-                <div className="flex justify-end gap-2 pt-3 border-t border-border-default">
+                <div className="flex justify-end gap-2 pt-3 border-t border-border">
                     <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
                         Batal
                     </Button>

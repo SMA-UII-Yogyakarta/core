@@ -7,6 +7,7 @@ import {
     Button,
     Card,
     ExportButtonGroup,
+    HeaderIconButton,
     PageHeader,
     SelectInput,
     StatCard,
@@ -39,17 +40,12 @@ export default function MonthlyReport({
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Rekap Bulanan"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Rekap Bulanan"
-                aria-label="Filter Rekap Bulanan"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 

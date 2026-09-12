@@ -92,12 +92,12 @@ export default function MobileSidebarDrawer({
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={() => {
                             setProfileMenuOpen(false);
                             onClose();
                         }}
                         className="text-text-inactive hover:text-text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted cursor-pointer"
-                        type="button"
                         aria-label="Tutup menu"
                     >
                         <FiX className="text-[18px]" />
@@ -224,6 +224,7 @@ export default function MobileSidebarDrawer({
                                 />
                             </button>
                             <button
+                                type="button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setProfileMenuOpen(false);
@@ -232,7 +233,6 @@ export default function MobileSidebarDrawer({
                                 }}
                                 className="w-8 h-8 rounded-lg flex items-center justify-center text-text-inactive hover:text-danger hover:bg-danger/10 transition-colors shrink-0 cursor-pointer"
                                 title="Keluar Akun"
-                                type="button"
                                 aria-label="Keluar Akun"
                             >
                                 <FiLogOut className="text-[15px]" />

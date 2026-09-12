@@ -39,6 +39,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, activeRole, availab
 
             <div className="space-y-2.5">
                 <button
+                    type="button"
                     onClick={() => handleSwitch("homeroom")}
                     className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all ${
                         activeRole === "homeroom"
@@ -64,6 +65,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, activeRole, availab
                 </button>
 
                 <button
+                    type="button"
                     onClick={() => handleSwitch("duty")}
                     className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all ${
                         activeRole === "duty"

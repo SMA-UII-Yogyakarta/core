@@ -1,9 +1,46 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "@/Contexts/LanguageContext";
 import type { DailyBreakdown, MonthlyBreakdown, StudentRecap, Summary } from "@/types/Report";
 import MonthlyTable from "../Pages/Teacher/Reports/MonthlyTable";
 import RecapTable from "../Pages/Teacher/Reports/RecapTable";
 import SemesterTable from "../Pages/Teacher/Reports/SemesterTable";
+
+vi.mock("@inertiajs/react", async (importOriginal) => {
+    const actual = await importOriginal<typeof import("@inertiajs/react")>();
+
+    return {
+        ...actual,
+        usePage: () => ({
+            props: {
+                locale: "id",
+                translations: {
+                    "reports.dataRecapMonthly": "Data Rekapitulasi Siswa ({month} {year})",
+                    "reports.dataRecapSemester": "Data Rekapitulasi Siswa (Semester {label})",
+                    "reports.odd": "Ganjil",
+                    "reports.even": "Genap",
+                    "reports.summary": "Ringkasan",
+                    "reports.headerAttendance": "Kehadiran",
+                    "reports.headerDiscipline": "Kedisiplinan",
+                    "reports.headerNo": "No",
+                    "reports.headerName": "Nama Lengkap",
+                    "reports.headerNis": "NIS",
+                    "reports.headerOnTime": "Tepat Waktu",
+                    "reports.statusLate": "Terlambat",
+                    "reports.permission": "IZIN",
+                    "reports.statusSick": "SAKIT",
+                    "reports.statusPending": "Izin Tertunda",
+                    "reports.statusAbsent": "ALPA",
+                    "reports.emptyMonthly": "Belum ada data untuk periode ini.",
+                    "reports.footerNote": "Tampilan kolom menyesuaikan secara otomatis berdasarkan filter periode yang dipilih.",
+                    "month.january": "Januari",
+                    "month.may": "Mei",
+                },
+            },
+        }),
+    };
+});
 
 vi.mock("@/Components/features/AttendanceChart", () => ({
     default: vi.fn((props) => (
@@ -87,12 +124,14 @@ const mockMonthlyBreakdown: MonthlyBreakdown[] = [
     },
 ];
 
+const renderWithLanguage = (ui: ReactElement) => render(<LanguageProvider>{ui}</LanguageProvider>);
+
 describe("RecapTable Component", () => {
     it("renders monthly mode with title, stats, table rows, and showHolidayBar=true", () => {
         const handlePdf = vi.fn();
         const handleExcel = vi.fn();
 
-        render(
+        renderWithLanguage(
             <RecapTable
                 mode="monthly"
                 students={mockStudents}
@@ -133,7 +172,7 @@ describe("RecapTable Component", () => {
     });
 
     it("renders semester mode with title, stats, table rows, and showHolidayBar=false", () => {
-        render(
+        renderWithLanguage(
             <RecapTable
                 mode="semester"
                 students={mockStudents}
@@ -155,14 +194,16 @@ describe("RecapTable Component", () => {
     });
 
     it("renders even semester title correctly", () => {
-        render(<RecapTable mode="semester" students={mockStudents} summary={mockSummary} semester="2" year={2026} />);
+        renderWithLanguage(
+            <RecapTable mode="semester" students={mockStudents} summary={mockSummary} semester="2" year={2026} />,
+        );
 
         // Title verification for semester 2 (Genap)
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Semester Genap 2025\/2026\)/i)).toBeDefined();
     });
 
     it("displays empty state message when students list is empty", () => {
-        render(<RecapTable mode="monthly" students={[]} month={1} year={2026} />);
+        renderWithLanguage(<RecapTable mode="monthly" students={[]} month={1} year={2026} />);
 
         expect(screen.getAllByText("Belum ada data untuk periode ini.").length).toBeGreaterThan(0);
     });
@@ -170,7 +211,7 @@ describe("RecapTable Component", () => {
 
 describe("MonthlyTable wrapper component", () => {
     it("renders via MonthlyTable thin wrapper", () => {
-        render(<MonthlyTable students={mockStudents} summary={mockSummary} month={5} year={2026} />);
+        renderWithLanguage(<MonthlyTable students={mockStudents} summary={mockSummary} month={5} year={2026} />);
 
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Mei 2026\)/i)).toBeDefined();
         expect(screen.getAllByText("Ahmad Santoso").length).toBeGreaterThan(0);
@@ -179,7 +220,7 @@ describe("MonthlyTable wrapper component", () => {
 
 describe("SemesterTable wrapper component", () => {
     it("renders via SemesterTable thin wrapper", () => {
-        render(<SemesterTable students={mockStudents} summary={mockSummary} semester="1" year={2026} />);
+        renderWithLanguage(<SemesterTable students={mockStudents} summary={mockSummary} semester="1" year={2026} />);
 
         expect(screen.getByText(/Data Rekapitulasi Siswa \(Semester Ganjil 2026\/2027\)/i)).toBeDefined();
         expect(screen.getAllByText("Ahmad Santoso").length).toBeGreaterThan(0);

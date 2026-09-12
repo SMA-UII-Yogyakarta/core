@@ -14,6 +14,8 @@ import {
     Button,
     EmptyState,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     MobileNativePagination,
     NativeSelect,
     PageHeader,
@@ -21,6 +23,7 @@ import {
     StatusBadge,
     Table,
     TableFooter,
+    TableSection,
     TabSwitcher,
 } from "@/Components";
 import type { Column } from "@/Components/ui/Table";
@@ -148,28 +151,18 @@ export default function LeaveApplication({ students, leaveRequests, filters = {}
     // Header actions on Mobile (< sm) in AppShell top bar: Filter + Plus Icon Buttons
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={Boolean(categoryFilter || studentIdFilter)}
+                label="Filter Pengajuan Izin"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    categoryFilter || studentIdFilter
-                        ? "bg-accent text-primary font-bold shadow-sm"
-                        : "bg-white/15 border border-white/20 text-white hover:bg-white/25 active:bg-white/30"
-                }`}
-                title="Filter Pengajuan Izin"
-                aria-label="Filter Pengajuan Izin"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
-            <button
-                type="button"
+            />
+            <HeaderIconButton
+                variant="accent"
+                icon={<FiPlus className="text-[15px]" />}
+                label="Ajukan Izin Baru"
                 onClick={handleOpenForm}
-                className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                title="Ajukan Izin Baru"
-                aria-label="Ajukan Izin Baru"
-            >
-                <FiPlus className="text-[15px]" />
-            </button>
+            />
         </div>
     );
 
@@ -343,16 +336,10 @@ export default function LeaveApplication({ students, leaveRequests, filters = {}
                             onClose={() => setIsFilterOpen(false)}
                             align="right"
                             trigger={
-                                <Button
-                                    variant="accent"
-                                    size="md"
+                                <FilterTriggerButton
+                                    active={Boolean(categoryFilter || studentIdFilter)}
                                     onClick={() => setIsFilterOpen((prev) => !prev)}
-                                    icon={<FiFilter className="text-[13px]" />}
-                                    className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                >
-                                    Filter
-                                    {categoryFilter || studentIdFilter ? " (Aktif)" : ""}
-                                </Button>
+                                />
                             }
                         >
                             <div className="flex flex-col gap-3 font-inter min-w-[220px]">
@@ -584,11 +571,12 @@ export default function LeaveApplication({ students, leaveRequests, filters = {}
                             </div>
 
                             {/* Tablet & Desktop Table View (>= sm) */}
-                            <div className="hidden sm:block space-y-3">
+                            <TableSection desktopOnly>
                                 <Table
                                     columns={leaveColumns}
                                     data={leaveRequests.data}
                                     keyExtractor={(item: LeaveRequestRecord) => item.id}
+                                    fill
                                 />
                                 <TableFooter
                                     currentPage={leaveRequests.current_page}
@@ -609,7 +597,7 @@ export default function LeaveApplication({ students, leaveRequests, filters = {}
                                         )
                                     }
                                 />
-                            </div>
+                            </TableSection>
                         </>
                     )}
                 </section>

@@ -114,9 +114,9 @@ export default function LinkedStudentsPanel({
                 className: "w-24 text-center whitespace-nowrap",
                 render: (s: Student) => (
                     <button
+                        type="button"
                         onClick={() => onRemoveStudent(s.id)}
                         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-danger/20 transition-colors cursor-pointer text-[12px] font-semibold"
-                        type="button"
                         title="Lepas hubungan wali"
                         aria-label={`Lepas hubungan ${s.name}`}
                         data-testid={`btn-remove-student-${s.id}`}
@@ -214,13 +214,13 @@ export default function LinkedStudentsPanel({
 
                         {/* Table of Linked Students */}
                         {linkedStudents.length > 0 ? (
-                            <div className="flex-1 min-h-0 flex flex-col justify-between">
+                            <div className="flex-1 min-h-0 min-w-0 max-w-full flex flex-col justify-between">
                                 <Table
                                     bare
                                     columns={columns}
                                     data={paginatedLinked}
                                     keyExtractor={(s: Student) => s.id}
-                                    containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                                    fill
                                 />
                                 {linkedStudents.length > linkedPageSize && (
                                     <div className="px-4 py-3 sm:px-5 shrink-0 mt-auto border-t border-border bg-surface/50 font-inter">

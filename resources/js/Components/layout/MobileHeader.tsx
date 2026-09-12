@@ -2,6 +2,7 @@ import { Link } from "@inertiajs/react";
 import type { ReactNode } from "react";
 import { FiArrowLeft, FiBell, FiMenu, FiSearch, FiX } from "react-icons/fi";
 import Avatar from "../ui/Avatar";
+import IconButton from "../ui/IconButton";
 
 interface MobileHeaderProps {
     title?: string;
@@ -30,7 +31,7 @@ export default function MobileHeader({
     headerActions,
     showSearch = true,
     showNotificationBell = true,
-    showNotificationBellOnMobile = true,
+    showNotificationBellOnMobile = false,
     onBack,
     onOpenSidebar,
     searchValue,
@@ -41,25 +42,23 @@ export default function MobileHeader({
         <header className="lg:hidden flex items-center justify-between h-13 px-3.5 bg-primary text-white shrink-0 shadow-md transition-all duration-200">
             <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
                 {onBack ? (
-                    <button
+                    <IconButton
+                        icon={<FiArrowLeft className="text-[17px]" />}
+                        label="Kembali"
+                        variant="ghost"
                         key="btn-back"
                         onClick={onBack}
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-90 active:bg-white/20 transition-all shrink-0 cursor-pointer animate-mobile-header"
-                        type="button"
-                        aria-label="Kembali"
-                    >
-                        <FiArrowLeft className="text-[17px]" />
-                    </button>
+                        className="rounded-full text-white/90 hover:text-white hover:bg-white/10 active:bg-white/20 animate-mobile-header"
+                    />
                 ) : (
-                    <button
+                    <IconButton
+                        icon={<FiMenu className="text-[18px]" />}
+                        label="Buka menu"
+                        variant="ghost"
                         key="btn-menu"
                         onClick={onOpenSidebar}
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-white/90 hover:text-white hover:bg-white/10 active:scale-90 active:bg-white/20 transition-all shrink-0 cursor-pointer animate-mobile-header"
-                        type="button"
-                        aria-label="Buka menu"
-                    >
-                        <FiMenu className="text-[18px]" />
-                    </button>
+                        className="rounded-full text-white/90 hover:text-white hover:bg-white/10 active:bg-white/20 animate-mobile-header"
+                    />
                 )}
 
                 <h1

@@ -86,6 +86,7 @@ export default function Navbar({
                 {/* Desktop/Tablet: Profile Dropdown */}
                 <div className="hidden sm:block relative" ref={dropdownRef}>
                     <button
+                        type="button"
                         onClick={() => setDropdownOpen(!dropdownOpen)}
                         className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/10 p-1.5 pr-4 rounded-full transition-colors focus:outline-none cursor-pointer"
                     >
@@ -128,6 +129,7 @@ export default function Navbar({
 
                             {teacherTypes.length > 1 && (
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         setDropdownOpen(false);
                                         window.dispatchEvent(new CustomEvent("open-role-switcher"));
@@ -142,6 +144,7 @@ export default function Navbar({
                             {showLogout && (
                                 <div className="border-t border-border mt-1 pt-1">
                                     <button
+                                        type="button"
                                         onClick={onLogout}
                                         className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-danger hover:bg-danger/10 transition-colors cursor-pointer text-left font-medium"
                                     >

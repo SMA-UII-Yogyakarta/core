@@ -18,6 +18,7 @@ import {
     ConfirmDialog,
     Drawer,
     EmptyState,
+    HeaderIconButton,
     MobileNativePagination,
     PageHeader,
     SearchBar,
@@ -171,7 +172,6 @@ export default function GuardianAssignment({
     }, [availableStudents, studentSearch]);
 
     const {
-        currentPage: assignPage,
         setCurrentPage: setAssignPage,
         totalPages: assignTotalPages,
         safePage: assignSafePage,
@@ -302,16 +302,13 @@ export default function GuardianAssignment({
     const mobileHeaderActions = (
         <>
             {isMobile && guardianId && panelView === "list" && selectedGuardian && (
-                <button
-                    type="button"
+                <HeaderIconButton
+                    variant="accent"
+                    icon={<FiUserPlus className="text-[15px]" />}
+                    label="Hubungkan Siswa"
                     onClick={handleOpenAssignView}
-                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                    title="Hubungkan Siswa"
-                    aria-label="Hubungkan Siswa"
                     data-testid="btn-mobile-assign-student"
-                >
-                    <FiUserPlus className="text-[15px]" />
-                </button>
+                />
             )}
         </>
     );
@@ -714,9 +711,9 @@ export default function GuardianAssignment({
                                                             </div>
                                                         </div>
                                                         <button
+                                                            type="button"
                                                             onClick={() => handleRemove(s.id)}
                                                             className="inline-flex items-center justify-center w-8 h-8 rounded-full text-danger hover:text-danger/90 hover:bg-danger-bg active:scale-95 border border-transparent hover:border-danger/20 transition-all cursor-pointer shrink-0"
-                                                            type="button"
                                                             title="Lepas hubungan wali"
                                                             aria-label={`Lepas hubungan ${s.name}`}
                                                             data-testid={`btn-remove-student-${s.id}`}

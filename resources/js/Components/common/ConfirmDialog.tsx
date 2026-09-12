@@ -84,16 +84,16 @@ export default function ConfirmDialog({
 
                 {/* Footer Action Buttons */}
                 <div className="flex items-center justify-center gap-2.5 w-full">
-                    <button
-                        type="button"
+                    <Button
+                        variant="ghost"
                         onClick={onClose}
                         disabled={loading}
-                        className="flex-1 h-10 px-4 rounded-xl text-[13px] font-bold text-text-secondary bg-surface hover:bg-muted/60 border border-border transition-all active:scale-95 cursor-pointer disabled:opacity-50 shadow-2xs"
+                        className="flex-1 h-10 px-4 rounded-xl text-[13px] font-bold text-text-secondary bg-surface hover:bg-muted/60 border border-border shadow-2xs"
                         dusk={`${dusk}-cancel`}
                         data-testid={`${dusk}-cancel`}
                     >
                         {cancelLabel}
-                    </button>
+                    </Button>
                     <Button
                         variant={config.buttonVariant}
                         onClick={onConfirm}

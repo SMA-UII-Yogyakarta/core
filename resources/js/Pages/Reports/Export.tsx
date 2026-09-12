@@ -1,9 +1,7 @@
 import { router } from "@inertiajs/react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     FiCamera,
-    FiChevronDown,
     FiClock,
     FiDownload,
     FiFileText,
@@ -15,18 +13,23 @@ import {
     BottomSheet,
     Button,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     Input,
     MobileNativePagination,
-    Modal,
     NativeSelect,
     PageHeader,
     PhotoPeekModal,
+    ReportExportMenu,
+    ReportToolbar,
     StatusBadge,
     Table,
     TableFooter,
+    TableSection,
     TabSwitcher,
 } from "@/Components";
 import Drawer from "@/Components/common/Drawer";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import { useClientPagination } from "@/hooks/useClientPagination";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import AppShell from "@/Layouts/AppShell";
@@ -90,6 +93,7 @@ export default function ExportPage({
     selectedSemester,
     selectedClassId,
 }: ExportPageProps) {
+    const { t } = useLanguage();
     const {
         safePage,
         totalPages,
@@ -99,41 +103,8 @@ export default function ExportPage({
     } = useClientPagination(preview, 1, 10);
     const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string } | null>(null);
     const [exportDrawerOpen, setExportDrawerOpen] = useState(false);
-    const desktopDropdownRef = useRef<HTMLDivElement>(null);
-    const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
     const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
     const isSmOrLarger = useMediaQuery("(min-width: 640px)");
-    const [prevIsSmOrLarger, setPrevIsSmOrLarger] = useState(isSmOrLarger);
-
-    // Seamlessly transition open export menu between mobile Bottom Drawer and tablet/desktop Dropdown upon viewport stretch/shrink
-    if (prevIsSmOrLarger !== isSmOrLarger) {
-        setPrevIsSmOrLarger(isSmOrLarger);
-        if (isSmOrLarger) {
-            if (exportDrawerOpen) {
-                setExportDrawerOpen(false);
-                setDesktopDropdownOpen(true);
-            }
-        } else {
-            if (desktopDropdownOpen) {
-                setDesktopDropdownOpen(false);
-                setExportDrawerOpen(true);
-            }
-        }
-    }
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (desktopDropdownRef.current && !desktopDropdownRef.current.contains(e.target as Node)) {
-                setDesktopDropdownOpen(false);
-            }
-        };
-        if (desktopDropdownOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [desktopDropdownOpen]);
 
     const months = useMemo(() => INDONESIAN_MONTHS.map((label, idx) => ({ value: idx + 1, label })), []);
 
@@ -204,27 +175,19 @@ export default function ExportPage({
     // ── Header Actions (Mobile buttons trigger Filter & Export Bottom Drawers) ──
     const headerActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Laporan"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Laporan"
-                aria-label="Filter Laporan"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
-            <button
-                type="button"
+            />
+            <HeaderIconButton
+                variant="accent"
+                icon={<FiDownload className="text-[15px]" />}
+                label="Ekspor Laporan"
                 onClick={() => setExportDrawerOpen(true)}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-accent text-primary transition-all hover:brightness-95 active:scale-95 cursor-pointer shadow-xs"
-                aria-label="Ekspor Laporan"
-                title="Ekspor Laporan"
                 data-testid="btn-export-mobile"
-            >
-                <FiDownload className="text-[15px]" />
-            </button>
+            />
         </div>
     );
 
@@ -240,6 +203,7 @@ export default function ExportPage({
             hasTopTabs={true}
             showSearch={false}
             showNotificationBellOnMobile={false}
+            mainClassName="sm:overflow-hidden"
             headerActions={headerActions}
         >
             {/* Desktop PageHeader (hidden on mobile & tablet, only visible on lg+) */}
@@ -250,7 +214,7 @@ export default function ExportPage({
             />
 
             {/* ── TABLET & DESKTOP TOOLBAR (>= sm) ─────────────────────────── */}
-            <div className="hidden sm:flex flex-row items-center justify-between gap-3 mb-4 shrink-0 font-inter">
+            <ReportToolbar>
                 {/* Left: Period Segmented Control (Pill Tabs) */}
                 <div className="min-w-0 overflow-x-auto no-scrollbar">
                     <TabSwitcher
@@ -268,15 +232,10 @@ export default function ExportPage({
                         onClose={() => setIsDesktopFilterOpen(false)}
                         align="right"
                         trigger={
-                            <Button
-                                variant="accent"
-                                size="sm"
+                            <FilterTriggerButton
+                                active={Boolean(selectedClassId)}
                                 onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                icon={<FiFilter className="text-[13px]" />}
-                                className="h-10 px-4 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                            >
-                                Filter{selectedClassId ? " (Aktif)" : ""}
-                            </Button>
+                            />
                         }
                     >
                         <div className="flex flex-col gap-3 font-inter min-w-[230px]">
@@ -367,72 +326,9 @@ export default function ExportPage({
                         </div>
                     </FilterPopover>
 
-                    {/* Desktop & Tablet Export Dropdown Button (Aligned in toolbar row next to filters) */}
-                    <div className="hidden sm:block relative shrink-0" ref={desktopDropdownRef}>
-                        <Button
-                            variant="primary"
-                            onClick={() => setDesktopDropdownOpen((prev) => !prev)}
-                            className="h-10 px-4 font-bold text-[13px] shadow-xs rounded-xl shrink-0 flex items-center gap-2"
-                            icon={<FiDownload className="text-[14px]" />}
-                        >
-                            <span>Ekspor Laporan</span>
-                            <FiChevronDown
-                                className={`text-[14px] transition-transform duration-200 ${
-                                    desktopDropdownOpen ? "rotate-180" : ""
-                                }`}
-                            />
-                        </Button>
-
-                        <AnimatePresence>
-                            {desktopDropdownOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                                    transition={{ duration: 0.15, ease: "easeOut" }}
-                                    className="absolute right-0 mt-2 w-64 bg-surface rounded-xl border border-border shadow-dropdown p-1.5 z-50 flex flex-col gap-1 font-inter"
-                                >
-                                    <a
-                                        href={pdfHref}
-                                        onClick={() => setDesktopDropdownOpen(false)}
-                                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left"
-                                    >
-                                        <div className="w-9 h-9 rounded-lg bg-danger-bg text-danger flex items-center justify-center text-[15px] shrink-0 border border-danger/10 group-hover:scale-105 transition-transform">
-                                            <FiFileText className="text-[16px]" />
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[13px] font-bold text-text-primary group-hover:text-danger transition-colors">
-                                                Dokumen PDF
-                                            </p>
-                                            <p className="text-[11px] text-text-muted truncate">
-                                                Format cetak resmi (.pdf)
-                                            </p>
-                                        </div>
-                                    </a>
-
-                                    <a
-                                        href={excelHref}
-                                        onClick={() => setDesktopDropdownOpen(false)}
-                                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left"
-                                    >
-                                        <div className="w-9 h-9 rounded-lg bg-success-bg text-success flex items-center justify-center text-[15px] shrink-0 border border-success/10 group-hover:scale-105 transition-transform">
-                                            <FiGrid className="text-[16px]" />
-                                        </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[13px] font-bold text-text-primary group-hover:text-success transition-colors">
-                                                Spreadsheet Excel
-                                            </p>
-                                            <p className="text-[11px] text-text-muted truncate">
-                                                Format olah data (.xlsx)
-                                            </p>
-                                        </div>
-                                    </a>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                    <ReportExportMenu pdfHref={pdfHref} excelHref={excelHref} />
                 </div>
-            </div>
+            </ReportToolbar>
 
             {/* ── MOBILE NATIVE CARD STACK (< sm) (Figma Mockup Style) ─────────── */}
             <div className="sm:hidden flex flex-col font-inter">
@@ -516,8 +412,8 @@ export default function ExportPage({
                                                         url: r.photo_url!,
                                                         title:
                                                             r.photo_type === "selfie"
-                                                                ? `Foto Selfie - ${r.name}`
-                                                                : `Bukti Surat - ${r.name}`,
+                                                                ? t("reports.photoSelfieTitle", { name: r.name })
+                                                                : t("reports.photoProofTitle", { name: r.name }),
                                                     })
                                                 }
                                                 className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/25 bg-primary/5 text-primary text-[11px] font-bold hover:bg-primary/10 active:scale-95 transition-all cursor-pointer"
@@ -525,12 +421,16 @@ export default function ExportPage({
                                                 {r.photo_type === "selfie" ? (
                                                     <>
                                                         <FiCamera className="text-[11px]" />
-                                                        <span>Foto</span>
+                                                        <span>
+                                                            {r.photo_type === "selfie"
+                                                                ? t("reports.btnViewSelfie")
+                                                                : t("reports.btnViewProof")}
+                                                        </span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <FiPaperclip className="text-[11px]" />
-                                                        <span>Surat</span>
+                                                        <span>{t("reports.btnViewProof")}</span>
                                                     </>
                                                 )}
                                             </button>
@@ -576,7 +476,7 @@ export default function ExportPage({
             </div>
 
             {/* ── TABLET & DESKTOP TABLE VIEW (>= sm) ───────────────────────── */}
-            <div className="hidden sm:flex w-full flex-1 min-h-0 flex-col justify-between gap-3 font-inter">
+            <TableSection desktopOnly className="w-full font-inter">
                 {selectedPeriod === "harian" ? (
                     <Table<ExportRow>
                         columns={[
@@ -646,11 +546,11 @@ export default function ExportPage({
                             },
                             {
                                 key: "bukti",
-                                header: "Foto / Lampiran",
+                                header: t("reports.headerPhoto"),
                                 className: "w-36 text-center",
                                 render: (r: ExportRow) => {
                                     if (r.photo_url) {
-                                        const isSelfie = r.photo_type === "selfie";
+                                                        const isSelfie = r.photo_type === "selfie";
                                         return (
                                             <Button
                                                 variant="ghost"
@@ -659,8 +559,8 @@ export default function ExportPage({
                                                     setPreviewPhoto({
                                                         url: r.photo_url!,
                                                         title: isSelfie
-                                                            ? `Foto Selfie - ${r.name}`
-                                                            : `Bukti Surat - ${r.name}`,
+                                                            ? t("reports.photoSelfieTitle", { name: r.name })
+                                                            : t("reports.photoProofTitle", { name: r.name }),
                                                     })
                                                 }
                                                 className="text-[12px] font-bold text-primary hover:bg-primary-light h-8 px-3 rounded-lg inline-flex items-center gap-1.5"
@@ -672,7 +572,7 @@ export default function ExportPage({
                                                     )
                                                 }
                                             >
-                                                {isSelfie ? "Foto Selfie" : "Foto Bukti"}
+                                                {isSelfie ? t("reports.btnViewSelfie") : t("reports.btnViewProof")}
                                             </Button>
                                         );
                                     }
@@ -682,7 +582,7 @@ export default function ExportPage({
                         ]}
                         data={paginatedPreview}
                         keyExtractor={(r: ExportRow) => r.no}
-                        containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                        fill
                     />
                 ) : (
                     <Table<ExportRow>
@@ -774,7 +674,7 @@ export default function ExportPage({
                         ]}
                         data={paginatedPreview}
                         keyExtractor={(r: ExportRow) => r.no}
-                        containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                        fill
                     />
                 )}
 
@@ -787,7 +687,7 @@ export default function ExportPage({
                     perPage={pageSize}
                     onPageChange={setCurrentPage}
                 />
-            </div>
+            </TableSection>
 
             {/* Mobile Bottom Drawer for Export Options (Only rendered on mobile < sm) */}
             {!isSmOrLarger && (
@@ -853,7 +753,7 @@ export default function ExportPage({
                 open={Boolean(previewPhoto)}
                 onClose={() => setPreviewPhoto(null)}
                 url={previewPhoto?.url ?? null}
-                title={previewPhoto?.title || "Bukti Presensi"}
+                title={previewPhoto?.title || t("reports.headerPhoto")}
             />
 
             {/* 📱 MOBILE FILTER BOTTOM SHEET */}

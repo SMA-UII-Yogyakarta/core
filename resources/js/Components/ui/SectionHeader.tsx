@@ -19,7 +19,7 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
     return (
         <div
-            className={`flex flex-row items-center justify-between gap-3 font-inter ${
+            className={`flex min-w-0 flex-col items-stretch justify-between gap-3 font-inter sm:flex-row sm:items-center ${
                 divider ? "pb-4 mb-5 border-b border-border" : ""
             } ${className}`.trimEnd()}
         >
@@ -30,7 +30,7 @@ export default function SectionHeader({
                 </h2>
                 {description && <p className="text-[12px] text-text-muted mt-0.5 leading-normal">{description}</p>}
             </div>
-            {action && <div className="shrink-0">{action}</div>}
+            {action && <div className="max-w-full shrink-0">{action}</div>}
         </div>
     );
 }

@@ -2,6 +2,7 @@ import { router, useForm } from "@inertiajs/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FiCalendar, FiCheck, FiClock, FiFilter, FiPlus, FiTrash2 } from "react-icons/fi";
 import {
+    ActionButton,
     BottomSheet,
     Button,
     Card,
@@ -9,12 +10,16 @@ import {
     Drawer,
     EmptyState,
     FilterPopover,
+    FilterPopoverPanel,
+    FilterTriggerButton,
+    HeaderIconButton,
     Input,
     MobileNativePagination,
     NativeSelect,
     PageHeader,
     Table,
     TableFooter,
+    TableSection,
     TabSwitcher,
     Toggle,
 } from "@/Components";
@@ -404,29 +409,30 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
     // ── Header Actions (Only shown on Libur Akademik Tab on Mobile) ───────────
     const hasActiveFilters = Boolean(filters.month) || Boolean(filters.year && filters.year !== String(currentYear));
 
+    const resetHolidayFilters = () => {
+        router.get(
+            "/operational-settings",
+            { tab: "holiday", year: String(currentYear), month: "" },
+            { preserveState: true },
+        );
+        setIsDesktopFilterOpen(false);
+    };
+
     const mobileHeaderActions =
         activeSettingTab === "holiday" ? (
             <div className="flex items-center gap-2 sm:hidden font-inter">
-                <button
-                    type="button"
+                <HeaderIconButton
+                    icon={<FiFilter className="text-[14px]" />}
+                    active={hasActiveFilters}
+                    label="Filter Libur Akademik"
                     onClick={() => setIsMobileFilterOpen(true)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                        hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                    }`}
-                    title="Filter Libur Akademik"
-                    aria-label="Filter Libur Akademik"
-                >
-                    <FiFilter className="text-[14px]" />
-                </button>
-                <button
-                    type="button"
+                />
+                <HeaderIconButton
+                    variant="accent"
+                    icon={<FiPlus className="text-[15px]" />}
+                    label="Tambah Libur"
                     onClick={handleOpenAddDrawer}
-                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs"
-                    title="Tambah Libur"
-                    aria-label="Tambah Libur"
-                >
-                    <FiPlus className="text-[15px]" />
-                </button>
+                />
             </div>
         ) : undefined;
 
@@ -489,87 +495,66 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                             onClose={() => setIsDesktopFilterOpen(false)}
                             align="right"
                             trigger={
-                                <Button
-                                    variant="accent"
-                                    size="sm"
+                                <FilterTriggerButton
+                                    active={Boolean(filters.month || (filters.year && filters.year !== String(currentYear)))}
                                     onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                    icon={<FiFilter className="text-[13px]" />}
-                                    className="h-10 px-4 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                >
-                                    Filter
-                                    {filters.month || (filters.year && filters.year !== String(currentYear))
-                                        ? " (Aktif)"
-                                        : ""}
-                                </Button>
+                                />
                             }
                         >
-                            <div className="flex flex-col gap-3 font-inter min-w-[220px]">
-                                <div className="flex items-center justify-between border-b border-border pb-2">
-                                    <h4 className="text-[13.5px] font-bold text-text-primary">Filter Libur Akademik</h4>
-                                    {(Boolean(filters.month) ||
-                                        Boolean(filters.year && filters.year !== String(currentYear))) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
+                            <FilterPopoverPanel
+                                title="Filter Libur Akademik"
+                                hasActiveFilters={Boolean(
+                                    filters.month || (filters.year && filters.year !== String(currentYear)),
+                                )}
+                                onReset={() => {
+                                    resetHolidayFilters();
+                                }}
+                            >
+                                <div className="flex min-w-0 flex-col gap-3">
+                                    <div className="flex min-w-0 flex-col gap-1">
+                                        <label className="text-[12px] font-bold text-text-secondary">Bulan Libur</label>
+                                        <NativeSelect
+                                            value={filters.month ?? ""}
+                                            onChange={(e) =>
                                                 router.get(
                                                     "/operational-settings",
-                                                    { tab: "holiday", year: String(currentYear), month: "" },
+                                                    { tab: "holiday", year: filters.year, month: e.target.value },
                                                     { preserveState: true },
-                                                );
-                                                setIsDesktopFilterOpen(false);
-                                            }}
-                                            className="text-[11.5px] font-semibold text-danger hover:underline cursor-pointer"
+                                                )
+                                            }
+                                            className="h-10 w-full text-[13px]"
                                         >
-                                            Reset Filter
-                                        </button>
-                                    )}
-                                </div>
+                                            <option value="">Semua Bulan</option>
+                                            {months.map((m) => (
+                                                <option key={m.value} value={m.value}>
+                                                    {m.label}
+                                                </option>
+                                            ))}
+                                        </NativeSelect>
+                                    </div>
 
-                                <div>
-                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">
-                                        Bulan Libur
-                                    </label>
-                                    <NativeSelect
-                                        value={filters.month ?? ""}
-                                        onChange={(e) =>
-                                            router.get(
-                                                "/operational-settings",
-                                                { tab: "holiday", year: filters.year, month: e.target.value },
-                                                { preserveState: true },
-                                            )
-                                        }
-                                        className="h-9 text-[12.5px] rounded-xl w-full"
-                                    >
-                                        <option value="">Semua Bulan</option>
-                                        {months.map((m) => (
-                                            <option key={m.value} value={m.value}>
-                                                {m.label}
-                                            </option>
-                                        ))}
-                                    </NativeSelect>
+                                    <div className="flex min-w-0 flex-col gap-1">
+                                        <label className="text-[12px] font-bold text-text-secondary">
+                                            Tahun Akademik
+                                        </label>
+                                        <NativeSelect
+                                            value={filters.year ?? String(currentYear)}
+                                            onChange={(e) =>
+                                                router.get(
+                                                    "/operational-settings",
+                                                    { tab: "holiday", year: e.target.value, month: filters.month },
+                                                    { preserveState: true },
+                                                )
+                                            }
+                                            className="h-10 w-full text-[13px]"
+                                        >
+                                            <option value={String(currentYear - 1)}>{currentYear - 1}</option>
+                                            <option value={String(currentYear)}>{currentYear}</option>
+                                            <option value={String(currentYear + 1)}>{currentYear + 1}</option>
+                                        </NativeSelect>
+                                    </div>
                                 </div>
-
-                                <div>
-                                    <label className="block text-[12px] font-bold text-text-secondary mb-1">
-                                        Tahun Akademik
-                                    </label>
-                                    <NativeSelect
-                                        value={filters.year ?? String(currentYear)}
-                                        onChange={(e) =>
-                                            router.get(
-                                                "/operational-settings",
-                                                { tab: "holiday", year: e.target.value, month: filters.month },
-                                                { preserveState: true },
-                                            )
-                                        }
-                                        className="h-9 text-[12.5px] rounded-xl w-full"
-                                    >
-                                        <option value={String(currentYear - 1)}>{currentYear - 1}</option>
-                                        <option value={String(currentYear)}>{currentYear}</option>
-                                        <option value={String(currentYear + 1)}>{currentYear + 1}</option>
-                                    </NativeSelect>
-                                </div>
-                            </div>
+                            </FilterPopoverPanel>
                         </FilterPopover>
                     )}
 
@@ -733,15 +718,15 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                                 <span className="truncate">{formatIndonesianDate(h.holiday_date)}</span>
                                             </div>
                                         </div>
-                                        <button
-                                            type="button"
+                                        <ActionButton
+                                            variant="delete"
+                                            label="Hapus hari libur"
+                                            icon={<FiTrash2 className="text-[13px]" />}
+                                            iconOnly
                                             onClick={() => handleDeleteHoliday(h.id, h.description ?? "Hari Libur")}
-                                            className="w-8 h-8 rounded-xl bg-danger-bg text-danger border border-danger/20 flex items-center justify-center hover:bg-danger hover:text-white transition-colors shrink-0 cursor-pointer"
                                             aria-label="Hapus hari libur"
                                             title="Hapus hari libur"
-                                        >
-                                            <FiTrash2 className="text-[13px]" />
-                                        </button>
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -770,15 +755,13 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
             </div>
 
             {/* ── TABLET & DESKTOP TAB 1: JAM OPERASIONAL (>= sm) ──────────── */}
-            <div
-                className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "time" ? "sm:flex" : "sm:hidden"} flex-col`}
-            >
+            <TableSection desktopOnly visible={activeSettingTab === "time"} className="w-full">
                 <Table
                     dense
                     columns={timeColumns}
                     data={daysOfWeek}
                     keyExtractor={(day) => day}
-                    containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                    fill
                 />
                 <TableFooter
                     info="7 Hari Operasional"
@@ -801,12 +784,10 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         )
                     }
                 />
-            </div>
+            </TableSection>
 
             {/* ── TABLET & DESKTOP TAB 2: LIBUR AKADEMIK (>= sm) ──────────── */}
-            <div
-                className={`w-full flex-1 min-h-0 hidden ${activeSettingTab === "holiday" ? "sm:flex" : "sm:hidden"} flex-col gap-3`}
-            >
+            <TableSection desktopOnly visible={activeSettingTab === "holiday"} className="w-full">
                 <div className="flex-1 min-h-0 flex flex-col justify-between gap-3">
                     {holidays.data.length === 0 ? (
                         <Card className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 text-center bg-surface border border-border shadow-card rounded-2xl">
@@ -841,21 +822,21 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                                     header: <div className="text-center w-full">Aksi</div>,
                                     className: "w-20 text-center",
                                     render: (h) => (
-                                        <button
+                                        <ActionButton
+                                            variant="delete"
+                                            label="Hapus hari libur"
+                                            icon={<FiTrash2 className="text-[14px]" />}
+                                            iconOnly
                                             onClick={() => handleDeleteHoliday(h.id, h.description ?? "Hari Libur")}
-                                            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
-                                            type="button"
                                             aria-label="Hapus hari libur"
                                             title="Hapus hari libur"
-                                        >
-                                            <FiTrash2 className="text-[14px]" />
-                                        </button>
+                                        />
                                     ),
                                 },
                             ]}
                             data={holidays.data}
                             keyExtractor={(h) => h.id}
-                            containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
+                            fill
                         />
                     )}
 
@@ -874,7 +855,7 @@ export default function HolidaySettings({ timeSettings, holidays, filters }: Atu
                         }
                     />
                 </div>
-            </div>
+            </TableSection>
 
             {/* ── UNIFIED ADD HOLIDAY DRAWER (Bottom Sheet on Mobile, Side Drawer on Tablet/Desktop) ── */}
             <Drawer

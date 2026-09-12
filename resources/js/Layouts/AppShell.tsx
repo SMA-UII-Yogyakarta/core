@@ -18,6 +18,8 @@ export interface AppShellProps {
     title?: string;
     onBack?: () => void;
     headerActions?: ReactNode;
+    /** Render page-specific header actions only on mobile, while preserving the tablet header search. */
+    headerActionsMobileOnly?: boolean;
     showBottomNav?: boolean;
     showSearch?: boolean;
     showNotificationBell?: boolean;
@@ -50,10 +52,11 @@ export default function AppShell({
     title,
     onBack,
     headerActions,
+    headerActionsMobileOnly = false,
     showBottomNav = true,
     showSearch = true,
     showNotificationBell,
-    showNotificationBellOnMobile = true,
+    showNotificationBellOnMobile = false,
     noMobileTopPadding = false,
     hasTopTabs = false,
     hasTopCard = false,
@@ -205,7 +208,13 @@ export default function AppShell({
                             userInitial={userInitial}
                             userAvatar={userAvatar}
                             unreadCount={pageProps.auth?.unreadCount ?? 0}
-                            headerActions={headerActions}
+                            headerActions={
+                                headerActionsMobileOnly ? (
+                                    <span className="sm:hidden">{headerActions}</span>
+                                ) : (
+                                    headerActions
+                                )
+                            }
                             showSearch={showSearch}
                             showNotificationBell={resolvedShowNotificationBell}
                             showNotificationBellOnMobile={showNotificationBellOnMobile}
@@ -219,7 +228,7 @@ export default function AppShell({
                         {/* Main Content Card Container */}
                         <div className="flex-1 flex flex-col min-w-0 bg-background rounded-t-2xl sm:rounded-none lg:rounded-tr-none lg:rounded-tl-2xl overflow-hidden">
                             <main
-                                className={`flex-1 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
+                                className={`flex-1 min-w-0 min-h-0 overflow-y-auto flex flex-col px-4 pb-4 sm:p-4 lg:px-6 lg:pt-6 lg:pb-2 ${
                                     mobileTopSpacing === "auto"
                                         ? ""
                                         : noMobileTopPadding || mobileTopSpacing === "none"

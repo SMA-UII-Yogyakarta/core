@@ -15,6 +15,7 @@ import type { LeaveRequest } from "@/types";
 import { formatIndonesianDate } from "@/utils/helpers";
 import Avatar from "./Avatar";
 import Button from "./Button";
+import StatusBadge from "./StatusBadge";
 
 export interface LeaveRequestItem {
     id: number;
@@ -176,12 +177,12 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
     if (resolvedVariant === "teacher") {
         return (
             <div
-                className={`p-4 sm:p-5 rounded-2xl bg-surface border transition-all duration-200 shadow-sm ${
+                className={`p-4 sm:p-5 rounded-2xl bg-surface border border-border transition-all duration-200 shadow-xs ${
                     isPendingState
-                        ? "border-border-default hover:border-brand-primary/40 hover:shadow-md"
+                        ? "hover:border-primary/40 hover:shadow-md"
                         : lr.approval_status === "Approved"
-                          ? "border-status-success/30 bg-status-success/5"
-                          : "border-status-danger/30 bg-status-danger/5"
+                          ? "border-success/30 bg-success/5"
+                          : "border-danger/30 bg-danger/5"
                 } ${className}`}
             >
                 {/* Card Header */}
@@ -214,7 +215,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                                     <span
                                         className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
                                             urgency.isOverdue
-                                                ? "bg-status-danger/10 text-status-danger border border-status-danger/20"
+                                                ? "bg-danger/10 text-danger border border-danger/20"
                                                 : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                                         }`}
                                     >
@@ -230,7 +231,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                     </div>
 
                     {/* Status or Quick Action for Desktop */}
-                    <div className="flex items-center gap-2 self-end sm:self-start">
+                    <div className="flex items-center gap-2 self-stretch sm:self-start justify-end flex-wrap">
                         {actionSlot ? (
                             actionSlot
                         ) : isPendingState ? (
@@ -268,15 +269,11 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <span
-                                    className={`px-3 py-1 rounded-full text-[12px] font-semibold ${
-                                        lr.approval_status === "Approved"
-                                            ? "bg-status-success/10 text-status-success border border-status-success/20"
-                                            : "bg-status-danger/10 text-status-danger border border-status-danger/20"
-                                    }`}
-                                >
-                                    {lr.approval_status === "Approved" ? "Disetujui" : "Ditolak"}
-                                </span>
+                                <StatusBadge
+                                    variant={lr.approval_status}
+                                    label={lr.approval_status === "Approved" ? "Disetujui" : "Ditolak"}
+                                    className="px-3 py-1"
+                                />
                                 {onRevert && (
                                     <Button
                                         variant="ghost"
@@ -304,7 +301,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                 </div>
 
                 {/* Dates & Range Info */}
-                <div className="mt-4 pt-3.5 border-t border-border-default flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[13px]">
+                <div className="mt-1 pt-3.5 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[13px]">
                     <div className="flex items-center gap-2 text-text-primary">
                         <FiCalendar className="text-text-muted shrink-0" size={15} />
                         <span>
@@ -328,9 +325,9 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
 
                 {/* Description & Document Preview */}
                 {(lr.description || lr.document_url || resolvedRejectionReason) && (
-                    <div className="mt-3.5 pt-3 border-t border-border-default space-y-2.5">
+                    <div className="mt-3.5 pt-3 border-t border-border space-y-2.5">
                         {lr.description && (
-                            <div className="text-[13px] text-text-secondary leading-relaxed bg-surface-hover/60 p-3 rounded-xl border border-border-default">
+                            <div className="text-[13px] text-text-secondary leading-relaxed bg-muted/60 p-3 rounded-xl border border-border">
                                 <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted block mb-1">
                                     Keterangan / Alasan Siswa:
                                 </span>
@@ -339,8 +336,8 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                         )}
 
                         {resolvedRejectionReason && (
-                            <div className="text-[13px] text-status-danger leading-relaxed bg-status-danger/5 p-3 rounded-xl border border-status-danger/20">
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-status-danger block mb-1">
+                            <div className="text-[13px] text-danger leading-relaxed bg-danger/5 p-3 rounded-xl border border-danger/20">
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-danger block mb-1">
                                     Catatan Penolakan:
                                 </span>
                                 {resolvedRejectionReason}
@@ -355,7 +352,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                                         if (previewHandler) previewHandler(lr.document_url!);
                                         else window.open(lr.document_url!, "_blank");
                                     }}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-hover hover:bg-border-default text-brand-primary text-[12px] font-medium border border-border-default transition-colors"
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted hover:bg-border text-primary text-[12px] font-medium border border-border transition-colors"
                                 >
                                     <FiImage size={14} />
                                     Lihat Lampiran {docLabel}
@@ -371,7 +368,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
     // --- Admin Layout (Side-Thumbnail based) ---
     return (
         <div
-            className={`bg-surface border border-border rounded-2xl p-5 sm:p-6 overflow-hidden shadow-xs relative border-l-[6px] ${borderClass} font-inter flex flex-col sm:flex-row gap-5 items-start mb-5 transition-all hover:border-primary/30 ${className}`}
+            className={`bg-surface border border-border rounded-2xl p-5 sm:p-6 overflow-hidden shadow-xs relative border-l-[6px] ${borderClass} font-inter flex flex-col sm:flex-row gap-5 items-start transition-all hover:border-primary/30 ${className}`}
         >
             {/* Left Thumbnail (130px Aspect Ratio with 🔍 Perbesar) */}
             <div className="w-full sm:w-[130px] shrink-0">
@@ -419,7 +416,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                                 <span
                                     className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
                                         urgency.isOverdue
-                                            ? "bg-status-danger/10 text-status-danger border border-status-danger/20"
+                                            ? "bg-danger/10 text-danger border border-danger/20"
                                             : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                                     }`}
                                 >
@@ -455,7 +452,7 @@ export function LeaveRequestCard<T extends LeaveRequestItem = any>(props: LeaveR
                             </span>
                         </div>
                         {resolvedRejectionReason && (
-                            <div className="pt-1.5 border-t border-border/50 text-[12px] text-status-danger font-medium">
+                            <div className="pt-1.5 border-t border-border/50 text-[12px] text-danger font-medium">
                                 <span className="font-semibold mr-1">Catatan Penolakan:</span>
                                 {resolvedRejectionReason}
                             </div>

@@ -97,7 +97,10 @@ export default function DrawerHeaderActions({
         if (isHeaderVariant) return null;
         return (
             <div className="flex items-center gap-1 sm:gap-1.5 font-inter">
-                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                <span
+                    className="inline-flex h-8 items-center px-2.5 rounded-lg text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20"
+                    data-testid="drawer-mode-badge"
+                >
                     Mode Tambah
                 </span>
             </div>
@@ -119,7 +122,7 @@ export default function DrawerHeaderActions({
                                           ? "bg-white/25 border-white/40 text-white shadow-xs"
                                           : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
                                   }`
-                                : `h-7.5 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
+                                : `h-8 px-2 rounded-lg border text-[11.5px] font-medium transition-colors flex items-center gap-1 cursor-pointer ${
                                       menuOpen
                                           ? "bg-muted border-primary text-primary"
                                           : "border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-muted"
@@ -193,7 +196,7 @@ export default function DrawerHeaderActions({
                                           ? "bg-amber-400/20 text-amber-200 border-amber-300/40 hover:bg-amber-400/30"
                                           : "bg-white/10 border-white/20 text-white/95 hover:bg-white/20 hover:text-white"
                                   }`
-                                : `h-7.5 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
+                                : `h-8 px-2.5 rounded-lg border text-[11.5px] font-semibold transition-all flex items-center gap-1 cursor-pointer ${
                                       isUnlocked
                                           ? "bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20"
                                           : "bg-surface border-border text-text-secondary hover:text-primary hover:bg-muted"
@@ -226,9 +229,10 @@ export default function DrawerHeaderActions({
                         className={
                             isHeaderVariant
                                 ? "w-8 h-8 rounded-xl border border-white/20 bg-white/10 text-white/90 hover:bg-danger hover:border-danger hover:text-white transition-all flex items-center justify-center cursor-pointer shrink-0 backdrop-blur-xs"
-                                : "h-7.5 px-2.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 text-[11.5px] font-semibold"
+                                : "h-8 px-2.5 rounded-lg border border-danger/20 bg-danger-bg text-danger hover:bg-danger/20 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 text-[11.5px] font-semibold"
                         }
                         aria-label="Hapus data"
+                        data-testid="drawer-delete-btn"
                     >
                         <FiTrash2 className="w-3.5 h-3.5" />
                         {!isHeaderVariant && <span>Hapus</span>}

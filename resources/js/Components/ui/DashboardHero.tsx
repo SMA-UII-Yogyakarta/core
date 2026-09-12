@@ -90,7 +90,7 @@ export default function DashboardHero({
                                 {displaySubtitle}
                             </p>
                         )}
-                        <h2 className="text-white text-[18px] sm:text-[24px] font-bold leading-tight truncate">
+                        <h2 className="break-words text-white text-[18px] font-bold leading-tight sm:truncate sm:text-[24px]">
                             {title}
                         </h2>
                         {description && (

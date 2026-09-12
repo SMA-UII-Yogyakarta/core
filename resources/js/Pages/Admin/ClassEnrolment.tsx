@@ -22,6 +22,8 @@ import {
     Drawer,
     EmptyState,
     FilterPopover,
+    FilterTriggerButton,
+    HeaderIconButton,
     MobileFilterSelectBar,
     MobileNativePagination,
     NativeSelect,
@@ -30,6 +32,7 @@ import {
     SearchBar,
     Table,
     TableFooter,
+    TableSection,
 } from "@/Components";
 import MobileSelectionBar from "@/Components/common/MobileSelectionBar";
 import type { Column } from "@/Components/ui/Table";
@@ -418,9 +421,9 @@ export default function EnrolmentKelas({
             className: "w-20 text-center",
             render: (s) => (
                 <button
+                    type="button"
                     onClick={() => handleRemove(s.id)}
                     className="inline-flex items-center justify-center w-8 h-8 rounded-md text-danger hover:text-danger/90 hover:bg-danger-bg active:bg-danger-light border border-transparent hover:border-danger-light transition-colors cursor-pointer"
-                    type="button"
                     title="Keluarkan dari kelas"
                     aria-label="Keluarkan siswa"
                 >
@@ -485,27 +488,19 @@ export default function EnrolmentKelas({
     const mobileHeaderActions =
         selectedClass && !isMobileAddView ? (
             <div className="flex items-center gap-2 sm:hidden font-inter">
-                <button
-                    type="button"
+                <HeaderIconButton
+                    icon={<FiFilter className="text-[14px]" />}
+                    active={hasActiveFilters}
+                    label="Filter & Urutkan"
                     onClick={() => setIsMobileFilterOpen(true)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                        hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                    }`}
-                    title="Filter & Urutkan"
-                    aria-label="Filter & Urutkan"
-                >
-                    <FiFilter className="text-[14px]" />
-                </button>
-                <button
-                    type="button"
+                />
+                <HeaderIconButton
+                    variant="accent"
+                    icon={<FiPlus className="text-[15px]" />}
+                    label="Tambah Siswa"
                     onClick={handleOpenAddStudent}
                     disabled={unassignedStudents.length === 0}
-                    className="w-8 h-8 rounded-full bg-accent text-primary flex items-center justify-center hover:brightness-95 active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                    title="Tambah Siswa"
-                    aria-label="Tambah Siswa"
-                >
-                    <FiPlus className="text-[15px]" />
-                </button>
+                />
             </div>
         ) : undefined;
 
@@ -707,15 +702,10 @@ export default function EnrolmentKelas({
                                             onClose={() => setIsDesktopFilterOpen(false)}
                                             align="right"
                                             trigger={
-                                                <Button
-                                                    variant="accent"
-                                                    size="md"
+                                                <FilterTriggerButton
+                                                    active={hasActiveFilters}
                                                     onClick={() => setIsDesktopFilterOpen((prev) => !prev)}
-                                                    icon={<FiFilter className="text-[13px]" />}
-                                                    className="h-10 px-3.5 text-[13px] font-bold rounded-xl shrink-0 whitespace-nowrap"
-                                                >
-                                                    Filter{hasActiveFilters ? " (Aktif)" : ""}
-                                                </Button>
+                                                />
                                             }
                                         >
                                             <div className="flex flex-col gap-4 font-inter">
@@ -996,17 +986,17 @@ export default function EnrolmentKelas({
                                 </div>
 
                                 {/* Tablet & Desktop View (>= sm): Standard Table */}
-                                <div className="hidden sm:flex flex-1 min-h-0 flex-col justify-between gap-3">
+                                <TableSection desktopOnly>
                                     <Table
                                         columns={columns}
                                         data={paginatedStudents}
                                         keyExtractor={(s) => s.id}
-                                        containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
                                         emptyMessage={
                                             search
                                                 ? "Tidak ditemukan siswa yang cocok dengan pencarian."
                                                 : "Belum ada siswa di kelas ini."
                                         }
+                                        fill
                                     />
                                     <TableFooter
                                         itemLabel="siswa terdaftar"
@@ -1016,7 +1006,7 @@ export default function EnrolmentKelas({
                                         perPage={pageSize}
                                         onPageChange={setCurrentPage}
                                     />
-                                </div>
+                                </TableSection>
                             </div>
                         ) : (
                             <Card className="flex-1 min-h-0 flex flex-col items-center justify-center bg-surface border border-border rounded-xl p-8 sm:p-12 text-center shadow-card">
@@ -1109,7 +1099,6 @@ export default function EnrolmentKelas({
                                 columns={modalColumns}
                                 data={paginatedUnassigned}
                                 keyExtractor={(s) => s.id}
-                                containerClassName="flex-1 min-h-0 overflow-auto bg-surface"
                                 emptyMessage={
                                     modalSearch
                                         ? "Tidak ada siswa yang cocok dengan pencarian."

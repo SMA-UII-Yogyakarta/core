@@ -5,6 +5,7 @@ import {
     BottomSheet,
     Button,
     Card,
+    HeaderIconButton,
     Input,
     MobileNativePagination,
     PageHeader,
@@ -68,17 +69,12 @@ export default function DailyReport({
 
     const mobileHeaderActions = (
         <div className="flex items-center gap-2 sm:hidden font-inter">
-            <button
-                type="button"
+            <HeaderIconButton
+                icon={<FiFilter className="text-[14px]" />}
+                active={hasActiveFilters}
+                label="Filter Rekap Harian"
                 onClick={() => setIsMobileFilterOpen(true)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-xs ${
-                    hasActiveFilters ? "bg-primary text-white" : "bg-muted/60 text-text-primary hover:bg-muted"
-                }`}
-                title="Filter Rekap Harian"
-                aria-label="Filter Rekap Harian"
-            >
-                <FiFilter className="text-[14px]" />
-            </button>
+            />
         </div>
     );
 

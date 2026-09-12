@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 import Avatar from "@/Components/ui/Avatar";
 import Checkbox from "@/Components/ui/Checkbox";
+import ActionButton from "@/Components/ui/ActionButton";
 
 export interface MasterDataCardProps {
     isSelected: boolean;
@@ -87,25 +88,24 @@ export default function MasterDataCard({
             <div className="flex items-center justify-between pt-1 border-t border-border/60">
                 <span className="text-[10px] text-text-muted">{footerHint}</span>
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
+                    <ActionButton
+                        variant="edit"
+                        label="Edit"
+                        icon={<FiEdit2 className="text-[12.5px]" />}
                         onClick={onEdit}
-                        className="h-8 px-3 rounded-xl text-[12px] font-bold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                         aria-label={editAriaLabel}
-                    >
-                        <FiEdit2 className="text-[12.5px]" />
-                        <span>Edit</span>
-                    </button>
+                        className="h-8 px-3 rounded-xl text-[12px] shadow-2xs"
+                    />
                     {onDelete && (
-                        <button
-                            type="button"
+                        <ActionButton
+                            variant="delete"
+                            label={deleteAriaLabel}
+                            icon={<FiTrash2 className="text-[13px]" />}
+                            iconOnly
                             onClick={onDelete}
-                            className="h-8 w-8 rounded-xl text-danger bg-danger/10 hover:bg-danger/20 border border-danger/20 flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-2xs"
-                            aria-label={deleteAriaLabel}
                             title={deleteTitle || deleteAriaLabel}
-                        >
-                            <FiTrash2 className="text-[13px]" />
-                        </button>
+                            className="rounded-xl shadow-2xs"
+                        />
                     )}
                 </div>
             </div>
