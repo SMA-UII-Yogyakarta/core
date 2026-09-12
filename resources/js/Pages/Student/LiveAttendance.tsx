@@ -7,9 +7,10 @@ import { FaceLivenessOverlay } from "@/Components/student/FaceLivenessOverlay";
 import { LiveAttendanceMap } from "@/Components/student/LiveAttendanceMap";
 import Button from "@/Components/ui/Button";
 import { useFaceLiveness } from "@/hooks/useFaceLiveness";
+import { useLanguage } from "@/Contexts/LanguageContext";
 import AppShell from "@/Layouts/AppShell";
 import { attendanceCheckInSchema } from "@/schemas/attendanceCheckIn.schema";
-import { calculateDistance, formatDistance, isWithinSchoolGeofence, SMA_UII_LOCATION } from "@/utils/geoHelper";
+import { calculateDistance, formatDistance, isWithinSchoolGeofence } from "@/utils/geoHelper";
 import { compressImageFromVideo } from "@/utils/imageCompressor";
 import { validateForm } from "@/utils/zodHelper";
 
@@ -44,17 +45,44 @@ interface PageProps {
 type GpsStatus = "idle" | "acquiring" | "locked" | "error";
 
 export default function LiveAttendance({ todayAttendance, schoolLocation }: PageProps) {
-    const activeLocation = useMemo(() => {
-        return (
-            schoolLocation ?? {
-                name: SMA_UII_LOCATION.name,
-                address: SMA_UII_LOCATION.address,
-                latitude: SMA_UII_LOCATION.latitude,
-                longitude: SMA_UII_LOCATION.longitude,
-                radius_meters: SMA_UII_LOCATION.maxRadiusMeters,
-            }
-        );
-    }, [schoolLocation]);
+    if (!schoolLocation) {
+        return <MissingSchoolLocation />;
+    }
+
+    return <ConfiguredLiveAttendance todayAttendance={todayAttendance} schoolLocation={schoolLocation} />;
+}
+
+function MissingSchoolLocation() {
+    const { t } = useLanguage();
+
+    return (
+        <AppShell
+            title={t("attendance.title")}
+            onBack={() => router.get("/student/dashboard")}
+            showBottomNav={false}
+            showSearch={false}
+            showNotificationBellOnMobile={false}
+            mainClassName="h-full flex-1 overflow-auto p-3 sm:p-4 lg:px-6 lg:py-5"
+        >
+            <div className="mx-auto flex min-h-full max-w-2xl flex-col justify-center rounded-2xl border border-border bg-surface p-6 text-center shadow-card sm:p-10">
+                <PageHeader
+                    title={t("attendance.locationUnavailableTitle")}
+                    description={t("attendance.locationUnavailableDescription")}
+                    className="mb-0"
+                />
+            </div>
+        </AppShell>
+    );
+}
+
+function ConfiguredLiveAttendance({
+    todayAttendance,
+    schoolLocation,
+}: {
+    todayAttendance: TodayAttendance | null;
+    schoolLocation: SchoolLocation;
+}) {
+    const activeLocation = schoolLocation;
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

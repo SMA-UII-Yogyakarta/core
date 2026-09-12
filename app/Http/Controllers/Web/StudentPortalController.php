@@ -39,11 +39,7 @@ class StudentPortalController extends Controller
             'todayAttendance' => $todayAttendance ? [
                 'id' => $todayAttendance->id,
                 'status' => $todayAttendance->status,
-                'check_in_time' => $todayAttendance->check_in_time
-                    ? ($todayAttendance->check_in_time instanceof \Carbon\Carbon
-                        ? $todayAttendance->check_in_time->format('H:i')
-                        : (strlen((string) $todayAttendance->check_in_time) >= 5 ? substr((string) $todayAttendance->check_in_time, 0, 5) : (string) $todayAttendance->check_in_time))
-                    : null,
+                'check_in_time' => $todayAttendance->check_in_time->format('H:i'),
                 'attendance_date' => $todayAttendance->attendance_date->toDateString(),
             ] : null,
             'recentHistory' => $recentHistory->items(),
@@ -80,11 +76,7 @@ class StudentPortalController extends Controller
             'todayAttendance' => $todayAttendance ? [
                 'id' => $todayAttendance->id,
                 'status' => $todayAttendance->status,
-                'check_in_time' => $todayAttendance->check_in_time
-                    ? ($todayAttendance->check_in_time instanceof \Carbon\Carbon
-                        ? $todayAttendance->check_in_time->format('H:i')
-                        : (strlen((string) $todayAttendance->check_in_time) >= 5 ? substr((string) $todayAttendance->check_in_time, 0, 5) : (string) $todayAttendance->check_in_time))
-                    : null,
+                'check_in_time' => $todayAttendance->check_in_time->format('H:i'),
                 'attendance_date' => $todayAttendance->attendance_date->toDateString(),
             ] : null,
         ]);

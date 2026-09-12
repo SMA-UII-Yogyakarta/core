@@ -1,9 +1,14 @@
 import { router, usePage } from "@inertiajs/react";
 import type React from "react";
 import { createContext, useContext, useState } from "react";
-import { translations } from "@/utils/translations";
 
 type Language = "id" | "en";
+type TranslationDictionary = Record<string, string>;
+
+interface SharedLanguageProps {
+    locale?: string;
+    translations?: TranslationDictionary;
+}
 
 interface LanguageContextType {
     locale: Language;
@@ -30,8 +35,18 @@ const VALID_LOCALES: Language[] = ["id", "en"];
 const isValidLocale = (val: unknown): val is Language =>
     typeof val === "string" && (VALID_LOCALES as string[]).includes(val);
 
+const interpolate = (value: string, params?: Record<string, string | number>): string => {
+    if (!params) return value;
+
+    return Object.entries(params).reduce(
+        (translated, [key, replacement]) => translated.replace(new RegExp(`\\{${key}\\}`, "g"), String(replacement)),
+        value,
+    );
+};
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { locale: serverLocale } = usePage().props as { locale?: string };
+    const { locale: serverLocale, translations: serverTranslations = {} } = usePage()
+        .props as SharedLanguageProps;
 
     const getInitialLanguage = (): Language => {
         // Priority: server-side locale (most authoritative) > cookie > default
@@ -60,20 +75,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         // 3. Reload Inertia page so backend applies the new locale
         router.reload({
-            only: ["locale", "flash", "errors"],
+            only: ["locale", "translations", "flash", "errors"],
         });
     };
 
     // Translation function (supports nested key if needed, or simple direct key lookup)
     const t = (key: string, params?: Record<string, string | number>): string => {
-        const dict = translations[locale] || translations.id;
-        let value = dict[key] || key;
-        if (params) {
-            Object.entries(params).forEach(([k, v]) => {
-                value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-            });
-        }
-        return value;
+        return interpolate(serverTranslations[key] ?? key, params);
     };
 
     return <LanguageContext.Provider value={{ locale, setLanguage, t }}>{children}</LanguageContext.Provider>;
@@ -82,17 +90,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useLanguage = () => {
     const context = useContext(LanguageContext);
     if (!context) {
-        // Fallback gracefully to default Indonesian locale when rendered outside LanguageProvider (e.g. tests/Storybook)
-        const t = (key: string, params?: Record<string, string | number>): string => {
-            const dict = translations.id;
-            let value = dict[key] || key;
-            if (params) {
-                Object.entries(params).forEach(([k, v]) => {
-                    value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-                });
-            }
-            return value;
-        };
+        // Components rendered outside Inertia (tests/Storybook) must remain safe;
+        // production translations always come from shared Laravel props.
+        const t = (key: string, params?: Record<string, string | number>): string => interpolate(key, params);
         return {
             locale: "id" as Language,
             setLanguage: () => {},
