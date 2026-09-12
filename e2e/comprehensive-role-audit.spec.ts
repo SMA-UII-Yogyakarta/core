@@ -1,13 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-// Helper for authenticating a persona
-async function loginAs(page: Page, username: string, password = 'password') {
-    await page.goto('/login');
-    await page.fill('input[name="username"]', username);
-    await page.fill('input[name="password"]', password);
-    await page.getByRole('button', { name: /masuk/i }).click();
-    await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
-}
+import { expect, test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 // Helper to safely take fullpage screenshots
 async function captureScreenshot(page: Page, testName: string, projectName: string) {
@@ -179,9 +171,10 @@ test.describe('SMART Absen — Multi-Role & UI/UX Consistency Audit', () => {
 
             await expect(page.locator('body')).toContainText(/Pengajuan Izin|Form|Surat/i);
 
-            // Form inputs check
-            const formOrInputs = page.locator('form, input, select, textarea');
-            await expect(formOrInputs.first()).toBeVisible();
+            // Form inputs live behind the drawer/mobile form page until opened
+            const openForm = page.getByRole('button', { name: /Ajukan Izin/i }).filter({ visible: true }).first();
+            await openForm.click();
+            await expect(page.locator('input:visible, select:visible, textarea:visible').first()).toBeVisible();
 
             await captureScreenshot(page, 'guardian-02-leave-application', testInfo.project.name);
         });

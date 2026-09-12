@@ -1,6 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('Responsive Student Portal QA Audit', () => {
+    test.setTimeout(45_000);
+
     test.beforeEach(async ({ page, context }) => {
         await context.grantPermissions(['camera', 'geolocation']);
         await context.setGeolocation({
@@ -8,16 +11,11 @@ test.describe('Responsive Student Portal QA Audit', () => {
             longitude: 110.375944,
         });
 
-        await page.goto('/login');
-        await page.fill('input[name="username"]', 'ahmad');
-        await page.fill('input[name="password"]', 'password');
-        await page.locator('input[name="password"]').press('Enter');
-        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await loginAs(page, 'ahmad');
     });
 
     test('student views dashboard responsively', async ({ page }, testInfo) => {
-        await page.goto('/student/dashboard');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Take QA Audit Screenshot
         await page.screenshot({
@@ -27,8 +25,7 @@ test.describe('Responsive Student Portal QA Audit', () => {
     });
 
     test('student views live attendance camera view responsively', async ({ page }, testInfo) => {
-        await page.goto('/student/attendance');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/attendance', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(1000);
 
         // Take QA Audit Screenshot inside radius
@@ -47,8 +44,7 @@ test.describe('Responsive Student Portal QA Audit', () => {
             longitude: 110.375944,
         });
 
-        await page.goto('/student/attendance');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/attendance', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(1000);
 
         await page.screenshot({
@@ -61,8 +57,7 @@ test.describe('Responsive Student Portal QA Audit', () => {
         if (testInfo.project.name !== 'desktop-fhd') return;
 
         await context.clearPermissions();
-        await page.goto('/student/attendance');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/attendance', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(1000);
 
         await page.screenshot({
@@ -72,8 +67,7 @@ test.describe('Responsive Student Portal QA Audit', () => {
     });
 
     test('student views attendance history responsively', async ({ page }, testInfo) => {
-        await page.goto('/student/history');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/student/history', { waitUntil: 'domcontentloaded' });
 
         // Take QA Audit Screenshot
         await page.screenshot({

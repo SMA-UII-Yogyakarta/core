@@ -1,12 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('Admin Master Data E2E Comprehensive Test Suite', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login');
-        await page.fill('input[name="username"]', 'admin');
-        await page.fill('input[name="password"]', 'password');
-        await page.locator('input[name="password"]').press('Enter');
-        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 15000 });
+        await loginAs(page, 'admin');
     });
 
     test.describe('Mobile Viewport Navigation & Actions (< 640px)', () => {
@@ -37,16 +34,19 @@ test.describe('Admin Master Data E2E Comprehensive Test Suite', () => {
         test('Mobile Header Actions: Import and + Tambah buttons', async ({ page }) => {
             await page.goto('/master-data?tab=students');
 
-            // 2. Import CSV Action Button
+            // 2. Import CSV Action Button -> navigates to import page (mobile)
             const importButton = page.locator('header').getByRole('button', { name: /import/i }).first();
             await expect(importButton).toBeVisible();
             await importButton.click();
             await expect(page.getByText(/Import Data|Unggah Berkas/i).first()).toBeVisible();
-            // Close import modal
-            const closeModalBtn = page.getByRole('button', { name: /batal|tutup/i }).first();
-            if (await closeModalBtn.isVisible()) {
-                await closeModalBtn.click();
+            // Return to the master-data list
+            const backBtn = page.getByRole('button', { name: /kembali/i }).first();
+            if (await backBtn.isVisible()) {
+                await backBtn.click();
+            } else {
+                await page.goBack();
             }
+            await expect(page).toHaveURL(/\/master-data\?tab=students/);
 
             // 3. + Tambah Action Button
             const addButton = page.locator('header').getByRole('button', { name: /tambah/i }).first();
@@ -146,6 +146,42 @@ test.describe('Admin Master Data E2E Comprehensive Test Suite', () => {
             const guardianTab = page.locator('button').filter({ hasText: /Wali Murid/i }).first();
             await guardianTab.click({ force: true });
             await expect(page).toHaveURL(/tab=guardians/);
+        });
+
+        test('Teacher detail and edit preserve multiple assignments', async ({ page }) => {
+            await page.goto('/master-data?tab=teachers');
+
+            const teacherRow = page.locator('tr').filter({ hasText: 'TCH-015' }).first();
+            await expect(teacherRow).toBeVisible();
+            await teacherRow.getByRole('button', { name: /lihat \/ edit detail guru/i }).click();
+
+            await expect(page.getByTestId('teacher-role-duty')).toHaveAttribute('data-selected', 'true');
+            await expect(page.getByTestId('teacher-role-homeroom')).toHaveAttribute('data-selected', 'true');
+            await expect(page.getByTestId('drawer-close-btn')).toHaveCSS('height', '32px');
+            await expect(page.getByTestId('drawer-delete-btn')).toHaveCSS('height', '32px');
+
+            await page
+                .locator('div.fixed.inset-0.z-50')
+                .getByRole('button', { name: /buka kunci edit/i })
+                .click();
+            await expect(page.getByTestId('teacher-role-duty')).toHaveAttribute('data-selected', 'true');
+            await expect(page.getByTestId('teacher-role-homeroom')).toHaveAttribute('data-selected', 'true');
+        });
+
+        test('New teacher form starts with no assignment selected', async ({ page }) => {
+            await page.goto('/master-data/create?tab=teachers');
+
+            await expect(page.locator('[data-testid="teacher-role-duty"][data-selected="true"]')).toHaveCount(0);
+            await expect(page.locator('[data-testid="teacher-role-homeroom"][data-selected="true"]')).toHaveCount(0);
+
+            for (const control of [
+                page.locator('[data-testid="drawer-mode-badge"]'),
+                page.locator('[data-testid="drawer-close-btn"]'),
+            ]) {
+                for (const element of await control.all()) {
+                    await expect(element).toHaveCSS('height', '32px');
+                }
+            }
         });
     });
 });

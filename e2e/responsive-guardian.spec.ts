@@ -1,12 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { loginAs } from './helpers/auth';
 
 test.describe('Responsive Guardian Portal QA Audit', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/login');
-        await page.fill('input[name="username"]', 'wahyu');
-        await page.fill('input[name="password"]', 'password');
-        await page.locator('input[name="password"]').press('Enter');
-        await page.waitForURL((url) => url.pathname !== '/login', { timeout: 10000 });
+        await loginAs(page, 'wahyu');
     });
 
     test('guardian views dashboard responsively', async ({ page }, testInfo) => {
@@ -21,8 +18,7 @@ test.describe('Responsive Guardian Portal QA Audit', () => {
     });
 
     test('guardian views attendance history responsively', async ({ page }, testInfo) => {
-        await page.goto('/guardian/history');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/guardian/history', { waitUntil: 'domcontentloaded' });
 
         // Take QA Audit Screenshot
         await page.screenshot({
@@ -32,8 +28,7 @@ test.describe('Responsive Guardian Portal QA Audit', () => {
     });
 
     test('guardian views leave application form responsively', async ({ page }, testInfo) => {
-        await page.goto('/guardian/leave-application');
-        await page.waitForLoadState('networkidle');
+        await page.goto('/guardian/leave-application', { waitUntil: 'domcontentloaded' });
 
         // Take QA Audit Screenshot
         await page.screenshot({
